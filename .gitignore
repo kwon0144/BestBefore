@@ -39,3 +39,23 @@
 # typescript
 **/*.tsbuildinfo
 **/next-env.d.ts
+
+# Django
+**/db.sqlite3
+**/db.sqlite3-journal
+**/media/
+**/static/
+**/*.pyc
+**/__pycache__/
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+**/.env
+**/.venv
+**/venv/
+**/ENV/
+**/env/
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
