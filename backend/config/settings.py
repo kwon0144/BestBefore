@@ -25,10 +25,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-bo1g25!if3bu+tke5#e+6ie@g@$#3b%c=tl=#*91tll5pnl-rd')
+SECRET_KEY = 'django-insecure-bo1g25!if3bu+tke5#e+6ie@g@$#3b%c=tl=#*91tll5pnl-rd'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -42,11 +43,13 @@ INSTALLED_APPS = [
     "rest_framework",
     "api",
     "corsheaders",
+    "whitenoise.runserver_nostatic",
 ]
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -60,7 +63,9 @@ CORS SETTINGS
 """
 CORS_ALLOWED_ORIGINS = [
     # for development purposes:
-    "http://localhost:3001" 
+    "http://localhost:3000",
+    "http://localhost:443",
+    "http://3.107.143.147:443" 
 ]
 CORS_ALLOW_METHODS = (
     "GET",
@@ -78,7 +83,7 @@ CORS_ALLOW_HEADERS = (
 
 # API Key settings
 API_KEY_HEADER = 'X-API-Key'
-API_KEY = os.getenv('API_KEY', 'your-secret-api-key-here')
+API_KEY = 'your-secret-api-key-here'
 
 # Require CORS headers
 CORS_REQUIRE_HEADERS = True
@@ -160,3 +165,6 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# WhiteNoise configuration
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
