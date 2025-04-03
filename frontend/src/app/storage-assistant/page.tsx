@@ -8,8 +8,21 @@ interface CameraState {
   stream: MediaStream | null;
   photo: string | null;
   error: string | null;
-  isUploading: boolean;
-  uploadSuccess: boolean;
+  isAnalyzing: boolean;
+  detections: ProduceDetections | null;
+}
+
+interface ProduceDetections {
+  success: boolean;
+  detections: Array<{
+    class: string;
+    confidence: number;
+    bbox: number[];
+  }>;
+  produce_counts: {
+    [key: string]: number;
+  };
+  total_items: number;
 }
 
 const StorageAssistant: React.FC = () => {
@@ -19,8 +32,8 @@ const StorageAssistant: React.FC = () => {
     stream: null,
     photo: null,
     error: null,
-    isUploading: false,
-    uploadSuccess: false
+    isAnalyzing: false,
+    detections: null
   });
 
   // Check iOS security restrictions
@@ -48,7 +61,7 @@ const StorageAssistant: React.FC = () => {
         video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
-          facingMode: 'environment'
+          facingMode: 'environment' // Use back camera for better produce shots
         }
       });
 
@@ -81,9 +94,11 @@ const StorageAssistant: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const photoData = canvas.toDataURL('image/jpeg', 0.9);
       setState(prev => ({
         ...prev,
-        photo: canvas.toDataURL('image/jpeg', 0.9)
+        photo: photoData,
+        detections: null // Clear previous detections
       }));
     }
   };
@@ -95,36 +110,67 @@ const StorageAssistant: React.FC = () => {
       setState(prev => ({
         ...prev,
         stream: null,
-        photo: null
+        photo: null,
+        detections: null
       }));
     }
   };
 
-  // Upload captured photo
-  const uploadPhoto = async () => {
+  // Analyze photo for produce detection
+  const analyzePhoto = async () => {
     if (!state.photo) return;
 
-    setState(prev => ({ ...prev, isUploading: true }));
+    setState(prev => ({ ...prev, isAnalyzing: true, error: null }));
 
     try {
-      const blob = await fetch(state.photo).then(res => res.blob());
-      const formData = new FormData();
-      formData.append('photo', blob, 'photo.jpg');
-
-      await axios.post('/api/upload', formData);
+      // Call your Django API endpoint for produce detection
+      const response = await axios.post('http://localhost:8000/api/detect-produce/', {
+        image: state.photo
+      });
       
       setState(prev => ({
         ...prev,
-        uploadSuccess: true,
-        isUploading: false
+        detections: response.data as ProduceDetections,
+        isAnalyzing: false
       }));
     } catch (err) {
       setState(prev => ({
         ...prev,
-        error: `Upload failed: ${err instanceof Error ? err.message : String(err)}`,
-        isUploading: false
+        error: `Analysis failed: ${err instanceof Error ? err.message : String(err)}`,
+        isAnalyzing: false
       }));
     }
+  };
+
+  // Render produce detection results
+  const renderDetectionResults = () => {
+    if (!state.detections) return null;
+    
+    const { produce_counts, total_items } = state.detections;
+    
+    return (
+      <div className={styles.detectionResults}>
+        <h3>Detected Produce</h3>
+        
+        {total_items > 0 ? (
+          <>
+            <ul className={styles.produceList}>
+              {Object.entries(produce_counts).map(([produce, count]) => (
+                <li key={produce} className={styles.produceItem}>
+                  <span className={styles.produceName}>{produce}</span>
+                  <span className={styles.produceCount}>{count}</span>
+                </li>
+              ))}
+            </ul>
+            <div className={styles.totalItems}>
+              <strong>Total Items:</strong> {total_items}
+            </div>
+          </>
+        ) : (
+          <p>No produce items detected. Try taking another photo with clearer view of the items.</p>
+        )}
+      </div>
+    );
   };
 
   // Clean up camera stream on unmount
@@ -138,7 +184,7 @@ const StorageAssistant: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.header}>Camera Upload Assistant</h1>
+      <h1 className={styles.header}>Food Produce Scanner</h1>
       
       {/* Error message display */}
       {state.error && (
@@ -147,11 +193,6 @@ const StorageAssistant: React.FC = () => {
             <p key={i}>{line}</p>
           ))}
         </div>
-      )}
-      
-      {/* Success notification */}
-      {state.uploadSuccess && (
-        <div className={styles.success}>Photo uploaded successfully!</div>
       )}
 
       {/* Camera preview area */}
@@ -169,13 +210,16 @@ const StorageAssistant: React.FC = () => {
         )}
       </div>
 
+      {/* Hidden canvas for image capture */}
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
+
       {/* Camera control buttons */}
       <div className={styles.controls}>
         {!state.stream ? (
           <button
             onClick={startCamera}
             className={`${styles.button} ${styles.primaryButton}`}
-            disabled={state.isUploading}
+            disabled={state.isAnalyzing}
           >
             Start Camera
           </button>
@@ -184,12 +228,14 @@ const StorageAssistant: React.FC = () => {
             <button 
               onClick={takePhoto} 
               className={`${styles.button} ${styles.captureButton}`}
+              disabled={state.isAnalyzing}
             >
               Capture Photo
             </button>
             <button 
               onClick={stopCamera} 
               className={`${styles.button} ${styles.secondaryButton}`}
+              disabled={state.isAnalyzing}
             >
               Stop Camera
             </button>
@@ -197,7 +243,7 @@ const StorageAssistant: React.FC = () => {
         )}
       </div>
 
-      {/* Photo preview and upload section */}
+      {/* Photo preview and analysis section */}
       {state.photo && (
         <div className={styles.previewSection}>
           <h3>Photo Preview</h3>
@@ -206,13 +252,27 @@ const StorageAssistant: React.FC = () => {
             alt="Preview" 
             className={styles.previewImage} 
           />
-          <button
-            onClick={uploadPhoto}
-            className={`${styles.button} ${styles.uploadButton}`}
-            disabled={state.isUploading}
-          >
-            {state.isUploading ? 'Uploading...' : 'Upload Photo'}
-          </button>
+          
+          {/* Analysis controls */}
+          <div className={styles.analysisControls}>
+            {!state.detections && !state.isAnalyzing && (
+              <button
+                onClick={analyzePhoto}
+                className={`${styles.button} ${styles.analyzeButton}`}
+              >
+                Analyze Produce
+              </button>
+            )}
+            
+            {state.isAnalyzing && (
+              <div className={styles.analyzing}>
+                <p>Analyzing your produce...</p>
+                <div className={styles.spinner}></div>
+              </div>
+            )}
+            
+            {renderDetectionResults()}
+          </div>
         </div>
       )}
     </div>
