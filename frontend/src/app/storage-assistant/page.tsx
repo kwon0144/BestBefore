@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import styles from './StorageAssistant.module.css';
+import { config } from '@/config';
 
 interface CameraState {
   stream: MediaStream | null;
@@ -40,7 +41,7 @@ const StorageAssistant: React.FC = () => {
   const checkIOSRestriction = (): boolean => {
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isSecure = window.isSecureContext;
-    const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    const isLocalhost = ['localhost', '127.0.0.1', '3.107.143.147'].includes(window.location.hostname);
 
     if (isIOS && !isSecure && !isLocalhost) {
       setState(prev => ({
@@ -123,10 +124,11 @@ const StorageAssistant: React.FC = () => {
     setState(prev => ({ ...prev, isAnalyzing: true, error: null }));
 
     try {
-      // Call your Django API endpoint for produce detection
-      const response = await axios.post('http://localhost:8000/api/detect-produce/', {
+      // Call Django API endpoint for produce detection
+      const response = await axios.post(`${config.apiUrl}/api/detect-produce/`, {
         image: state.photo
       });
+
       
       setState(prev => ({
         ...prev,
