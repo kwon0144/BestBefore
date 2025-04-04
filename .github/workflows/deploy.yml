@@ -9,6 +9,16 @@ env:
   # Frontend Environment Variables
   NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
   NEXT_PUBLIC_API_KEY: ${{ secrets.NEXT_PUBLIC_API_KEY }}
+  # Backend Environment Variables
+  DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+  DJANGO_API_KEY: ${{ secrets.DJANGO_API_KEY }}
+  DJANGO_ALLOWED_ORIGIN: ${{ secrets.DJANGO_ALLOWED_ORIGIN }}
+  DB_NAME: ${{ secrets.DB_NAME }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  DB_HOST: ${{ secrets.DB_HOST }}
+  DB_PORT: ${{ secrets.DB_PORT }}
+  CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
   # AWS Environment Variables
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -87,5 +97,24 @@ jobs:
           echo "${{ env.EC2_KEY }}" > ec2-key.pem
           chmod 400 ec2-key.pem
           file ec2-key.pem
+          
+          # Create .env file
+          cat > .env << EOF
+          DOCKER_USERNAME=${{ env.DOCKER_USERNAME }}
+          DJANGO_SECRET_KEY=${{ env.DJANGO_SECRET_KEY }}
+          DJANGO_API_KEY=${{ env.DJANGO_API_KEY }}
+          DJANGO_ALLOWED_ORIGIN=${{ env.DJANGO_ALLOWED_ORIGIN }}
+          DB_NAME=${{ env.DB_NAME }}
+          DB_USER=${{ env.DB_USER }}
+          DB_PASSWORD=${{ env.DB_PASSWORD }}
+          DB_HOST=${{ env.DB_HOST }}
+          DB_PORT=${{ env.DB_PORT }}
+          CLAUDE_API_KEY=${{ env.CLAUDE_API_KEY }}
+          EOF
+          
+          # Transfer .env file to EC2
+          scp -o StrictHostKeyChecking=no -i ec2-key.pem .env ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/
+          
+          # Transfer and run deploy script
           scp -o StrictHostKeyChecking=no -i ec2-key.pem deploy.sh ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/
           ssh -o StrictHostKeyChecking=no -i ec2-key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'bash /home/${{ env.EC2_USER }}/deploy.sh'
