@@ -62,7 +62,6 @@ MIDDLEWARE = [
 CORS SETTINGS
 """
 CORS_ALLOWED_ORIGINS = [
-    # for development purposes:
     "http://localhost:3000",
     "http://localhost:443",
     "http://3.107.143.147:443" 
