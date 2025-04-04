@@ -11,7 +11,7 @@ import {
   Link,
 } from "@heroui/react";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 const menuItems = [
   { path: "/", label: "Home" },
