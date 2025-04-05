@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@googlemaps/markerclusterer": "^2.5.3",
     "@heroui/react": "^2.7.5",
+    "@vis.gl/react-google-maps": "^1.5.2",
     "axios": "^1.8.4",
     "framer-motion": "^12.6.2",
     "next": "15.2.4",

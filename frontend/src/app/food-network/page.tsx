@@ -1,7 +1,7 @@
-import React from "react";
+"use client";
 
-const FoodNetwork = () => {
-  return <div>FoodNetwork</div>;
-};
+import Map from "./Map/index";
 
-export default FoodNetwork;
+export default function FoodNetwork() {
+  return <Map />;
+}
