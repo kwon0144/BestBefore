@@ -48,7 +48,7 @@ export default function Markers({ points, setSelectedEnd }: Props) {
     setSelectedEnd(point);
     setSelectedKey(point.key);
     map?.panTo({ lat: point.lat, lng: point.lng });
-    map?.setZoom(12);
+    map?.setZoom(15);
   };
 
   return (

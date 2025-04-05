@@ -18,7 +18,7 @@ export default function CurrentLocationButton({ setSelectedStart }: CurrentLocat
                         lng: position.coords.longitude
                     });
                     map?.panTo({ lat: position.coords.latitude, lng: position.coords.longitude });
-                    map?.setZoom(12);
+                    map?.setZoom(15);
                 },
                 (error) => {
                     console.error("Error getting location:", error);

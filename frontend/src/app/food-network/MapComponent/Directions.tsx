@@ -23,6 +23,7 @@ export default function Directions({ routeStart, routeEnd }: DirectionsProps) {
         setDirectionsService(new routesLibrary.DirectionsService());
         setDirectionsRenderer(new routesLibrary.DirectionsRenderer({
             map,
+            suppressMarkers: true,
             polylineOptions: {
                 strokeColor: '#148526', // Green color
                 strokeWeight: 10

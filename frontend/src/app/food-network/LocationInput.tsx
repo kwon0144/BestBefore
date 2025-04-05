@@ -1,11 +1,12 @@
 import { useState, Dispatch, SetStateAction } from "react";
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
-
+import { useMap } from "@vis.gl/react-google-maps";
 interface LocationInputProps {
     setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
 }
 
 export default function LocationInput({ setSelectedStart }: LocationInputProps) {
+    const map = useMap();
     const {
         ready,
         value,
@@ -28,6 +29,8 @@ export default function LocationInput({ setSelectedStart }: LocationInputProps) 
         const results = await getGeocode({ address });
         const { lat, lng } = await getLatLng(results[0]);
         setSelectedStart({ lat, lng });
+        map?.panTo({ lat: lat, lng: lng });
+        map?.setZoom(15);
     };
 
     return (
