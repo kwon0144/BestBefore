@@ -2,10 +2,10 @@ import { useState, Dispatch, SetStateAction } from "react";
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
 
 interface LocationInputProps {
-    setSelected: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
+    setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
 }
 
-export default function LocationInput({ setSelected }: LocationInputProps) {
+export default function LocationInput({ setSelectedStart }: LocationInputProps) {
     const {
         ready,
         value,
@@ -27,7 +27,7 @@ export default function LocationInput({ setSelected }: LocationInputProps) {
         clearSuggestions();
         const results = await getGeocode({ address });
         const { lat, lng } = await getLatLng(results[0]);
-        setSelected({ lat, lng });
+        setSelectedStart({ lat, lng });
     };
 
     return (

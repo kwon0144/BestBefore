@@ -3,7 +3,12 @@ import { useMap } from "@vis.gl/react-google-maps";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { useEffect, useState } from "react";
 
-export default function Directions() {
+interface DirectionsProps {
+    routeStart: {lat: number, lng: number} | null
+    routeEnd: {lat: number, lng: number} | null
+}
+
+export default function Directions({ routeStart, routeEnd }: DirectionsProps) {
     const map = useMap();
     const routesLibrary = useMapsLibrary("routes")
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
@@ -26,10 +31,11 @@ export default function Directions() {
     }, [routesLibrary, map]);
 
     useEffect(() => {
-        if (!directionsService || !directionsRenderer) return;
+        if (!directionsService || !directionsRenderer || !routeStart || !routeEnd) return;
+        
         directionsService.route({
-            origin: { lat: -37.806427, lng: 144.986299 },
-            destination: { lat: -37.811648, lng: 145.000307 },
+            origin: { lat: routeStart.lat, lng: routeStart.lng },
+            destination: { lat: routeEnd.lat, lng: routeEnd.lng },
             travelMode: google.maps.TravelMode.WALKING,
             provideRouteAlternatives: true
         }, (result, status) => {
@@ -39,7 +45,7 @@ export default function Directions() {
         }).then((result) => {
             setRoutes(result.routes);
         });
-    }, [directionsService, directionsRenderer]);
+    }, [directionsService, directionsRenderer, routeStart, routeEnd]);
 
     useEffect(() => {
         if (!directionsRenderer) return;
