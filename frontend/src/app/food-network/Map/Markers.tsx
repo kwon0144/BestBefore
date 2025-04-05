@@ -41,15 +41,20 @@ export default function Markers({ points }: Props) {
     });
   };
 
+  const handleMarkerClick = (point: Point) => {
+    setSelectedPoint(point);
+  };
+
   return (
     <>
       {points.map((point) => (
         <AdvancedMarker
           position={point}
           key={point.key}
-          ref={(marker) => setMarkerRef(marker, point.key)}
-          onClick={() => setSelectedPoint(point)}
-          gmp-click={() => setSelectedPoint(point)}
+          ref={(marker) => {
+            setMarkerRef(marker, point.key);
+            marker?.addEventListener('gmp-click', () => handleMarkerClick(point));
+          }}
         >
           <Pin background="green" borderColor="white" glyphColor="white" />
         </AdvancedMarker>

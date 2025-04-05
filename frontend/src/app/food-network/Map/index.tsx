@@ -3,7 +3,7 @@
 import { APIProvider, Map } from "@vis.gl/react-google-maps";
 import Markers from "./Markers";
 import foodBanks from "@/data/foodBanks";
-
+import Directions from "./Directions";
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 const melbourne = { lat: -37.8136, lng: 144.9631 };
 
@@ -19,6 +19,7 @@ export default function MapComponent() {
           disableDefaultUI={false}
         >
           <Markers points={foodBanks} />
+          <Directions />
         </Map>
       </APIProvider>
     </div>
