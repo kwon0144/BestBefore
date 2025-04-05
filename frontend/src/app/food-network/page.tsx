@@ -4,6 +4,7 @@ import Map from "./Map/index";
 import { useLoadScript } from "@react-google-maps/api";
 import LocationInput from "./Map/LocationInput";
 import { useState } from "react";
+import CurrentLocationButton from "./Map/CurrentLocationButton";
 
 export default function FoodNetwork() {
   const [selectedStart, setSelectedStart] = useState<{lat: number, lng: number} | null>(null);
@@ -17,6 +18,7 @@ export default function FoodNetwork() {
   return (
     <>
       <LocationInput setSelected={setSelectedStart} />
+      <CurrentLocationButton setSelected={setSelectedStart} />
       <div>
         <Map selectedStart={selectedStart} />
       </div>
