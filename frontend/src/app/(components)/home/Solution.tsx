@@ -56,8 +56,8 @@ export default function Solution() {
     ];
 
     return (
-        <div className="bg-white py-20 px-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#2E5A4B] text-center mb-12">
+        <div className="bg-white py-24 px-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12">
                 Our Roadmap to Zero Kitchen Waste
             </h2>
             <div className="relative max-w-7xl mx-auto">
