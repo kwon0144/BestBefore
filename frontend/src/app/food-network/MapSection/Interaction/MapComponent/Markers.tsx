@@ -3,13 +3,13 @@
 import { useMap, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import type { Marker } from "@googlemaps/markerclusterer";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, SetStateAction, Dispatch } from "react";
 
 type Point = google.maps.LatLngLiteral & { key: string };
 
 interface Props { 
   points: Point[]
-  setSelectedEnd: (point: Point) => void
+  setSelectedEnd: Dispatch<SetStateAction<string | null>>
 }
 
 export default function Markers({ points, setSelectedEnd }: Props) {
@@ -45,7 +45,7 @@ export default function Markers({ points, setSelectedEnd }: Props) {
   };
 
   const handleMarkerClick = (point: Point) => {
-    setSelectedEnd(point);
+    setSelectedEnd(point.key);
     setSelectedKey(point.key);
     map?.panTo({ lat: point.lat, lng: point.lng });
     map?.setZoom(15);

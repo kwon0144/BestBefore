@@ -1,6 +1,7 @@
 import { Button } from '@heroui/react';
 import { Dispatch, SetStateAction } from 'react';
 import { useMap } from "@vis.gl/react-google-maps";
+import { Icon } from '@iconify/react';
 
 interface CurrentLocationButtonProps {
     setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
@@ -34,7 +35,7 @@ export default function CurrentLocationButton({ setSelectedStart }: CurrentLocat
             onPress={getCurrentLocation}
             color="primary"
         >
-            Use Current Location
+            <Icon icon="lucide:map-pin" className="text-xl" /> Use Current Location
         </Button>
     );
 }

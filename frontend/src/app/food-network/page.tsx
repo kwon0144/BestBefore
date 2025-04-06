@@ -1,21 +1,18 @@
 "use client";
 
-import MapComponent from "./MapComponent/index";
 import { useLoadScript } from "@react-google-maps/api";
 import { useState } from "react";
-import MapControl from "./MapControl/index";
 import { APIProvider } from "@vis.gl/react-google-maps";
+import Title from "../(components)/Title";
+import MapSection from "./MapSection";
+
 
 const GOOGLE_MAPS_LIBRARIES: ("places" | "routes")[] = ["places", "routes"];
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
 export default function FoodNetwork() {
   // For user input and display
-  const [selectedStart, setSelectedStart] = useState<{lat: number, lng: number} | null>(null);
-  const [selectedEnd, setSelectedEnd] = useState<{lat: number, lng: number} | null>(null);
-  // For submission to fetch route
-  const [routeStart, setRouteStart] = useState<{lat: number, lng: number} | null>(null);
-  const [routeEnd, setRouteEnd] = useState<{lat: number, lng: number} | null>(null);
+  const [selectedEnd, setSelectedEnd] = useState<string | null>(null);
   // For loading the map
   const {isLoaded} = useLoadScript({
     googleMapsApiKey: apiKey,
@@ -25,22 +22,11 @@ export default function FoodNetwork() {
   if (!isLoaded) return <div>Loading...</div>;
 
   return (
-    <>
-    <APIProvider apiKey={apiKey}>
-      <div className="absolute z-10 top-50 left-0 m-2 p-2 bg-white rounded-lg shadow-lg">
-        <MapControl 
-          setSelectedStart={setSelectedStart} 
-          setSelectedEnd={setSelectedEnd} 
-          setRouteStart={setRouteStart} 
-          setRouteEnd={setRouteEnd}
-          selectedStart={selectedStart}
-          selectedEnd={selectedEnd}
-        />
-      </div>
-      <div>
-        <MapComponent selectedStart={selectedStart} selectedEnd={selectedEnd} setSelectedEnd={setSelectedEnd} routeStart={routeStart} routeEnd={routeEnd} />
-      </div>
-    </APIProvider>
-    </>
+    <div className="min-h-screen max-w-7xl mx-auto py-30 px-10">
+      <Title heading="Food Network" description="Find the nearest food bank to you" />
+      <APIProvider apiKey={apiKey}>
+        <MapSection selectedEnd={selectedEnd} setSelectedEnd={setSelectedEnd} />
+      </APIProvider>
+    </div>
   );
 }

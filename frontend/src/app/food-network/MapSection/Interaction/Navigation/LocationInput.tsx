@@ -1,6 +1,7 @@
-import { useState, Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
 import { useMap } from "@vis.gl/react-google-maps";
+import { Input } from "@heroui/react";
 
 interface LocationInputProps {
     setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
@@ -8,6 +9,7 @@ interface LocationInputProps {
 
 export default function LocationInput({ setSelectedStart }: LocationInputProps) {
     const map = useMap();
+
     const {
         ready,
         value,
@@ -36,12 +38,12 @@ export default function LocationInput({ setSelectedStart }: LocationInputProps) 
 
     return (
         <div className="relative w-full max-w-md">
-            <input
+            {/* Autocomplete Location Input */}
+            <Input
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 disabled={!ready}
                 placeholder="Search"
-                className="w-full h-12 px-4 bg-gray-100 rounded-lg text-sm text-gray-900 focus:outline-none"
             />
             {status === "OK" && (
                 <div className="absolute w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
