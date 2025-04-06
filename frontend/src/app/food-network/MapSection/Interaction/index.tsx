@@ -48,6 +48,8 @@ export default function Interaction({
                 setShowRouteResult={setShowRouteResult}
                 setShowInformation={setShowInformation}
                 routeDetails={routeDetails}
+                setRouteStart={setRouteStart}
+                setRouteEnd={setRouteEnd}
             />
         </>
     )

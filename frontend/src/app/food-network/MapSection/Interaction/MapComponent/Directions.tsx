@@ -1,5 +1,4 @@
 import { useMap } from "@vis.gl/react-google-maps";
-
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
@@ -16,22 +15,41 @@ export default function Directions({ routeStart, routeEnd, setRouteDetails, trav
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
 
+    // Initialize directions service and renderer
     useEffect(() => {
         if (!routesLibrary || !map) return;
+        
         setDirectionsService(new routesLibrary.DirectionsService());
         setDirectionsRenderer(new routesLibrary.DirectionsRenderer({
             map,
             suppressMarkers: true,
             polylineOptions: {
-                strokeColor: '#148526', // Green color
+                strokeColor: '#148526',
                 strokeWeight: 10
             }
         }));
+
+        return () => {
+            if (directionsRenderer) {
+                directionsRenderer.setMap(null);
+            }
+        };
     }, [routesLibrary, map]);
 
+    // Handle route changes
     useEffect(() => {
-        if (!directionsService || !directionsRenderer || !routeStart || !routeEnd) return;
+        if (!directionsService || !directionsRenderer || !map) return;
 
+        if (!routeStart || !routeEnd) {
+            // Remove route from map
+            directionsRenderer.setMap(null);
+            return;
+        }
+
+        // Reattach renderer to map
+        directionsRenderer.setMap(map);
+
+        // Calculate and show new route
         directionsService.route({
             origin: { lat: routeStart.lat, lng: routeStart.lng },
             destination: { lat: routeEnd.lat, lng: routeEnd.lng },
@@ -49,12 +67,7 @@ export default function Directions({ routeStart, routeEnd, setRouteDetails, trav
                 }
             );
         });
-    }, [directionsService, directionsRenderer, routeStart, routeEnd, travellingMode]);
-
-    useEffect(() => {
-        if (!directionsRenderer) return;
-        directionsRenderer.setRouteIndex(0);
-    }, [directionsRenderer]);
+    }, [directionsService, directionsRenderer, routeStart, routeEnd, travellingMode, map]);
 
     return null;
 }

@@ -2,6 +2,7 @@ import { useFoodBankName } from "@/hooks/useFoodBank";
 import { useGeocoding } from "@/hooks/useGeocoding";
 import { Button } from "@heroui/react";
 import { Dispatch, SetStateAction } from "react";
+import { useMap } from "@vis.gl/react-google-maps";
 
 interface RouteResultProps {
     selectedEnd: string | null;
@@ -13,14 +14,34 @@ interface RouteResultProps {
     routeDetails: {
         duration: string;
         distance: string;
-    }
+    };
+    setRouteStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
+    setRouteEnd: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
 }
 
-export default function RouteResult({ selectedEnd, selectedStart, showRouteResult, setShowRouteResult, setShowInformation, routeDetails, setSelectedStart}: RouteResultProps) {
+export default function RouteResult({ 
+    selectedEnd, 
+    selectedStart, 
+    showRouteResult, 
+    setShowRouteResult, 
+    setShowInformation, 
+    routeDetails, 
+    setSelectedStart,
+    setRouteStart,
+    setRouteEnd
+}: RouteResultProps) {
+
+    const map = useMap();
 
     const handleClick = () => {
         setShowRouteResult(false);
         setShowInformation(true);
+        setRouteStart(null);
+        setRouteEnd(null);
+        if (map) {
+            map.setZoom(15);
+            map.setCenter({lat: -37.8136, lng: 144.9631});
+        }
     }
 
     const startAddress = useGeocoding(selectedStart);
