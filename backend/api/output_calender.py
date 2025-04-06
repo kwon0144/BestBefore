@@ -1,78 +1,154 @@
-from flask import Flask, request, jsonify, Response
-from datetime import datetime
+# api/output_calender.py
+from datetime import datetime, timedelta
 import uuid
-import socket
+import json
+from typing import List, Dict
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.db import models
 
-app = Flask(__name__)
-food_storage = []  # Temporary in-memory storage (data lost on server restart)
+class FoodItem(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    calendar_id = models.UUIDField()
+    name = models.CharField(max_length=100)
+    quantity = models.IntegerField(default=1)
+    expiry_date = models.DateField()
+    reminder_date = models.DateTimeField()
+    reminder_days = models.IntegerField(default=2)
+    reminder_time = models.CharField(max_length=5, default="20:00")
 
-def get_local_ip():
-    """Automatically get local network IP (e.g., 192.168.x.x)"""
-    try:
-        # Create a temporary socket connection to external address (no actual data sent)
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))  # Connect to Google DNS server
-        local_ip = s.getsockname()[0]
-        s.close()
-        return local_ip
-    except:
-        return "127.0.0.1"  # Fallback to localhost if fails
+    class Meta:
+        indexes = [
+            models.Index(fields=['calendar_id']), 
+        ]
 
-@app.route("/api/add_food", methods=["POST"])
-def add_food():
-    # Validate request data
-    data = request.json
-    if not data or "name" not in data or "expiry_date" not in data:
-        return jsonify({"error": "Missing name or expiry_date"}), 400
-
-    # Generate unique ID and store food data
-    food_id = str(uuid.uuid4())
-    food_storage.append({
-        "id": food_id,
-        "name": data["name"],
-        "expiry_date": data["expiry_date"]
-    })
-
-    # Generate calendar subscription URL with local IP
-    local_ip = get_local_ip()
-    calendar_url = f"http://{local_ip}:5000/api/calendar/{food_id}.ics"
-
-    return jsonify({
-        "status": "success",
-        "calendar_url": calendar_url  # Example: http://192.168.3.5:5000/api/calendar/xxx.ics
-    })
-
-@app.route("/api/calendar/<food_id>.ics")
-def generate_ical(food_id):
-    # Find food item by ID
-    food = next((item for item in food_storage if item["id"] == food_id), None)
-    if not food:
-        return jsonify({"error": "Food not found"}), 404
-
-    # Format expiry date for iCal
-    expiry_date = datetime.strptime(food["expiry_date"], "%Y-%m-%d").strftime("%Y%m%d")
+@csrf_exempt
+def generate_calendar(request):
+    if request.method != 'POST':
+        return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
     
-    # Generate iCal content
-    ical_content = f"""BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Food Waste App//EN
-BEGIN:VEVENT
-UID:{food_id}@foodwasteapp.com
-DTSTAMP:{datetime.now().strftime("%Y%m%dT%H%M%SZ")}
-DTSTART;VALUE=DATE:{expiry_date}
-DTEND;VALUE=DATE:{expiry_date}
-SUMMARY:{food['name']} (Expires!)
-DESCRIPTION:Your {food['name']} expires on {food['expiry_date']}.
-END:VEVENT
-END:VCALENDAR"""
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    
+    # 验证数据
+    if not data or "items" not in data:
+        return JsonResponse({"error": "Missing items"}, status=400)
+    
+    items: List[Dict] = data["items"]
+    default_reminder_days = data.get("reminder_days", 2)
+    default_reminder_time = data.get("reminder_time", "20:00")
+    calendar_id = uuid.uuid4()
+    
+    saved_items = []
+    for item in items:
+        if not item.get("name") or not item.get("expiry_date"):
+            continue
+            
+        try:
+            # 计算提醒日期
+            expiry_date = datetime.strptime(item["expiry_date"], "%Y-%m-%d").date()
+            hour, minute = map(int, (item.get("reminder_time") or default_reminder_time).split(":"))
+            reminder_days = item.get("reminder_days", default_reminder_days)
+            reminder_date = datetime.combine(
+                expiry_date - timedelta(days=reminder_days),
+                datetime.min.time().replace(hour=hour, minute=minute)
+            )
+            
+            # 存储到数据库
+            food_item = FoodItem.objects.create(
+                calendar_id=calendar_id,
+                name=item["name"],
+                quantity=item.get("quantity", 1),
+                expiry_date=expiry_date,
+                reminder_date=reminder_date,
+                reminder_days=reminder_days,
+                reminder_time=f"{hour:02d}:{minute:02d}"
+            )
+            
+            saved_items.append({
+                "name": food_item.name,
+                "quantity": food_item.quantity,
+                "expiry_date": food_item.expiry_date.isoformat(),
+                "reminder_days": food_item.reminder_days,
+                "reminder_time": food_item.reminder_time
+            })
+        except (ValueError, KeyError) as e:
+            continue
+    
+    if not saved_items:
+        return JsonResponse({"error": "No valid items provided"}, status=400)
+    
+    calendar_url = f"http://192.168.3.5:8000/api/calendar/{calendar_id}.ics"
+    
+    return JsonResponse({
+        "status": "success",
+        "calendar_url": calendar_url,
+        "calendar_id": str(calendar_id),
+        "items": saved_items
+    })
 
-    # Return iCal response
-    return Response(
-        ical_content,
-        mimetype="text/calendar",  # Important: Tells browser this is calendar data
-        headers={"Content-Disposition": "inline"}  # Prevents file download
-    )
+def generate_ical(request, calendar_id):
+    """生成iCalendar文件"""
+    try:
+        uuid.UUID(str(calendar_id)) 
+        items = FoodItem.objects.filter(calendar_id=calendar_id)
+        if not items.exists():
+            return JsonResponse({"error": "Calendar not found"}, status=404)
+        
+        ical_content = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//Food Waste App//EN",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH"
+        ]
+        
+        for item in items:
+            try:
+                expiry_str = item.expiry_date.strftime("%Y%m%d")
+                reminder_str = item.reminder_date.strftime("%Y%m%dT%H%M%SZ")
+                created_str = datetime.now().strftime("%Y%m%dT%H%M%SZ")
+                
+                ical_content.extend([
+                    f"BEGIN:VEVENT",
+                    f"UID:{item.id}@foodwasteapp.com",
+                    f"DTSTAMP:{created_str}",
+                    f"CREATED:{created_str}",
+                    f"DTSTART;VALUE=DATE:{expiry_str}",
+                    f"DTEND;VALUE=DATE:{expiry_str}",
+                    f"SUMMARY:{item.name} (Expires!)",
+                    f"DESCRIPTION:Your {item.name} (Qty: {item.quantity}) expires on {item.expiry_date}.",
+                    "BEGIN:VALARM",
+                    f"TRIGGER:-P{item.reminder_days}D",
+                    "ACTION:DISPLAY",
+                    f"DESCRIPTION:Reminder: {item.name} expires soon!",
+                    "END:VALARM",
+                    "END:VEVENT"
+                ])
+            except Exception:
+                continue
+        
+        ical_content.append("END:VCALENDAR")
+        
+        response = HttpResponse(
+            "\r\n".join(ical_content),
+            content_type="text/calendar",
+            headers={
+                "Content-Disposition": f'attachment; filename="food_calendar_{calendar_id}.ics"'
+            }
+        )
+        return response
+        
+    except ValueError:
+        return JsonResponse({"error": "Invalid calendar ID"}, status=400)
 
-if __name__ == "__main__":
-    # Run server accessible from local network
-    app.run(host='0.0.0.0', port=5000, debug=True)
+def list_calendars(request):
+    from django.core import serializers
+    calendars = FoodItem.objects.values('calendar_id').distinct()
+    return JsonResponse({
+        "status": "success",
+        "count": calendars.count(),
+        "calendars": list(calendars)
+    })
