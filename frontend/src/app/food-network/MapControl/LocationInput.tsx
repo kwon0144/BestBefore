@@ -1,6 +1,7 @@
 import { useState, Dispatch, SetStateAction } from "react";
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
 import { useMap } from "@vis.gl/react-google-maps";
+
 interface LocationInputProps {
     setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
 }

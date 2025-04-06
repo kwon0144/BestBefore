@@ -2,10 +2,10 @@
 
 import { Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import Markers from "./Markers";
-import foodBanks from "@/data/foodBanks";
 import Directions from "./Directions";
 import StartMarker from "./StartMarker";
 import { useState } from "react";
+import foodBanks from "@/data/foodBanks";
 
 interface MapComponentProps {
     selectedStart:  {lat: number, lng: number} | null
@@ -15,7 +15,7 @@ interface MapComponentProps {
     routeEnd: {lat: number, lng: number} | null
 }
 
-export default function MapComponent({ selectedStart, selectedEnd, setSelectedEnd, routeStart, routeEnd }: MapComponentProps) {
+export default function MapComponent({selectedStart, selectedEnd, setSelectedEnd, routeStart, routeEnd }: MapComponentProps) {
   return (
     <div style={{ height: "100vh", width: "100%" }}>    
       <Map

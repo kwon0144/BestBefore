@@ -2,10 +2,8 @@
 
 import MapComponent from "./MapComponent/index";
 import { useLoadScript } from "@react-google-maps/api";
-import LocationInput from "./LocationInput";
 import { useState } from "react";
-import CurrentLocationButton from "./CurrentLocationButton";
-import SubmitButton from "./SubmitButton";
+import MapControl from "./MapControl/index";
 import { APIProvider } from "@vis.gl/react-google-maps";
 
 const GOOGLE_MAPS_LIBRARIES: ("places" | "routes")[] = ["places", "routes"];
@@ -19,7 +17,6 @@ export default function FoodNetwork() {
   const [routeStart, setRouteStart] = useState<{lat: number, lng: number} | null>(null);
   const [routeEnd, setRouteEnd] = useState<{lat: number, lng: number} | null>(null);
   // For loading the map
-  
   const {isLoaded} = useLoadScript({
     googleMapsApiKey: apiKey,
     libraries: GOOGLE_MAPS_LIBRARIES
@@ -30,11 +27,16 @@ export default function FoodNetwork() {
   return (
     <>
     <APIProvider apiKey={apiKey}>
-      <LocationInput setSelectedStart={setSelectedStart} />
-      <CurrentLocationButton setSelectedStart={setSelectedStart} />
-      <SubmitButton selectedStart={selectedStart} selectedEnd={selectedEnd} setRouteStart={setRouteStart} setRouteEnd={setRouteEnd} />
-      <p>Selected Start: {selectedStart?.lat}, {selectedStart?.lng}</p>
-      <p>Selected End: {selectedEnd?.lat}, {selectedEnd?.lng}</p>
+      <div className="absolute z-10 top-50 left-0 m-2 p-2 bg-white rounded-lg shadow-lg">
+        <MapControl 
+          setSelectedStart={setSelectedStart} 
+          setSelectedEnd={setSelectedEnd} 
+          setRouteStart={setRouteStart} 
+          setRouteEnd={setRouteEnd}
+          selectedStart={selectedStart}
+          selectedEnd={selectedEnd}
+        />
+      </div>
       <div>
         <MapComponent selectedStart={selectedStart} selectedEnd={selectedEnd} setSelectedEnd={setSelectedEnd} routeStart={routeStart} routeEnd={routeEnd} />
       </div>
