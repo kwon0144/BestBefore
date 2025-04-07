@@ -3,10 +3,10 @@ import router from "next/router";
 
 export default function Hero() {
     return (
-        <div className="relative">
+        <div id="hero-section" className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-[#F5F5F1]/90 to-transparent z-10"></div>
             <div
-                className="h-[600px] bg-cover bg-center"
+                className="h-screen bg-cover bg-center"
                 style={{
                 backgroundImage: `url('https://public.readdy.ai/ai/img_res/142495065a2d00bebbba9eff65e1f5cb.jpg')`
                 }}
