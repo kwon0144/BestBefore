@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import get_users, create_user
+from .views import get_users, create_user, get_temperature_data
 from . import produce_detection
 from .output_calender import generate_calendar, generate_ical
 
@@ -8,4 +8,5 @@ urlpatterns = [
     path("users/create/", create_user, name="create_user"),
     path('detect-produce/', produce_detection.detect_produce, name='detect_produce'),
     path('generate_calendar/', generate_calendar, name='generate-calendar'),
+    path('temperature/', get_temperature_data, name='temperature-data'),
 ]
