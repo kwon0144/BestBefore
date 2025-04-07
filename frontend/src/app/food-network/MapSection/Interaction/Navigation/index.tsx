@@ -8,7 +8,7 @@ import TravelModeSelection, { TravelMode } from "./TravelModeSelection";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faMapMarkerAlt, faMapPin } from '@fortawesome/free-solid-svg-icons';
-
+import { useMap } from "@vis.gl/react-google-maps";
 interface NavigationProps {
     selectedStart: {lat: number, lng: number} | null;
     selectedEnd: string | null;
@@ -33,9 +33,15 @@ export default function Navigation({
     const [selectedMode, setSelectedMode] = useState<TravelMode>("WALKING");
     const [currentLocationAddress, setCurrentLocationAddress] = useState<string | null>(null);
 
+    const map = useMap();
+
     const handleBackToInfo = () => {
         setShowNavigation(false);
         setShowInformation(true);
+        if (map && selectedStart) {
+            map.setZoom(12);
+            map.setCenter({lat: -37.8136, lng: 144.9631});
+        }
     }
 
     return (

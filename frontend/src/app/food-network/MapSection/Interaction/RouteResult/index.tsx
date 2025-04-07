@@ -46,7 +46,7 @@ export default function RouteResult({
         setRouteStart(null);
         setRouteEnd(null);
         if (map) {
-            map.setZoom(15);
+            map.setZoom(12);
             map.setCenter({lat: -37.8136, lng: 144.9631});
         }
     }
@@ -54,6 +54,12 @@ export default function RouteResult({
     const handleBackToNavigation = () => {
         setShowRouteResult(false);
         setShowNavigation(true);
+        setRouteStart(null);
+        setRouteEnd(null);
+        if (map && selectedStart) {
+            map.setZoom(15);
+            map.setCenter(selectedStart);
+        }
     }
 
     const startAddress = useGeocoding(selectedStart);
