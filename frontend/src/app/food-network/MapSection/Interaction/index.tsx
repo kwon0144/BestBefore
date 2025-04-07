@@ -39,6 +39,7 @@ export default function Interaction({
                 setShowNavigation={setShowNavigation}
                 setShowRouteResult={setShowRouteResult}
                 setTravellingMode={setTravellingMode}
+                setShowInformation={setShowInformation}
             />
             <RouteResult 
                 selectedEnd={selectedEnd}

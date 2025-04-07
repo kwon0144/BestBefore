@@ -1,6 +1,8 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import foodBanks from "@/data/foodBanks";
 import { Button } from "@heroui/react";
+import { faRoute } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface SubmitButtonProps {
     selectedStart: {lat: number, lng: number} | null;
@@ -49,8 +51,9 @@ export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart
     return (
         <>
         <Button 
+            startContent={<FontAwesomeIcon icon={faRoute} />}
             onPress={handleSubmit}
-            className="bg-darkgreen hover:bg-darkgreen/50 text-white font-bold py-2 px-4 rounded-lg"
+            className="w-full bg-darkgreen hover:bg-darkgreen/50 text-white font-bold py-2 px-4 rounded-lg"
         >
             Get Route
         </Button>

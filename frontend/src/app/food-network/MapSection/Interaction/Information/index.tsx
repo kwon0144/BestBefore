@@ -72,7 +72,7 @@ export default function Information({
                         <FontAwesomeIcon icon={faClock} className="text-gray-600 mr-3 w-5 flex-shrink-0" />
                             <p className="font-semibold">Opening Hours</p>
                         </div>
-                        <div className="bg-gray-50 rounded-lg px-5 py-2 pr-10">
+                        <div className="rounded-lg px-5 py-2 pr-10">
                             <div
                                 className="flex justify-between py-1"
                             >

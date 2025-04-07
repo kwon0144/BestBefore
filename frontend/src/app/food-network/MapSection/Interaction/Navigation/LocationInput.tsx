@@ -2,6 +2,8 @@ import { Dispatch, SetStateAction } from "react";
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
 import { useMap } from "@vis.gl/react-google-maps";
 import { Input } from "@heroui/react";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 interface LocationInputProps {
     setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
@@ -44,6 +46,9 @@ export default function LocationInput({ setSelectedStart }: LocationInputProps) 
                 onChange={(e) => setValue(e.target.value)}
                 disabled={!ready}
                 placeholder="Search"
+                startContent={<FontAwesomeIcon icon={faSearch} />}
+                isClearable={true}
+                onClear={() => setValue("", false)}
             />
             {status === "OK" && (
                 <div className="absolute w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-10">

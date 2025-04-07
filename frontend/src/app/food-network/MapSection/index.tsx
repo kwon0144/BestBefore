@@ -17,7 +17,7 @@ export default function MapSection({selectedEnd, setSelectedEnd}: MapSectionProp
   const [travellingMode, setTravellingMode] = useState<string>("driving");
 
  return (
-    <div className="flex flex-row w-full bg-green/30 py-10 px-10 rounded-lg shadow-lg">
+    <div className="flex flex-row w-full h-[600px] bg-green/30 py-10 px-10 rounded-lg shadow-lg">
         <div className="w-3/5">
             <MapComponent 
                 selectedStart={selectedStart} 

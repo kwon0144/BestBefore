@@ -21,11 +21,6 @@ module.exports = {
         colors: {
           foregroud: "#FFFFFF",
           primary: {
-            500: "#000000",
-            600: "#000000",
-            700: "#000000",
-            800: "#000000",
-            900: "#000000",
             DEFAULT: "#0d9488"
           },
           background: {
@@ -39,9 +34,6 @@ module.exports = {
           },
           darkgreen: {
             DEFAULT: "#2d5a4b"
-          },
-          gray: {
-            DEFAULT: "#000000"
           }
         }
       }
