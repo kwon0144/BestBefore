@@ -3,14 +3,14 @@ import { faWalking, faBus, faBicycle, faCar, IconDefinition } from "@fortawesome
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "@heroui/react";
 interface TravelModeSelectionProps {
-    setSelectedMode: Dispatch<SetStateAction<string>>;
+    selectedMode: TravelMode;
+    setSelectedMode: Dispatch<SetStateAction<TravelMode>>;
 }
 
-type TravelMode = "WALKING" | "TRANSIT" | "BICYCLING" | "DRIVING";
+export type TravelMode = "WALKING" | "TRANSIT" | "BICYCLING" | "DRIVING";
 
-export default function TravelModeSelection({ setSelectedMode }: TravelModeSelectionProps) {
+export default function TravelModeSelection({ selectedMode, setSelectedMode }: TravelModeSelectionProps) {
     const travellingModes: TravelMode[] = ["WALKING", "TRANSIT", "BICYCLING", "DRIVING"];
-    const [userSelection, setUserSelection] = useState<TravelMode>("WALKING");
     const modeIcons: Record<TravelMode, IconDefinition> = {
         WALKING: faWalking,
         TRANSIT: faBus,
@@ -28,11 +28,11 @@ export default function TravelModeSelection({ setSelectedMode }: TravelModeSelec
                     <Button
                         key={mode}
                         className={`flex flex-col h-full items-center justify-center p-4 rounded-lg border-2 
-                            ${userSelection === mode ? "bg-lightgreen border-lightgreen shadow-[0_0_0_2px_rgba(34,197,94,0.2)]" : "border-gray-300"} 
+                            ${selectedMode === mode ? "bg-lightgreen border-lightgreen shadow-[0_0_0_2px_rgba(34,197,94,0.2)]" : "border-gray-300"} 
                             cursor-pointer whitespace-nowrap`}
-                        onPress={() => setUserSelection(mode)}
+                        onPress={() => setSelectedMode(mode)}
                     >
-                        <FontAwesomeIcon icon={modeIcons[mode]} className={`text-2xl mb-2 ${userSelection === mode ? "text-green-700" : "text-gray-600"}`} />
+                        <FontAwesomeIcon icon={modeIcons[mode]} className={`text-2xl mb-2 ${selectedMode === mode ? "text-green-700" : "text-gray-600"}`} />
                         <span>
                             {mode.charAt(0) + mode.slice(1).toLowerCase()}
                         </span>

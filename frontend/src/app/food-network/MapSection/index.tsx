@@ -1,6 +1,7 @@
 import { useState, Dispatch, SetStateAction } from "react";
 import MapComponent from "./MapComponent";
 import Interaction from "./Interaction";
+import { TravelMode } from "./Interaction/Navigation/TravelModeSelection";
 
 interface MapSectionProps {
     selectedEnd: string | null;
@@ -14,7 +15,7 @@ export default function MapSection({selectedEnd, setSelectedEnd}: MapSectionProp
   const [routeStart, setRouteStart] = useState<{lat: number, lng: number} | null>(null);
   const [routeEnd, setRouteEnd] = useState<{lat: number, lng: number} | null>(null);    
   const [routeDetails, setRouteDetails] = useState<{duration: string, distance: string}>({duration: "", distance: ""});
-  const [travellingMode, setTravellingMode] = useState<string>("driving");
+  const [travellingMode, setTravellingMode] = useState<TravelMode>("DRIVING");
 
  return (
     <div className="flex flex-row w-full h-[600px] bg-green/30 py-10 px-10 rounded-lg shadow-lg">
@@ -37,6 +38,7 @@ export default function MapSection({selectedEnd, setSelectedEnd}: MapSectionProp
                 setRouteEnd={setRouteEnd}
                 routeDetails={routeDetails}
                 setTravellingMode={setTravellingMode}
+                travellingMode={travellingMode}
             />
         </div>
     </div>

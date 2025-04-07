@@ -46,6 +46,11 @@ export default function LocationInput({ setSelectedStart, currentLocationAddress
         map?.setZoom(15);
     };
 
+    const onHandleClear = () => {
+        setValue("", false);
+        setSelectedStart(null);
+    };
+
     return (
         <div className="relative w-full max-w-md">
             {/* Autocomplete Location Input */}
@@ -56,7 +61,7 @@ export default function LocationInput({ setSelectedStart, currentLocationAddress
                 placeholder="Search"
                 startContent={<FontAwesomeIcon icon={faSearch} />}
                 isClearable={true}
-                onClear={() => setValue("", false)}
+                onClear={() => onHandleClear()}
             />
             {status === "OK" && (
                 <div className="absolute w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-10">

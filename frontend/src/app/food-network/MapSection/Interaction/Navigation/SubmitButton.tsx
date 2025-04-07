@@ -3,7 +3,7 @@ import foodBanks from "@/data/foodBanks";
 import { Button } from "@heroui/react";
 import { faRoute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
+import { TravelMode } from "./TravelModeSelection";
 interface SubmitButtonProps {
     selectedStart: {lat: number, lng: number} | null;
     selectedEnd: string | null;
@@ -11,8 +11,8 @@ interface SubmitButtonProps {
     setRouteEnd: (routeEnd: {lat: number, lng: number}) => void;
     setShowNavigation: (showNavigation: boolean) => void;
     setShowRouteResult: (showRouteResult: boolean) => void;
-    selectedMode: string;
-    setTravellingMode: Dispatch<SetStateAction<string>>;
+    selectedMode: TravelMode;
+    setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
 }
 
 export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart, setRouteEnd, setShowNavigation, setShowRouteResult, selectedMode, setTravellingMode }: SubmitButtonProps) {

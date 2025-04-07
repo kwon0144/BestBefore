@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import Navigation from "./Navigation";
 import Information from "./Information";
 import RouteResult from "./RouteResult";
+import { TravelMode } from "./Navigation/TravelModeSelection";
 
 interface InteractionProps {
     selectedEnd: string | null;
@@ -10,11 +11,12 @@ interface InteractionProps {
     setRouteStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
     setRouteEnd: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
     routeDetails: {duration: string, distance: string};
-    setTravellingMode: Dispatch<SetStateAction<string>>;
+    travellingMode: TravelMode;
+    setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
 }
 export default function Interaction({ 
     selectedEnd, selectedStart, setSelectedStart, 
-    setRouteStart, setRouteEnd, routeDetails, 
+    setRouteStart, setRouteEnd, routeDetails, travellingMode,
     setTravellingMode 
 }: InteractionProps) {
     const [showInformation, setShowInformation] = useState(true);
@@ -48,9 +50,11 @@ export default function Interaction({
                 showRouteResult={showRouteResult}
                 setShowRouteResult={setShowRouteResult}
                 setShowInformation={setShowInformation}
+                setShowNavigation={setShowNavigation}
                 routeDetails={routeDetails}
                 setRouteStart={setRouteStart}
                 setRouteEnd={setRouteEnd}
+                travellingMode={travellingMode}
             />
         </>
     )
