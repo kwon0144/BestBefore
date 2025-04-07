@@ -78,7 +78,7 @@ export default function RouteResult({
                 </Button>
             </div>
             {/* Route Details */}
-            <div className="bg-gray-200/50 rounded-lg p-6 mb-6 shadow-sm">
+            <div className="border-2 border-gray-400 rounded-lg p-6 mb-6 shadow-sm">
                 {/* Starting Point */}
                 <div className="mb-5">
                     <h3 className="text-sm font-medium text-gray-600 mb-1">
@@ -92,7 +92,7 @@ export default function RouteResult({
                     </div>
                 </div>
                 {/* Travelling Mode */}
-                <div className="pl-5 ml-[0.625rem] border-l-2 border-dashed border-gray-300 py-2">
+                <div className="pl-5 ml-[0.625rem] border-l-2 border-dashed border-gray-400 py-2">
                     <div className="flex items-center text-gray-600">
                     {travellingMode === "WALKING"
                         ? <FontAwesomeIcon icon={faWalking} className="mr-2" />
@@ -125,24 +125,24 @@ export default function RouteResult({
             </div>
             {/* Route Estimation */}
             <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-green-200">
-                    <h3 className="text-sm font-medium text-green-600 mb-2">
+                <div className="bg-gray-200/80 rounded-lg p-4 shadow-sm border border-green-200">
+                    <h3 className="text-sm font-medium text-darkgreen mb-2">
                       ESTIMATED TIME
                     </h3>
                     <div className="flex items-center">
-                      <FontAwesomeIcon icon={faClock} className="mr-2" />
-                      <p className="text-xl font-bold text-green-700">
+                      <FontAwesomeIcon icon={faClock} className="mr-2 text-green" />
+                      <p className="text-md font-bold text-darkgreen">
                         {routeDetails.duration}
                       </p>
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg p-4 shadow-sm border border-green-200">
-                    <h3 className="text-sm font-medium text-green-600 mb-2">
+                  <div className="bg-gray-200/80 rounded-lg p-4 shadow-sm border border-green-200">
+                    <h3 className="text-sm font-medium text-darkgreen mb-2">
                       ESTIMATED DISTANCE
                     </h3>
                     <div className="flex items-center">
-                      <FontAwesomeIcon icon={faRoad} className="mr-2" />
-                      <p className="text-xl font-bold text-green-700">
+                      <FontAwesomeIcon icon={faRoad} className="mr-2 text-green" />
+                      <p className="text-md font-bold text-darkgreen">
                         {routeDetails.distance}
                       </p>
                     </div>

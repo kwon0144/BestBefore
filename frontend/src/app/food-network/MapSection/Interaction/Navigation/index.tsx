@@ -57,7 +57,7 @@ export default function Navigation({
                 </Button>
             </div>
             {/* Navigation Target Food Bank */}
-            <div className="bg-gray-200/50 rounded-lg p-6 mb-6 shadow-sm mb-10">   
+            <div className="bg-gray-200/80 rounded-lg p-6 mb-6 shadow-sm mb-10">   
                 <div className="flex items-center">      
                     <div className="w-10 h-10 rounded-full bg-lightgreen flex items-center justify-center mr-3">
                     <FontAwesomeIcon icon={faMapPin} className="text-green-700" />
