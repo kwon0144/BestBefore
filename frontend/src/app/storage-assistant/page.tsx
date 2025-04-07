@@ -159,13 +159,14 @@ const StorageAssistant: React.FC = () => {
       setState(prev => ({
         ...prev,
         stream: null,
+
         photos: [], // Clear all photos when stopping camera
         detections: null
       }));
     }
   };
 
-  // Submit all captured photos for analysis
+
   const submitPhotos = async () => {
     if (state.photos.length === 0) return;
 
@@ -286,7 +287,6 @@ const StorageAssistant: React.FC = () => {
           ))}
         </div>
       )}
-  
       <div className={styles.mainContent}>
         {/* Left column - camera and controls */}
         <div className={styles.cameraColumn}>

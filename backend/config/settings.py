@@ -63,10 +63,11 @@ CORS SETTINGS
 """
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://localhost:3001"
-    # "http://localhost:443"
-    # "http://3.107.143.147:443",
-    # "http://3.107.143.147"
+    "http://localhost:3001",
+    "http://localhost:443",
+    "http://3.107.143.147:443",
+    "http://3.107.143.147",
+    "https://tp22-bestbefore.com"
 ]
 CORS_ALLOW_METHODS = (
     "GET",
@@ -184,4 +185,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # WhiteNoise configuration
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
+# CLAUDE_API_KEY
 CLAUDE_API_KEY = os.environ.get('CLAUDE_API_KEY')
+
