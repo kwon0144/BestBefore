@@ -63,6 +63,7 @@ CORS SETTINGS
 """
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://localhost:3001",
     "http://localhost:443",
     "http://3.107.143.147:443",
     "http://3.107.143.147",
@@ -117,7 +118,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+'''
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -125,7 +126,21 @@ DATABASES = {
     }
 }
 
-
+'''
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'rds-tp22',
+        'USER': 'postgres',
+        'PASSWORD': 'monash*TP22',
+        'HOST': 'rds-tp22.cby4i8u2qwvc.ap-southeast-2.rds.amazonaws.com',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        }
+    }
+}
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -169,3 +184,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # WhiteNoise configuration
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+
+# CLAUDE_API_KEY
+CLAUDE_API_KEY = os.environ.get('CLAUDE_API_KEY')
+
