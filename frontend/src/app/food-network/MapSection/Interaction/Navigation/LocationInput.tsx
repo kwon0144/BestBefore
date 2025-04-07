@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
 import { useMap } from "@vis.gl/react-google-maps";
 import { Input } from "@heroui/react";
@@ -7,9 +7,10 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 interface LocationInputProps {
     setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
+    currentLocationAddress?: string;
 }
 
-export default function LocationInput({ setSelectedStart }: LocationInputProps) {
+export default function LocationInput({ setSelectedStart, currentLocationAddress }: LocationInputProps) {
     const map = useMap();
 
     const {
@@ -27,6 +28,13 @@ export default function LocationInput({ setSelectedStart }: LocationInputProps) 
         },
         debounce: 300,
     });
+
+    // Update input value when currentLocationAddress changes
+    useEffect(() => {
+        if (currentLocationAddress) {
+            setValue(currentLocationAddress, false);
+        }
+    }, [currentLocationAddress, setValue]);
 
     const handleSelect = async (address: string) => {
         setValue(address, false);

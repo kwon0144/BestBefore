@@ -31,6 +31,7 @@ export default function Navigation({
     const currentAddress = useGeocoding(selectedStart);
     const selectedFoodBank = useFoodBankName(selectedEnd);
     const [selectedMode, setSelectedMode] = useState("WALKING");
+    const [currentLocationAddress, setCurrentLocationAddress] = useState<string>("");
 
     const handleBackToInfo = () => {
         setShowNavigation(false);
@@ -41,13 +42,15 @@ export default function Navigation({
         <div className={`h-full flex flex-col pl-10 w-full ${showNavigation ? "display" : "hidden"}`}>
             <div className="mb-2">
                 {/* Navigation Back Button */}
-                <Button
-                    onPress={handleBackToInfo}
-                    className="flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
-                  >
-                    <FontAwesomeIcon icon={faArrowLeft} />
-                    Back to Information
-                  </Button>
+                <div className="mb-3">
+                    <Button
+                        onPress={handleBackToInfo}
+                        className="text-darkgreen flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
+                    >
+                        <FontAwesomeIcon icon={faArrowLeft} />
+                        Back to Information
+                    </Button>
+                </div>
                 {/* Navigation Target Food Bank */}
                 <div className="mb-3">
                     <h2 className="text-2xl font-bold text-darkgreen mb-3">
@@ -66,15 +69,16 @@ export default function Navigation({
                   >
                     Enter your starting point:
                   </label>
-                  <div className="flex items-start mb-6">
-                    <FontAwesomeIcon icon={faMapMarkerAlt} className="text-green-600 mt-1 mr-3 w-5"></FontAwesomeIcon>
-                    <p className="text-gray-700">{currentAddress}</p>
-                  </div>
                   <div className="relative">
-                        <div className="flex flex-col gap-2">
-                            <CurrentLocationButton setSelectedStart={setSelectedStart} />
-                            <p className="text-sm text-black self-center">Or</p>
-                            <LocationInput setSelectedStart={setSelectedStart} />
+                        <div className="flex flex-row gap-2">
+                            <LocationInput 
+                                setSelectedStart={setSelectedStart} 
+                                currentLocationAddress={currentLocationAddress}
+                            />
+                            <CurrentLocationButton 
+                                setSelectedStart={setSelectedStart} 
+                                onLocationFound={setCurrentLocationAddress}
+                            />
                         </div>
                   </div>
                 </div>

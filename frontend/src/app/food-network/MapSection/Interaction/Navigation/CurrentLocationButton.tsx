@@ -5,21 +5,34 @@ import { Icon } from '@iconify/react';
 
 interface CurrentLocationButtonProps {
     setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
+    onLocationFound?: (address: string) => void;
 }
 
-export default function CurrentLocationButton({ setSelectedStart }: CurrentLocationButtonProps) {
+export default function CurrentLocationButton({ setSelectedStart, onLocationFound }: CurrentLocationButtonProps) {
     const map = useMap();
 
     const getCurrentLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    setSelectedStart({
+                async (position) => {
+                    const location = {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
-                    });
-                    map?.panTo({ lat: position.coords.latitude, lng: position.coords.longitude });
+                    };
+                    setSelectedStart(location);
+                    map?.panTo({ lat: location.lat, lng: location.lng });
                     map?.setZoom(15);
+
+                    // Get the address using reverse geocoding
+                    try {
+                        const geocoder = new google.maps.Geocoder();
+                        const response = await geocoder.geocode({ location });
+                        if (response.results[0]) {
+                            onLocationFound?.(response.results[0].formatted_address);
+                        }
+                    } catch (error) {
+                        console.error("Error getting address:", error);
+                    }
                 },
                 (error) => {
                     console.error("Error getting location:", error);
@@ -32,10 +45,11 @@ export default function CurrentLocationButton({ setSelectedStart }: CurrentLocat
 
     return (
         <Button
+            className="w-auto p-0"
             onPress={getCurrentLocation}
             color="primary"
         >
-            <Icon icon="lucide:map-pin" className="text-xl" /> Use Current Location
+            <Icon icon="lucide:map-pin" className="text-xl" />
         </Button>
     );
 }
