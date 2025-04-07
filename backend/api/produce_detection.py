@@ -1,152 +1,127 @@
-# api/produce_detection.py
-
 import base64
-import io
 import json
-from PIL import Image
-import numpy as np
+import requests
+import re
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 import os
-import torch
 
-# Add ultralytics import
-from ultralytics import YOLO
-
-# Initialize the YOLOv8 model
-MODEL_PATH = os.path.join(settings.BASE_DIR, 'models', 'yolov8m.pt')
-
-# Define an expanded list of produce classes your model can detect
-PRODUCE_CLASSES = [
-    # Fruits
-    'apple', 'banana', 'orange', 'tomato', 'avocado', 'lemon', 'lime',
-    'strawberry', 'blueberry', 'raspberry', 'grape', 'pear', 'peach',
-    'watermelon', 'kiwi', 'mango', 'pineapple',
-    
-    # Vegetables
-    'potato', 'carrot', 'broccoli', 'cucumber', 'lettuce', 'pepper',
-    'onion', 'garlic', 'zucchini', 'eggplant', 'cabbage', 'cauliflower',
-    'spinach', 'kale', 'celery', 'asparagus', 'corn', 'mushroom',
-    'green beans', 'peas', 'sweet potato', 'pumpkin', 'squash',
-    
-    # Herbs
-    'basil', 'parsley', 'cilantro', 'mint', 'rosemary', 'thyme',
-    
-    # Other
-    'bread', 'cheese', 'egg', 'tofu', 'rice', 'pasta'
-]
-
-# Create a lazy-loading model to avoid loading it on server startup
-_model = None
-
-def get_model():
-    """Lazy-load the model to improve startup performance"""
-    global _model
-    if _model is None:
-        try:
-            _model = YOLO(MODEL_PATH)
-            print(f"YOLOv8 model loaded from {MODEL_PATH}")
-        except Exception as e:
-            print(f"Error loading model: {str(e)}")
-            _model = None
-    return _model
+# Claude API settings
+CLAUDE_API_KEY = os.environ.get('CLAUDE_API_KEY')
+CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 
 @csrf_exempt
 def detect_produce(request):
     """
-    API endpoint to detect produce from uploaded webcam images
+    API endpoint to detect produce from uploaded webcam images using Claude API
     """
     if request.method != 'POST':
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
     
     try:
-        # Get the base64 image from request
+        # Get the base64 images from request
         data = json.loads(request.body)
-        base64_image = data.get('image', '')
         
-        # Remove data URL prefix if present (e.g., "data:image/jpeg;base64,")
-        if ',' in base64_image:
-            base64_image = base64_image.split(',')[1]
+        # Check if we're getting single image or multiple images
+        if 'image' in data:
+            images = [data.get('image', '')]
+        elif 'images' in data:
+            images = data.get('images', [])
+        else:
+            return JsonResponse({'error': 'No images provided'}, status=400)
         
-        # Decode base64 to image
-        image_data = base64.b64decode(base64_image)
-        image = Image.open(io.BytesIO(image_data))
+        # Initialize combined results
+        combined_produce_counts = {}
+        total_items = 0
         
-        # Convert to numpy array for YOLOv8
-        img_array = np.array(image)
-        
-        # Get model
-        model = get_model()
-        if model is None:
-            return JsonResponse({'error': 'Model not available'}, status=500)
-        
-        # Run inference
-        results = model(img_array)
-        
-        # Process results
-        detections = []
-        for result in results:
-            boxes = result.boxes
-            for box in boxes:
-                x1, y1, x2, y2 = box.xyxy[0].tolist()
-                conf = float(box.conf[0])
-                cls = int(box.cls[0])
+        # Process each image
+        for base64_image in images:
+            # Remove data URL prefix if present
+            if ',' in base64_image:
+                base64_image = base64_image.split(',')[1]
+            
+            # Prepare Claude API request
+            headers = {
+                "x-api-key": CLAUDE_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json"
+            }
+            
+            # Create Claude API request body
+            claude_request = {
+                "model": "claude-3-haiku-20240307",
+                "max_tokens": 1024,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Identify all food items in this image. For each item, tell me what it is. Format your response as a valid JSON object like this: {\"produce_counts\": {\"apple\": 1, \"banana\": 2}, \"total_items\": 3}. Only respond with the JSON object, no explanations."
+                            },
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": "image/jpeg",
+                                    "data": base64_image
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+            
+            # Make request to Claude API
+            response = requests.post(CLAUDE_API_URL, headers=headers, json=claude_request)
+            
+            if response.status_code != 200:
+                continue
                 
-                # Map COCO classes to produce classes based on closest match
-                # Standard YOLOv8 uses COCO dataset with 80 classes
-                # We're mapping the relevant ones to our produce categories
-                coco_class_name = result.names[cls].lower()
-                
-                # Try to map COCO class to our produce class
-                matched_class = None
-                
-                # Direct mapping for exact matches
-                if coco_class_name in PRODUCE_CLASSES:
-                    matched_class = coco_class_name
-                # Mapping for close matches (e.g. "apple" might be detected as "orange")
-                else:
-                    if cls == 46:
-                        matched_class = "banana"                  
-                    elif cls == 48:
-                        matched_class = "apple"                   
-                    elif cls == 49:
-                        matched_class = "orange"                   
-                    elif cls == 56:
-                        matched_class = "broccoli"                   
-                    elif cls == 51:
-                        matched_class = "carrot"
-
-                    # For any other classes that could be produce, use a fallback
-                    elif "food" in coco_class_name or "fruit" in coco_class_name or "vegetable" in coco_class_name:
-                        matched_class = "unknown-produce"
-                
-                # Only include if confidence is high enough and we have a match
-                if conf > 0.5 and matched_class:
-                    detections.append({
-                        'class': matched_class,
-                        'confidence': conf,
-                        'bbox': [x1, y1, x2, y2]
-                    })
-        
-        # Count occurrences of each produce type
-        produce_counts = {}
-        for detection in detections:
-            produce_type = detection['class']
-            if produce_type in produce_counts:
-                produce_counts[produce_type] += 1
+            # Parse response
+            claude_response = response.json()
+            
+            # Extract JSON from Claude's response
+            content = claude_response.get('content', [])
+            text_response = next((item['text'] for item in content if item['type'] == 'text'), '')
+            
+            # Use regex to find JSON in Claude's response
+            json_match = re.search(r'\{.*\}', text_response, re.DOTALL)
+            if json_match:
+                try:
+                    produce_data = json.loads(json_match.group(0))
+                    
+                    # Combine the results
+                    image_produce_counts = produce_data.get('produce_counts', {})
+                    for item, count in image_produce_counts.items():
+                        if item in combined_produce_counts:
+                            combined_produce_counts[item] += count
+                        else:
+                            combined_produce_counts[item] = count
+                    
+                    total_items += produce_data.get('total_items', 0)
+                except json.JSONDecodeError:
+                    # Silent failure with JSON parsing
+                    pass
             else:
-                produce_counts[produce_type] = 1
+                # Fallback - do basic parsing if Claude doesn't return proper JSON
+                items = re.findall(r'([a-zA-Z]+)\s*:\s*(\d+)', text_response)
+                for item, count in items:
+                    item_lower = item.lower()
+                    count_int = int(count)
+                    if item_lower in combined_produce_counts:
+                        combined_produce_counts[item_lower] += count_int
+                    else:
+                        combined_produce_counts[item_lower] = count_int
+                    total_items += count_int
         
         return JsonResponse({
             'success': True,
-            'detections': detections,
-            'produce_counts': produce_counts,
-            'total_items': len(detections)
+            'detections': [],  # No bounding boxes with Claude
+            'produce_counts': combined_produce_counts,
+            'total_items': total_items
         })
         
     except Exception as e:
-        import traceback
-        print(f"Error in detect_produce: {str(e)}")
-        print(traceback.format_exc())
         return JsonResponse({'error': str(e)}, status=500)

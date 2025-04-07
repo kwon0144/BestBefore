@@ -63,10 +63,10 @@ CORS SETTINGS
 """
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://localhost:443",
-    "http://3.107.143.147:443",
-    "http://3.107.143.147",
-    "https://tp22-bestbefore.com"
+    "http://localhost:3001"
+    # "http://localhost:443"
+    # "http://3.107.143.147:443",
+    # "http://3.107.143.147"
 ]
 CORS_ALLOW_METHODS = (
     "GET",
@@ -117,7 +117,15 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+'''
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
 
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -132,8 +140,6 @@ DATABASES = {
         }
     }
 }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -177,3 +183,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # WhiteNoise configuration
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+
+CLAUDE_API_KEY = os.environ.get('CLAUDE_API_KEY')

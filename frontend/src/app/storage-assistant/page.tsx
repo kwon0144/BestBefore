@@ -243,7 +243,7 @@ const StorageAssistant: React.FC = () => {
     if (calendarSelection.selectedItems.length === 0) return;
   
     try {
-      const response = await axios.post(`${config.apiUrl}/api/generate_calendar`, {
+      const response = await axios.post(`${config.apiUrl}/api/generate_calendar/`, {
         items: calendarSelection.selectedItems,
         reminder_days: calendarSelection.reminderDays,
         reminder_time: calendarSelection.reminderTime
