@@ -13,11 +13,10 @@ interface SubmitButtonProps {
     setShowRouteResult: (showRouteResult: boolean) => void;
     selectedMode: TravelMode;
     setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
+    setError: (error: string) => void;
 }
 
-export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart, setRouteEnd, setShowNavigation, setShowRouteResult, selectedMode, setTravellingMode }: SubmitButtonProps) {
-    const [error, setError] = useState<string>("");
-
+export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart, setRouteEnd, setShowNavigation, setShowRouteResult, selectedMode, setTravellingMode, setError }: SubmitButtonProps) {
     const handleSubmit = () => {
         // Error message if not selected start point or food bank
         if (!selectedStart || !selectedEnd) {
@@ -49,7 +48,6 @@ export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart
     };
 
     return (
-        <>
         <Button 
             startContent={<FontAwesomeIcon icon={faRoute} />}
             onPress={handleSubmit}
@@ -57,7 +55,5 @@ export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart
         >
             Get Route
         </Button>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        </>
     );
 }

@@ -32,6 +32,7 @@ export default function Navigation({
     const selectedFoodBank = useFoodBankName(selectedEnd);
     const [selectedMode, setSelectedMode] = useState<TravelMode>("WALKING");
     const [currentLocationAddress, setCurrentLocationAddress] = useState<string | null>(null);
+    const [error, setError] = useState<string>("");
 
     const map = useMap();
 
@@ -49,11 +50,11 @@ export default function Navigation({
             {/* Navigation Back Button */}
             <div className="mb-3">
                 <Button
+                    startContent={<FontAwesomeIcon icon={faArrowLeft} />}
                     onPress={handleBackToInfo}
-                    className="text-darkgreen flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
+                    className="bg-darkgreen hover:bg-darkgreen/50 text-white font-bold py-2 px-4 rounded-lg"
                 >
-                    <FontAwesomeIcon icon={faArrowLeft} />
-                    Back to Information
+                    Back
                 </Button>
             </div>
             {/* Navigation Target Food Bank */}
@@ -70,43 +71,46 @@ export default function Navigation({
                     </div>
                 </div>
             </div>
-            {/* Navigation Starting Point */}
+            {/* Location Input */}
             <div className="mb-10">
                 <label
-                htmlFor="starting-point"
-                className="block text-lg font-semibold mb-2 text-gray-700"
-                >
-                Enter your starting point:
+                    htmlFor="starting-point"
+                    className="block text-lg font-semibold mb-2 text-gray-700"
+                    >
+                    Enter your starting point:
                 </label>
-                <div className="relative">
-                    <div className="flex flex-row gap-2">
-                        <LocationInput 
-                            setSelectedStart={setSelectedStart}
-                            setCurrentLocationAddress={setCurrentLocationAddress}
-                            currentLocationAddress={currentLocationAddress}
-                        />
-                        <CurrentLocationButton 
-                            setSelectedStart={setSelectedStart} 
-                            onLocationFound={setCurrentLocationAddress}
-                        />
-                    </div>
+                <div className="flex flex-row">
+                    <LocationInput
+                        setSelectedStart={setSelectedStart}
+                        currentLocationAddress={currentLocationAddress}
+                        setCurrentLocationAddress={setCurrentLocationAddress}
+                    />
+                    <CurrentLocationButton
+                        setSelectedStart={setSelectedStart}
+                        onLocationFound={setCurrentLocationAddress}
+                    />
                 </div>
+                {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </div>
-            {/* Navigation Travelling Mode */}
-            <div className="mb-8">
-                <TravelModeSelection selectedMode={selectedMode} setSelectedMode={setSelectedMode} />
+            {/* Travel Mode Selection */}
+            <div className="mb-10">
+                <TravelModeSelection
+                    selectedMode={selectedMode}
+                    setSelectedMode={setSelectedMode}
+                />
             </div>
-            {/* Submit Navigation Setting */}
-            <div className="mt-auto">
-                <SubmitButton 
-                    selectedStart={selectedStart} 
-                    selectedEnd={selectedEnd} 
-                    setRouteStart={setRouteStart} 
-                    setRouteEnd={setRouteEnd} 
-                    setShowNavigation={setShowNavigation} 
-                    setShowRouteResult={setShowRouteResult} 
+            {/* Submit Button */}
+            <div className="mb-3">
+                <SubmitButton
+                    selectedStart={selectedStart}
+                    selectedEnd={selectedEnd}
+                    setRouteStart={setRouteStart}
+                    setRouteEnd={setRouteEnd}
+                    setShowNavigation={setShowNavigation}
+                    setShowRouteResult={setShowRouteResult}
                     selectedMode={selectedMode}
                     setTravellingMode={setTravellingMode}
+                    setError={setError}
                 />
             </div>
         </div>
