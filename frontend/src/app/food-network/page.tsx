@@ -12,7 +12,7 @@ const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
 export default function FoodNetwork() {
   // For user input and display
-  const [selectedEnd, setSelectedEnd] = useState<string | null>(null);
+  const [selectedEnd, setSelectedEnd] = useState<string | null>("1");
   // For loading the map
   const {isLoaded} = useLoadScript({
     googleMapsApiKey: apiKey,
