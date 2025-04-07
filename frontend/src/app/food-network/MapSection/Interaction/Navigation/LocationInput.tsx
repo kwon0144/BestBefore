@@ -7,10 +7,11 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 
 interface LocationInputProps {
     setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    currentLocationAddress?: string;
+    currentLocationAddress: string | null;
+    setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
 }
 
-export default function LocationInput({ setSelectedStart, currentLocationAddress }: LocationInputProps) {
+export default function LocationInput({ setSelectedStart, currentLocationAddress, setCurrentLocationAddress }: LocationInputProps) {
     const map = useMap();
 
     const {
@@ -49,6 +50,7 @@ export default function LocationInput({ setSelectedStart, currentLocationAddress
     const onHandleClear = () => {
         setValue("", false);
         setSelectedStart(null);
+        setCurrentLocationAddress(null);
     };
 
     return (

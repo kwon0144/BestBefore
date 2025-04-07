@@ -31,7 +31,7 @@ export default function Navigation({
     const currentAddress = useGeocoding(selectedStart);
     const selectedFoodBank = useFoodBankName(selectedEnd);
     const [selectedMode, setSelectedMode] = useState<TravelMode>("WALKING");
-    const [currentLocationAddress, setCurrentLocationAddress] = useState<string>("");
+    const [currentLocationAddress, setCurrentLocationAddress] = useState<string | null>(null);
 
     const handleBackToInfo = () => {
         setShowNavigation(false);
@@ -75,7 +75,8 @@ export default function Navigation({
                 <div className="relative">
                     <div className="flex flex-row gap-2">
                         <LocationInput 
-                            setSelectedStart={setSelectedStart} 
+                            setSelectedStart={setSelectedStart}
+                            setCurrentLocationAddress={setCurrentLocationAddress}
                             currentLocationAddress={currentLocationAddress}
                         />
                         <CurrentLocationButton 
