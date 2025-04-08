@@ -1,5 +1,6 @@
 import { Button } from "@heroui/react";
 import router from "next/router";
+import GradientText from "../Gradient Text";
 
 export default function Hero() {
     return (
@@ -14,9 +15,14 @@ export default function Hero() {
         </div>
         <div className="max-w-7xl mx-auto absolute inset-0 flex flex-col justify-center items-start px-8 md:px-16 z-20">
             <div className="max-w-2xl">
-                <h1 className="text-4xl md:text-5xl font-bold text-darkgreen mb-6">
+                <GradientText
+                    colors={["#1B5E20", "#2D5A4B",  "#4CAF50", "#2D5A4B", "#1B5E20"]}
+                    animationSpeed={5}
+                    showBorder={false}
+                    className="text-4xl md:text-5xl font-bold text-darkgreen mb-6"
+                >
                     Together for a zero-waste kitchen
-                </h1>
+                </GradientText>
                 <p className="text-xl md:text-2xl text-darkgreen mb-8">
                     Save food, money, and our planet with BestBefore
                 </p>
