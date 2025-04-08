@@ -1,11 +1,13 @@
 # api/output_calender.py
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 import json
 from typing import List, Dict
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import models
+from django.utils import timezone
+from django.conf import settings
 
 class FoodItem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -32,7 +34,7 @@ def generate_calendar(request):
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
     
-    # 验证数据
+    # Validate data
     if not data or "items" not in data:
         return JsonResponse({"error": "Missing items"}, status=400)
     
@@ -47,22 +49,24 @@ def generate_calendar(request):
             continue
             
         try:
-            # 计算提醒日期
             expiry_date = datetime.strptime(item["expiry_date"], "%Y-%m-%d").date()
             hour, minute = map(int, (item.get("reminder_time") or default_reminder_time).split(":"))
             reminder_days = item.get("reminder_days", default_reminder_days)
-            reminder_date = datetime.combine(
-                expiry_date - timedelta(days=reminder_days),
+            
+            # Calculate reminder date
+            reminder_date = expiry_date - timedelta(days=reminder_days)
+            reminder_datetime = datetime.combine(
+                reminder_date,
                 datetime.min.time().replace(hour=hour, minute=minute)
             )
             
-            # 存储到数据库
+            # Store the datetime without timezone information
             food_item = FoodItem.objects.create(
                 calendar_id=calendar_id,
                 name=item["name"],
                 quantity=item.get("quantity", 1),
                 expiry_date=expiry_date,
-                reminder_date=reminder_date,
+                reminder_date=reminder_datetime,
                 reminder_days=reminder_days,
                 reminder_time=f"{hour:02d}:{minute:02d}"
             )
@@ -80,7 +84,8 @@ def generate_calendar(request):
     if not saved_items:
         return JsonResponse({"error": "No valid items provided"}, status=400)
     
-    calendar_url = f"http://192.168.3.5:8000/api/calendar/{calendar_id}.ics"
+    # Use a relative URL instead of a hardcoded IP address
+    calendar_url = f"/api/calendar/{calendar_id}.ics"
     
     return JsonResponse({
         "status": "success",
@@ -90,7 +95,6 @@ def generate_calendar(request):
     })
 
 def generate_ical(request, calendar_id):
-    """生成iCalendar文件"""
     try:
         uuid.UUID(str(calendar_id)) 
         items = FoodItem.objects.filter(calendar_id=calendar_id)
@@ -100,7 +104,7 @@ def generate_ical(request, calendar_id):
         ical_content = [
             "BEGIN:VCALENDAR",
             "VERSION:2.0",
-            "PRODID:-//Food Waste App//EN",
+            "PRODID:-//BestBefore//Calendar//EN",
             "CALSCALE:GREGORIAN",
             "METHOD:PUBLISH"
         ]
@@ -108,22 +112,26 @@ def generate_ical(request, calendar_id):
         for item in items:
             try:
                 expiry_str = item.expiry_date.strftime("%Y%m%d")
-                reminder_str = item.reminder_date.strftime("%Y%m%dT%H%M%SZ")
                 created_str = datetime.now().strftime("%Y%m%dT%H%M%SZ")
+                
+                # Calculate reminder time
+                hour, minute = map(int, item.reminder_time.split(":"))
+                reminder_date = item.expiry_date - timedelta(days=item.reminder_days)
+                reminder_datetime = datetime.combine(reminder_date, datetime.min.time().replace(hour=hour, minute=minute))
+                
+                # Format the reminder time for iCal
+                reminder_str = reminder_datetime.strftime("%Y%m%dT%H%M%SZ")
                 
                 ical_content.extend([
                     f"BEGIN:VEVENT",
-                    f"UID:{item.id}@foodwasteapp.com",
-                    f"DTSTAMP:{created_str}",
-                    f"CREATED:{created_str}",
-                    f"DTSTART;VALUE=DATE:{expiry_str}",
-                    f"DTEND;VALUE=DATE:{expiry_str}",
-                    f"SUMMARY:{item.name} (Expires!)",
-                    f"DESCRIPTION:Your {item.name} (Qty: {item.quantity}) expires on {item.expiry_date}.",
+                    f"UID:{calendar_id}-{item.name}",
+                    f"SUMMARY:Food Expiry: {item.name}",
+                    f"DTSTART:{expiry_str}",
+                    f"DTEND:{(item.expiry_date + timedelta(days=1)).strftime('%Y%m%dT%H%M%SZ')}",
                     "BEGIN:VALARM",
-                    f"TRIGGER:-P{item.reminder_days}D",
                     "ACTION:DISPLAY",
-                    f"DESCRIPTION:Reminder: {item.name} expires soon!",
+                    "DESCRIPTION:Food Expiry Reminder",
+                    f"TRIGGER:-P{item.reminder_days}DT{hour}H{minute}M",
                     "END:VALARM",
                     "END:VEVENT"
                 ])
