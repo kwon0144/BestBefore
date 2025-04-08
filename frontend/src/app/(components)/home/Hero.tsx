@@ -1,8 +1,11 @@
+"use client"
+
 import { Button } from "@heroui/react";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 import GradientText from "../Gradient Text";
 
 export default function Hero() {
+    const router = useRouter();
     return (
         <div id="hero-section" className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-[#F5F5F1]/90 to-transparent z-10"></div>
