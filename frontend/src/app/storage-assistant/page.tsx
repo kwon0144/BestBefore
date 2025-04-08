@@ -15,19 +15,6 @@ interface CameraState {
   submittedPhotos: string[]; // Store photos ready for submission
 }
 
-// Interface for produce detection results
-interface ProduceDetections {
-  success: boolean;
-  detections: Array<{
-    class: string;
-    confidence: number;
-    bbox: number[];
-  }>;
-  produce_counts: {
-    [key: string]: number;
-  };
-  total_items: number;
-}
 
 // Interface for storage recommendation
 interface StorageRecommendation {
@@ -50,7 +37,25 @@ interface CalendarSelection {
   expiryDate: string;
 }
 
-
+// Interface for produce detection results
+interface ProduceDetections {
+  success: boolean;
+  detections: Array<{
+    class: string;
+    confidence: number;
+    bbox: number[];
+  }>;
+  produce_counts: {
+    [key: string]: number;
+  };
+  total_items: number;
+  message?: string; 
+  error?: string; 
+  storage_recommendations?: {
+    fridge: string[];
+    pantry: string[];
+  };
+}
 
 const StorageAssistant: React.FC = () => {
   // Refs for video and canvas elements
@@ -59,10 +64,11 @@ const StorageAssistant: React.FC = () => {
   const [calendarSelection, setCalendarSelection] = useState<CalendarSelection>({
     selectedItems: [],
     calendarLink: null,
-    reminderDays: 2, // 默认提前2天提醒
-    reminderTime: "20:00", // 默认晚上8点提醒
-    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 默认7天后过期
+    reminderDays: 2, // Default 2 days reminder
+    reminderTime: "20:00", // Default 8pm reminder
+    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Default 7 days expiry
   });
+  
   // Main component state
   const [state, setState] = useState<CameraState>({
     stream: null,
@@ -78,7 +84,6 @@ const StorageAssistant: React.FC = () => {
     fridge: [],
     pantry: []
   });
-
 
   // State for active tab in storage display
   const [activeTab, setActiveTab] = useState<'fridge' | 'pantry'>('fridge');
@@ -164,7 +169,8 @@ const StorageAssistant: React.FC = () => {
       }));
     }
   };
-
+  
+  
   // Submit all captured photos for analysis
   const submitPhotos = async () => {
     if (state.photos.length === 0) return;
@@ -177,26 +183,55 @@ const StorageAssistant: React.FC = () => {
         images: state.photos // Send array of photos
       });
 
+      const data = response.data as ProduceDetections;
+      
+      // Check if there's an API key error
+      if (!data.success && data.error === 'API key not configured') {
+        setState(prev => ({
+          ...prev,
+          isAnalyzing: false,
+          error: data.message || "Claude API key is missing or invalid. Please contact the administrator."
+        }));
+        return;
+      }
+      
       setState(prev => ({
         ...prev,
-        detections: response.data as ProduceDetections,
+        detections: data,
         isAnalyzing: false,
-        submittedPhotos: [...prev.photos] // Store submitted photos
+        submittedPhotos: [...prev.photos], // Store submitted photos
+        error: data.message || null  // Display message from backend if available
       }));
 
-      // After submission, fetch storage recommendations
-      // This is a mock - replace with actual API call
-      fetchStorageRecommendations((response.data as ProduceDetections).produce_counts);
-    } catch (err) {
-      setState(prev => ({
-        ...prev,
-        error: `Analysis failed: ${err instanceof Error ? err.message : String(err)}`,
-        isAnalyzing: false
-      }));
+      // Use storage recommendations directly from backend if available
+      if (data.storage_recommendations) {
+        setStorageRecs({
+          fridge: data.storage_recommendations.fridge || [],
+          pantry: data.storage_recommendations.pantry || []
+        });
+      } else {
+        // Fallback to the old method if needed
+        fetchStorageRecommendations(data.produce_counts);
+      }
+    } catch (err: any) {
+      // Specific handling for API key errors
+      if (err.response && err.response.status === 401) {
+        setState(prev => ({
+          ...prev,
+          error: "Claude API key is missing or invalid. Please contact the administrator.",
+          isAnalyzing: false
+        }));
+      } else {
+        setState(prev => ({
+          ...prev,
+          error: `Analysis failed: ${err instanceof Error ? err.message : String(err)}`,
+          isAnalyzing: false
+        }));
+      }
     }
   };
 
-  // Mock function to fetch storage recommendations
+  // Function to fetch storage recommendations (fallback if not provided by backend)
   const fetchStorageRecommendations = (
     produceCounts: { [key: string]: number } = {}
   ) => {
@@ -269,7 +304,7 @@ const StorageAssistant: React.FC = () => {
     }
   };
 
-  // Clean up camera stream on unmount
+  // Initialize on component mount
   useEffect(() => {
     fetchStorageRecommendations();
   }, []);
