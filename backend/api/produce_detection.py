@@ -11,11 +11,15 @@ import os
 CLAUDE_API_KEY = os.environ.get('CLAUDE_API_KEY')
 CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 
+# Import the ProduceClassifier
+from api.produce_classfier import ProduceClassifier
+
 
 @csrf_exempt
 def detect_produce(request):
     """
     API endpoint to detect produce from uploaded webcam images using Claude API
+    and provides storage recommendations
     """
     if request.method != 'POST':
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
@@ -155,17 +159,34 @@ def detect_produce(request):
                     'message': f'Failed to connect to Claude API: {e}'
                 }, status=503)
         
-        print(f"Final combined results: {combined_produce_counts}")
+        # Enrich the results with storage recommendations
+        enriched_produce_data = ProduceClassifier.enrich_detection_results(combined_produce_counts)
+        
+        print(f"Final combined results with storage: {enriched_produce_data}")
         
         # Add a message if no items were detected
         message = ""
         if total_items == 0:
             message = "No food items detected. Try taking clearer photos with better lighting or positioning your food items more prominently in the frame."
         
+        # Organize items by storage location
+        pantry_items = {}
+        refrigerator_items = {}
+        
+        for item, details in enriched_produce_data.items():
+            if details["storage"] == "pantry":
+                pantry_items[item] = details["count"]
+            else:
+                refrigerator_items[item] = details["count"]
+        
         return JsonResponse({
             'success': True,
             'detections': [],  # No bounding boxes with Claude
-            'produce_counts': combined_produce_counts,
+            'produce_data': enriched_produce_data,
+            'storage_summary': {
+                'pantry': pantry_items,
+                'refrigerator': refrigerator_items
+            },
             'total_items': total_items,
             'message': message  # Add the message field
         })

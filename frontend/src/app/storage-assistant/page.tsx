@@ -2,7 +2,6 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
-import styles from './StorageAssistant.module.css';
 import { config } from '@/config';
 
 // Interface for camera state
@@ -15,6 +14,19 @@ interface CameraState {
   submittedPhotos: string[]; // Store photos ready for submission
 }
 
+// Interface for produce detection results
+interface ProduceDetections {
+  success: boolean;
+  detections: Array<{
+    class: string;
+    confidence: number;
+    bbox: number[];
+  }>;
+  produce_counts: {
+    [key: string]: number;
+  };
+  total_items: number;
+}
 
 // Interface for storage recommendation
 interface StorageRecommendation {
@@ -37,26 +49,6 @@ interface CalendarSelection {
   expiryDate: string;
 }
 
-// Interface for produce detection results
-interface ProduceDetections {
-  success: boolean;
-  detections: Array<{
-    class: string;
-    confidence: number;
-    bbox: number[];
-  }>;
-  produce_counts: {
-    [key: string]: number;
-  };
-  total_items: number;
-  message?: string; 
-  error?: string; 
-  storage_recommendations?: {
-    fridge: string[];
-    pantry: string[];
-  };
-}
-
 const StorageAssistant: React.FC = () => {
   // Refs for video and canvas elements
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -65,7 +57,7 @@ const StorageAssistant: React.FC = () => {
     selectedItems: [],
     calendarLink: null,
     reminderDays: 2, // Default 2 days reminder
-    reminderTime: "20:00", // Default 8pm reminder
+    reminderTime: "20:00", // Default 8 PM reminder
     expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Default 7 days expiry
   });
   
@@ -169,9 +161,7 @@ const StorageAssistant: React.FC = () => {
       }));
     }
   };
-  
-  
-  // Submit all captured photos for analysis
+
   const submitPhotos = async () => {
     if (state.photos.length === 0) return;
 
@@ -183,55 +173,26 @@ const StorageAssistant: React.FC = () => {
         images: state.photos // Send array of photos
       });
 
-      const data = response.data as ProduceDetections;
-      
-      // Check if there's an API key error
-      if (!data.success && data.error === 'API key not configured') {
-        setState(prev => ({
-          ...prev,
-          isAnalyzing: false,
-          error: data.message || "Claude API key is missing or invalid. Please contact the administrator."
-        }));
-        return;
-      }
-      
       setState(prev => ({
         ...prev,
-        detections: data,
+        detections: response.data as ProduceDetections,
         isAnalyzing: false,
-        submittedPhotos: [...prev.photos], // Store submitted photos
-        error: data.message || null  // Display message from backend if available
+        submittedPhotos: [...prev.photos] // Store submitted photos
       }));
 
-      // Use storage recommendations directly from backend if available
-      if (data.storage_recommendations) {
-        setStorageRecs({
-          fridge: data.storage_recommendations.fridge || [],
-          pantry: data.storage_recommendations.pantry || []
-        });
-      } else {
-        // Fallback to the old method if needed
-        fetchStorageRecommendations(data.produce_counts);
-      }
-    } catch (err: any) {
-      // Specific handling for API key errors
-      if (err.response && err.response.status === 401) {
-        setState(prev => ({
-          ...prev,
-          error: "Claude API key is missing or invalid. Please contact the administrator.",
-          isAnalyzing: false
-        }));
-      } else {
-        setState(prev => ({
-          ...prev,
-          error: `Analysis failed: ${err instanceof Error ? err.message : String(err)}`,
-          isAnalyzing: false
-        }));
-      }
+      // After submission, fetch storage recommendations
+      // This is a mock - replace with actual API call
+      fetchStorageRecommendations((response.data as ProduceDetections).produce_counts);
+    } catch (err) {
+      setState(prev => ({
+        ...prev,
+        error: `Analysis failed: ${err instanceof Error ? err.message : String(err)}`,
+        isAnalyzing: false
+      }));
     }
   };
 
-  // Function to fetch storage recommendations (fallback if not provided by backend)
+  // Mock function to fetch storage recommendations
   const fetchStorageRecommendations = (
     produceCounts: { [key: string]: number } = {}
   ) => {
@@ -278,7 +239,7 @@ const StorageAssistant: React.FC = () => {
     if (calendarSelection.selectedItems.length === 0) return;
   
     try {
-      const response = await axios.post(`${config.apiUrl}/api/generate_calendar`, {
+      const response = await axios.post(`${config.apiUrl}/api/generate_calendar/`, {
         items: calendarSelection.selectedItems,
         reminder_days: calendarSelection.reminderDays,
         reminder_time: calendarSelection.reminderTime
@@ -304,51 +265,52 @@ const StorageAssistant: React.FC = () => {
     }
   };
 
-  // Initialize on component mount
+  // Clean up camera stream on unmount
   useEffect(() => {
     fetchStorageRecommendations();
   }, []);
 
   return (
-    <div className={styles.container}>
-      <h1 className={styles.header}>Food Produce Scanner</h1>
+    <div className="max-w-6xl mx-auto p-5 font-sans bg-gray-50 rounded-lg shadow-md">
+      <h1 className="text-center text-2xl font-semibold text-gray-800 mb-8">Food Produce Scanner</h1>
       
       {/* Error message display */}
       {state.error && (
-        <div className={styles.error}>
+        <div className="bg-red-100 text-red-800 p-4 rounded-md mb-5 border-l-4 border-red-500">
           {state.error.split('\n').map((line, i) => (
             <p key={i}>{line}</p>
           ))}
         </div>
       )}
-  
-      <div className={styles.mainContent}>
+
+      <div className="flex flex-col md:flex-row gap-8 mb-8">
         {/* Left column - camera and controls */}
-        <div className={styles.cameraColumn}>
+        <div className="flex-1 min-w-0">
           {/* Camera preview area */}
-          <div className={styles.cameraPreview}>
+          <div className="relative w-full max-w-xl mx-auto mb-5 bg-black rounded-lg overflow-hidden aspect-video">
             <video
               ref={videoRef}
               autoPlay
               playsInline
               muted
-              className={styles.video}
-              style={{ display: state.stream ? 'block' : 'none' }}
+              className={`w-full h-full ${state.stream ? 'block' : 'hidden'}`}
             />
             {!state.stream && (
-              <div className={styles.placeholder}>Camera inactive</div>
+              <div className="absolute inset-0 flex items-center justify-center text-white bg-gray-800">
+                Camera inactive
+              </div>
             )}
           </div>
   
           {/* Hidden canvas for image capture */}
-          <canvas ref={canvasRef} style={{ display: 'none' }} />
+          <canvas ref={canvasRef} className="hidden" />
   
           {/* Camera control buttons */}
-          <div className={styles.controls}>
+          <div className="flex flex-wrap justify-center gap-4 mb-5">
             {!state.stream ? (
               <button
                 onClick={startCamera}
-                className={`${styles.button} ${styles.primaryButton}`}
+                className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors min-w-40 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 disabled={state.isAnalyzing}
               >
                 Start Camera
@@ -357,14 +319,14 @@ const StorageAssistant: React.FC = () => {
               <>
                 <button 
                   onClick={takePhoto} 
-                  className={`${styles.button} ${styles.captureButton}`}
+                  className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors min-w-40 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   disabled={state.isAnalyzing}
                 >
                   Capture Photo
                 </button>
                 <button 
                   onClick={stopCamera} 
-                  className={`${styles.button} ${styles.secondaryButton}`}
+                  className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md transition-colors min-w-40 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   disabled={state.isAnalyzing}
                 >
                   Stop Camera
@@ -377,7 +339,7 @@ const StorageAssistant: React.FC = () => {
           {state.photos.length > 0 && (
             <button
               onClick={submitPhotos}
-              className={`${styles.button} ${styles.submitButton}`}
+              className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition-colors mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed"
               disabled={state.isAnalyzing}
             >
               {state.isAnalyzing ? 'Analyzing...' : `Submit ${state.photos.length} Photo(s)`}
@@ -386,81 +348,98 @@ const StorageAssistant: React.FC = () => {
         </div>
   
         {/* Right column - photo previews */}
-        <div className={styles.photosColumn}>
-          <h3>Captured Photos ({state.photos.length})</h3>
+        <div className="flex-1 min-w-0 bg-white p-5 rounded-lg shadow">
+          <h3 className="text-lg font-medium mb-2">Captured Photos ({state.photos.length})</h3>
           {state.photos.length > 0 ? (
-            <div className={styles.photoGrid}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
               {state.photos.map((photo, index) => (
-                <div key={index} className={styles.photoContainer}>
+                <div key={index} className="relative rounded-md overflow-hidden aspect-square shadow-sm">
                   <img 
                     src={photo} 
                     alt={`Captured ${index + 1}`} 
-                    className={styles.thumbnail} 
+                    className="w-full h-full object-cover" 
                   />
-                  <span className={styles.photoIndex}>#{index + 1}</span>
+                  <span className="absolute bottom-0 right-0 bg-black bg-opacity-70 text-white px-2 py-1 text-xs rounded-tl-md">
+                    #{index + 1}
+                  </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className={styles.emptyMessage}>No photos captured yet</p>
+            <p className="text-gray-500 text-center italic p-5 bg-gray-50 rounded-md">
+              No photos captured yet
+            </p>
           )}
         </div>
       </div>
   
-      {/* Storage Recommendations Section - Always Visible */}
-      <div className={styles.storageSection}>
-        <h2>Storage Recommendations</h2>
-        <div className={styles.storageTabs}>
+      {/* Storage Recommendations Section */}
+      <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
+        <h2 className="text-xl font-semibold mb-4">Storage Recommendations</h2>
+        <div className="flex border-b mb-5">
           <button
             onClick={() => setActiveTab('fridge')}
-            className={activeTab === 'fridge' ? styles.activeTab : ''}
+            className={`py-2 px-4 font-medium transition-colors ${
+              activeTab === 'fridge' 
+                ? 'text-blue-600 border-b-2 border-blue-600' 
+                : 'text-gray-600 hover:text-blue-500'
+            }`}
           >
             Refrigerator
           </button>
           <button
             onClick={() => setActiveTab('pantry')}
-            className={activeTab === 'pantry' ? styles.activeTab : ''}
+            className={`py-2 px-4 font-medium transition-colors ${
+              activeTab === 'pantry' 
+                ? 'text-blue-600 border-b-2 border-blue-600' 
+                : 'text-gray-600 hover:text-blue-500'
+            }`}
           >
             Pantry
           </button>
         </div>
   
-        <div className={styles.storageContent}>
+        <div>
           {activeTab === 'fridge' ? (
-            <ul className={styles.storageList}>
+            <ul className="divide-y divide-gray-100">
               {storageRecs.fridge.length > 0 ? (
                 storageRecs.fridge.map((item, index) => (
-                  <li key={index} className={styles.storageItem}>
+                  <li key={index} className="py-3 px-2">
                     {item}
                   </li>
                 ))
               ) : (
-                <li className={styles.emptyMessage}>No items recommended for refrigerator</li>
+                <li className="text-gray-500 italic text-center py-4">
+                  No items recommended for refrigerator
+                </li>
               )}
             </ul>
           ) : (
-            <ul className={styles.storageList}>
+            <ul className="divide-y divide-gray-100">
               {storageRecs.pantry.length > 0 ? (
                 storageRecs.pantry.map((item, index) => (
-                  <li key={index} className={styles.storageItem}>
+                  <li key={index} className="py-3 px-2">
                     {item}
                   </li>
                 ))
               ) : (
-                <li className={styles.emptyMessage}>No items recommended for pantry</li>
+                <li className="text-gray-500 italic text-center py-4">
+                  No items recommended for pantry
+                </li>
               )}
             </ul>
           )}
         </div>
       </div>
   
-      {/* Calendar Export Section - Always Visible */}
-      <div className={styles.calendarSection}>
-        <h2>Calendar Export</h2>
-        <div className={styles.reminderSettings}>
-          <h3>Reminder Settings</h3>
-          <div className={styles.settingRow}>
-            <label>
+      {/* Calendar Export Section */}
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        <h2 className="text-xl font-semibold mb-4">Calendar Export</h2>
+        
+        <div className="bg-gray-50 p-4 rounded-md mb-5">
+          <h3 className="text-lg font-medium mb-2">Reminder Settings</h3>
+          <div className="flex flex-wrap gap-5 mt-3">
+            <label className="flex items-center gap-2">
               Days before expiry:
               <select
                 value={calendarSelection.reminderDays}
@@ -468,7 +447,7 @@ const StorageAssistant: React.FC = () => {
                   ...prev,
                   reminderDays: parseInt(e.target.value)
                 }))}
-                className={styles.timeSelect}
+                className="p-2 border border-gray-300 rounded-md text-sm"
               >
                 {[1, 2, 3, 4, 5, 6, 7].map(days => (
                   <option key={days} value={days}>{days} day{days !== 1 ? 's' : ''} before</option>
@@ -476,7 +455,7 @@ const StorageAssistant: React.FC = () => {
               </select>
             </label>
             
-            <label>
+            <label className="flex items-center gap-2">
               Reminder time:
               <input
                 type="time"
@@ -485,11 +464,11 @@ const StorageAssistant: React.FC = () => {
                   ...prev,
                   reminderTime: e.target.value
                 }))}
-                className={styles.timeInput}
+                className="p-2 border border-gray-300 rounded-md text-sm"
               />
             </label>
             
-            <label>
+            <label className="flex items-center gap-2">
               Default expiry date:
               <input
                 type="date"
@@ -498,27 +477,28 @@ const StorageAssistant: React.FC = () => {
                   ...prev,
                   expiryDate: e.target.value
                 }))}
-                className={styles.dateInput}
+                className="p-2 border border-gray-300 rounded-md text-sm"
                 min={new Date().toISOString().split('T')[0]}
               />
             </label>
           </div>
         </div>
-        <div className={styles.calendarContent}>
-          <div className={styles.selectionPanel}>
-            <h3>Select Items for Reminders</h3>
+        
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-medium mb-3">Select Items for Reminders</h3>
             {state.detections?.produce_counts ? (
-              <ul className={styles.itemList}>
+              <ul className="divide-y divide-gray-100">
                 {Object.entries(state.detections.produce_counts).map(([item, count]) => (
-                  <li key={item} className={styles.itemRow}>
-                    <label>
+                  <li key={item} className="py-2">
+                    <label className="flex items-center">
                       <input
                         type="checkbox"
                         checked={calendarSelection.selectedItems.some(i => i.name === item)}
                         onChange={() => toggleItemSelection(item, count)}
-                        className={styles.checkbox}
+                        className="mr-3"
                       />
-                      <span className={styles.itemName}>
+                      <span>
                         {item} (Qty: {count})
                       </span>
                     </label>
@@ -526,37 +506,39 @@ const StorageAssistant: React.FC = () => {
                 ))}
               </ul>
             ) : (
-              <p className={styles.emptyMessage}>Take and submit photos to see items</p>
+              <p className="text-gray-500 italic text-center py-4 bg-gray-50 rounded-md">
+                Take and submit photos to see items
+              </p>
             )}
   
             <button
               onClick={generateCalendarLink}
               disabled={!state.detections || calendarSelection.selectedItems.length === 0}
-              className={`${styles.button} ${styles.generateButton}`}
+              className="w-full mt-4 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               Generate Calendar Link
             </button>
           </div>
   
-          <div className={styles.linkPanel}>
-            <h3>Your Calendar Link</h3>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-medium mb-3">Your Calendar Link</h3>
             {calendarSelection.calendarLink ? (
-              <div className={styles.linkContainer}>
+              <div className="flex gap-2 mt-4">
                 <input
                   type="text"
                   value={calendarSelection.calendarLink}
                   readOnly
-                  className={styles.linkInput}
+                  className="flex-1 p-3 border border-gray-300 rounded-md text-sm"
                 />
                 <button
                   onClick={copyCalendarLink}
-                  className={`${styles.button} ${styles.copyButton}`}
+                  className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors"
                 >
                   Copy
                 </button>
               </div>
             ) : (
-              <p className={styles.emptyMessage}>
+              <p className="text-gray-500 italic text-center py-4 bg-gray-50 rounded-md">
                 {calendarSelection.selectedItems.length > 0
                   ? 'Click "Generate Calendar Link"'
                   : 'Select items first'}
