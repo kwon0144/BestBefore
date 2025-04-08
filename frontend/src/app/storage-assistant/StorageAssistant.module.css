@@ -203,13 +203,13 @@
   cursor: not-allowed;
 }
 
-/* Storage Recommendations Module */
+/* Storage recommendations section */
 .storageSection {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background: white;
+  background-color: white;
+  padding: 25px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
 }
 
 .storageTabs {
@@ -255,13 +255,12 @@
   border-bottom: none;
 }
 
-/* Calendar Module */
+/* Calendar section styles */
 .calendarSection {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background: white;
+  background-color: white;
+  padding: 25px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .calendarContent {
@@ -513,13 +512,13 @@
   font-style: italic;
 }
 
-
+/* 添加这些到你的 CSS 模块文件中 */
 
 .reminderSettings {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 6px;
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
 
 .settingRow {
