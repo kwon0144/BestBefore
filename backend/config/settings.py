@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-bo1g25!if3bu+tke5#e+6ie@g@$#3b%c=tl=#*91tll5pnl-rd'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
@@ -65,9 +65,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:443",
-    "http://3.107.143.147:443",
-    "http://3.107.143.147",
-    "https://tp22-bestbefore.com"
+    os.getenv('DJANGO_ALLOWED_ORIGIN')
 ]
 CORS_ALLOW_METHODS = (
     "GET",
@@ -85,7 +83,7 @@ CORS_ALLOW_HEADERS = (
 
 # API Key settings
 API_KEY_HEADER = 'X-API-Key'
-API_KEY = 'your-secret-api-key-here'
+API_KEY = os.getenv('DJANGO_API_KEY')
 
 # Require CORS headers
 CORS_REQUIRE_HEADERS = True
@@ -127,20 +125,23 @@ DATABASES = {
 }
 
 '''
+import os
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'my_database',
-        'USER': 'admin',
-        'PASSWORD': 'monashtp22',
-        'HOST': '127.0.0.1',
-        'PORT': '3307',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DB_PORT', '3307'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             # 'charset': 'utf8mb4',
-        }
+        },
     }
 }
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 

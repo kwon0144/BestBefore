@@ -14,6 +14,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [temperature, setTemperature] = useState<number>(0);
 
   useEffect(() => {
     setMounted(true);
@@ -56,6 +57,45 @@ export default function Home() {
     fetchUsers();
   }, [mounted]);
 
+  useEffect(() => {
+    const fetchTemperature = async () => {
+      if (!mounted) return;
+      
+      try {
+        console.log('Attempting to fetch temperature...');
+        const response = await fetch(`${config.apiUrl}/api/temperature/`, {
+          method: 'GET',
+          headers: {
+            'X-API-Key': config.apiKey,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        console.log('Temperature response status:', response.status);
+        console.log('Temperature response headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Temperature error response:', errorText);
+          throw new Error(`Failed to fetch temperature: ${response.status} ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Raw temperature response:', data);
+        if (data.status === 'success' && data.data && data.data.length > 0) {
+          setTemperature(data.data[0].temperature);
+        } else {
+          setTemperature(0);
+        }
+      } catch (err) {
+        console.error('Error fetching temperature:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching temperature');
+      }
+    };
+
+    fetchTemperature();
+  }, [mounted]);
+
   // Don't render anything until client-side hydration is complete
   if (!mounted) {
     return null;
@@ -80,6 +120,10 @@ export default function Home() {
   return (
     <main className="min-h-screen p-8">
       <h1 className="text-3xl font-bold mb-6">Users List</h1>
+      <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+        <h2 className="text-xl font-semibold mb-2">Current Temperature</h2>
+        <p className="text-2xl">{temperature}°C</p>
+      </div>
       {users.length === 0 ? (
         <div className="text-xl text-gray-500">No users found</div>
       ) : (
