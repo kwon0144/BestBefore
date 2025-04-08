@@ -50,11 +50,11 @@ export default function Navigation({
             {/* Navigation Back Button */}
             <div className="mb-3">
                 <Button
-                    startContent={<FontAwesomeIcon icon={faArrowLeft} />}
                     onPress={handleBackToInfo}
-                    className="bg-darkgreen hover:bg-darkgreen/50 text-white font-bold py-2 px-4 rounded-lg"
+                    className="text-darkgreen flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
                 >
-                    Back
+                    <FontAwesomeIcon icon={faArrowLeft} />
+                    Back to Information
                 </Button>
             </div>
             {/* Navigation Target Food Bank */}
