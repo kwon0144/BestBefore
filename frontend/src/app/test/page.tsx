@@ -9,7 +9,7 @@ interface User {
   age: number;
 }
 
-export default function test() {
+const Test = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,3 +98,5 @@ export default function test() {
     </main>
   );
 }
+
+export default Test;  
