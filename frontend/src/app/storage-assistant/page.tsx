@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import styles from './StorageAssistant.module.css';
 import { config } from '@/config';
+import Image from 'next/image';
 
 // Interface for camera state
 interface CameraState {
@@ -87,10 +88,6 @@ const StorageAssistant: React.FC = () => {
     fridge: [],
     pantry: [],
   });
-
-
-  // State for active tab in storage display
-  const [activeTab, setActiveTab] = useState<'fridge' | 'pantry'>('fridge');
 
   // Check iOS security restrictions
   const checkIOSRestriction = (): boolean => {
@@ -359,8 +356,13 @@ const StorageAssistant: React.FC = () => {
 
   // Clean up camera stream on unmount
   useEffect(() => {
-    fetchStorageRecommendations();
-  }, []);
+    // Remove unnecessary fetch call since it's not needed on mount
+    return () => {
+      if (state.stream) {
+        state.stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [state.stream]);
 
   return (
     <div className={styles.container}>
@@ -444,10 +446,13 @@ const StorageAssistant: React.FC = () => {
             <div className={styles.photoGrid}>
               {state.photos.map((photo, index) => (
                 <div key={index} className={styles.photoContainer}>
-                  <img 
+                  <Image 
                     src={photo} 
                     alt={`Captured ${index + 1}`} 
-                    className={styles.thumbnail} 
+                    className={styles.thumbnail}
+                    width={150}
+                    height={150}
+                    style={{ objectFit: 'cover' }}
                   />
                   <span className={styles.photoIndex}>#{index + 1}</span>
                 </div>
