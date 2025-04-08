@@ -47,10 +47,20 @@ interface CalendarSelection {
   calendarLink: string | null;
   reminderDays: number;
   reminderTime: string;
-  expiryDate: string;
 }
 
+interface FoodTypeResponse {
+  food_types: string[];
+}
 
+interface StorageAdviceResponse {
+  method: number;
+  storage_time: number;
+}
+
+interface CalendarResponse {
+  calendar_url: string;
+}
 
 const StorageAssistant: React.FC = () => {
   // Refs for video and canvas elements
@@ -61,7 +71,6 @@ const StorageAssistant: React.FC = () => {
     calendarLink: null,
     reminderDays: 2, // 默认提前2天提醒
     reminderTime: "20:00", // 默认晚上8点提醒
-    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 默认7天后过期
   });
   // Main component state
   const [state, setState] = useState<CameraState>({
@@ -76,7 +85,7 @@ const StorageAssistant: React.FC = () => {
   // State for storage recommendations (to be fetched from backend)
   const [storageRecs, setStorageRecs] = useState<StorageRecommendation>({
     fridge: [],
-    pantry: []
+    pantry: [],
   });
 
 
@@ -198,28 +207,100 @@ const StorageAssistant: React.FC = () => {
   };
 
   // Mock function to fetch storage recommendations
-  const fetchStorageRecommendations = (
-    produceCounts: { [key: string]: number } = {}
-  ) => {
-    const allItems = Object.keys(produceCounts).length > 0
-      ? Object.keys(produceCounts)
-      : ['apple', 'banana', 'carrot']; 
-  
-    const fridgeItems = allItems.filter(item =>
-      ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())
-    );
-    const pantryItems = allItems.filter(item =>
-      ['potatoes', 'onions', 'garlic', 'tomatoes'].includes(item.toLowerCase())
-    );
-  
-    setStorageRecs({
-      fridge: fridgeItems,
-      pantry: pantryItems,
-    });
+  const fetchStorageRecommendations = async (produceCounts: { [key: string]: number } = {}) => {
+    try {
+      // 获取所有食物类型
+      const foodTypesResponse = await axios.get<FoodTypeResponse>(`${config.apiUrl}/api/food-types/`);
+      const allFoodTypes = foodTypesResponse.data.food_types;
+      
+      // 如果没有检测到食物，使用默认示例数据
+      const allItems = Object.keys(produceCounts).length > 0
+        ? Object.keys(produceCounts)
+        : [];
+      
+      // 为每个食物获取存储建议
+      const fridgeItems: string[] = [];
+      const pantryItems: string[] = [];
+      
+      for (const item of allItems) {
+        try {
+          // 查找最匹配的食物类型
+          const matchedType = allFoodTypes.find((type: string) => 
+            type.toLowerCase().includes(item.toLowerCase()) || 
+            item.toLowerCase().includes(type.toLowerCase())
+          );
+          
+          if (matchedType) {
+            const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+              food_type: matchedType
+            });
+            
+            const recommendation = response.data;
+            
+            // 根据method字段决定存储位置
+            if (recommendation.method === 1) {
+              fridgeItems.push(`${item} (${recommendation.storage_time} days)`);
+              // 更新 toggleItemSelection 调用，传递存储时间
+              toggleItemSelection(item, produceCounts[item] || 1, recommendation.storage_time);
+            } else if (recommendation.method === 2) {
+              pantryItems.push(`${item} (${recommendation.storage_time} days)`);
+              // 更新 toggleItemSelection 调用，传递存储时间
+              toggleItemSelection(item, produceCounts[item] || 1, recommendation.storage_time);
+            }
+          } else {
+            // 如果没有匹配的类型，使用默认分类
+            if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
+              fridgeItems.push(item);
+            } else {
+              pantryItems.push(item);
+            }
+          }
+        } catch (err) {
+          console.error(`Error fetching storage advice for ${item}:`, err);
+          // 使用默认分类
+          if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
+            fridgeItems.push(item);
+          } else {
+            pantryItems.push(item);
+          }
+        }
+      }
+      
+      setStorageRecs({
+        fridge: fridgeItems,
+        pantry: pantryItems,
+      });
+    } catch (err) {
+      console.error('Error fetching food types:', err);
+      // 使用空数组而不是默认数据
+      const allItems = Object.keys(produceCounts).length > 0
+        ? Object.keys(produceCounts)
+        : [];
+      
+      const fridgeItems = allItems.filter(item =>
+        ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())
+      );
+      
+      const pantryItems = allItems.filter(item =>
+        !['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())
+      );
+      
+      setStorageRecs({
+        fridge: fridgeItems,
+        pantry: pantryItems,
+      });
+    }
   };
 
-  // Toggle item selection for calendar
-  const toggleItemSelection = (item: string, quantity: number) => {
+  // 计算过期日期
+  const calculateExpiryDate = (storageTime: number): string => {
+    const currentDate = new Date();
+    const expiryDate = new Date(currentDate.getTime() + storageTime * 24 * 60 * 60 * 1000);
+    return expiryDate.toISOString().split('T')[0];
+  };
+
+  // 修改 toggleItemSelection 函数
+  const toggleItemSelection = (item: string, quantity: number, storageTime: number) => {
     setCalendarSelection(prev => {
       const existingIndex = prev.selectedItems.findIndex(i => i.name === item);
       
@@ -231,7 +312,7 @@ const StorageAssistant: React.FC = () => {
         const newItem = {
           name: item,
           quantity,
-          expiry_date: prev.expiryDate,
+          expiry_date: calculateExpiryDate(storageTime),
           reminder_days: prev.reminderDays,
           reminder_time: prev.reminderTime
         };
@@ -240,19 +321,25 @@ const StorageAssistant: React.FC = () => {
     });
   };
 
+  // 修改 generateCalendarLink 函数
   const generateCalendarLink = async () => {
     if (calendarSelection.selectedItems.length === 0) return;
   
     try {
-      const response = await axios.post(`${config.apiUrl}/api/generate_calendar/`, {
-        items: calendarSelection.selectedItems,
+      const response = await axios.post<CalendarResponse>(`${config.apiUrl}/api/generate_calendar/`, {
+        items: calendarSelection.selectedItems.map(item => ({
+          ...item,
+          expiry_date: item.expiry_date,
+          reminder_days: calendarSelection.reminderDays,
+          reminder_time: calendarSelection.reminderTime
+        })),
         reminder_days: calendarSelection.reminderDays,
         reminder_time: calendarSelection.reminderTime
       });
   
       setCalendarSelection(prev => ({
         ...prev,
-        calendarLink: (response.data as { calendar_url: string }).calendar_url
+        calendarLink: response.data.calendar_url
       }));
     } catch (err) {
       setState(prev => ({
@@ -375,23 +462,9 @@ const StorageAssistant: React.FC = () => {
       {/* Storage Recommendations Section - Always Visible */}
       <div className={styles.storageSection}>
         <h2>Storage Recommendations</h2>
-        <div className={styles.storageTabs}>
-          <button
-            onClick={() => setActiveTab('fridge')}
-            className={activeTab === 'fridge' ? styles.activeTab : ''}
-          >
-            Refrigerator
-          </button>
-          <button
-            onClick={() => setActiveTab('pantry')}
-            className={activeTab === 'pantry' ? styles.activeTab : ''}
-          >
-            Pantry
-          </button>
-        </div>
-  
         <div className={styles.storageContent}>
-          {activeTab === 'fridge' ? (
+          <div className={styles.storageColumn}>
+            <h3>Refrigerator</h3>
             <ul className={styles.storageList}>
               {storageRecs.fridge.length > 0 ? (
                 storageRecs.fridge.map((item, index) => (
@@ -403,7 +476,9 @@ const StorageAssistant: React.FC = () => {
                 <li className={styles.emptyMessage}>No items recommended for refrigerator</li>
               )}
             </ul>
-          ) : (
+          </div>
+          <div className={styles.storageColumn}>
+            <h3>Pantry</h3>
             <ul className={styles.storageList}>
               {storageRecs.pantry.length > 0 ? (
                 storageRecs.pantry.map((item, index) => (
@@ -415,7 +490,7 @@ const StorageAssistant: React.FC = () => {
                 <li className={styles.emptyMessage}>No items recommended for pantry</li>
               )}
             </ul>
-          )}
+          </div>
         </div>
       </div>
   
@@ -453,20 +528,6 @@ const StorageAssistant: React.FC = () => {
                 className={styles.timeInput}
               />
             </label>
-            
-            <label>
-              Default expiry date:
-              <input
-                type="date"
-                value={calendarSelection.expiryDate}
-                onChange={(e) => setCalendarSelection(prev => ({
-                  ...prev,
-                  expiryDate: e.target.value
-                }))}
-                className={styles.dateInput}
-                min={new Date().toISOString().split('T')[0]}
-              />
-            </label>
           </div>
         </div>
         <div className={styles.calendarContent}>
@@ -480,7 +541,7 @@ const StorageAssistant: React.FC = () => {
                       <input
                         type="checkbox"
                         checked={calendarSelection.selectedItems.some(i => i.name === item)}
-                        onChange={() => toggleItemSelection(item, count)}
+                        onChange={() => toggleItemSelection(item, count, 0)}
                         className={styles.checkbox}
                       />
                       <span className={styles.itemName}>

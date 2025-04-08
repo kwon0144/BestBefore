@@ -67,6 +67,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:443",
     os.getenv('DJANGO_ALLOWED_ORIGIN')
 ]
+
+# 如果环境变量存在，添加到允许的源列表中
+allowed_origin = os.getenv('DJANGO_ALLOWED_ORIGIN')
+if allowed_origin:
+    CORS_ALLOWED_ORIGINS.append(allowed_origin)
+
 CORS_ALLOW_METHODS = (
     "GET",
     "POST",
