@@ -16,18 +16,18 @@ export default function Hero() {
         <div className="max-w-7xl mx-auto absolute inset-0 flex flex-col justify-center items-start px-8 md:px-16 z-20">
             <div className="max-w-2xl">
                 <GradientText
-                    colors={["#1B5E20", "#2D5A4B",  "#4CAF50", "#2D5A4B", "#1B5E20"]}
+                    colors={["#1B5E20", "#2D5A4B",  "#2f8f58", "#2D5A4B", "#1B5E20"]}
                     animationSpeed={5}
                     showBorder={false}
                     className="text-4xl md:text-5xl font-bold text-darkgreen mb-6"
                 >
                     Together for a zero-waste kitchen
                 </GradientText>
-                <p className="text-xl md:text-2xl text-darkgreen mb-8">
+                <p className="text-xl md:text-2xl text-darkgreen mb-8 font-semibold">
                     Save food, money, and our planet with BestBefore
                 </p>
                 <Button 
-                    className="bg-darkgreen text-white px-8 py-7 rounded-lg text-lg font-medium rounded-button"
+                    className="bg-gradient-to-br from-[#2D5A4B] via-[#1B5E20] to-[#6FCF97] text-white px-8 py-7 rounded-lg text-lg font-medium hover:from-[#4CAF50] hover:via-[#2D5A4B] hover:to-[#1B5E20] transition-all duration-500"
                     onPress={() => {
                         router.push('/storage-assistant');
                     }}
