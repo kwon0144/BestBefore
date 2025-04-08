@@ -32,7 +32,7 @@ module.exports = {
         colors: {
           foregroud: "#FFFFFF",
           primary: {
-            DEFAULT: "#2f8f58"
+            DEFAULT: "#0d9488"
           },
           background: {
             DEFAULT: "#f5f6f2"
@@ -41,7 +41,7 @@ module.exports = {
             DEFAULT: "#78bba2"
           },
           green: {
-            DEFAULT: "#2f8f58"
+            DEFAULT: "#0d9488"
           },
           darkgreen: {
             DEFAULT: "#2d5a4b"
