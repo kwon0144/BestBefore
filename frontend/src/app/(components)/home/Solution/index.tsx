@@ -115,7 +115,7 @@ export default function Solution() {
                     </div>
 
                     {/* Third row - Bottom cards */}
-                    <div className="grid grid-cols-6 gap-8 mt-5 mb-8">
+                    <div className="grid grid-cols-6 gap-8 mt-3 mb-8">
                         <div className="col-span-1">
                         </div>
                         <div className="col-span-1">

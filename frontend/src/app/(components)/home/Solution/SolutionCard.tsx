@@ -1,4 +1,4 @@
-import { FlipCard } from '../FlipCard';
+import { FlipCard } from "../../FlipCard";
 
 export interface SolutionCardProps {
     step: {
