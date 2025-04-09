@@ -3,8 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Poppins } from "next/font/google";
 import { Providers } from "./providers";
-import Navigationbar from "./food-network/(components)/Navigationbar";
-import Footer from "./food-network/(components)/Footer";
+import Navigationbar from "./(components)/Navigationbar";
+import Footer from "./(components)/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
