@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, date
 from django.utils import timezone
 import uuid
 from django.db import connection
+import re
 
 @api_view(['GET'])
 def get_users(request):
@@ -118,109 +119,141 @@ class FoodBankViewSet(viewsets.ReadOnlyModelViewSet):
             return FoodBankDetailSerializer
         return FoodBankListSerializer
 
- 
-# Data Wrangling for operating hours
+
 def parse_operating_hours(hours_text):
-    
+    """
+    Parse operating hours text into structured data with frontend-ready daily schedules
+    """
     if not hours_text or not isinstance(hours_text, str):
         return {
             'is_24_hours': False,
             'days': [],
-            'raw_text': str(hours_text) if hours_text else ""
+            'hours': None,
+            'raw_text': str(hours_text) if hours_text else "",
+            'daily_schedule': {
+                'monday': {'is_open': False, 'hours': None},
+                'tuesday': {'is_open': False, 'hours': None},
+                'wednesday': {'is_open': False, 'hours': None},
+                'thursday': {'is_open': False, 'hours': None},
+                'friday': {'is_open': False, 'hours': None},
+                'saturday': {'is_open': False, 'hours': None},
+                'sunday': {'is_open': False, 'hours': None}
+            }
         }
         
-    if hours_text.strip().lower() == '24 hours':
-        return {
-            'is_24_hours': True,
-            'days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-            'hours': '00:00-24:00',
-            'raw_text': hours_text
-        }
-    
-    weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-    weekend = ['Saturday', 'Sunday']
+    weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+    weekend = ['saturday', 'sunday']
     all_days = weekdays + weekend
+    
+    # Initialize daily schedule with all days closed
+    daily_schedule = {
+        day: {'is_open': False, 'hours': None} for day in all_days
+    }
     
     # Initialize result
     result = {
         'is_24_hours': '24 hours' in hours_text.lower(),
         'days': [],
         'hours': None,
-        'raw_text': hours_text
+        'raw_text': hours_text,
+        'daily_schedule': daily_schedule
     }
+    
+    # If it's 24 hours, set all days to open
+    if result['is_24_hours'] or hours_text.strip().lower() == '24 hours':
+        result['is_24_hours'] = True
+        result['days'] = [day.capitalize() for day in all_days]
+        result['hours'] = '00:00-24:00'
+        
+        for day in all_days:
+            result['daily_schedule'][day] = {
+                'is_open': True,
+                'hours': '00:00-24:00'
+            }
+            
+        return result
     
     try:
         hours_text = hours_text.lower().strip()
+        extracted_hours = None
+        
+        # Extract time pattern if available
+        time_match = re.search(r'(\d{1,2}[:\.]\d{2})-(\d{1,2}[:\.]\d{2})', hours_text)
+        if time_match:
+            extracted_hours = time_match.group(0)
+            # Standardize time format (replace dots with colons)
+            if '.' in extracted_hours:
+                extracted_hours = extracted_hours.replace('.', ':')
         
         # Case 1: Weekday hours, closed on weekends
-        if 'weekdays' in hours_text and ('close in weekends' in hours_text or 'closed in weekends' in hours_text):
-            time_part = hours_text.split('in weekdays')[0].strip()
-            result['days'] = weekdays
-            result['hours'] = time_part
-        
+        if ('weekday' in hours_text or 'weekdays' in hours_text) and ('close in weekend' in hours_text or 'closed in weekend' in hours_text):
+            result['days'] = [day.capitalize() for day in weekdays]
+            result['hours'] = extracted_hours
+            
+            for day in weekdays:
+                result['daily_schedule'][day] = {
+                    'is_open': True,
+                    'hours': extracted_hours
+                }
+                
         # Case 2: Daily hours except certain days
         elif 'daily beside' in hours_text:
-            excluded_day = hours_text.split('daily beside')[1].strip().split()[0].lower()
-            excluded_day = excluded_day.rstrip(',.:;')
+            excluded_days = []
             
-            time_part = hours_text.split('daily beside')[0].strip()
-            result['hours'] = time_part
+            # Find excluded days
+            after_beside = hours_text.split('daily beside')[1].strip()
+            day_names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
             
-            # Add all days except the excluded one
+            for day in day_names:
+                if day in after_beside:
+                    excluded_days.append(day)
+            
+            # If no explicit excluded days were found, try to extract the first word
+            if not excluded_days:
+                first_word = after_beside.split()[0].rstrip(',.:;')
+                if first_word in day_names:
+                    excluded_days.append(first_word)
+            
+            # Add all days except the excluded ones
             for day in all_days:
-                if excluded_day not in day:  # Skip the excluded day
-                    result['days'].append(day)
-        
+                if day not in excluded_days:
+                    result['days'].append(day.capitalize())
+                    result['daily_schedule'][day] = {
+                        'is_open': True,
+                        'hours': extracted_hours
+                    }
+            
+            result['hours'] = extracted_hours
+            
         # Case 3: Daily operations
         elif 'daily' in hours_text:
-            time_part = hours_text.replace('daily', '').strip()
-            result['days'] = all_days
-            result['hours'] = time_part
+            result['days'] = [day.capitalize() for day in all_days]
+            result['hours'] = extracted_hours
             
+            for day in all_days:
+                result['daily_schedule'][day] = {
+                    'is_open': True,
+                    'hours': extracted_hours
+                }
+                
         # Case 4: Specific days mentioned
         else:
-            # Simplification for the API response
-            # Check for weekdays
-            if any(day in hours_text for day in weekdays):
-                for day in weekdays:
-                    if day in hours_text:
-                        result['days'].append(day)
+            # Check for each day mentioned
+            for day in all_days:
+                if day in hours_text:
+                    result['days'].append(day.capitalize())
+                    result['daily_schedule'][day] = {
+                        'is_open': True,
+                        'hours': extracted_hours
+                    }
             
-            # Check for weekend days
-            if any(day in hours_text for day in weekend):
-                for day in weekend:
-                    if day in hours_text:
-                        result['days'].append(day)
-            
-            # Extract hours if possible
-            if '-' in hours_text:
-                # Take the first time range found
-                time_parts = hours_text.split(',')
-                for part in time_parts:
-                    if '-' in part:
-                        # Try to extract just the time part
-                        time_matches = re.findall(r'(\d{1,2}[:\.]\d{2})-(\d{1,2}[:\.]\d{2})', part)
-                        if time_matches:
-                            result['hours'] = f"{time_matches[0][0]}-{time_matches[0][1]}"
-                        else:
-                            # Just take what's before the first "in" or "on"
-                            for separator in [' in ', ' on ']:
-                                if separator in part:
-                                    result['hours'] = part.split(separator)[0].strip()
-                                    break
-                            else:
-                                # If no separator found, just take the whole part
-                                result['hours'] = part.strip()
-                        break
+            result['hours'] = extracted_hours
     
     except Exception as e:
-        # Log the error but return the best effort parsing
         print(f"Error parsing hours: {e}")
     
-    # If we couldn't parse days, return all days for 24 hours
-    if result['is_24_hours'] and not result['days']:
-        result['days'] = all_days
-        result['hours'] = '00:00-24:00'
+    # Format all days for consistent capitalization
+    result['days'] = [day.capitalize() for day in result['days']]
     
     return result
 
@@ -240,7 +273,8 @@ def get_foodbanks(request):
                     latitude, 
                     longitude, 
                     type, 
-                    hours_of_operation
+                    hours_of_operation,
+                    address
                 FROM 
                     geospatial
                 """

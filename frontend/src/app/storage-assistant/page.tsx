@@ -551,12 +551,20 @@ const FoodStorageAssistant: React.FC = () => {
                 <h2 className="text-2xl font-semibold text-gray-700">
                   Step 2: Storage Recommendations
                 </h2>
-                <button
-                  onClick={() => setCurrentStep(1)}
-                  className="text-blue-500 hover:text-blue-700"
-                >
-                  Back to Camera
-                </button>
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleReset}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    Reset
+                  </button>
+                  <button
+                    onClick={() => setCurrentStep(1)}
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    Back to Camera
+                  </button>
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Refrigerator section */}
