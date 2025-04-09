@@ -5,8 +5,7 @@ import { useState } from "react";
 import { APIProvider } from "@vis.gl/react-google-maps";
 import Title from "./(components)/Title";
 import MapSection from "./MapSection";
-import FoodbankList from "./FoodbankList";
-import FoodbankDetail from "./FoodbankDetail";
+import FoodNetworkList from "./MapSection/Interaction/FoodNetworkList";
 import { Foodbank } from "../api/foodbanks/route";
 
 const GOOGLE_MAPS_LIBRARIES: ("places" | "routes")[] = ["places", "routes"];
@@ -27,7 +26,12 @@ export default function FoodNetwork() {
     setSelectedFoodbank(foodbank);
   };
 
-  if (!isLoaded) return <div>Loading...</div>;
+  if (!isLoaded) return (
+    <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
+      <Title heading="Food Network" description="Contribute to the community by donation or efficient disposal" />
+      <div>Loading...</div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
@@ -41,7 +45,7 @@ export default function FoodNetwork() {
       
       {/* <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-6"> */}
         <div className="lg:col-span-2">
-          <FoodbankList onSelectFoodbank={handleSelectFoodbank} />
+          <FoodNetworkList onSelectFoodbank={handleSelectFoodbank} />
         </div>
         
         {/* <div>

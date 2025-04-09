@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Input, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Pagination, Select, SelectItem } from "@heroui/react";
-import { Foodbank } from '../api/foodbanks/route';
+import { Foodbank } from '../../../../api/foodbanks/route';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUtensils, faRecycle, faSearch, faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
 
-interface FoodbankListProps {
+interface FoodNetworkListProps {
   onSelectFoodbank?: (foodbank: Foodbank) => void;
 }
 
@@ -16,7 +16,7 @@ const typeOptions = [
   { uid: "Green Waste", name: "Green Waste" },
 ];
 
-const FoodbankList: React.FC<FoodbankListProps> = ({ onSelectFoodbank }) => {
+const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ onSelectFoodbank }) => {
   const [foodbanks, setFoodbanks] = useState<Foodbank[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -214,4 +214,4 @@ const FoodbankList: React.FC<FoodbankListProps> = ({ onSelectFoodbank }) => {
   );
 };
 
-export default FoodbankList;
+export default FoodNetworkList;
