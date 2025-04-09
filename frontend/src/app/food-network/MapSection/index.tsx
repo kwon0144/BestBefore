@@ -84,6 +84,7 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
                     travellingMode={travellingMode}
                     selectedType={selectedType}
                     setMap={setMap}
+                    setSelectedStart={setSelectedStart}
                 />
             </div>
             <div className="w-2/5">
