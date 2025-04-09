@@ -99,6 +99,7 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
                     setShowNavigation={setShowNavigation}
                     showInformation={showInformation}
                     setShowInformation={setShowInformation}
+                    selectedType={selectedType}
                 />
             </div>
         </div>

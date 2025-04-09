@@ -19,12 +19,13 @@ interface InteractionProps {
     setShowInformation: Dispatch<SetStateAction<boolean>>;
     setShowNavigation: Dispatch<SetStateAction<boolean>>;
     setShowRouteResult: Dispatch<SetStateAction<boolean>>;
+    selectedType: string;
 }
 export default function Interaction({ 
     selectedEnd, selectedStart, setSelectedStart, 
     setRouteStart, setRouteEnd, routeDetails, travellingMode,
     setTravellingMode, showInformation, showNavigation, showRouteResult,
-    setShowInformation, setShowNavigation, setShowRouteResult
+    setShowInformation, setShowNavigation, setShowRouteResult, selectedType
 }: InteractionProps) {
     return (
         <>
@@ -33,6 +34,7 @@ export default function Interaction({
                 setShowInformation={setShowInformation}
                 setShowNavigation={setShowNavigation}
                 showInformation={showInformation}
+                selectedType={selectedType}
             />
             <Navigation 
                 selectedStart={selectedStart}

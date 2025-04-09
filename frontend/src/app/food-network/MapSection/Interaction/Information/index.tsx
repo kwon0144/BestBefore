@@ -6,21 +6,24 @@ import {
     faMapMarkerAlt, 
     faClock,
     faDirections,
-    faBook
 } from '@fortawesome/free-solid-svg-icons';
+import DonationGuideButton from "./DonationGuideButton";
+import DisposalGuideButton from "./DisposalGuideButton";
 
 interface InformationProps {
     selectedEnd: string | null;
     setShowInformation: Dispatch<SetStateAction<boolean>>;
     setShowNavigation: Dispatch<SetStateAction<boolean>>;
     showInformation: boolean;
+    selectedType: string;
 }
 
 export default function Information({ 
     selectedEnd,
     setShowInformation,
     setShowNavigation,
-    showInformation
+    showInformation,
+    selectedType
 }: InformationProps) {
     const { foodbank, loading, error } = useFoodBank(selectedEnd);
     
@@ -138,18 +141,18 @@ export default function Information({
                 </div>
                 {/* Buttons */}
                 <div className="mt-auto flex flex-row gap-4">
+                    {/* Get Directions */}
                     <Button
                         onPress={handleClick}
-                        className="flex-1 bg-darkgreen text-white font-bold py-2 px-4 rounded-lg"
+                        className="flex-1 bg-darkgreen text-white py-2 px-4 rounded-lg"
                     >
                         <FontAwesomeIcon icon={faDirections} className="mr-2" />
                         Get Directions
                     </Button>
-                    <Button 
-                        className="flex-1 bg-darkgreen text-white py-2 px-4 rounded-lg">
-                        <FontAwesomeIcon icon={faBook} className="mr-2" />
-                        Get Donation Guide
-                    </Button>
+                    {/* Get Donation Guide */}
+                    {selectedType === "Food Donation Points" ? (
+                        <DonationGuideButton />
+                    ): <DisposalGuideButton />}
                 </div>
             </div>
         </div>
