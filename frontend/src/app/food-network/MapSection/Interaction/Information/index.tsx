@@ -96,22 +96,24 @@ export default function Information({
     return (
         <div className={`flex flex-col gap-4 pl-10 w-full ${showInformation ? "display" : "hidden"}`}>
             <div className="h-full flex flex-col">
-                <h2 className="text-2xl font-bold text-darkgreen mb-6 h-[40px]">
-                    {foodbank.name}
-                </h2>
-                <div className="mb-6">
-                    <div className="flex items-start">
-                        <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-600 mr-3 w-5 flex-shrink-0" />
-                        <p>{foodbank.address || "Address not available"}</p>
+                <div className="h-[180px] flex flex-col justify-center">
+                    <h2 className="text-2xl font-bold text-darkgreen mb-6">
+                        {foodbank.name}
+                    </h2>
+                    <div className="mb-6">
+                        <div className="flex items-start">
+                            <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-600 mr-3 w-5 flex-shrink-0" />
+                            <p>{foodbank.address || "Address not available"}</p>
+                        </div>
                     </div>
                 </div>
                 {/* opening hours */}
-                <div className="mb-6">
+                <div className="mb-6 h-[278px]">
                     <div className="flex items-center mb-3">
                         <FontAwesomeIcon icon={faClock} className="text-gray-600 mr-3 w-5 flex-shrink-0" />
                         <p className="font-semibold">Opening Hours</p>
                     </div>
-                    <div className="rounded-lg px-5 py-2 pr-10 h-[308px]">
+                    <div className="rounded-lg px-5 py-2 pr-10 ">
                         {foodbank.operation_schedule.is_24_hours ? (
                             <p className="text-green-600">Open 24 hours, every day</p>
                         ) : Object.values(foodbank.operation_schedule.daily_schedule).every(day => !day.hours) ? (

@@ -32,9 +32,9 @@ export default function MapSection({selectedEnd, setSelectedEnd}: MapSectionProp
     setRouteStart(null);
     setRouteEnd(null);
     setSelectedEnd('41') 
-    if (map && selectedStart) {
-        map.setZoom(15);
-        map.setCenter(selectedStart);
+    if (map) {
+        map.setZoom(12);
+        map.setCenter({lat: -37.8136, lng: 144.9631});
     }   
   };
 
