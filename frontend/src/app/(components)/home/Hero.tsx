@@ -25,7 +25,7 @@ export default function Hero() {
             <div
                 className="h-screen bg-cover bg-center"
                 style={{
-                backgroundImage: `url('https://public.readdy.ai/ai/img_res/142495065a2d00bebbba9eff65e1f5cb.jpg')`
+                backgroundImage: `url('https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/hero.jpg')`
                 }}
             >
             </div>
