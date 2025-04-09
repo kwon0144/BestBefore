@@ -41,7 +41,7 @@ export default function WhereAmIButton() {
         <>
             <div className="absolute top-0 right-16 pt-3">
                 <Button
-                    className="w-auto p-0 bg-[#fc9003] text-white px-4"
+                    className="w-auto p-0 bg-[#fc9003] text-white px-4 shadow-md shadow-[#fc9003]/50"
                     onPress={getCurrentLocation}
                 >
                     <Icon icon="lucide:map-pin" className="text-xl" />
