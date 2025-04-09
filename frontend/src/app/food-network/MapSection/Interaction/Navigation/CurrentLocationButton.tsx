@@ -21,7 +21,7 @@ export default function CurrentLocationButton({ setSelectedStart, onLocationFoun
                     };
                     setSelectedStart(location);
                     map?.panTo({ lat: location.lat, lng: location.lng });
-                    map?.setZoom(15);
+                    map?.setZoom(12);
 
                     // Get the address using reverse geocoding
                     try {
