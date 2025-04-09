@@ -23,6 +23,7 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
   const [showNavigation, setShowNavigation] = useState<boolean>(false);
   const [showInformation, setShowInformation] = useState<boolean>(true);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [currentLocationAddress, setCurrentLocationAddress] = useState<string | null>(null);
 
   // Add effect to notify parent when map is ready
   useEffect(() => {
@@ -41,6 +42,8 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
     setRouteStart(null);
     setRouteEnd(null);
     setSelectedEnd('41') 
+    setSelectedStart(null);
+    setCurrentLocationAddress(null);
     if (map) {
         map.setZoom(12);
         map.setCenter({lat: -37.8136, lng: 144.9631});
@@ -100,6 +103,8 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
                     showInformation={showInformation}
                     setShowInformation={setShowInformation}
                     selectedType={selectedType}
+                    currentLocationAddress={currentLocationAddress}
+                    setCurrentLocationAddress={setCurrentLocationAddress}
                 />
             </div>
         </div>

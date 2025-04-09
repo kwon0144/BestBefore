@@ -20,12 +20,15 @@ interface InteractionProps {
     setShowNavigation: Dispatch<SetStateAction<boolean>>;
     setShowRouteResult: Dispatch<SetStateAction<boolean>>;
     selectedType: string;
+    currentLocationAddress: string | null;
+    setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
 }
 export default function Interaction({ 
     selectedEnd, selectedStart, setSelectedStart, 
     setRouteStart, setRouteEnd, routeDetails, travellingMode,
     setTravellingMode, showInformation, showNavigation, showRouteResult,
-    setShowInformation, setShowNavigation, setShowRouteResult, selectedType
+    setShowInformation, setShowNavigation, setShowRouteResult, selectedType,
+    currentLocationAddress, setCurrentLocationAddress
 }: InteractionProps) {
     return (
         <>
@@ -36,18 +39,23 @@ export default function Interaction({
                 showInformation={showInformation}
                 selectedType={selectedType}
             />
-            <Navigation 
-                selectedStart={selectedStart}
-                selectedEnd={selectedEnd}
-                setSelectedStart={setSelectedStart}
-                setRouteStart={setRouteStart}
-                setRouteEnd={setRouteEnd}
-                showNavigation={showNavigation}
-                setShowNavigation={setShowNavigation}
-                setShowRouteResult={setShowRouteResult}
-                setTravellingMode={setTravellingMode}
-                setShowInformation={setShowInformation}
-            />
+            {showNavigation && (
+                <Navigation 
+                    selectedStart={selectedStart}
+                    selectedEnd={selectedEnd}
+                    setSelectedStart={setSelectedStart}
+                    setRouteStart={setRouteStart}
+                    setRouteEnd={setRouteEnd}
+                    showNavigation={showNavigation}
+                    setShowNavigation={setShowNavigation}
+                    setShowRouteResult={setShowRouteResult}
+                    setShowInformation={setShowInformation}
+                    setTravellingMode={setTravellingMode}
+                    currentLocationAddress={currentLocationAddress}
+                    setCurrentLocationAddress={setCurrentLocationAddress}
+                    travellingMode={travellingMode}
+                />
+            )}
             <RouteResult 
                 selectedEnd={selectedEnd}
                 selectedStart={selectedStart}

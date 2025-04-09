@@ -19,19 +19,30 @@ interface NavigationProps {
     showNavigation: boolean;
     setShowNavigation: Dispatch<SetStateAction<boolean>>;
     setShowRouteResult: Dispatch<SetStateAction<boolean>>;
-    setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
     setShowInformation: Dispatch<SetStateAction<boolean>>;
+    setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
+    currentLocationAddress: string | null;
+    setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
+    travellingMode: TravelMode;
 }
 
-export default function Navigation({ 
-    selectedStart, selectedEnd, setSelectedStart, 
-    setRouteStart, setRouteEnd, showNavigation, 
-    setShowNavigation, setShowRouteResult, setTravellingMode,
-    setShowInformation
+export default function Navigation({
+    selectedStart,
+    selectedEnd,
+    setSelectedStart,
+    setRouteStart,
+    setRouteEnd,
+    showNavigation,
+    setShowNavigation,
+    setShowRouteResult,
+    setShowInformation,
+    setTravellingMode,
+    currentLocationAddress,
+    setCurrentLocationAddress,
+    travellingMode
 }: NavigationProps) {
     const selectedFoodBank = useFoodBankName(selectedEnd);
     const [selectedMode, setSelectedMode] = useState<TravelMode>("WALKING");
-    const [currentLocationAddress, setCurrentLocationAddress] = useState<string | null>(null);
     const [error, setError] = useState<string>("");
 
     const map = useMap();
