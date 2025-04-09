@@ -40,7 +40,7 @@ interface CalendarSelection {
   selectedItems: Array<{
     name: string;
     quantity: number;
-    expiry_date: string;
+    expiry_date: number;  // Changed from string to number
     reminder_days: number;
     reminder_time: string;
   }>;
@@ -236,19 +236,18 @@ const StorageAssistant: React.FC = () => {
             });
             
             const recommendation = response.data;
-            
-            // 根据method字段决定存储位置
+
             if (recommendation.method === 1) {
               fridgeItems.push(`${item} (${recommendation.storage_time} days)`);
-              // 更新 toggleItemSelection 调用，传递存储时间
+
               toggleItemSelection(item, produceCounts[item] || 1, recommendation.storage_time);
             } else if (recommendation.method === 2) {
               pantryItems.push(`${item} (${recommendation.storage_time} days)`);
-              // 更新 toggleItemSelection 调用，传递存储时间
+
               toggleItemSelection(item, produceCounts[item] || 1, recommendation.storage_time);
             }
           } else {
-            // 如果没有匹配的类型，使用默认分类
+
             if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
               fridgeItems.push(item);
             } else {
@@ -257,7 +256,6 @@ const StorageAssistant: React.FC = () => {
           }
         } catch (err) {
           console.error(`Error fetching storage advice for ${item}:`, err);
-          // 使用默认分类
           if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
             fridgeItems.push(item);
           } else {
@@ -272,7 +270,6 @@ const StorageAssistant: React.FC = () => {
       });
     } catch (err) {
       console.error('Error fetching food types:', err);
-      // 使用空数组而不是默认数据
       const allItems = Object.keys(produceCounts).length > 0
         ? Object.keys(produceCounts)
         : [];
@@ -292,14 +289,13 @@ const StorageAssistant: React.FC = () => {
     }
   };
 
-  // 计算过期日期
   const calculateExpiryDate = (storageTime: number): string => {
     const currentDate = new Date();
     const expiryDate = new Date(currentDate.getTime() + storageTime * 24 * 60 * 60 * 1000);
     return expiryDate.toISOString().split('T')[0];
   };
 
-  // 修改 toggleItemSelection 函数
+
   const toggleItemSelection = (item: string, quantity: number, storageTime: number) => {
     setCalendarSelection(prev => {
       const existingIndex = prev.selectedItems.findIndex(i => i.name === item);
@@ -312,7 +308,7 @@ const StorageAssistant: React.FC = () => {
         const newItem = {
           name: item,
           quantity,
-          expiry_date: calculateExpiryDate(storageTime),
+          expiry_date: storageTime,  
           reminder_days: prev.reminderDays,
           reminder_time: prev.reminderTime
         };
@@ -321,7 +317,6 @@ const StorageAssistant: React.FC = () => {
     });
   };
 
-  // 修改 generateCalendarLink 函数
   const generateCalendarLink = async () => {
     if (calendarSelection.selectedItems.length === 0) return;
   
