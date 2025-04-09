@@ -396,6 +396,14 @@ const FoodStorageAssistant: React.FC = () => {
           Food Storage Assistant
         </h1>
         
+        {/* Reset button */}
+        <button
+          onClick={handleReset}
+          className="mb-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+        >
+          Reset
+        </button>
+        
         {/* Error message display */}
         {state.error && (
           <div className="bg-red-100 text-red-800 p-4 rounded-md mb-5 border-l-4 border-red-500">
