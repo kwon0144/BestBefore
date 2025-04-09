@@ -11,6 +11,7 @@ type Point = google.maps.LatLngLiteral & { key: string };
 
 interface MapComponentProps {
     selectedStart: {lat: number, lng: number} | null;
+    selectedEnd: string | null;
     setSelectedEnd: Dispatch<SetStateAction<string | null>>;
     routeStart: {lat: number, lng: number} | null;
     routeEnd: {lat: number, lng: number} | null;
@@ -23,6 +24,7 @@ interface MapComponentProps {
 
 const MapComponent = forwardRef<any, MapComponentProps>(({
     selectedStart, 
+    selectedEnd,
     setSelectedEnd, 
     routeStart, 
     routeEnd, 
@@ -116,7 +118,7 @@ const MapComponent = forwardRef<any, MapComponentProps>(({
         gestureHandling="greedy"
         disableDefaultUI={false}
       > 
-        <Markers points={points} setSelectedEnd={setSelectedEnd} selectedType={selectedType}/>
+        <Markers points={points} setSelectedEnd={setSelectedEnd} selectedType={selectedType} selectedEnd={selectedEnd}/>
         {/* Add a special marker for the selected foodbank if it exists */}
         {selectedFoodbank && (
           <AdvancedMarker

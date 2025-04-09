@@ -6,17 +6,18 @@ import { APIProvider } from "@vis.gl/react-google-maps";
 import Title from "../(components)/Title";
 import MapSection from "./MapSection";
 import FoodNetworkList from "./FoodNetworkList"
-import { Foodbank } from "../api/foodbanks/route";
-import FoodbankDetail from "./FoodbankDetail";
+import { Foodbank } from "@/app/api/foodbanks/route";
 
 const GOOGLE_MAPS_LIBRARIES: ("places" | "routes")[] = ["places", "routes"];
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
 export default function FoodNetwork() {
   // For user input and display
-  const [selectedEnd, setSelectedEnd] = useState<string | null>("2");
+  const [selectedEnd, setSelectedEnd] = useState<string | null>("1");
   // For selecting a foodbank
   const [selectedFoodbank, setSelectedFoodbank] = useState<Foodbank | null>(null);
+  // For the map instance
+  const [map, setMap] = useState<google.maps.Map | null>(null);
   // For loading the map
   const {isLoaded} = useLoadScript({
     googleMapsApiKey: apiKey,
@@ -25,6 +26,10 @@ export default function FoodNetwork() {
 
   const handleSelectFoodbank = (foodbank: Foodbank) => {
     setSelectedFoodbank(foodbank);
+  };
+
+  const handleMapReady = (mapInstance: google.maps.Map) => {
+    setMap(mapInstance);
   };
 
   if (!isLoaded) return (
@@ -42,11 +47,16 @@ export default function FoodNetwork() {
           <MapSection 
             selectedEnd={selectedEnd} 
             setSelectedEnd={setSelectedEnd}
+            onMapReady={handleMapReady}
           />
         </div>
         <div>
           <div>
-            <FoodNetworkList onSelectFoodbank={handleSelectFoodbank} />
+            <FoodNetworkList 
+              onSelectFoodbank={handleSelectFoodbank} 
+              setSelectedEnd={setSelectedEnd} 
+              map={map}
+            />
           </div>
         </div>
       </APIProvider>

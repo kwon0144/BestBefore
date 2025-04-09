@@ -1,6 +1,6 @@
 "use client";
 
-import { useMap, AdvancedMarker, Pin, InfoWindow } from "@vis.gl/react-google-maps";
+import { useMap, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import type { Marker } from "@googlemaps/markerclusterer";
 import { useEffect, useState, useRef, SetStateAction, Dispatch } from "react";
@@ -11,13 +11,13 @@ interface Props {
   points: Point[]
   setSelectedEnd: Dispatch<SetStateAction<string | null>>
   selectedType: string
+  selectedEnd: string | null
 }
 
-export default function Markers({ points, setSelectedEnd, selectedType }: Props) {
+export default function Markers({ points, setSelectedEnd, selectedType, selectedEnd }: Props) {
   const map = useMap();
   const [markers, setMarkers] = useState<{ [key: string]: Marker }>({});
   const clusterer = useRef<MarkerClusterer | null>(null);
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   useEffect(() => {
     if (!map) return;
     if (!clusterer.current) {
@@ -47,7 +47,6 @@ export default function Markers({ points, setSelectedEnd, selectedType }: Props)
 
   const handleMarkerClick = (point: Point) => {
     setSelectedEnd(point.key);
-    setSelectedKey(point.key);
     map?.panTo({ lat: point.lat, lng: point.lng });
   };
 
@@ -63,7 +62,7 @@ export default function Markers({ points, setSelectedEnd, selectedType }: Props)
             setMarkerRef(marker, point.key);
           }}
         >
-          {selectedKey === point.key ?
+          {selectedEnd === point.key ?
             <Pin
               glyph="D"
               background="green" 

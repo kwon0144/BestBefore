@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, SetStateAction, Dispatch } from 'react';
 import { Input, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Pagination, Select, SelectItem } from "@heroui/react";
-import { Foodbank } from '../../../../api/foodbanks/route';
+import { Foodbank } from '@/app/api/foodbanks/route';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 interface FoodNetworkListProps {
   onSelectFoodbank?: (foodbank: Foodbank) => void;
+  setSelectedEnd: Dispatch<SetStateAction<string | null>>;
+  map?: google.maps.Map | null;
 }
 
 const typeOptions = [
@@ -16,7 +18,7 @@ const typeOptions = [
   { uid: "Green Waste", name: "Green Waste" },
 ];
 
-const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ onSelectFoodbank }) => {
+const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ onSelectFoodbank, setSelectedEnd, map }) => {
   const [foodbanks, setFoodbanks] = useState<Foodbank[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -106,6 +108,15 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ onSelectFoodbank }) =
     return <div className="p-4 text-red-500">Error: {error}</div>;
   }
 
+  const handleSelectFoodbank = (foodbank: Foodbank) => {
+    onSelectFoodbank && onSelectFoodbank(foodbank);
+    setSelectedEnd(foodbank.id.toString());
+    if (map && foodbank.latitude && foodbank.longitude) {
+      map.setZoom(15);
+      map.setCenter({ lat: foodbank.latitude, lng: foodbank.longitude });
+    }
+  };
+
   return (
     <div>
         <div className="flex flex-row gap-4 mb-6 items-center justify-between">
@@ -181,7 +192,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ onSelectFoodbank }) =
               <TableRow 
                 key={foodbank.id}
                 className="cursor-pointer border-b border-gray-300 hover:bg-[#fcc277]/30"
-                onClick={() => onSelectFoodbank && onSelectFoodbank(foodbank)}
+                onClick={() => handleSelectFoodbank(foodbank)}
               >
                 <TableCell className="w-[250px] font-medium">{foodbank.name}</TableCell>
                 <TableCell className="w-[400px]">{foodbank.address || "No address available"}</TableCell>

@@ -1,4 +1,4 @@
-import { useState, Dispatch, SetStateAction } from "react";
+import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import MapComponent from "./MapComponent";
 import Interaction from "./Interaction";
 import { TravelMode } from "./Interaction/Navigation/TravelModeSelection";
@@ -6,9 +6,10 @@ import { TravelMode } from "./Interaction/Navigation/TravelModeSelection";
 interface MapSectionProps {
     selectedEnd: string | null;
     setSelectedEnd: Dispatch<SetStateAction<string | null>>;
+    onMapReady?: (map: google.maps.Map) => void;
 }
 
-export default function MapSection({selectedEnd, setSelectedEnd}: MapSectionProps) {
+export default function MapSection({selectedEnd, setSelectedEnd, onMapReady}: MapSectionProps) {
   // For user input and display
   const [selectedStart, setSelectedStart] = useState<{lat: number, lng: number} | null>(null);
   // For submission to fetch route
@@ -21,6 +22,13 @@ export default function MapSection({selectedEnd, setSelectedEnd}: MapSectionProp
   const [showNavigation, setShowNavigation] = useState<boolean>(false);
   const [showInformation, setShowInformation] = useState<boolean>(true);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+
+  // Add effect to notify parent when map is ready
+  useEffect(() => {
+    if (map && onMapReady) {
+      onMapReady(map);
+    }
+  }, [map, onMapReady]);
 
   const handleTypeSelection = (selection: string) => {
     if (selection !== selectedType) {
@@ -64,6 +72,7 @@ export default function MapSection({selectedEnd, setSelectedEnd}: MapSectionProp
             <div className="w-3/5">
                 <MapComponent 
                     selectedStart={selectedStart} 
+                    selectedEnd={selectedEnd}
                     setSelectedEnd={setSelectedEnd} 
                     routeStart={routeStart} 
                     routeEnd={routeEnd} 
