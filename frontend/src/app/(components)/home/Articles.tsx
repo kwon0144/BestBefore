@@ -4,25 +4,25 @@ import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 export default function Articles() {
     const articles = [
         {
-            image: "https://public.readdy.ai/ai/img_res/31adbd7152dd82cbd9c3764665b7f15b.jpg",
-            alt: "Food Waste in Australian Households",
-            title: "Food Waste in Australian Households: The Hidden Cost",
-            description: "New research reveals the economic and environmental impact of household food waste in Australia.",
-            link: "#"
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/article1.jpeg",
+            alt: "Reducing Food Waste",
+            title: "Reducing Food Waste",
+            description: "Food waste decomposes in landfill, emitting methane and contributing to climate change. Learn how we're helping the community reduce food waste to save the city.",
+            link: "https://www.yarracity.vic.gov.au/climate-and-sustainability/waste-and-recycling/reducing-food-waste"
         },
         {
-            image: "https://public.readdy.ai/ai/img_res/f1b012644f8a79ea38c19712e185a09b.jpg",
-            alt: "Melbourne's Community Gardens",
-            title: "Melbourne's Community Gardens Fighting Food Waste",
-            description: "How local initiatives are transforming unused spaces into productive gardens and reducing food miles.",
-            link: "#"
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/article2.jpg",
+            alt: "Melbourne on board to fight food waste",
+            title: "Melbourne on board to fight food waste",
+            description: "Australia’s food rescue organisation, OzHarvest, reveals households can cut their food waste by 40% with its innovative Use It Up tape.",
+            link: "https://retailworldmagazine.com.au/melbourne-on-board-to-fight-food-waste/"
         },
         {
-            image: "https://public.readdy.ai/ai/img_res/979d2542ea94b5d4f438a1a297806a40.jpg",
-            alt: "Smart Storage Solutions",
-            title: "Smart Storage: Technology Tackling Food Waste",
-            description: "Innovative technologies helping Australians extend food shelf life and reduce kitchen waste.",
-            link: "#"
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/article3.jpeg",
+            alt: "Food waste savings spring up in Melbourne",
+            title: "Food waste savings spring up in Melbourne",
+            description: "Surplus food marketplace app, Too Good To Go, is launching in Melbourne, aiming to help households and businesses halve Australia’s annual food waste by 2030.",
+            link: "https://www.foodanddrinkbusiness.com.au/news/food-waste-savings-spring-up-in-melbourne"
         }
     ];
 
@@ -34,7 +34,9 @@ export default function Articles() {
                 </h2>
                 <div className="grid md:grid-cols-3 gap-8">
                     {articles.map((article, index) => (
-                        <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div key={index} 
+                            onClick={() => window.open(article.link, '_blank')}
+                            className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300">
                             <div className="h-48 overflow-hidden">
                                 <img
                                     src={article.image}
@@ -50,7 +52,6 @@ export default function Articles() {
                                     {article.description}
                                 </p>
                                 <a
-                                    href={article.link}
                                     className="text-[#2E5A4B] font-medium hover:underline cursor-pointer"
                                 >
                                     Read More <FontAwesomeIcon icon={faArrowRight} className="ml-1" />

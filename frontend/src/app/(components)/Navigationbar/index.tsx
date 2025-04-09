@@ -69,7 +69,11 @@ const Navigationbar = () => {
         <p className={`font-bold text-inherit text-xl ${
           !isHomePage || isScrolled ? 'text-primary' : 'text-primary'
         }`}>
-          BestBefore
+          <img 
+            src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo.png" 
+            alt="Best Before Logo" 
+            className="h-24 w-52"
+          />
         </p>
       </NavbarBrand>
 
