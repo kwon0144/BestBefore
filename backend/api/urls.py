@@ -1,13 +1,9 @@
 from django.urls import path, include
-from .views import get_users, create_user, get_temperature_data, get_storage_advice, get_food_types, FoodBankViewSet
+from .views import get_users, create_user, get_temperature_data, get_storage_advice, get_food_types, get_foodbanks
 from . import produce_detection
 from .output_calender import generate_calendar, generate_ical
 from rest_framework.routers import DefaultRouter
 
-
-# Create a router and register our viewsets with it
-router = DefaultRouter()
-router.register(r'foodbanks', FoodBankViewSet, basename='foodbank')
 
 urlpatterns = [
     path("users/", get_users, name="get_users"),
@@ -18,5 +14,5 @@ urlpatterns = [
     path('temperature/', get_temperature_data, name='temperature-data'),
     path('storage-advice/', get_storage_advice, name='get_storage_advice'),
     path('food-types/', get_food_types, name='get_food_types'),
-    path('', include(router.urls)),
+    path('foodbanks/', get_foodbanks, name='get_foodbanks'),
 ]
