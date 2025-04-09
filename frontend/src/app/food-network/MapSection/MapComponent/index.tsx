@@ -6,6 +6,7 @@ import Directions from "./Directions";
 import StartMarker from "./StartMarker";
 import { Dispatch, SetStateAction, useEffect, forwardRef, useImperativeHandle, useState } from "react";
 import type { Foodbank } from "@/app/api/foodbanks/route";
+import WhereAmIButton from "./WhereAmIButton";
 
 type Point = google.maps.LatLngLiteral & { key: string };
 
@@ -20,6 +21,7 @@ interface MapComponentProps {
     selectedFoodbank?: Foodbank | null;
     selectedType: string;
     setMap: Dispatch<SetStateAction<google.maps.Map | null>>;
+    setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
 }
 
 const MapComponent = forwardRef<any, MapComponentProps>(({
@@ -32,7 +34,8 @@ const MapComponent = forwardRef<any, MapComponentProps>(({
     travellingMode,
     selectedFoodbank,
     selectedType,
-    setMap
+    setMap,
+    setSelectedStart
 }, ref) => {
   const map = useMap();
   const [foodBanks, setFoodBanks] = useState<Foodbank[]>([]);
@@ -135,6 +138,7 @@ const MapComponent = forwardRef<any, MapComponentProps>(({
         )}
         {selectedStart && travellingMode && <Directions routeStart={routeStart} routeEnd={routeEnd} setRouteDetails={setRouteDetails} travellingMode={travellingMode} />}
         {selectedStart && <StartMarker selectedStart={selectedStart}/>}
+        <WhereAmIButton />
       </Map>
   );
 });
