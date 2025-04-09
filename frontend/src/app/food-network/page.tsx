@@ -7,21 +7,7 @@ import Title from "./(components)/Title";
 import MapSection from "./MapSection";
 import FoodbankList from "./FoodbankList";
 import FoodbankDetail from "./FoodbankDetail";
-
-interface Foodbank {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  type: string;
-  hours_of_operation: string;
-  operation_schedule: {
-    is_24_hours: boolean;
-    days: string[];
-    hours: string | null;
-    raw_text: string;
-  };
-}
+import { Foodbank } from "../api/foodbanks/route";
 
 const GOOGLE_MAPS_LIBRARIES: ("places" | "routes")[] = ["places", "routes"];
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
@@ -53,12 +39,12 @@ export default function FoodNetwork() {
         />
       </APIProvider>
       
-      <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-6"> */}
         <div className="lg:col-span-2">
           <FoodbankList onSelectFoodbank={handleSelectFoodbank} />
         </div>
         
-        <div>
+        {/* <div>
           {selectedFoodbank ? (
             <FoodbankDetail foodbank={selectedFoodbank} />
           ) : (
@@ -67,8 +53,8 @@ export default function FoodNetwork() {
               <p className="mt-2 text-gray-500">Select a foodbank from the list to view details</p>
             </div>
           )}
-        </div>
-      </div>
+        </div> */}
+      {/* </div> */}
     </div>
   );
 }

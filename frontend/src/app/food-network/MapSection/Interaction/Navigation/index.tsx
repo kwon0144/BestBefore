@@ -7,8 +7,9 @@ import { useFoodBankName } from "@/hooks/useFoodBank";
 import TravelModeSelection, { TravelMode } from "./TravelModeSelection";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft, faMapMarkerAlt, faMapPin } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faMapPin } from '@fortawesome/free-solid-svg-icons';
 import { useMap } from "@vis.gl/react-google-maps";
+
 interface NavigationProps {
     selectedStart: {lat: number, lng: number} | null;
     selectedEnd: string | null;
