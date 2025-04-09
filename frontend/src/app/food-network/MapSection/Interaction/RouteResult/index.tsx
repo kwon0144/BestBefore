@@ -1,16 +1,15 @@
-import { useFoodBankName } from "@/hooks/useFoodBank";
+import { useFoodBank } from "@/hooks/useFoodBank";
 import { useGeocoding } from "@/hooks/useGeocoding";
 import { Button } from "@heroui/react";
 import { Dispatch, SetStateAction } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
-import { faDirections, faRoad, faClock, faMapPin, faWalking, faBicycle, faBus, faCar, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faRoad, faClock, faMapPin, faWalking, faBicycle, faBus, faCar, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TravelMode } from "../Navigation/TravelModeSelection";
 
 interface RouteResultProps {
     selectedEnd: string | null;
     selectedStart: {lat: number, lng: number} | null;
-    setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
     showRouteResult: boolean;
     setShowRouteResult: Dispatch<SetStateAction<boolean>>;
     setShowInformation: Dispatch<SetStateAction<boolean>>;
@@ -32,7 +31,6 @@ export default function RouteResult({
     setShowInformation, 
     setShowNavigation,
     routeDetails, 
-    setSelectedStart,
     setRouteStart,
     setRouteEnd,
     travellingMode
@@ -63,7 +61,7 @@ export default function RouteResult({
     }
 
     const startAddress = useGeocoding(selectedStart);
-    const selectedFoodBank = useFoodBankName(selectedEnd);
+    const { foodbank: selectedFoodBank } = useFoodBank(selectedEnd);
 
     return (
         <div className={`flex flex-col pl-10 w-full ${showRouteResult ? "display" : "hidden"}`}>
@@ -115,9 +113,9 @@ export default function RouteResult({
                     <FontAwesomeIcon icon={faMapPin} className="text-green-700" />
                     </div>
                     <div className="flex flex-col">
-                    <p className="font-medium">{selectedFoodBank}</p>
+                    <p className="font-medium">{selectedFoodBank?.name}</p>
                     <p className="text-sm text-gray-600">
-                        selectedFoodBankAddress
+                        {selectedFoodBank?.address}
                     </p>
                     </div>
                     </div>

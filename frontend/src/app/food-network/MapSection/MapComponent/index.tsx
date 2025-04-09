@@ -18,6 +18,7 @@ interface MapComponentProps {
     travellingMode: string;
     selectedFoodbank?: Foodbank | null;
     selectedType: string;
+    setMap: Dispatch<SetStateAction<google.maps.Map | null>>;
 }
 
 const MapComponent = forwardRef<any, MapComponentProps>(({
@@ -28,12 +29,19 @@ const MapComponent = forwardRef<any, MapComponentProps>(({
     setRouteDetails, 
     travellingMode,
     selectedFoodbank,
-    selectedType  
+    selectedType,
+    setMap
 }, ref) => {
   const map = useMap();
   const [foodBanks, setFoodBanks] = useState<Foodbank[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (map) {
+      setMap(map);
+    }
+  }, [map, setMap]);
 
   useEffect(() => {
     const fetchFoodBanks = async () => {

@@ -13,16 +13,19 @@ interface InteractionProps {
     routeDetails: {duration: string, distance: string};
     travellingMode: TravelMode;
     setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
+    showInformation: boolean;
+    showNavigation: boolean;
+    showRouteResult: boolean;
+    setShowInformation: Dispatch<SetStateAction<boolean>>;
+    setShowNavigation: Dispatch<SetStateAction<boolean>>;
+    setShowRouteResult: Dispatch<SetStateAction<boolean>>;
 }
 export default function Interaction({ 
     selectedEnd, selectedStart, setSelectedStart, 
     setRouteStart, setRouteEnd, routeDetails, travellingMode,
-    setTravellingMode 
+    setTravellingMode, showInformation, showNavigation, showRouteResult,
+    setShowInformation, setShowNavigation, setShowRouteResult
 }: InteractionProps) {
-    const [showInformation, setShowInformation] = useState(true);
-    const [showNavigation, setShowNavigation] = useState(false);
-    const [showRouteResult, setShowRouteResult] = useState(false);
-
     return (
         <>
             <Information 
@@ -46,7 +49,6 @@ export default function Interaction({
             <RouteResult 
                 selectedEnd={selectedEnd}
                 selectedStart={selectedStart}
-                setSelectedStart={setSelectedStart}
                 showRouteResult={showRouteResult}
                 setShowRouteResult={setShowRouteResult}
                 setShowInformation={setShowInformation}

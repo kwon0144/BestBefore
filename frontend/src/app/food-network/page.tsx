@@ -14,7 +14,7 @@ const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
 export default function FoodNetwork() {
   // For user input and display
-  const [selectedEnd, setSelectedEnd] = useState<string | null>("1");
+  const [selectedEnd, setSelectedEnd] = useState<string | null>("2");
   // For selecting a foodbank
   const [selectedFoodbank, setSelectedFoodbank] = useState<Foodbank | null>(null);
   // For loading the map
@@ -50,14 +50,6 @@ export default function FoodNetwork() {
           </div>
         </div>
       </APIProvider>
-          {selectedEnd ? (
-            <FoodbankDetail selectedEnd={selectedEnd} />
-          ) : (
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
-              <h3 className="text-lg font-medium text-gray-900">No Foodbank Selected</h3>
-              <p className="mt-2 text-gray-500">Select a foodbank from the list to view details</p>
-            </div>
-          )}
     </div>
   );
 }

@@ -1,9 +1,10 @@
-import { Dispatch, SetStateAction, useState } from "react";
-import foodBanks from "@/data/foodBanks";
+import { Dispatch, SetStateAction } from "react";
 import { Button } from "@heroui/react";
 import { faRoute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { TravelMode } from "./TravelModeSelection";
+import { useFoodBank } from "@/hooks/useFoodBank";
+
 interface SubmitButtonProps {
     selectedStart: {lat: number, lng: number} | null;
     selectedEnd: string | null;
@@ -17,6 +18,8 @@ interface SubmitButtonProps {
 }
 
 export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart, setRouteEnd, setShowNavigation, setShowRouteResult, selectedMode, setTravellingMode, setError }: SubmitButtonProps) {
+    const { foodbank } = useFoodBank(selectedEnd);
+
     const handleSubmit = () => {
         // Error message if not selected start point or food bank
         if (!selectedStart || !selectedEnd) {
@@ -30,15 +33,10 @@ export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart
         }
         setError("");
 
-        // Find the food bank using the key
-        const selectedFoodBank = foodBanks.find(
-            bank => bank.key === selectedEnd
-        );
-
-        if (selectedFoodBank) {
-            console.log("Selected Food Bank:", selectedFoodBank.name);
+        if (foodbank) {
+            console.log("Selected Food Bank:", foodbank.name);
             setRouteStart(selectedStart);
-            setRouteEnd(selectedFoodBank);
+            setRouteEnd({ lat: foodbank.latitude, lng: foodbank.longitude });
             setShowNavigation(false);
             setShowRouteResult(true);
             setTravellingMode(selectedMode);

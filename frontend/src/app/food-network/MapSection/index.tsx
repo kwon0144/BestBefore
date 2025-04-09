@@ -17,15 +17,30 @@ export default function MapSection({selectedEnd, setSelectedEnd}: MapSectionProp
   const [routeDetails, setRouteDetails] = useState<{duration: string, distance: string}>({duration: "", distance: ""});
   const [travellingMode, setTravellingMode] = useState<TravelMode>("DRIVING");
   const [selectedType, setSelectedType] = useState<string>("Food Donation Points");
+  const [showRouteResult, setShowRouteResult] = useState<boolean>(false);
+  const [showNavigation, setShowNavigation] = useState<boolean>(false);
+  const [showInformation, setShowInformation] = useState<boolean>(true);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const handleTypeSelection = (selection: string) => {
     if (selection !== selectedType) {
       setSelectedType(selection);
     }
+    setShowRouteResult(false);
+    setShowNavigation(false);
+    setShowInformation(true);
+    setRouteStart(null);
+    setRouteEnd(null);
+    setSelectedEnd('41') 
+    if (map && selectedStart) {
+        map.setZoom(15);
+        map.setCenter(selectedStart);
+    }   
   };
 
- return (
+  return (
     <>
+        {/* tab selection */}
         <div className="flex flex-row w-full ">
             <div className={`flex flex-row w-1/2 py-2 px-10 rounded-t-full ${selectedType === "Food Donation Points" ? "bg-green/30" : "bg-transparent"}`}></div>
             <div className={`flex flex-row w-1/2 py-2 px-10 rounded-t-full ${selectedType === "Food Donation Points" ? "bg-transparent" : "bg-[#b0ebc4]/50"}`}></div>
@@ -44,7 +59,8 @@ export default function MapSection({selectedEnd, setSelectedEnd}: MapSectionProp
             >Green Waste Disposal Points</div>
             </div>
         </div>
-        <div className={`flex flex-row w-full pt-10 pb-10 px-10 rounded-b-2xl ${selectedType=="Food Donation Points" ? "bg-green/30 rounded-tr-2xl" : "bg-[#b0ebc4]/50 rounded-tl-2xl"}`}>
+        {/* map and interaction */}
+        <div className={`flex flex-row w-full h-[600px] pt-10 pb-10 px-10 rounded-b-2xl ${selectedType=="Food Donation Points" ? "bg-green/30 rounded-tr-2xl" : "bg-[#b0ebc4]/50 rounded-tl-2xl"}`}>
             <div className="w-3/5">
                 <MapComponent 
                     selectedStart={selectedStart} 
@@ -54,6 +70,7 @@ export default function MapSection({selectedEnd, setSelectedEnd}: MapSectionProp
                     setRouteDetails={setRouteDetails}
                     travellingMode={travellingMode}
                     selectedType={selectedType}
+                    setMap={setMap}
                 />
             </div>
             <div className="w-2/5">
@@ -66,9 +83,15 @@ export default function MapSection({selectedEnd, setSelectedEnd}: MapSectionProp
                     routeDetails={routeDetails}
                     setTravellingMode={setTravellingMode}
                     travellingMode={travellingMode}
+                    showRouteResult={showRouteResult}
+                    setShowRouteResult={setShowRouteResult}
+                    showNavigation={showNavigation}
+                    setShowNavigation={setShowNavigation}
+                    showInformation={showInformation}
+                    setShowInformation={setShowInformation}
                 />
             </div>
         </div>
     </>
-    )
+  );
 }

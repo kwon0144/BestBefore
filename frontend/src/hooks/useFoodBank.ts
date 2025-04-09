@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import foodBanks, { FoodBank } from "@/data/foodBanks";
 import { Foodbank } from "@/app/api/foodbanks/route";
 
-export function useFoodBank(selectedEnd: { lat: number, lng: number } | null) {
+export function useFoodBank(selectedEnd: string | null) {
     const [foodbank, setFoodbank] = useState<Foodbank | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -22,23 +21,9 @@ export function useFoodBank(selectedEnd: { lat: number, lng: number } | null) {
                 }
                 const data = await response.json();
 
-                // Find the foodbank closest to the selected coordinates
-                const closestFoodbank = data.data.reduce((closest: Foodbank | null, current: Foodbank) => {
-                    if (!closest) return current;
-
-                    const closestDist = Math.sqrt(
-                        Math.pow(closest.latitude - selectedEnd.lat, 2) +
-                        Math.pow(closest.longitude - selectedEnd.lng, 2)
-                    );
-                    const currentDist = Math.sqrt(
-                        Math.pow(current.latitude - selectedEnd.lat, 2) +
-                        Math.pow(current.longitude - selectedEnd.lng, 2)
-                    );
-
-                    return currentDist < closestDist ? current : closest;
-                }, null);
-
-                setFoodbank(closestFoodbank);
+                // Find the foodbank with matching ID
+                const selectedFoodbank = data.data.find((bank: Foodbank) => bank.id === parseInt(selectedEnd));
+                setFoodbank(selectedFoodbank || null);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred');
             } finally {
@@ -53,13 +38,33 @@ export function useFoodBank(selectedEnd: { lat: number, lng: number } | null) {
 }
 
 export function useFoodBankName(selectedEnd: string | null) {
-    const [selectedFoodBank, setSelectedFoodBank] = useState<FoodBank | null>(null);
+    const [selectedFoodBank, setSelectedFoodBank] = useState<Foodbank | null>(null);
+    const [foodBanks, setFoodBanks] = useState<Foodbank[]>([]);
 
     useEffect(() => {
-        setSelectedFoodBank(foodBanks.find(
-            bank => bank.key === selectedEnd
-        ) || null);
-    }, [selectedEnd]);
+        const fetchFoodBanks = async () => {
+            try {
+                const response = await fetch('/api/foodbanks');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch foodbanks');
+                }
+                const data = await response.json();
+                setFoodBanks(data.data);
+            } catch (error) {
+                console.error('Error fetching foodbanks:', error);
+            }
+        };
+
+        fetchFoodBanks();
+    }, []);
+
+    useEffect(() => {
+        if (foodBanks.length > 0) {
+            setSelectedFoodBank(
+                foodBanks.find((bank: Foodbank) => bank.id === parseInt(selectedEnd || "1")) || null
+            );
+        }
+    }, [selectedEnd, foodBanks]);
 
     return selectedFoodBank?.name || "Not Found";
 }
