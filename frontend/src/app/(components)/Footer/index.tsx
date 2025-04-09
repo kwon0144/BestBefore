@@ -4,13 +4,13 @@ import Link from 'next/link';
 const Footer = () => {
   const menuItems = [
     {name: "Storage Assistant", link: "/storage-assistant", section: [
-        {name: "Food Product Scanner", link: "/storage-assistant"},
-        {name: "Storage Management", link: "/storage-assistant"},
-        {name: "Expiration Reminder", link: "/storage-assistant"},
+        {name: "Food Product Scanner"},
+        {name: "Storage Management"},
+        {name: "Expiration Reminder"},
     ]},
     {name: "Food Network", link: "/food-network", section: [
-        {name: "Food Bank Network", link: "/food-network"},
-        {name: "Green Waste Bin Network", link: "/food-network"},
+        {name: "Food Bank Network"},
+        {name: "Green Waste Bin Network"},
     ]}
   ];
 
@@ -43,11 +43,9 @@ const Footer = () => {
                   <ul className="space-y-2">
                   {item.section.map((section) => (
                     <div key={section.name}>
-                        <Link href={section.link}>
-                        <li className="hover:text-[#A5D6B7] transition-colors duration-300 cursor-pointer">
+                        <li>
                             {section.name}
                         </li>
-                        </Link>
                     </div>
                   ))}
                   </ul>
