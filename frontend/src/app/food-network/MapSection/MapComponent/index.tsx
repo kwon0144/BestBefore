@@ -86,7 +86,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
     focusOnLocation: (location: {lat: number, lng: number}) => {
       if (map) {
         map.panTo(location);
-        map.setZoom(15);
+        map.setZoom(12);
       }
     }
   }));
@@ -103,7 +103,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         
         try {
           map.panTo(location);
-          map.setZoom(15);
+          map.setZoom(13);
         } catch (e) {
           console.error("Error focusing map on foodbank:", e);
         }
@@ -121,7 +121,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
       > 
         <Markers points={points} setSelectedEnd={setSelectedEnd} selectedEnd={selectedEnd}/>
         {/* Add a special marker for the selected foodbank if it exists */}
-        {selectedEnd && foodBanks.find(fb => fb.id.toString() === selectedEnd) && (
+        {/* {selectedEnd && foodBanks.find(fb => fb.id.toString() === selectedEnd) && (
           <AdvancedMarker
             position={{
               lat: foodBanks.find(fb => fb.id.toString() === selectedEnd)!.latitude,
@@ -136,15 +136,12 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
               scale={1.2} // Slightly larger than regular pins
             />
           </AdvancedMarker>
-        )}
+        )} */}
         {selectedStart && travellingMode && <Directions routeStart={routeStart} routeEnd={routeEnd} setRouteDetails={setRouteDetails} travellingMode={travellingMode} />}
         {selectedStart && <StartMarker selectedStart={selectedStart}/>}
         <WhereAmIButton />
       </Map>
   );
 });
-
-// Add display name for React DevTools
-MapComponent.displayName = "MapComponent";
 
 export default MapComponent;

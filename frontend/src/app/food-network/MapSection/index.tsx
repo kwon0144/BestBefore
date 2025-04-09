@@ -34,20 +34,24 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
 
   const handleTypeSelection = (selection: string) => {
     if (selection !== selectedType) {
-      setSelectedType(selection);
+        if (selection === "Food Donation Points") {
+        setSelectedEnd('1');
+        } else if (selection === "Waste Disposal Points") {
+        setSelectedEnd('41');
+        }
+        setShowRouteResult(false);
+        setShowNavigation(false);
+        setShowInformation(true);
+        setRouteStart(null);
+        setRouteEnd(null);
+        setSelectedStart(null);
+        setCurrentLocationAddress(null);
+        setSelectedType(selection);
+        if (map) {
+            map.setZoom(12);
+            map.setCenter({lat: -37.8136, lng: 144.9631});
+        }   
     }
-    setShowRouteResult(false);
-    setShowNavigation(false);
-    setShowInformation(true);
-    setRouteStart(null);
-    setRouteEnd(null);
-    setSelectedEnd('41') 
-    setSelectedStart(null);
-    setCurrentLocationAddress(null);
-    if (map) {
-        map.setZoom(12);
-        map.setCenter({lat: -37.8136, lng: 144.9631});
-    }   
   };
 
   return (
