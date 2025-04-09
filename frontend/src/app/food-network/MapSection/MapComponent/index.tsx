@@ -1,26 +1,13 @@
 "use client";
 
-import { Map, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
+import { Map, AdvancedMarker, Pin, useMap } from "@vis.gl/react-google-maps";
 import Markers from "./Markers";
 import Directions from "./Directions";
 import StartMarker from "./StartMarker";
-import foodBanks from "@/data/foodBanks";
-import { Dispatch, SetStateAction, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
+import { Dispatch, SetStateAction, useEffect, forwardRef, useImperativeHandle, useState } from "react";
+import type { Foodbank } from "@/app/api/foodbanks/route";
 
-interface Foodbank {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  type: string;
-  hours_of_operation: string;
-  operation_schedule: {
-    is_24_hours: boolean;
-    days: string[];
-    hours: string | null;
-    raw_text: string;
-  };
-}
+type Point = google.maps.LatLngLiteral & { key: string };
 
 interface MapComponentProps {
     selectedStart: {lat: number, lng: number} | null;
@@ -29,7 +16,8 @@ interface MapComponentProps {
     routeEnd: {lat: number, lng: number} | null;
     setRouteDetails: Dispatch<SetStateAction<{duration: string, distance: string}>>;
     travellingMode: string;
-    selectedFoodbank?: Foodbank | null; // Add the new prop
+    selectedFoodbank?: Foodbank | null;
+    selectedType: string;
 }
 
 const MapComponent = forwardRef<any, MapComponentProps>(({
@@ -39,52 +27,88 @@ const MapComponent = forwardRef<any, MapComponentProps>(({
     routeEnd, 
     setRouteDetails, 
     travellingMode,
-    selectedFoodbank
+    selectedFoodbank,
+    selectedType  
 }, ref) => {
-  // Reference to the Map component
-  const mapRef = useRef<any>(null);
+  const map = useMap();
+  const [foodBanks, setFoodBanks] = useState<Foodbank[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFoodBanks = async () => {
+      try {
+        const response = await fetch('/api/foodbanks');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        // Filter based on selectedType
+        const filteredFoodBanks = data.data.filter((foodbank: Foodbank) => 
+          selectedType === "Food Donation Points" 
+            ? foodbank.type === "Food Donation Point"
+            : foodbank.type !== "Food Donation Point"
+        );
+        setFoodBanks(filteredFoodBanks);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch food banks');
+        console.error('Error fetching food banks:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFoodBanks();
+  }, [selectedType]);
+  
+  // Transform food banks into points for the Markers component
+  const points: Point[] = foodBanks.map(foodbank => ({
+    lat: foodbank.latitude,
+    lng: foodbank.longitude,
+    key: foodbank.id.toString(),
+    id: foodbank.id,
+    name: foodbank.name,
+    type: foodbank.type === "Food Donation Point" ? "Food Donation Point" : "Waste Disposal Point",
+    address: foodbank.address,
+    hours_of_operation: foodbank.hours_of_operation,
+    operation_schedule: foodbank.operation_schedule
+  }));
   
   // Expose methods to parent through useImperativeHandle
   useImperativeHandle(ref, () => ({
     focusOnLocation: (location: {lat: number, lng: number}) => {
-      if (mapRef.current) {
-        // For @vis.gl/react-google-maps, you need to set the map's center and zoom
-        // This is an approximation - adjust as needed based on map library specifics
-        mapRef.current.panTo(location);
-        mapRef.current.setZoom(15);
+      if (map) {
+        map.panTo(location);
+        map.setZoom(15);
       }
     }
   }));
   
   // Effect to handle focusing on selected foodbank
   useEffect(() => {
-    if (selectedFoodbank && mapRef.current) {
+    if (selectedFoodbank && map) {
       const location = {
         lat: selectedFoodbank.latitude,
         lng: selectedFoodbank.longitude
       };
       
-      // The map object may have slightly different methods depending on your implementation
-      // Adjust these method names as needed
       try {
-        mapRef.current.panTo(location);
-        mapRef.current.setZoom(15);
+        map.panTo(location);
+        map.setZoom(15);
       } catch (e) {
         console.error("Error focusing map on foodbank:", e);
       }
     }
-  }, [selectedFoodbank]);
+  }, [selectedFoodbank, map]);
 
   return (
       <Map
-        ref={mapRef}
         defaultCenter={{lat: -37.8136, lng: 144.9631}}
         defaultZoom={12}
         mapId={process.env.NEXT_PUBLIC_MAP_ID}
         gestureHandling="greedy"
         disableDefaultUI={false}
       > 
-        <Markers points={foodBanks} setSelectedEnd={setSelectedEnd} />
+        <Markers points={points} setSelectedEnd={setSelectedEnd} selectedType={selectedType}/>
         {/* Add a special marker for the selected foodbank if it exists */}
         {selectedFoodbank && (
           <AdvancedMarker

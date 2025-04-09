@@ -5,14 +5,15 @@ import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import type { Marker } from "@googlemaps/markerclusterer";
 import { useEffect, useState, useRef, SetStateAction, Dispatch } from "react";
 
-type Point = google.maps.LatLngLiteral & { key: string };
+type Point = google.maps.LatLngLiteral & { key: string};
 
 interface Props { 
   points: Point[]
   setSelectedEnd: Dispatch<SetStateAction<string | null>>
+  selectedType: string
 }
 
-export default function Markers({ points, setSelectedEnd }: Props) {
+export default function Markers({ points, setSelectedEnd, selectedType }: Props) {
   const map = useMap();
   const [markers, setMarkers] = useState<{ [key: string]: Marker }>({});
   const clusterer = useRef<MarkerClusterer | null>(null);
