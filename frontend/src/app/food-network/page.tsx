@@ -18,6 +18,8 @@ export default function FoodNetwork() {
   const [selectedFoodbank, setSelectedFoodbank] = useState<Foodbank | null>(null);
   // For the map instance
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  // For type selection
+  const [selectedType, setSelectedType] = useState<string>("Food Donation Points");
   // For loading the map
   const {isLoaded} = useLoadScript({
     googleMapsApiKey: apiKey,
@@ -48,6 +50,8 @@ export default function FoodNetwork() {
             selectedEnd={selectedEnd} 
             setSelectedEnd={setSelectedEnd}
             onMapReady={handleMapReady}
+            selectedType={selectedType}
+            setSelectedType={setSelectedType}
           />
         </div>
         <div>
@@ -56,6 +60,8 @@ export default function FoodNetwork() {
               onSelectFoodbank={handleSelectFoodbank} 
               setSelectedEnd={setSelectedEnd} 
               map={map}
+              selectedType={selectedType}
+              setSelectedType={setSelectedType}
             />
           </div>
         </div>

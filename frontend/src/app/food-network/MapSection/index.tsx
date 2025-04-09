@@ -7,9 +7,11 @@ interface MapSectionProps {
     selectedEnd: string | null;
     setSelectedEnd: Dispatch<SetStateAction<string | null>>;
     onMapReady?: (map: google.maps.Map) => void;
+    selectedType: string;
+    setSelectedType: Dispatch<SetStateAction<string>>;
 }
 
-export default function MapSection({selectedEnd, setSelectedEnd, onMapReady}: MapSectionProps) {
+export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, selectedType, setSelectedType}: MapSectionProps) {
   // For user input and display
   const [selectedStart, setSelectedStart] = useState<{lat: number, lng: number} | null>(null);
   // For submission to fetch route
@@ -17,7 +19,6 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady}: Ma
   const [routeEnd, setRouteEnd] = useState<{lat: number, lng: number} | null>(null);    
   const [routeDetails, setRouteDetails] = useState<{duration: string, distance: string}>({duration: "", distance: ""});
   const [travellingMode, setTravellingMode] = useState<TravelMode>("DRIVING");
-  const [selectedType, setSelectedType] = useState<string>("Food Donation Points");
   const [showRouteResult, setShowRouteResult] = useState<boolean>(false);
   const [showNavigation, setShowNavigation] = useState<boolean>(false);
   const [showInformation, setShowInformation] = useState<boolean>(true);

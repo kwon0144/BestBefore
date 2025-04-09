@@ -10,6 +10,8 @@ interface FoodNetworkListProps {
   onSelectFoodbank?: (foodbank: Foodbank) => void;
   setSelectedEnd: Dispatch<SetStateAction<string | null>>;
   map?: google.maps.Map | null;
+  selectedType: string;
+  setSelectedType: Dispatch<SetStateAction<string>>;
 }
 
 const typeOptions = [
@@ -18,7 +20,13 @@ const typeOptions = [
   { uid: "Green Waste", name: "Green Waste" },
 ];
 
-const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ onSelectFoodbank, setSelectedEnd, map }) => {
+const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ 
+  onSelectFoodbank, 
+  setSelectedEnd, 
+  map,
+  selectedType,
+  setSelectedType 
+}) => {
   const [foodbanks, setFoodbanks] = useState<Foodbank[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -111,10 +119,21 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ onSelectFoodbank, set
   const handleSelectFoodbank = (foodbank: Foodbank) => {
     onSelectFoodbank && onSelectFoodbank(foodbank);
     setSelectedEnd(foodbank.id.toString());
+    
+    // Check if the foodbank type matches the selected type
+    if (foodbank.type === "Food Donation Point" && selectedType !== "Food Donation Points") {
+      setSelectedType("Food Donation Points");
+    } else if (foodbank.type !== "Food Donation Point" && selectedType !== "Waste Disposal Points") {
+      setSelectedType("Waste Disposal Points");
+    }
+
     if (map && foodbank.latitude && foodbank.longitude) {
       map.setZoom(15);
-      map.setCenter({ lat: foodbank.latitude, lng: foodbank.longitude });
+      map.setCenter({ lat: Number(foodbank.latitude), lng: Number(foodbank.longitude) });
     }
+
+    // Scroll to top of the page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
