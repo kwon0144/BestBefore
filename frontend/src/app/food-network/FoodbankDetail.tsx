@@ -3,37 +3,25 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../(components)/ui/card';
 import { Badge } from '../(components)/ui/badge';
-import { Clock, MapPin, Calendar, ArrowRight } from 'lucide-react';
-
-interface Foodbank {
-  id: string;
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  type: string;
-  hours_of_operation: string;
-  operation_schedule: {
-    is_24_hours: boolean;
-    days: string[];
-    hours: string | null;
-    raw_text: string;
-    daily_schedule: {
-      [key: string]: {
-        is_open: boolean;
-        hours: string | null;
-      }
-    }
-  };
-}
-
+import { Clock, MapPin } from 'lucide-react';
+import { useFoodBank } from '@/hooks/useFoodBank';
 interface FoodbankDetailProps {
-  foodbank: Foodbank | null;
+  selectedEnd: string | null;
 }
 
-const FoodbankDetail: React.FC<FoodbankDetailProps> = ({ foodbank }) => {
-  if (!foodbank) {
+const FoodbankDetail: React.FC<FoodbankDetailProps> = ({ selectedEnd }) => {
+  const { foodbank, loading, error } = useFoodBank(selectedEnd ? { lat: parseFloat(selectedEnd.split(',')[0]), lng: parseFloat(selectedEnd.split(',')[1]) } : null);
+
+  if (!selectedEnd || loading) {
     return null;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!foodbank) {
+    return <div>No foodbank found</div>;
   }
 
   const formatDays = (days: string[]) => {
@@ -55,13 +43,13 @@ const FoodbankDetail: React.FC<FoodbankDetailProps> = ({ foodbank }) => {
   };
 
   const daySchedule = [
-    { day: 'Monday', key: 'monday' },
-    { day: 'Tuesday', key: 'tuesday' },
-    { day: 'Wednesday', key: 'wednesday' },
-    { day: 'Thursday', key: 'thursday' },
-    { day: 'Friday', key: 'friday' },
-    { day: 'Saturday', key: 'saturday' },
-    { day: 'Sunday', key: 'sunday' },
+    { day: 'Monday', key: 'monday' as const },
+    { day: 'Tuesday', key: 'tuesday' as const },
+    { day: 'Wednesday', key: 'wednesday' as const },
+    { day: 'Thursday', key: 'thursday' as const },
+    { day: 'Friday', key: 'friday' as const },
+    { day: 'Saturday', key: 'saturday' as const },
+    { day: 'Sunday', key: 'sunday' as const },
   ];
 
   // Format the hours for display

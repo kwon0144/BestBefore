@@ -7,6 +7,7 @@ import Title from "../(components)/Title";
 import MapSection from "./MapSection";
 import FoodNetworkList from "./FoodNetworkList"
 import { Foodbank } from "../api/foodbanks/route";
+import FoodbankDetail from "./FoodbankDetail";
 
 const GOOGLE_MAPS_LIBRARIES: ("places" | "routes")[] = ["places", "routes"];
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
@@ -49,21 +50,14 @@ export default function FoodNetwork() {
           </div>
         </div>
       </APIProvider>
-      
-      {/* <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-6"> */}
-
-        
-        {/* <div>
-          {selectedFoodbank ? (
-            <FoodbankDetail foodbank={selectedFoodbank} />
+          {selectedEnd ? (
+            <FoodbankDetail selectedEnd={selectedEnd} />
           ) : (
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 text-center">
               <h3 className="text-lg font-medium text-gray-900">No Foodbank Selected</h3>
               <p className="mt-2 text-gray-500">Select a foodbank from the list to view details</p>
             </div>
           )}
-        </div> */}
-      {/* </div> */}
     </div>
   );
 }
