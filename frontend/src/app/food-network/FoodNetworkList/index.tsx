@@ -114,9 +114,6 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
   }
 
   const handleSelectFoodbank = (foodbank: Foodbank) => {
-    if (onSelectFoodbank) {
-      onSelectFoodbank(foodbank);
-    }
     setSelectedEnd(foodbank.id.toString());
     
     // Check if the foodbank type matches the selected type
