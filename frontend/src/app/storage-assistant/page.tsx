@@ -234,8 +234,8 @@ const FoodStorageAssistant: React.FC = () => {
           );
           
           if (matchedType) {
-            const response = await axios.get<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-              params: { food_type: matchedType }
+            const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+              food_type: matchedType
             });
             
             const recommendation = response.data;
