@@ -9,6 +9,8 @@ env:
   # Frontend Environment Variables
   NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
   NEXT_PUBLIC_API_KEY: ${{ secrets.NEXT_PUBLIC_API_KEY }}
+  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+  NEXT_PUBLIC_MAP_ID: ${{ secrets.NEXT_PUBLIC_MAP_ID }}
   # Backend Environment Variables
   DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
   DJANGO_API_KEY: ${{ secrets.DJANGO_API_KEY }}
@@ -52,6 +54,8 @@ jobs:
           docker buildx build \
             --build-arg NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
             --build-arg NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY} \
+            --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} \
+            --build-arg NEXT_PUBLIC_MAP_ID=${NEXT_PUBLIC_MAP_ID} \
             -t ${{ env.DOCKER_USERNAME }}/react-django-frontend:latest \
             --platform linux/amd64 --push \
             .
