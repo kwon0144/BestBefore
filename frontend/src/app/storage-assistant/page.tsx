@@ -39,7 +39,7 @@ interface CalendarSelection {
   selectedItems: Array<{
     name: string;
     quantity: number;
-    expiry_date: string;
+    expiry_date: number;  // Changed from string to number
     reminder_days: number;
     reminder_time: string;
   }>;
@@ -239,19 +239,17 @@ const FoodStorageAssistant: React.FC = () => {
             });
             
             const recommendation = response.data;
-            
-            // Determine storage location based on method field
+
             if (recommendation.method === 1) {
               fridgeItems.push(`${item} (${recommendation.storage_time} days)`);
-              // Update toggleItemSelection call with storage time
+
               toggleItemSelection(item, produceCounts[item] || 1, recommendation.storage_time);
             } else if (recommendation.method === 2) {
               pantryItems.push(`${item} (${recommendation.storage_time} days)`);
-              // Update toggleItemSelection call with storage time
+
               toggleItemSelection(item, produceCounts[item] || 1, recommendation.storage_time);
             }
           } else {
-            // If no matching type, use default categorization
             if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
               fridgeItems.push(item);
             } else {
@@ -260,6 +258,7 @@ const FoodStorageAssistant: React.FC = () => {
           }
         } catch (err) {
           console.error(`Error fetching storage advice for ${item}:`, err);
+
           // Use default categorization
           if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
             fridgeItems.push(item);
@@ -275,6 +274,7 @@ const FoodStorageAssistant: React.FC = () => {
       });
     } catch (err) {
       console.error('Error fetching food types:', err);
+
       // Use empty arrays instead of default data
       const allItems = Object.keys(produceCounts).length > 0
         ? Object.keys(produceCounts)
@@ -315,7 +315,7 @@ const FoodStorageAssistant: React.FC = () => {
         const newItem = {
           name: item,
           quantity,
-          expiry_date: calculateExpiryDate(storageTime),
+          expiry_date: storageTime,  
           reminder_days: prev.reminderDays,
           reminder_time: prev.reminderTime
         };

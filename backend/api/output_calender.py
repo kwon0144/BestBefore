@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+import pytz
 
 class FoodItem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -34,7 +35,6 @@ def generate_calendar(request):
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
     
-    # Validate data
     if not data or "items" not in data:
         return JsonResponse({"error": "Missing items"}, status=400)
     
@@ -49,25 +49,21 @@ def generate_calendar(request):
             continue
             
         try:
-            expiry_date = datetime.strptime(item["expiry_date"], "%Y-%m-%d").date()
+            # Calculate expiry date from current date
+            current_date = datetime.now().date()
+            days_to_add = int(item["expiry_date"])
+            expiry_date = current_date + timedelta(days=days_to_add)
+            
+            # Get reminder settings
             hour, minute = map(int, (item.get("reminder_time") or default_reminder_time).split(":"))
             reminder_days = item.get("reminder_days", default_reminder_days)
-            
-            # Use timezone.now() to get current time and create timezone-aware reminder time
-            current_time = timezone.now()
-            reminder_date = timezone.make_aware(
-                datetime.combine(
-                    expiry_date - timedelta(days=reminder_days),
-                    datetime.min.time().replace(hour=hour, minute=minute)
-                )
-            )
             
             food_item = FoodItem.objects.create(
                 calendar_id=calendar_id,
                 name=item["name"],
                 quantity=item.get("quantity", 1),
                 expiry_date=expiry_date,
-                reminder_date=reminder_date,
+                reminder_date=datetime.now(),  # This field is not used anymore
                 reminder_days=reminder_days,
                 reminder_time=f"{hour:02d}:{minute:02d}"
             )
@@ -85,7 +81,6 @@ def generate_calendar(request):
     if not saved_items:
         return JsonResponse({"error": "No valid items provided"}, status=400)
     
-    # Use fixed IP address
     calendar_url = f"http://192.168.3.5:8000/api/calendar/{calendar_id}.ics"
     
     return JsonResponse({
@@ -112,15 +107,28 @@ def generate_ical(request, calendar_id):
         
         for item in items:
             try:
+                # Parse reminder time
+                target_hour, target_minute = map(int, item.reminder_time.split(":"))
+                
+                # Calculate the hours to add to get the target time
+                # If target time is 22:00, we want to set it as 2:00 (24 - 22)
+                adjusted_hour = (24 - target_hour) % 24
+                
+                # Adjust days (reduce by 1)
+                adjusted_days = max(0, item.reminder_days - 1)
+                
+                # Format dates
                 expiry_str = item.expiry_date.strftime("%Y%m%d")
-                reminder_str = item.reminder_date.strftime("%Y%m%dT%H%M%SZ")
                 created_str = datetime.now().strftime("%Y%m%dT%H%M%SZ")
                 
-                # Calculate reminder time
-                hour, minute = map(int, item.reminder_time.split(":"))
-                reminder_date = item.expiry_date - timedelta(days=item.reminder_days)
-                reminder_datetime = datetime.combine(reminder_date, datetime.min.time().replace(hour=hour, minute=minute))
-                reminder_str = reminder_datetime.strftime("%Y%m%dT%H%M%SZ")
+                # Print reminder time information
+                print(f"\nItem: {item.name}")
+                print(f"Expiry date: {item.expiry_date}")
+                print(f"Original reminder days: {item.reminder_days}")
+                print(f"Adjusted reminder days: {adjusted_days}")
+                print(f"Target time: {item.reminder_time}")
+                print(f"Adjusted time: {adjusted_hour:02d}:{target_minute:02d}")
+                print(f"Using relative time format: -P{adjusted_days}DT{adjusted_hour}H{target_minute}M")
                 
                 ical_content.extend([
                     f"BEGIN:VEVENT",
@@ -132,15 +140,14 @@ def generate_ical(request, calendar_id):
                     f"SUMMARY:{item.name} (Expires!)",
                     f"DESCRIPTION:Your {item.name} (Qty: {item.quantity}) expires on {item.expiry_date}.",
                     "BEGIN:VALARM",
-                    f"TRIGGER:-P{item.reminder_days}DT{hour}H{minute}M",
+                    f"TRIGGER:-P{adjusted_days}DT{adjusted_hour}H{target_minute}M",
                     "ACTION:DISPLAY",
                     f"DESCRIPTION:Reminder: {item.name} expires soon!",
-                    f"X-WR-ALARMUID:{item.id}@foodwasteapp.com",
-                    f"X-WR-TIME:{item.reminder_time}",
                     "END:VALARM",
                     "END:VEVENT"
                 ])
-            except Exception:
+            except Exception as e:
+                print(f"Error processing item: {e}")
                 continue
         
         ical_content.append("END:VCALENDAR")
