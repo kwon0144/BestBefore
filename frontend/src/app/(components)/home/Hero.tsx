@@ -29,8 +29,8 @@ export default function Hero() {
                 }}
             >
             </div>
-            <div className="max-w-7xl mx-auto absolute inset-0 flex flex-col justify-center items-start px-8 md:px-16 z-20">
-                <div className="max-w-2xl">
+            <div className="max-w-6xl mx-auto absolute inset-0 flex flex-col justify-center items-start md:px-16 z-20">
+                <div className="max-w-3xl pl-10">
                     <GradientText
                         colors={["#1B5E20", "#2D5A4B",  "#2f8f58", "#2D5A4B", "#1B5E20"]}
                         animationSpeed={5}
