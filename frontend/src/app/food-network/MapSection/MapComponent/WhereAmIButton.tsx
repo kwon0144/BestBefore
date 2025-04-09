@@ -8,6 +8,16 @@ import { faPersonRunning } from '@fortawesome/free-solid-svg-icons';
 export default function WhereAmIButton() {
     const map = useMap();
     const [currentLocation, setCurrentLocation] = useState<google.maps.LatLngLiteral | null>(null);
+    const [isMarkerVisible, setIsMarkerVisible] = useState(false);
+
+    const handleLocationButtonClick = () => {
+        if (!isMarkerVisible) {
+            getCurrentLocation();
+        } else {
+            setCurrentLocation(null);
+            setIsMarkerVisible(false);
+        }
+    };
 
     const getCurrentLocation = () => {
         if (navigator.geolocation) {
@@ -18,6 +28,7 @@ export default function WhereAmIButton() {
                         lng: position.coords.longitude
                     };
                     setCurrentLocation(location);
+                    setIsMarkerVisible(true);
                     map?.panTo({ lat: location.lat, lng: location.lng });
                     map?.setZoom(12);
 
@@ -42,13 +53,18 @@ export default function WhereAmIButton() {
             <div className="absolute top-0 right-16 pt-3">
                 <Button
                     className="w-auto p-0 bg-[#fc9003] text-white px-4 shadow-md shadow-[#fc9003]/50"
-                    onPress={getCurrentLocation}
+                    onPress={handleLocationButtonClick}
                 >
-                    <Icon icon="lucide:map-pin" className="text-xl" />
-                    Where am I?
+                    {isMarkerVisible ? 
+                        <p>Remove</p> : 
+                        <div className="flex items-center gap-2">
+                            <Icon icon="lucide:map-pin" className="text-xl" />
+                            <p>Where am I?</p>
+                        </div>
+                    }
                 </Button>
             </div>
-            {currentLocation && (
+            {currentLocation && isMarkerVisible && (
                 <AdvancedMarker position={currentLocation}>
                     <div className="text-[#fc9003] text-5xl">
                         <FontAwesomeIcon icon={faPersonRunning} />
