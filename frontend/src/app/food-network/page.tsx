@@ -44,9 +44,8 @@ export default function FoodNetwork() {
   if (!isLoaded) return <div>Loading...</div>;
 
   return (
-    <div className="min-h-screen max-w-7xl mx-auto py-10 px-10">
-      <Title heading="Food Network" description="Find the nearest food bank to you" />
-      
+    <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
+      <Title heading="Food Network" description="Contribute to the community by donation or efficient disposal" />
       <APIProvider apiKey={apiKey}>
         <MapSection 
           selectedEnd={selectedEnd} 
