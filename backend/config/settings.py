@@ -63,10 +63,17 @@ CORS SETTINGS
 """
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+<<<<<<< HEAD
     "http://localhost:3001"
     # "http://localhost:443"
     # "http://3.107.143.147:443",
     # "http://3.107.143.147"
+=======
+    "http://localhost:443",
+    "http://3.107.143.147:443",
+    "http://3.107.143.147",
+    "https://tp22-bestbefore.com"
+>>>>>>> fefec47 (cicd: update backend docker build with added dependencies, update deployment for https)
 ]
 CORS_ALLOW_METHODS = (
     "GET",

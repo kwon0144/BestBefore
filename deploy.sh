@@ -29,12 +29,12 @@ echo "Unnecessary images deleted"
 # Create a custom bridge network
 docker network create app-network
 
-# Run the frontend container on port 443 for HTTP
-docker run -d --name frontend --network app-network -p 443:3000 \
+# Run the frontend container on port 3000 for HTTP
+docker run -d --name frontend --network app-network -p 3000:3000 \
   -e NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
   -e NEXT_PUBLIC_API_KEY="$NEXT_PUBLIC_API_KEY" \
   $DOCKER_USERNAME/react-django-frontend:latest
-echo "Frontend deployed successfully on HTTP (port 443)"
+echo "Frontend deployed successfully on HTTP (port 3000)"
 
 # Run the backend container on port 8000
 docker run -d --name backend --network app-network -p 8000:8000 \
