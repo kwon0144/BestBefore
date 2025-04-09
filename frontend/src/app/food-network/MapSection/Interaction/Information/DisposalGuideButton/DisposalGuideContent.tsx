@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { faXmark, faRecycle, faTimesCircle, faCheckCircle, faAppleAlt, faBreadSlice, faDrumstickBite, faCheese, faEgg, faCoffee, faFish, faUtensils, faLightbulb, faMugHot, faWineBottle, faWater, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import Image from "next/image";
 
 interface DisposalGuideContentProps {
     onClose: () => void;
 }
 
 interface ItemProps {
-    icon: any;
+    icon: IconProp;
     text: string;
     color: string;
 }
@@ -75,11 +77,6 @@ const NoTab = () => (
 
 export default function DisposalGuideContent({ onClose }: DisposalGuideContentProps) {
     const [activeTab, setActiveTab] = useState<string>("yes");
-    const [showGreenWasteModal, setShowGreenWasteModal] = useState<boolean>(false);
-
-    const toggleGreenWasteModal = () => {
-        setShowGreenWasteModal(!showGreenWasteModal);
-    };
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -100,9 +97,11 @@ export default function DisposalGuideContent({ onClose }: DisposalGuideContentPr
                     </div>
 
                     <div className="mb-6">
-                        <img
+                        <Image
                             src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/disposalguide.jpg"
                             alt="Green waste bin"
+                            width={800}
+                            height={400}
                             className="w-full h-48 object-cover rounded-lg"
                         />
                     </div>
@@ -120,7 +119,7 @@ export default function DisposalGuideContent({ onClose }: DisposalGuideContentPr
                             className={`flex-1 py-3 font-medium text-center transition-colors duration-300 border-b-2 ${activeTab === "no" ? "border-[#F44336] text-[#F44336]" : "border-transparent text-gray-500"} cursor-pointer`}
                         >
                             <FontAwesomeIcon icon={faTimesCircle} className="mr-2" />
-                            What CAN'T Go In
+                            What CAN&apos;T Go In
                         </button>
                     </div>
 

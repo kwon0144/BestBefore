@@ -25,7 +25,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
   setSelectedEnd, 
   map,
   selectedType,
-  setSelectedType 
+  setSelectedType
 }) => {
   const [foodbanks, setFoodbanks] = useState<Foodbank[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,12 +45,9 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
         const data = await response.json();
         
         if (data.status === 'success' && Array.isArray(data.data)) {
-          const processedData = data.data.map((item: any) => ({
+          const processedData = data.data.map((item: Foodbank) => ({
             ...item,
-            address: item.address || 
-                    item.location_address || 
-                    item.street_address || 
-                    `Coordinates: ${item.latitude}, ${item.longitude}`
+            address: item.address || `Coordinates: ${item.latitude}, ${item.longitude}`
           }));
           
           setFoodbanks(processedData);
@@ -117,7 +114,9 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
   }
 
   const handleSelectFoodbank = (foodbank: Foodbank) => {
-    onSelectFoodbank && onSelectFoodbank(foodbank);
+    if (onSelectFoodbank) {
+      onSelectFoodbank(foodbank);
+    }
     setSelectedEnd(foodbank.id.toString());
     
     // Check if the foodbank type matches the selected type

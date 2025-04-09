@@ -21,10 +21,13 @@ interface MapComponentProps {
     selectedFoodbank?: Foodbank | null;
     selectedType: string;
     setMap: Dispatch<SetStateAction<google.maps.Map | null>>;
-    setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
 }
 
-const MapComponent = forwardRef<any, MapComponentProps>(({
+interface MapComponentRef {
+  focusOnLocation: (location: {lat: number, lng: number}) => void;
+}
+
+const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
     selectedStart, 
     selectedEnd,
     setSelectedEnd, 
@@ -35,12 +38,9 @@ const MapComponent = forwardRef<any, MapComponentProps>(({
     selectedFoodbank,
     selectedType,
     setMap,
-    setSelectedStart
 }, ref) => {
   const map = useMap();
   const [foodBanks, setFoodBanks] = useState<Foodbank[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (map) {
@@ -64,10 +64,7 @@ const MapComponent = forwardRef<any, MapComponentProps>(({
         );
         setFoodBanks(filteredFoodBanks);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch food banks');
         console.error('Error fetching food banks:', err);
-      } finally {
-        setLoading(false);
       }
     };
     fetchFoodBanks();
@@ -121,7 +118,7 @@ const MapComponent = forwardRef<any, MapComponentProps>(({
         gestureHandling="greedy"
         disableDefaultUI={false}
       > 
-        <Markers points={points} setSelectedEnd={setSelectedEnd} selectedType={selectedType} selectedEnd={selectedEnd}/>
+        <Markers points={points} setSelectedEnd={setSelectedEnd} selectedEnd={selectedEnd}/>
         {/* Add a special marker for the selected foodbank if it exists */}
         {selectedFoodbank && (
           <AdvancedMarker

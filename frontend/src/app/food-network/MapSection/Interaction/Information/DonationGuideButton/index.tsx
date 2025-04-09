@@ -1,6 +1,6 @@
 import { faBook } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/react";
+import { Button, Modal, ModalContent, useDisclosure } from "@heroui/react";
 import DonationGuideContent from "./DonationGuideContent";
 
 export default function DonationGuideButton() {

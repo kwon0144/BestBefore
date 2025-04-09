@@ -10,11 +10,10 @@ type Point = google.maps.LatLngLiteral & { key: string};
 interface Props { 
   points: Point[]
   setSelectedEnd: Dispatch<SetStateAction<string | null>>
-  selectedType: string
   selectedEnd: string | null
 }
 
-export default function Markers({ points, setSelectedEnd, selectedType, selectedEnd }: Props) {
+export default function Markers({ points, setSelectedEnd, selectedEnd }: Props) {
   const map = useMap();
   const [markers, setMarkers] = useState<{ [key: string]: Marker }>({});
   const clusterer = useRef<MarkerClusterer | null>(null);

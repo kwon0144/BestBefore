@@ -52,6 +52,7 @@ export default function FoodNetwork() {
             onMapReady={handleMapReady}
             selectedType={selectedType}
             setSelectedType={setSelectedType}
+            selectedFoodbank={selectedFoodbank}
           />
         </div>
         <div>

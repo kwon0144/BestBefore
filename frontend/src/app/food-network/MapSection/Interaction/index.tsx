@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 import Navigation from "./Navigation";
 import Information from "./Information";
 import RouteResult from "./RouteResult";
@@ -53,7 +53,6 @@ export default function Interaction({
                     setTravellingMode={setTravellingMode}
                     currentLocationAddress={currentLocationAddress}
                     setCurrentLocationAddress={setCurrentLocationAddress}
-                    travellingMode={travellingMode}
                 />
             )}
             <RouteResult 

@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { useState, useEffect, SetStateAction, Dispatch } from "react";
+import { SetStateAction, Dispatch } from "react";
 import { useFoodBank } from "@/hooks/useFoodBank";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -30,24 +30,6 @@ export default function Information({
     const handleClick = () => {
         setShowInformation(false);
         setShowNavigation(true);
-    };
-
-    const formatDays = (days: string[]) => {
-        if (days.length === 7) return 'Daily';
-        if (days.length === 0) return 'Closed';
-        
-        const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-        const weekend = ['saturday', 'sunday'];
-        
-        if (days.length === 5 && weekdays.every(day => days.map(d => d.toLowerCase()).includes(day))) {
-            return 'Weekdays';
-        }
-        
-        if (days.length === 2 && weekend.every(day => days.map(d => d.toLowerCase()).includes(day))) {
-            return 'Weekends';
-        }
-        
-        return days.map(day => day.charAt(0).toUpperCase() + day.slice(1).toLowerCase()).join(', ');
     };
 
     const formatHours = (hoursString: string | null) => {

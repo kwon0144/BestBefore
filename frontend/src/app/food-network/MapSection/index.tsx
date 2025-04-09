@@ -2,6 +2,7 @@ import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import MapComponent from "./MapComponent";
 import Interaction from "./Interaction";
 import { TravelMode } from "./Interaction/Navigation/TravelModeSelection";
+import type { Foodbank } from "@/app/api/foodbanks/route";
 
 interface MapSectionProps {
     selectedEnd: string | null;
@@ -9,9 +10,10 @@ interface MapSectionProps {
     onMapReady?: (map: google.maps.Map) => void;
     selectedType: string;
     setSelectedType: Dispatch<SetStateAction<string>>;
+    selectedFoodbank: Foodbank | null;
 }
 
-export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, selectedType, setSelectedType}: MapSectionProps) {
+export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, selectedType, setSelectedType, selectedFoodbank}: MapSectionProps) {
   // For user input and display
   const [selectedStart, setSelectedStart] = useState<{lat: number, lng: number} | null>(null);
   // For submission to fetch route
@@ -84,7 +86,7 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
                     travellingMode={travellingMode}
                     selectedType={selectedType}
                     setMap={setMap}
-                    setSelectedStart={setSelectedStart}
+                    selectedFoodbank={selectedFoodbank}
                 />
             </div>
             <div className="w-2/5">

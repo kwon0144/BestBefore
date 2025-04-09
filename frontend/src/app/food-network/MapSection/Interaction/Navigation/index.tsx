@@ -1,7 +1,6 @@
 import LocationInput from "./LocationInput";
 import SubmitButton from "./SubmitButton";
 import { Dispatch, SetStateAction, useState } from "react";
-import { useGeocoding } from "@/hooks/useGeocoding";
 import CurrentLocationButton from "./CurrentLocationButton";
 import { useFoodBank } from "@/hooks/useFoodBank";
 import TravelModeSelection, { TravelMode } from "./TravelModeSelection";
@@ -23,7 +22,6 @@ interface NavigationProps {
     setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
     currentLocationAddress: string | null;
     setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
-    travellingMode: TravelMode;
 }
 
 export default function Navigation({
@@ -39,7 +37,6 @@ export default function Navigation({
     setTravellingMode,
     currentLocationAddress,
     setCurrentLocationAddress,
-    travellingMode
 }: NavigationProps) {
     const { foodbank } = useFoodBank(selectedEnd);
     const [selectedMode, setSelectedMode] = useState<TravelMode>("WALKING");

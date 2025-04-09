@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react';
-import { Dispatch, SetStateAction, useState } from 'react';
+import { useState } from 'react';
 import { useMap, AdvancedMarker } from "@vis.gl/react-google-maps";
 import { Icon } from '@iconify/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -31,13 +31,6 @@ export default function WhereAmIButton() {
                     setIsMarkerVisible(true);
                     map?.panTo({ lat: location.lat, lng: location.lng });
                     map?.setZoom(12);
-
-                    // Get the address using reverse geocoding
-                    try {
-                        const geocoder = new google.maps.Geocoder();
-                    } catch (error) {
-                        console.error("Error getting address:", error);
-                    }
                 },
                 (error) => {
                     console.error("Error getting location:", error);
