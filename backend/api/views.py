@@ -1,13 +1,15 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
-from rest_framework import status
-from .models import User, Temperature
-from .serializer import UserSerializer, TemperatureSerializer
+from rest_framework import status, viewsets
+from .models import User, Temperature, Geospatial
+from .serializer import UserSerializer, TemperatureSerializer, FoodBankListSerializer, FoodBankDetailSerializer
 from rest_framework import viewsets
 from .db_service import get_storage_recommendations, get_all_food_types
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from django.utils import timezone
 import uuid
+from django.db import connection
 
 @api_view(['GET'])
 def get_users(request):
@@ -107,3 +109,11 @@ def generate_calendar(request):
         })
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class FoodBankViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Geospatial.objects.all()
+    
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return FoodBankDetailSerializer
+        return FoodBankListSerializer

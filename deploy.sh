@@ -25,12 +25,15 @@ docker pull $DOCKER_USERNAME/react-django-backend:latest
 # Remove old Docker images
 docker image prune -f
 
-# Run containers
-sudo docker run -d --name frontend --network app-network -p 3000:3000 \
+# Run frontend container
+docker run -d --name frontend --network app-network -p 3000:3000 \
   -e NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
   -e NEXT_PUBLIC_API_KEY="$NEXT_PUBLIC_API_KEY" \
   $DOCKER_USERNAME/react-django-frontend:latest
+echo "Frontend deployed successfully on HTTP (port 3000)"
 
-sudo docker run -d --name backend --network app-network -p 8000:8000 \
+# Run backend container
+docker run -d --name backend --network app-network -p 8000:8000 \
   --env-file .env \
   $DOCKER_USERNAME/react-django-backend:latest
+echo "Backend deployed successfully (port 8000)"

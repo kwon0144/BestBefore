@@ -28,7 +28,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+# DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Application definition
@@ -68,7 +69,6 @@ CORS_ALLOWED_ORIGINS = [
     os.getenv('DJANGO_ALLOWED_ORIGIN')
 ]
 
-# 如果环境变量存在，添加到允许的源列表中
 allowed_origin = os.getenv('DJANGO_ALLOWED_ORIGIN')
 if allowed_origin:
     CORS_ALLOWED_ORIGINS.append(allowed_origin)
