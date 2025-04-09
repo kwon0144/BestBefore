@@ -9,7 +9,11 @@ interface User {
   age: number;
 }
 
+<<<<<<< HEAD
 const Test = () => {
+=======
+export default function test() {
+>>>>>>> 71ccdfb (test: move apitest page to test directory)
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,5 +102,8 @@ const Test = () => {
     </main>
   );
 }
+<<<<<<< HEAD
 
 export default Test;  
+=======
+>>>>>>> 71ccdfb (test: move apitest page to test directory)
