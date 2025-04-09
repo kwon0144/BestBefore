@@ -3,7 +3,7 @@ import SubmitButton from "./SubmitButton";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useGeocoding } from "@/hooks/useGeocoding";
 import CurrentLocationButton from "./CurrentLocationButton";
-import { useFoodBankName } from "@/hooks/useFoodBank";
+import { useFoodBank } from "@/hooks/useFoodBank";
 import TravelModeSelection, { TravelMode } from "./TravelModeSelection";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -41,7 +41,7 @@ export default function Navigation({
     setCurrentLocationAddress,
     travellingMode
 }: NavigationProps) {
-    const selectedFoodBank = useFoodBankName(selectedEnd);
+    const { foodbank } = useFoodBank(selectedEnd);
     const [selectedMode, setSelectedMode] = useState<TravelMode>("WALKING");
     const [error, setError] = useState<string>("");
 
@@ -75,9 +75,9 @@ export default function Navigation({
                     <FontAwesomeIcon icon={faMapPin} className="text-green-700" />
                     </div>
                     <div className="flex flex-col">
-                    <p className="text-xl font-bold text-darkgreen">{selectedFoodBank}</p>
+                    <p className="text-xl font-bold text-darkgreen">{foodbank?.name}</p>
                     <p className="text-sm text-gray-600">
-                        123 Main Street, Melbourne, VIC 3000
+                        {foodbank?.address}
                     </p>
                     </div>
                 </div>
