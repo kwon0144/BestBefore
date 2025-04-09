@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
 
 interface FoodNetworkListProps {
-  onSelectFoodbank?: (foodbank: Foodbank) => void;
+    onSelectFoodbank?: (foodbank: Foodbank) => void;
   setSelectedEnd: Dispatch<SetStateAction<string | null>>;
   map?: google.maps.Map | null;
   selectedType: string;
@@ -21,7 +21,6 @@ const typeOptions = [
 ];
 
 const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ 
-  onSelectFoodbank, 
   setSelectedEnd, 
   map,
   selectedType,

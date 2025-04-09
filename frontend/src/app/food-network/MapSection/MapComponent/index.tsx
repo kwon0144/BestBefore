@@ -18,7 +18,6 @@ interface MapComponentProps {
     routeEnd: {lat: number, lng: number} | null;
     setRouteDetails: Dispatch<SetStateAction<{duration: string, distance: string}>>;
     travellingMode: string;
-    selectedFoodbank?: Foodbank | null;
     selectedType: string;
     setMap: Dispatch<SetStateAction<google.maps.Map | null>>;
 }
@@ -35,7 +34,6 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
     routeEnd, 
     setRouteDetails, 
     travellingMode,
-    selectedFoodbank,
     selectedType,
     setMap,
 }, ref) => {
@@ -95,20 +93,23 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   
   // Effect to handle focusing on selected foodbank
   useEffect(() => {
-    if (selectedFoodbank && map) {
-      const location = {
-        lat: selectedFoodbank.latitude,
-        lng: selectedFoodbank.longitude
-      };
-      
-      try {
-        map.panTo(location);
-        map.setZoom(15);
-      } catch (e) {
-        console.error("Error focusing map on foodbank:", e);
+    if (selectedEnd && map) {
+      const selectedFoodBank = foodBanks.find(fb => fb.id.toString() === selectedEnd);
+      if (selectedFoodBank) {
+        const location = {
+          lat: selectedFoodBank.latitude,
+          lng: selectedFoodBank.longitude
+        };
+        
+        try {
+          map.panTo(location);
+          map.setZoom(15);
+        } catch (e) {
+          console.error("Error focusing map on foodbank:", e);
+        }
       }
     }
-  }, [selectedFoodbank, map]);
+  }, [selectedEnd, map, foodBanks]);
 
   return (
       <Map
@@ -120,10 +121,13 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
       > 
         <Markers points={points} setSelectedEnd={setSelectedEnd} selectedEnd={selectedEnd}/>
         {/* Add a special marker for the selected foodbank if it exists */}
-        {selectedFoodbank && (
+        {selectedEnd && foodBanks.find(fb => fb.id.toString() === selectedEnd) && (
           <AdvancedMarker
-            position={{lat: selectedFoodbank.latitude, lng: selectedFoodbank.longitude}}
-            title={selectedFoodbank.name}
+            position={{
+              lat: foodBanks.find(fb => fb.id.toString() === selectedEnd)!.latitude,
+              lng: foodBanks.find(fb => fb.id.toString() === selectedEnd)!.longitude
+            }}
+            title={foodBanks.find(fb => fb.id.toString() === selectedEnd)!.name}
           >
             <Pin
               background={"#22c55e"} // Green color for selected foodbank
