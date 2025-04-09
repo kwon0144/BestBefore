@@ -11,7 +11,7 @@ import {
   Link,
 } from "@heroui/react";
 import { usePathname } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 
 const menuItems = [
   { path: "/", label: "Home" },
@@ -22,6 +22,21 @@ const menuItems = [
 const Navigationbar = () => {
   const pathname = usePathname();
   const [underlineStyle, setUnderlineStyle] = useState({ left: 0, width: 0 });
+  const [isScrolled, setIsScrolled] = useState(false);
+  const isHomePage = pathname === '/';
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const heroSection = document.getElementById('hero-section');
+      if (heroSection && isHomePage) {
+        const heroBottom = heroSection.getBoundingClientRect().bottom;
+        setIsScrolled(heroBottom < 0);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isHomePage]);
 
   const setContainerRef = useCallback(
     (node: HTMLElement | null) => {
@@ -42,18 +57,27 @@ const Navigationbar = () => {
   );
 
   return (
-    <Navbar isBordered>
+    <Navbar 
+      isBordered={!isHomePage || isScrolled}
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        !isHomePage || isScrolled
+          ? 'bg-background' 
+          : 'bg-white/50'
+      }`}
+    >
       <NavbarBrand>
-        <p className="font-bold text-inherit text-xl text-primary">
+        <p className={`font-bold text-inherit text-xl ${
+          !isHomePage || isScrolled ? 'text-primary' : 'text-primary'
+        }`}>
           BestBefore
         </p>
       </NavbarBrand>
 
       <div
-        className="hidden sm:flex justify-end relative"
+        className="sm:flex justify-end relative"
         ref={setContainerRef}
       >
-        <NavbarContent className="gap-10 w-full">
+        <NavbarContent className={`gap-10 w-full transition-opacity duration-300`}>
           {/* Animated underline */}
           <span
             className="absolute bottom-0 h-[3px] bg-primary transition-all duration-300 rounded"
@@ -74,8 +98,8 @@ const Navigationbar = () => {
                 href={item.path}
                 className={`transition-colors ${
                   pathname === item.path
-                    ? "text-primary pointer-events-none cursor-default"
-                    : "text-foreground"
+                    ? `${!isHomePage || isScrolled ? 'text-primary' : 'text-primary'} pointer-events-none cursor-default`
+                    : !isHomePage || isScrolled ? 'text-black' : 'text-black/80 hover:text-black'
                 }`}
               >
                 {item.label}
@@ -85,15 +109,15 @@ const Navigationbar = () => {
         </NavbarContent>
       </div>
 
-      <NavbarMenuToggle className="sm:hidden" />
+      <NavbarMenuToggle className={`sm:hidden ${!isHomePage || isScrolled ? 'opacity-100' : 'opacity-0'}`} />
 
-      <NavbarMenu>
+      <NavbarMenu className={!isHomePage || isScrolled ? 'bg-background' : 'bg-background/80 backdrop-blur-md'}>
         {menuItems.map((item, index) => (
           <NavbarMenuItem key={`${item}-${index}`}>
             <Link
               href={item.path}
               size="lg"
-              color="foreground"
+              color={!isHomePage || isScrolled ? "foreground" : "primary"}
               className={`w-full px-4 py-2 rounded-lg transition-colors
                 ${
                   pathname === item.path

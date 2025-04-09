@@ -2,7 +2,9 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
+import styles from './StorageAssistant.module.css';
 import { config } from '@/config';
+import Image from 'next/image';
 
 // Interface for camera state
 interface CameraState {
@@ -46,7 +48,19 @@ interface CalendarSelection {
   calendarLink: string | null;
   reminderDays: number;
   reminderTime: string;
-  expiryDate: string;
+}
+
+interface FoodTypeResponse {
+  food_types: string[];
+}
+
+interface StorageAdviceResponse {
+  method: number;
+  storage_time: number;
+}
+
+interface CalendarResponse {
+  calendar_url: string;
 }
 
 const StorageAssistant: React.FC = () => {
@@ -56,11 +70,9 @@ const StorageAssistant: React.FC = () => {
   const [calendarSelection, setCalendarSelection] = useState<CalendarSelection>({
     selectedItems: [],
     calendarLink: null,
-    reminderDays: 2, // Default 2 days reminder
-    reminderTime: "20:00", // Default 8 PM reminder
-    expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Default 7 days expiry
+    reminderDays: 2, // 默认提前2天提醒
+    reminderTime: "20:00", // 默认晚上8点提醒
   });
-  
   // Main component state
   const [state, setState] = useState<CameraState>({
     stream: null,
@@ -74,11 +86,8 @@ const StorageAssistant: React.FC = () => {
   // State for storage recommendations (to be fetched from backend)
   const [storageRecs, setStorageRecs] = useState<StorageRecommendation>({
     fridge: [],
-    pantry: []
+    pantry: [],
   });
-
-  // State for active tab in storage display
-  const [activeTab, setActiveTab] = useState<'fridge' | 'pantry'>('fridge');
 
   // Check iOS security restrictions
   const checkIOSRestriction = (): boolean => {
@@ -156,11 +165,13 @@ const StorageAssistant: React.FC = () => {
       setState(prev => ({
         ...prev,
         stream: null,
+
         photos: [], // Clear all photos when stopping camera
         detections: null
       }));
     }
   };
+
 
   const submitPhotos = async () => {
     if (state.photos.length === 0) return;
@@ -193,28 +204,100 @@ const StorageAssistant: React.FC = () => {
   };
 
   // Mock function to fetch storage recommendations
-  const fetchStorageRecommendations = (
-    produceCounts: { [key: string]: number } = {}
-  ) => {
-    const allItems = Object.keys(produceCounts).length > 0
-      ? Object.keys(produceCounts)
-      : ['apple', 'banana', 'carrot']; 
-  
-    const fridgeItems = allItems.filter(item =>
-      ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())
-    );
-    const pantryItems = allItems.filter(item =>
-      ['potatoes', 'onions', 'garlic', 'tomatoes'].includes(item.toLowerCase())
-    );
-  
-    setStorageRecs({
-      fridge: fridgeItems,
-      pantry: pantryItems,
-    });
+  const fetchStorageRecommendations = async (produceCounts: { [key: string]: number } = {}) => {
+    try {
+      // 获取所有食物类型
+      const foodTypesResponse = await axios.get<FoodTypeResponse>(`${config.apiUrl}/api/food-types/`);
+      const allFoodTypes = foodTypesResponse.data.food_types;
+      
+      // 如果没有检测到食物，使用默认示例数据
+      const allItems = Object.keys(produceCounts).length > 0
+        ? Object.keys(produceCounts)
+        : [];
+      
+      // 为每个食物获取存储建议
+      const fridgeItems: string[] = [];
+      const pantryItems: string[] = [];
+      
+      for (const item of allItems) {
+        try {
+          // 查找最匹配的食物类型
+          const matchedType = allFoodTypes.find((type: string) => 
+            type.toLowerCase().includes(item.toLowerCase()) || 
+            item.toLowerCase().includes(type.toLowerCase())
+          );
+          
+          if (matchedType) {
+            const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+              food_type: matchedType
+            });
+            
+            const recommendation = response.data;
+            
+            // 根据method字段决定存储位置
+            if (recommendation.method === 1) {
+              fridgeItems.push(`${item} (${recommendation.storage_time} days)`);
+              // 更新 toggleItemSelection 调用，传递存储时间
+              toggleItemSelection(item, produceCounts[item] || 1, recommendation.storage_time);
+            } else if (recommendation.method === 2) {
+              pantryItems.push(`${item} (${recommendation.storage_time} days)`);
+              // 更新 toggleItemSelection 调用，传递存储时间
+              toggleItemSelection(item, produceCounts[item] || 1, recommendation.storage_time);
+            }
+          } else {
+            // 如果没有匹配的类型，使用默认分类
+            if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
+              fridgeItems.push(item);
+            } else {
+              pantryItems.push(item);
+            }
+          }
+        } catch (err) {
+          console.error(`Error fetching storage advice for ${item}:`, err);
+          // 使用默认分类
+          if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
+            fridgeItems.push(item);
+          } else {
+            pantryItems.push(item);
+          }
+        }
+      }
+      
+      setStorageRecs({
+        fridge: fridgeItems,
+        pantry: pantryItems,
+      });
+    } catch (err) {
+      console.error('Error fetching food types:', err);
+      // 使用空数组而不是默认数据
+      const allItems = Object.keys(produceCounts).length > 0
+        ? Object.keys(produceCounts)
+        : [];
+      
+      const fridgeItems = allItems.filter(item =>
+        ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())
+      );
+      
+      const pantryItems = allItems.filter(item =>
+        !['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())
+      );
+      
+      setStorageRecs({
+        fridge: fridgeItems,
+        pantry: pantryItems,
+      });
+    }
   };
 
-  // Toggle item selection for calendar
-  const toggleItemSelection = (item: string, quantity: number) => {
+  // 计算过期日期
+  const calculateExpiryDate = (storageTime: number): string => {
+    const currentDate = new Date();
+    const expiryDate = new Date(currentDate.getTime() + storageTime * 24 * 60 * 60 * 1000);
+    return expiryDate.toISOString().split('T')[0];
+  };
+
+  // 修改 toggleItemSelection 函数
+  const toggleItemSelection = (item: string, quantity: number, storageTime: number) => {
     setCalendarSelection(prev => {
       const existingIndex = prev.selectedItems.findIndex(i => i.name === item);
       
@@ -226,7 +309,7 @@ const StorageAssistant: React.FC = () => {
         const newItem = {
           name: item,
           quantity,
-          expiry_date: prev.expiryDate,
+          expiry_date: calculateExpiryDate(storageTime),
           reminder_days: prev.reminderDays,
           reminder_time: prev.reminderTime
         };
@@ -235,19 +318,25 @@ const StorageAssistant: React.FC = () => {
     });
   };
 
+  // 修改 generateCalendarLink 函数
   const generateCalendarLink = async () => {
     if (calendarSelection.selectedItems.length === 0) return;
   
     try {
-      const response = await axios.post(`${config.apiUrl}/api/generate_calendar/`, {
-        items: calendarSelection.selectedItems,
+      const response = await axios.post<CalendarResponse>(`${config.apiUrl}/api/generate_calendar/`, {
+        items: calendarSelection.selectedItems.map(item => ({
+          ...item,
+          expiry_date: item.expiry_date,
+          reminder_days: calendarSelection.reminderDays,
+          reminder_time: calendarSelection.reminderTime
+        })),
         reminder_days: calendarSelection.reminderDays,
         reminder_time: calendarSelection.reminderTime
       });
   
       setCalendarSelection(prev => ({
         ...prev,
-        calendarLink: (response.data as { calendar_url: string }).calendar_url
+        calendarLink: response.data.calendar_url
       }));
     } catch (err) {
       setState(prev => ({
@@ -267,50 +356,53 @@ const StorageAssistant: React.FC = () => {
 
   // Clean up camera stream on unmount
   useEffect(() => {
-    fetchStorageRecommendations();
-  }, []);
+    // Remove unnecessary fetch call since it's not needed on mount
+    return () => {
+      if (state.stream) {
+        state.stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [state.stream]);
 
   return (
-    <div className="max-w-6xl mx-auto p-5 font-sans bg-gray-50 rounded-lg shadow-md">
-      <h1 className="text-center text-2xl font-semibold text-gray-800 mb-8">Food Produce Scanner</h1>
+    <div className={styles.container}>
+      <h1 className={styles.header}>Food Produce Scanner</h1>
       
       {/* Error message display */}
       {state.error && (
-        <div className="bg-red-100 text-red-800 p-4 rounded-md mb-5 border-l-4 border-red-500">
+        <div className={styles.error}>
           {state.error.split('\n').map((line, i) => (
             <p key={i}>{line}</p>
           ))}
         </div>
       )}
-
-      <div className="flex flex-col md:flex-row gap-8 mb-8">
+      <div className={styles.mainContent}>
         {/* Left column - camera and controls */}
-        <div className="flex-1 min-w-0">
+        <div className={styles.cameraColumn}>
           {/* Camera preview area */}
-          <div className="relative w-full max-w-xl mx-auto mb-5 bg-black rounded-lg overflow-hidden aspect-video">
+          <div className={styles.cameraPreview}>
             <video
               ref={videoRef}
               autoPlay
               playsInline
               muted
-              className={`w-full h-full ${state.stream ? 'block' : 'hidden'}`}
+              className={styles.video}
+              style={{ display: state.stream ? 'block' : 'none' }}
             />
             {!state.stream && (
-              <div className="absolute inset-0 flex items-center justify-center text-white bg-gray-800">
-                Camera inactive
-              </div>
+              <div className={styles.placeholder}>Camera inactive</div>
             )}
           </div>
   
           {/* Hidden canvas for image capture */}
-          <canvas ref={canvasRef} className="hidden" />
+          <canvas ref={canvasRef} style={{ display: 'none' }} />
   
           {/* Camera control buttons */}
-          <div className="flex flex-wrap justify-center gap-4 mb-5">
+          <div className={styles.controls}>
             {!state.stream ? (
               <button
                 onClick={startCamera}
-                className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors min-w-40 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className={`${styles.button} ${styles.primaryButton}`}
                 disabled={state.isAnalyzing}
               >
                 Start Camera
@@ -319,14 +411,14 @@ const StorageAssistant: React.FC = () => {
               <>
                 <button 
                   onClick={takePhoto} 
-                  className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors min-w-40 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className={`${styles.button} ${styles.captureButton}`}
                   disabled={state.isAnalyzing}
                 >
                   Capture Photo
                 </button>
                 <button 
                   onClick={stopCamera} 
-                  className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md transition-colors min-w-40 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className={`${styles.button} ${styles.secondaryButton}`}
                   disabled={state.isAnalyzing}
                 >
                   Stop Camera
@@ -339,7 +431,7 @@ const StorageAssistant: React.FC = () => {
           {state.photos.length > 0 && (
             <button
               onClick={submitPhotos}
-              className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md transition-colors mt-4 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className={`${styles.button} ${styles.submitButton}`}
               disabled={state.isAnalyzing}
             >
               {state.isAnalyzing ? 'Analyzing...' : `Submit ${state.photos.length} Photo(s)`}
@@ -348,98 +440,72 @@ const StorageAssistant: React.FC = () => {
         </div>
   
         {/* Right column - photo previews */}
-        <div className="flex-1 min-w-0 bg-white p-5 rounded-lg shadow">
-          <h3 className="text-lg font-medium mb-2">Captured Photos ({state.photos.length})</h3>
+        <div className={styles.photosColumn}>
+          <h3>Captured Photos ({state.photos.length})</h3>
           {state.photos.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+            <div className={styles.photoGrid}>
               {state.photos.map((photo, index) => (
-                <div key={index} className="relative rounded-md overflow-hidden aspect-square shadow-sm">
-                  <img 
+                <div key={index} className={styles.photoContainer}>
+                  <Image 
                     src={photo} 
                     alt={`Captured ${index + 1}`} 
-                    className="w-full h-full object-cover" 
+                    className={styles.thumbnail}
+                    width={150}
+                    height={150}
+                    style={{ objectFit: 'cover' }}
                   />
-                  <span className="absolute bottom-0 right-0 bg-black bg-opacity-70 text-white px-2 py-1 text-xs rounded-tl-md">
-                    #{index + 1}
-                  </span>
+                  <span className={styles.photoIndex}>#{index + 1}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center italic p-5 bg-gray-50 rounded-md">
-              No photos captured yet
-            </p>
+            <p className={styles.emptyMessage}>No photos captured yet</p>
           )}
         </div>
       </div>
   
-      {/* Storage Recommendations Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
-        <h2 className="text-xl font-semibold mb-4">Storage Recommendations</h2>
-        <div className="flex border-b mb-5">
-          <button
-            onClick={() => setActiveTab('fridge')}
-            className={`py-2 px-4 font-medium transition-colors ${
-              activeTab === 'fridge' 
-                ? 'text-blue-600 border-b-2 border-blue-600' 
-                : 'text-gray-600 hover:text-blue-500'
-            }`}
-          >
-            Refrigerator
-          </button>
-          <button
-            onClick={() => setActiveTab('pantry')}
-            className={`py-2 px-4 font-medium transition-colors ${
-              activeTab === 'pantry' 
-                ? 'text-blue-600 border-b-2 border-blue-600' 
-                : 'text-gray-600 hover:text-blue-500'
-            }`}
-          >
-            Pantry
-          </button>
-        </div>
-  
-        <div>
-          {activeTab === 'fridge' ? (
-            <ul className="divide-y divide-gray-100">
+      {/* Storage Recommendations Section - Always Visible */}
+      <div className={styles.storageSection}>
+        <h2>Storage Recommendations</h2>
+        <div className={styles.storageContent}>
+          <div className={styles.storageColumn}>
+            <h3>Refrigerator</h3>
+            <ul className={styles.storageList}>
               {storageRecs.fridge.length > 0 ? (
                 storageRecs.fridge.map((item, index) => (
-                  <li key={index} className="py-3 px-2">
+                  <li key={index} className={styles.storageItem}>
                     {item}
                   </li>
                 ))
               ) : (
-                <li className="text-gray-500 italic text-center py-4">
-                  No items recommended for refrigerator
-                </li>
+                <li className={styles.emptyMessage}>No items recommended for refrigerator</li>
               )}
             </ul>
-          ) : (
-            <ul className="divide-y divide-gray-100">
+          </div>
+          <div className={styles.storageColumn}>
+            <h3>Pantry</h3>
+            <ul className={styles.storageList}>
               {storageRecs.pantry.length > 0 ? (
                 storageRecs.pantry.map((item, index) => (
-                  <li key={index} className="py-3 px-2">
+                  <li key={index} className={styles.storageItem}>
                     {item}
                   </li>
                 ))
               ) : (
-                <li className="text-gray-500 italic text-center py-4">
-                  No items recommended for pantry
-                </li>
+                <li className={styles.emptyMessage}>No items recommended for pantry</li>
               )}
             </ul>
-          )}
+          </div>
         </div>
       </div>
   
-      {/* Calendar Export Section */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h2 className="text-xl font-semibold mb-4">Calendar Export</h2>
-        
-        <div className="bg-gray-50 p-4 rounded-md mb-5">
-          <h3 className="text-lg font-medium mb-2">Reminder Settings</h3>
-          <div className="flex flex-wrap gap-5 mt-3">
-            <label className="flex items-center gap-2">
+      {/* Calendar Export Section - Always Visible */}
+      <div className={styles.calendarSection}>
+        <h2>Calendar Export</h2>
+        <div className={styles.reminderSettings}>
+          <h3>Reminder Settings</h3>
+          <div className={styles.settingRow}>
+            <label>
               Days before expiry:
               <select
                 value={calendarSelection.reminderDays}
@@ -447,7 +513,7 @@ const StorageAssistant: React.FC = () => {
                   ...prev,
                   reminderDays: parseInt(e.target.value)
                 }))}
-                className="p-2 border border-gray-300 rounded-md text-sm"
+                className={styles.timeSelect}
               >
                 {[1, 2, 3, 4, 5, 6, 7].map(days => (
                   <option key={days} value={days}>{days} day{days !== 1 ? 's' : ''} before</option>
@@ -455,7 +521,7 @@ const StorageAssistant: React.FC = () => {
               </select>
             </label>
             
-            <label className="flex items-center gap-2">
+            <label>
               Reminder time:
               <input
                 type="time"
@@ -464,41 +530,26 @@ const StorageAssistant: React.FC = () => {
                   ...prev,
                   reminderTime: e.target.value
                 }))}
-                className="p-2 border border-gray-300 rounded-md text-sm"
-              />
-            </label>
-            
-            <label className="flex items-center gap-2">
-              Default expiry date:
-              <input
-                type="date"
-                value={calendarSelection.expiryDate}
-                onChange={(e) => setCalendarSelection(prev => ({
-                  ...prev,
-                  expiryDate: e.target.value
-                }))}
-                className="p-2 border border-gray-300 rounded-md text-sm"
-                min={new Date().toISOString().split('T')[0]}
+                className={styles.timeInput}
               />
             </label>
           </div>
         </div>
-        
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-medium mb-3">Select Items for Reminders</h3>
+        <div className={styles.calendarContent}>
+          <div className={styles.selectionPanel}>
+            <h3>Select Items for Reminders</h3>
             {state.detections?.produce_counts ? (
-              <ul className="divide-y divide-gray-100">
+              <ul className={styles.itemList}>
                 {Object.entries(state.detections.produce_counts).map(([item, count]) => (
-                  <li key={item} className="py-2">
-                    <label className="flex items-center">
+                  <li key={item} className={styles.itemRow}>
+                    <label>
                       <input
                         type="checkbox"
                         checked={calendarSelection.selectedItems.some(i => i.name === item)}
-                        onChange={() => toggleItemSelection(item, count)}
-                        className="mr-3"
+                        onChange={() => toggleItemSelection(item, count, 0)}
+                        className={styles.checkbox}
                       />
-                      <span>
+                      <span className={styles.itemName}>
                         {item} (Qty: {count})
                       </span>
                     </label>
@@ -506,39 +557,37 @@ const StorageAssistant: React.FC = () => {
                 ))}
               </ul>
             ) : (
-              <p className="text-gray-500 italic text-center py-4 bg-gray-50 rounded-md">
-                Take and submit photos to see items
-              </p>
+              <p className={styles.emptyMessage}>Take and submit photos to see items</p>
             )}
   
             <button
               onClick={generateCalendarLink}
               disabled={!state.detections || calendarSelection.selectedItems.length === 0}
-              className="w-full mt-4 px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-medium rounded-md transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className={`${styles.button} ${styles.generateButton}`}
             >
               Generate Calendar Link
             </button>
           </div>
   
-          <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-medium mb-3">Your Calendar Link</h3>
+          <div className={styles.linkPanel}>
+            <h3>Your Calendar Link</h3>
             {calendarSelection.calendarLink ? (
-              <div className="flex gap-2 mt-4">
+              <div className={styles.linkContainer}>
                 <input
                   type="text"
                   value={calendarSelection.calendarLink}
                   readOnly
-                  className="flex-1 p-3 border border-gray-300 rounded-md text-sm"
+                  className={styles.linkInput}
                 />
                 <button
                   onClick={copyCalendarLink}
-                  className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors"
+                  className={`${styles.button} ${styles.copyButton}`}
                 >
                   Copy
                 </button>
               </div>
             ) : (
-              <p className="text-gray-500 italic text-center py-4 bg-gray-50 rounded-md">
+              <p className={styles.emptyMessage}>
                 {calendarSelection.selectedItems.length > 0
                   ? 'Click "Generate Calendar Link"'
                   : 'Select items first'}
