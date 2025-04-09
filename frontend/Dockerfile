@@ -31,7 +31,6 @@ COPY package*.json ./
 RUN npm install --production
 
 COPY --from=build /usr/src/app/.next /usr/src/app/.next
-COPY --from=build /usr/src/app/public /usr/src/app/public
 COPY --from=build /usr/src/app/next.config.ts /usr/src/app/next.config.ts
 
 EXPOSE 3000

@@ -1,7 +1,9 @@
-from django.urls import path
-from .views import get_users, create_user, get_temperature_data, get_storage_advice, get_food_types
+from django.urls import path, include
+from .views import get_users, create_user, get_temperature_data, get_storage_advice, get_food_types, get_foodbanks
 from . import produce_detection
 from .output_calender import generate_calendar, generate_ical
+from rest_framework.routers import DefaultRouter
+
 
 urlpatterns = [
     path("users/", get_users, name="get_users"),
@@ -12,4 +14,5 @@ urlpatterns = [
     path('temperature/', get_temperature_data, name='temperature-data'),
     path('storage-advice/', get_storage_advice, name='get_storage_advice'),
     path('food-types/', get_food_types, name='get_food_types'),
+    path('foodbanks/', get_foodbanks, name='get_foodbanks'),
 ]

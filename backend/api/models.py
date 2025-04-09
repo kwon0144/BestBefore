@@ -32,3 +32,20 @@ class FoodStorage(models.Model):
 
     def __str__(self):
         return f"{self.type} - {self.storage_time} days"
+
+# geospatial model for map
+class Geospatial(models.Model):
+    name = models.CharField(max_length=255)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    type = models.CharField(max_length=100)
+    hours_of_operation = models.TextField()
+    address = models.TextField()
+    
+    class Meta:
+        db_table = 'geospatial'
+        managed = False
+    
+    def __str__(self):
+        return self.name
+    

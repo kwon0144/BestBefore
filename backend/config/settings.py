@@ -25,10 +25,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+# DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Application definition
@@ -64,12 +65,12 @@ CORS SETTINGS
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "http://localhost:443",
+    "http://localhost:443"
 ]
 
-# 如果环境变量存在，添加到允许的源列表中
+# Add additional allowed origins from environment variable
 allowed_origin = os.getenv('DJANGO_ALLOWED_ORIGIN')
-if allowed_origin:
+if allowed_origin and allowed_origin not in CORS_ALLOWED_ORIGINS:
     CORS_ALLOWED_ORIGINS.append(allowed_origin)
 
 CORS_ALLOW_METHODS = (
