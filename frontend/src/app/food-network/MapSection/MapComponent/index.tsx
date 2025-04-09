@@ -1,6 +1,6 @@
 "use client";
 
-import { Map, AdvancedMarker, Pin, useMap } from "@vis.gl/react-google-maps";
+import { Map, useMap } from "@vis.gl/react-google-maps";
 import Markers from "./Markers";
 import Directions from "./Directions";
 import StartMarker from "./StartMarker";
@@ -143,5 +143,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
       </Map>
   );
 });
+
+MapComponent.displayName = 'MapComponent';
 
 export default MapComponent;

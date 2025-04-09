@@ -113,14 +113,14 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
   }
 
   const handleSelectFoodbank = (foodbank: Foodbank) => {
-    setSelectedEnd(foodbank.id.toString());
-    
     // Check if the foodbank type matches the selected type
     if (foodbank.type === "Food Donation Point" && selectedType !== "Food Donation Points") {
       setSelectedType("Food Donation Points");
     } else if (foodbank.type !== "Food Donation Point" && selectedType !== "Waste Disposal Points") {
       setSelectedType("Waste Disposal Points");
     }
+    
+    setSelectedEnd(foodbank.id.toString());
 
     if (map && foodbank.latitude && foodbank.longitude) {
       map.setZoom(15);

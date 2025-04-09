@@ -2,7 +2,6 @@ import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { faXmark, faRecycle, faTimesCircle, faCheckCircle, faAppleAlt, faBreadSlice, faDrumstickBite, faCheese, faEgg, faCoffee, faFish, faUtensils, faLightbulb, faMugHot, faWineBottle, faWater, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
-import Image from "next/image";
 
 interface DisposalGuideContentProps {
     onClose: () => void;
@@ -97,7 +96,7 @@ export default function DisposalGuideContent({ onClose }: DisposalGuideContentPr
                     </div>
 
                     <div className="mb-6">
-                        <Image
+                        <img
                             src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/disposalguide.jpg"
                             alt="Green waste bin"
                             width={800}
