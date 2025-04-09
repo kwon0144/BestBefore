@@ -296,10 +296,8 @@ const FoodStorageAssistant: React.FC = () => {
   };
 
   // Calculate expiry date based on storage time
-  const calculateExpiryDate = (storageTime: number): string => {
-    const currentDate = new Date();
-    const expiryDate = new Date(currentDate.getTime() + storageTime * 24 * 60 * 60 * 1000);
-    return expiryDate.toISOString().split('T')[0];
+  const calculateExpiryDate = (storageTime: number): number => {
+    return storageTime;
   };
 
   // Toggle item selection for calendar
@@ -315,7 +313,7 @@ const FoodStorageAssistant: React.FC = () => {
         const newItem = {
           name: item,
           quantity,
-          expiry_date: storageTime,  
+          expiry_date: calculateExpiryDate(storageTime),
           reminder_days: prev.reminderDays,
           reminder_time: prev.reminderTime
         };
