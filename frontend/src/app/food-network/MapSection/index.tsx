@@ -9,9 +9,15 @@ interface MapSectionProps {
     onMapReady?: (map: google.maps.Map) => void;
     selectedType: string;
     setSelectedType: Dispatch<SetStateAction<string>>;
+    showInformation: boolean;
+    showNavigation: boolean;
+    showRouteResult: boolean;
+    setShowInformation: Dispatch<SetStateAction<boolean>>;
+    setShowNavigation: Dispatch<SetStateAction<boolean>>;
+    setShowRouteResult: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, selectedType, setSelectedType}: MapSectionProps) {
+export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, selectedType, setSelectedType, showInformation, showNavigation, showRouteResult, setShowInformation, setShowNavigation, setShowRouteResult}: MapSectionProps) {
   // For user input and display
   const [selectedStart, setSelectedStart] = useState<{lat: number, lng: number} | null>(null);
   // For submission to fetch route
@@ -19,9 +25,6 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
   const [routeEnd, setRouteEnd] = useState<{lat: number, lng: number} | null>(null);    
   const [routeDetails, setRouteDetails] = useState<{duration: string, distance: string}>({duration: "", distance: ""});
   const [travellingMode, setTravellingMode] = useState<TravelMode>("DRIVING");
-  const [showRouteResult, setShowRouteResult] = useState<boolean>(false);
-  const [showNavigation, setShowNavigation] = useState<boolean>(false);
-  const [showInformation, setShowInformation] = useState<boolean>(true);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [currentLocationAddress, setCurrentLocationAddress] = useState<string | null>(null);
 
