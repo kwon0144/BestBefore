@@ -244,16 +244,7 @@ const FoodStorageAssistant: React.FC = () => {
             <h2 className="text-2xl font-semibold text-darkgreen mb-10">
               Step 1: Scan your Groceries
             </h2>
-            <Camera state={state} setState={setState} />
-            <div className="mt-4">
-              <Button
-                onPress={submitPhotos}
-                className="w-full bg-darkgreen text-white py-2 px-4 rounded-lg"
-                disabled={state.photos.length === 0 || state.isAnalyzing}
-              >
-                {state.isAnalyzing ? 'Analyzing...' : 'Analyze Photos'}
-              </Button>
-            </div>
+            <Camera state={state} setState={setState} submitPhotos={submitPhotos} />
           </div>
         ) : (
           <>

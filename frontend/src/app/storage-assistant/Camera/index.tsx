@@ -1,12 +1,16 @@
 import React, { useRef } from 'react';
-import { CameraState } from './interfaces';
+import { CameraState } from '../interfaces';
+import { Button } from '@heroui/react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCamera, faImage } from '@fortawesome/free-solid-svg-icons';
 
 interface CameraProps {
   state: CameraState;
   setState: React.Dispatch<React.SetStateAction<CameraState>>;
+  submitPhotos: () => void;
 }
 
-const Camera: React.FC<CameraProps> = ({ state, setState }) => {
+const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -86,7 +90,6 @@ const Camera: React.FC<CameraProps> = ({ state, setState }) => {
       setState(prev => ({
         ...prev,
         stream: null,
-        photos: [], // Clear all photos when stopping camera
         detections: null
       }));
     }
@@ -106,8 +109,13 @@ const Camera: React.FC<CameraProps> = ({ state, setState }) => {
             style={{ display: state.stream ? 'block' : 'none' }}
           />
           {!state.stream && (
-            <div className="absolute inset-0 flex items-center justify-center text-white">
-              Camera inactive
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#2A5F5E]/10 flex items-center justify-center">
+                <FontAwesomeIcon icon={faCamera} className="text-2xl text-gray-400" />
+              </div>
+              <p className="text-gray-300 text-lg animate-pulse">
+                Camera inactive
+              </p>
             </div>
           )}
           
@@ -116,10 +124,10 @@ const Camera: React.FC<CameraProps> = ({ state, setState }) => {
             <div className="absolute bottom-4 left-0 right-0 flex justify-center">
               <button
                 onClick={takePhoto}
-                className="bg-white text-gray-900 px-4 py-2 rounded-full shadow-lg hover:bg-gray-100 transition"
+                className="w-16 h-16 bg-white bg-opacity-30 rounded-full flex items-center justify-center border-4 border-white focus:outline-none disabled:opacity-50 transition-transform transform hover:scale-105"
                 disabled={state.isAnalyzing}
               >
-                Take Photo
+                <div className="w-12 h-12 bg-white rounded-full"></div>
               </button>
             </div>
           )}
@@ -131,57 +139,73 @@ const Camera: React.FC<CameraProps> = ({ state, setState }) => {
         {/* Camera control buttons */}
         <div className="mt-4 flex justify-center">
           {!state.stream ? (
-            <button
-              onClick={startCamera}
-              className="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition"
+            <Button
+              onPress={startCamera}
+              className="bg-green text-white px-6 py-3 rounded-md"
               disabled={state.isAnalyzing}
             >
-              Start Camera
-            </button>
+              <div className="flex items-center gap-2">
+                <FontAwesomeIcon icon={faCamera} className="text-lg text-white" /> <p>Start Camera</p>
+              </div>
+            </Button>
           ) : (
-            <button
-              onClick={stopCamera}
-              className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition mx-2"
+            <Button
+              onPress={stopCamera}
+              className="bg-red-500 text-white px-6 py-3 rounded-md"
               disabled={state.isAnalyzing}
             >
               Stop Camera
-            </button>
+            </Button>
           )}
         </div>
       </div>
       
       <div className="w-full md:w-96">
-        <div className="bg-gray-50 rounded-t-lg p-4 border border-gray-200 border-b-0">
-          <h3 className="text-lg font-medium text-gray-700 mb-4">
+        <div className="rounded-lg p-4 border bg-darkgreen/20">
+          <h3 className="text-lg font-medium text-darkgreen mb-4">
             Captured Photos ({state.photos.length})
           </h3>
           
           {/* Photo gallery */}
-          {state.photos.length === 0 ? (
-            <div className="flex items-center justify-center h-64 bg-white rounded-lg border border-gray-200">
-              <p className="text-gray-500 italic">
-                No photos captured yet
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 max-h-80 overflow-y-auto p-2">
-              {state.photos.map((photo, index) => (
-                <div
-                  key={index}
-                  className="relative bg-white rounded-lg overflow-hidden shadow-sm"
-                >
-                  <img
-                    src={photo}
-                    alt={`Captured item ${index + 1}`}
-                    className="w-full h-32 object-cover"
-                  />
-                  <span className="absolute bottom-0 right-0 bg-black/70 text-white text-xs py-1 px-2 rounded-tl-md">
-                    #{index + 1}
-                  </span>
+          <div className="rounded-lg h-80 mb-4">
+            {state.photos.length === 0 ? (
+              <div className="flex flex-col h-80 text-center p-4 justify-center items-center">
+                  <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-gray-200 flex items-center justify-center">
+                    <FontAwesomeIcon icon={faImage} className="text-gray-400" />
+                  </div>
+                  <p className="text-gray-500 italic">
+                    No photos captured yet
+                  </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-3 h-80 overflow-y-auto">
+                  {state.photos.map((photo, index) => (
+                    <div
+                      key={index}
+                      className="relative h-32 bg-white rounded-lg overflow-hidden shadow-sm"
+                    >
+                      <img
+                        src={photo}
+                        alt={`Captured item ${index + 1}`}
+                        className="w-full h-32 object-cover"
+                      />
+                      <span className="absolute bottom-0 right-0 bg-black/70 text-white text-xs py-1 px-2 rounded-tl-md">
+                        #{index + 1}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </> 
           )}
+          </div>
+            <Button
+              onPress={submitPhotos}
+              className="w-full bg-darkgreen text-white py-2 px-4 rounded-lg"
+              disabled={state.photos.length === 0 || state.isAnalyzing}
+            >
+              {state.isAnalyzing ? 'Analyzing...' : 'Analyze Photos'}
+            </Button>
         </div>
       </div>
     </div>
