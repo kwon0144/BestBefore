@@ -1,5 +1,7 @@
 import React from 'react';
 import { StorageRecommendation } from '../interfaces';
+import { faSnowflake, faBoxOpen } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 interface StorageRecommendationsProps {
   storageRecs: StorageRecommendation;
@@ -9,50 +11,56 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Refrigerator section */}
-      <div className="bg-gray-50 rounded-lg p-5">
-        <h3 className="text-xl font-medium text-gray-700 mb-4">
-          Refrigerator
+      <div className="bg-white/70 rounded-lg p-5">
+        <h3 className="text-xl font-medium text-gray-700 mb-4 pb-2 border-b-2 border-blue-500">
+          <p className="font-semibold text-blue-600">Refrigerator</p>
         </h3>
-        <div className="bg-white rounded-lg p-4 min-h-64">
           {storageRecs.fridge.length > 0 ? (
-            <ul className="space-y-3">
+            <ul className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
               {storageRecs.fridge.map((item, index) => (
-                <li key={index} className="flex items-center p-2 border-b border-gray-100 last:border-0">
-                  <span className="text-green-500 mr-2">&#8226;</span>
-                  {item}
+                <li key={index} className="flex items-center p-3 rounded-lg bg-blue-300">
+                  <span className="flex-grow">{item.name}</span>
+                  <span className="text-gray-600 font-medium">{item.quantity}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-gray-500 italic text-center">
-              No items recommended for refrigerator
-            </p>
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="w-24 h-24 mb-4 flex items-center justify-center rounded-full bg-gray-100">
+                <FontAwesomeIcon icon={faSnowflake} className="text-gray-400 text-3xl" />
+              </div>
+              <p className="text-gray-500 italic mb-4">
+                No items recommended for refrigerator
+              </p>
+            </div>
           )}
-        </div>
       </div>
       
       {/* Pantry section */}
-      <div className="bg-gray-50 rounded-lg p-5">
-        <h3 className="text-xl font-medium text-gray-700 mb-4">
-          Pantry
+      <div className="bg-white/70 rounded-lg p-5">
+        <h3 className="text-xl font-medium text-gray-700 mb-4 pb-2 border-b-2 border-amber-700">
+          <p className="font-semibold text-amber-700">Pantry</p>
         </h3>
-        <div className="bg-white rounded-lg p-4 min-h-64">
           {storageRecs.pantry.length > 0 ? (
-            <ul className="space-y-3">
+            <ul className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
               {storageRecs.pantry.map((item, index) => (
-                <li key={index} className="flex items-center p-2 border-b border-gray-100 last:border-0">
-                  <span className="text-amber-500 mr-2">&#8226;</span>
-                  {item}
+                <li key={index} className="flex items-center p-3 rounded-lg bg-amber-100 transition-colors">
+                  <span className="flex-grow">{item.name}</span>
+                  <span className="text-gray-600 font-medium">{item.quantity}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-gray-500 italic text-center">
-              No items recommended for pantry
-            </p>
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <div className="w-24 h-24 mb-4 flex items-center justify-center rounded-full bg-gray-100">
+                <FontAwesomeIcon icon={faBoxOpen} className="text-gray-400 text-3xl" />
+              </div>
+              <p className="text-gray-500 italic mb-4">
+                No items recommended for pantry
+              </p>
+            </div>
           )}
         </div>
-      </div>
     </div>
   );
 };

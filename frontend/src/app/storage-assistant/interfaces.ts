@@ -24,8 +24,14 @@ export interface ProduceDetections {
 
 // Interface for storage recommendation
 export interface StorageRecommendation {
-    fridge: string[]; // Items recommended for fridge
-    pantry: string[]; // Items recommended for pantry
+    fridge: Array<{
+        name: string;
+        quantity: number;
+    }>;
+    pantry: Array<{
+        name: string;
+        quantity: number;
+    }>;
 }
 
 // Interface for calendar selection

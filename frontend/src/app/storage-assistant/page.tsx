@@ -18,6 +18,8 @@ import {
 import Title from "../(components)/Title";
 import StorageAssistantStepper from "./StorageAssistantStepper";
 import { Button } from "@heroui/react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft, faBell } from "@fortawesome/free-solid-svg-icons";
 
 const FoodStorageAssistant: React.FC = () => {
   // State for step navigation
@@ -99,8 +101,8 @@ const FoodStorageAssistant: React.FC = () => {
         : [];
       
       // Get storage advice for each item
-      const fridgeItems: string[] = [];
-      const pantryItems: string[] = [];
+      const fridgeItems: Array<{ name: string; quantity: number }> = [];
+      const pantryItems: Array<{ name: string; quantity: number }> = [];
       
       for (const item of allItems) {
         try {
@@ -116,27 +118,36 @@ const FoodStorageAssistant: React.FC = () => {
             });
             
             const recommendation = response.data;
+            const quantity = produceCounts[item] || 1;
 
             if (recommendation.method === 1) {
-              fridgeItems.push(`${item} (${recommendation.storage_time} days)`);
+              fridgeItems.push({
+                name: `${item} (${recommendation.storage_time} days)`,
+                quantity: quantity
+              });
             } else if (recommendation.method === 2) {
-              pantryItems.push(`${item} (${recommendation.storage_time} days)`);
+              pantryItems.push({
+                name: `${item} (${recommendation.storage_time} days)`,
+                quantity: quantity
+              });
             }
           } else {
+            const quantity = produceCounts[item] || 1;
             if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
-              fridgeItems.push(item);
+              fridgeItems.push({ name: item, quantity: quantity });
             } else {
-              pantryItems.push(item);
+              pantryItems.push({ name: item, quantity: quantity });
             }
           }
         } catch (err) {
           console.error(`Error fetching storage advice for ${item}:`, err);
 
           // Use default categorization
+          const quantity = produceCounts[item] || 1;
           if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
-            fridgeItems.push(item);
+            fridgeItems.push({ name: item, quantity: quantity });
           } else {
-            pantryItems.push(item);
+            pantryItems.push({ name: item, quantity: quantity });
           }
         }
       }
@@ -153,13 +164,13 @@ const FoodStorageAssistant: React.FC = () => {
         ? Object.keys(produceCounts)
         : [];
       
-      const fridgeItems = allItems.filter(item =>
-        ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())
-      );
+      const fridgeItems = allItems
+        .filter(item => ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase()))
+        .map(item => ({ name: item, quantity: produceCounts[item] || 1 }));
       
-      const pantryItems = allItems.filter(item =>
-        !['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())
-      );
+      const pantryItems = allItems
+        .filter(item => !['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase()))
+        .map(item => ({ name: item, quantity: produceCounts[item] || 1 }));
       
       setStorageRecs({
         fridge: fridgeItems,
@@ -257,20 +268,28 @@ const FoodStorageAssistant: React.FC = () => {
           {currentStep === 1 ? (
             <>
             {/* Step 2: Storage Recommendations */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold text-gray-700">
+            <div className="border-green border-2 rounded-lg p-10 mb-8">
+                <Button
+                  onPress={() => setCurrentStep(0)}
+                  className="text-green flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} className="text-green mr-2" />
+                  Back to Camera
+                </Button>
+                <h2 className="text-2xl font-semibold text-darkgreen mb-10">
                   Step 2: Storage Recommendations
                 </h2>
-                <button
-                  onClick={() => setCurrentStep(1)}
-                  className="text-blue-500 hover:text-blue-700"
-                >
-                  Back to Camera
-                </button>
               <StorageRecommendations storageRecs={storageRecs} />
+              <div className="flex justify-end mt-8">
+                <Button
+                  onPress={() => setCurrentStep(2)}
+                  className="bg-darkgreen text-white py-2 px-8 rounded-lg"
+                >
+                  <FontAwesomeIcon icon={faBell} className="text-white"/> 
+                  <p className="font-semibold text-white">Set Up Expiry Reminders</p>
+                </Button>
               </div>
-            </div>
+              </div>
             </>
             ) : (
               <>
