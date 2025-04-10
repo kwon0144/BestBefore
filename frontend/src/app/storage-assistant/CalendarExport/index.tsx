@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Button, Select, SelectItem } from "@heroui/react";
 import { CalendarSelection, ProduceDetections } from '../interfaces';
 
 interface CalendarExportProps {
@@ -14,87 +15,137 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
   detections,
   generateCalendarLink
 }) => {
+  const [isTemporarilyDisabled, setIsTemporarilyDisabled] = useState(false);
+
   // Copy calendar link to clipboard
-  const copyCalendarLink = () => {
+  const downloadCalendar = () => {
     if (calendarSelection.calendarLink) {
-      navigator.clipboard.writeText(calendarSelection.calendarLink);
-      alert('Calendar link copied to clipboard!');
+      // Create an anchor element
+      const link = document.createElement('a');
+      link.href = calendarSelection.calendarLink;
+      link.download = 'best-before-reminders.ics';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Disable button temporarily
+      setIsTemporarilyDisabled(true);
+      setTimeout(() => {
+        setIsTemporarilyDisabled(false);
+      }, 30000); // 30 seconds
     }
   };
 
+  const onSelectAll = () => {
+    if (!detections?.produce_counts) return;
+    
+    const allItems = Object.entries(detections.produce_counts).map(([item, count]) => ({
+      name: item,
+      quantity: count,
+      expiry_date: 7, // Default to 7 days
+      reminder_days: calendarSelection.reminderDays,
+      reminder_time: calendarSelection.reminderTime
+    }));
+
+    setCalendarSelection(prev => ({
+      ...prev,
+      selectedItems: prev.selectedItems.length === Object.keys(detections.produce_counts).length 
+        ? [] // If all items are selected, deselect all
+        : allItems // Otherwise, select all items
+    }));
+  };
+
+  // Days before expiry
+  const daysBeforeExpiry = [
+    {key: "1", label: "1 day before"},
+    {key: "2", label: "2 days before"},
+    {key: "3", label: "3 days before"},
+    {key: "4", label: "4 days before"},
+    {key: "5", label: "5 days before"},
+    {key: "6", label: "6 days before"},
+    {key: "7", label: "7 days before"}
+  ];
+
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      <h2 className="text-2xl font-semibold text-gray-700 mb-6">
-        Calendar Export
-      </h2>
-      <div className="bg-gray-50 rounded-lg p-5 mb-6">
-        <h3 className="text-xl font-medium text-gray-700 mb-4">
+    <>
+      <div className="bg-green/10 rounded-lg p-5 mb-6">
+        <h3 className="text-xl font-medium text-darkgreen mb-4">
           Reminder Settings
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label
-              htmlFor="days-before"
-              className="block text-gray-700 mb-2"
-            >
-              Days before expiry:
-            </label>
-            <div className="relative">
-              <select
-                id="days-before"
-                className="w-full p-3 bg-white border border-gray-300 rounded-md appearance-none pr-10"
-                value={calendarSelection.reminderDays}
-                onChange={(e) => setCalendarSelection(prev => ({
+            <Select
+              classNames={{trigger: "bg-white min-h-[50px]"}}
+              defaultSelectedKeys={[calendarSelection.reminderDays.toString()]}
+              label="Number of days before expiry"
+              labelPlacement="outside"
+              placeholder="Select days"
+              scrollShadowProps={{
+                isEnabled: false,
+              }}
+              onSelectionChange={(keys) => {
+                const selectedKey = Array.from(keys)[0] as string;
+                setCalendarSelection(prev => ({
                   ...prev,
-                  reminderDays: parseInt(e.target.value)
-                }))}
-              >
-                {[1, 2, 3, 4, 5, 6, 7].map(days => (
-                  <option key={days} value={days}>{days} day{days !== 1 ? 's' : ''} before</option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-            </div>
+                  reminderDays: parseInt(selectedKey)
+                }));
+              }}
+            >
+              {daysBeforeExpiry.map((days) => (
+                <SelectItem key={days.key}>{days.label}</SelectItem>
+              ))}
+            </Select>
           </div>
           <div>
             <label
               htmlFor="reminder-time"
-              className="block text-gray-700 mb-2"
+              className="block text-sm text-black mb-0.5"
             >
-              Reminder time:
+              Reminder time
             </label>
             <div className="relative">
               <input
                 type="time"
                 id="reminder-time"
-                className="w-full p-3 bg-white border border-gray-300 rounded-md"
+                className="w-full min-h-[50px] bg-white rounded-xl px-3 text-sm outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 border border-gray-200"
                 value={calendarSelection.reminderTime}
                 onChange={(e) => setCalendarSelection(prev => ({
                   ...prev,
                   reminderTime: e.target.value
                 }))}
               />
-              <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-              </div>
             </div>
           </div>
         </div>
       </div>
+      <div className = "grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-medium text-darkgreen mb-4">
+              Select Items for Reminders
+            </h3>
+            <Button
+              onPress={onSelectAll}
+              className="mb-4 py-2 px-8 bg-amber-500 rounded-lg text-white font-medium"
+            >
+              {detections?.produce_counts && 
+              calendarSelection.selectedItems.length === Object.keys(detections.produce_counts).length 
+                ? "Deselect All" 
+                : "Select All"}
+            </Button>
+          </div>
+          <div>
+            <h3 className="text-xl font-medium text-darkgreen mb-4">
+                Generate Calendar
+            </h3>
+          </div>
+      </div>
+
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Item Selection */}
         <div>
-          <h3 className="text-xl font-medium text-gray-700 mb-4">
-            Select Items for Reminders
-          </h3>
           {detections?.produce_counts ? (
-            <div className="bg-white rounded-lg p-4 min-h-40 max-h-80 overflow-y-auto">
+            <div className="bg-white/70 rounded-lg p-4 h-[240px] overflow-y-auto">
               <ul className="space-y-2">
                 {Object.entries(detections.produce_counts).map(([item, count]) => (
                   <li key={item} className="py-2 border-b border-gray-100 last:border-0">
@@ -126,9 +177,10 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
                         }}
                         className="mr-2"
                       />
-                      <span className="text-gray-800">
-                        {item} (Qty: {count})
-                      </span>
+                      <div className="flex  w-full items-center p-3 rounded-lg bg-lightgreen/20">
+                        <span className="flex-grow">{item}</span>
+                        <span className="text-gray-600">Qty: {count}</span>
+                      </div>
                     </label>
                   </li>
                 ))}
@@ -144,52 +196,31 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
         </div>
         
         {/* Calendar Link */}
-        <div>
-          <h3 className="text-xl font-medium text-gray-700 mb-4">
-            Your Calendar Link
-          </h3>
-          {calendarSelection.calendarLink ? (
-            <div className="bg-white rounded-lg p-4 min-h-40">
-              <div className="flex gap-2 mt-4">
-                <input
-                  type="text"
-                  value={calendarSelection.calendarLink}
-                  readOnly
-                  className="flex-1 p-3 border border-gray-300 rounded-md text-sm"
-                />
-                <button
-                  onClick={copyCalendarLink}
-                  className="px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-md transition-colors min-w-20"
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-gray-50 rounded-lg p-4 min-h-40 flex items-center justify-center">
-              <p className="text-gray-500 italic">
-                {calendarSelection.selectedItems.length > 0
-                  ? 'Click "Generate Calendar Link"'
-                  : 'Select items first'}
-              </p>
-            </div>
-          )}
+        <div className="flex flex-col justify-center items-center">
+          <div>
+          <p className="text-black text-sm">
+            Click the button to download a personalized calendar file (.ics) that you can import into your digital calendar like <span className="text-green">Google Calendar, Apple Calendar, or Outlook</span>.
+          </p>
+          <div className="mt-6">
+            <button
+              onClick={async () => {
+                await generateCalendarLink();
+                downloadCalendar();
+              }}
+              disabled={!detections || calendarSelection.selectedItems.length === 0 || isTemporarilyDisabled}
+              className={`w-full py-4 rounded-md text-white font-medium ${
+                !detections || calendarSelection.selectedItems.length === 0 || isTemporarilyDisabled
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-amber-500 hover:bg-amber-600 transition"
+              }`}
+            >
+              {isTemporarilyDisabled ? "✓ Calendar file downloaded!" : "Download Calendar File"}
+            </button>
+          </div>
+          </div>
         </div>
       </div>
-      <div className="mt-6">
-        <button
-          onClick={generateCalendarLink}
-          disabled={!detections || calendarSelection.selectedItems.length === 0}
-          className={`w-full py-4 rounded-md text-white font-medium ${
-            !detections || calendarSelection.selectedItems.length === 0
-              ? "bg-gray-500 cursor-not-allowed"
-              : "bg-amber-500 hover:bg-amber-600 transition"
-          }`}
-        >
-          Generate Calendar Link
-        </button>
-      </div>
-    </div>
+    </>
   );
 };
 

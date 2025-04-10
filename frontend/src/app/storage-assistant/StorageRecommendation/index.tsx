@@ -9,7 +9,7 @@ interface StorageRecommendationsProps {
 
 const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storageRecs }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-[390px]">
       {/* Refrigerator section */}
       <div className="bg-white/70 rounded-lg p-5">
         <h3 className="text-xl font-medium text-gray-700 mb-4 pb-2 border-b-2 border-blue-500">
@@ -18,9 +18,9 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           {storageRecs.fridge.length > 0 ? (
             <ul className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
               {storageRecs.fridge.map((item, index) => (
-                <li key={index} className="flex items-center p-3 rounded-lg bg-blue-300">
+                <li key={index} className="flex items-center p-3 rounded-lg bg-blue-100">
                   <span className="flex-grow">{item.name}</span>
-                  <span className="text-gray-600 font-medium">{item.quantity}</span>
+                  <span className="text-black">Qty: {item.quantity}</span>
                 </li>
               ))}
             </ul>
@@ -46,7 +46,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
               {storageRecs.pantry.map((item, index) => (
                 <li key={index} className="flex items-center p-3 rounded-lg bg-amber-100 transition-colors">
                   <span className="flex-grow">{item.name}</span>
-                  <span className="text-gray-600 font-medium">{item.quantity}</span>
+                  <span className="text-black">Qty: {item.quantity}</span>
                 </li>
               ))}
             </ul>

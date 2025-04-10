@@ -271,12 +271,12 @@ const FoodStorageAssistant: React.FC = () => {
             <div className="border-green border-2 rounded-lg p-10 mb-8">
                 <Button
                   onPress={() => setCurrentStep(0)}
-                  className="text-green flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
+                  className="text-amber-600 flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
                 >
-                  <FontAwesomeIcon icon={faArrowLeft} className="text-green mr-2" />
+                  <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
                   Back to Camera
                 </Button>
-                <h2 className="text-2xl font-semibold text-darkgreen mb-10">
+                <h2 className="text-2xl font-semibold text-darkgreen mb-5">
                   Step 2: Storage Recommendations
                 </h2>
               <StorageRecommendations storageRecs={storageRecs} />
@@ -294,12 +294,24 @@ const FoodStorageAssistant: React.FC = () => {
             ) : (
               <>
             {/* Calendar Export Section */}
-            <CalendarExport
-              calendarSelection={calendarSelection}
-              setCalendarSelection={setCalendarSelection}
-              detections={state.detections}
-              generateCalendarLink={generateCalendarLink}
-            />
+            <div className="border-green border-2 rounded-lg p-10 mb-8">
+            <Button
+                  onPress={() => setCurrentStep(1)}
+                  className="text-amber-600 flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
+                  Back to Storage Recommendations
+                </Button>
+                <h2 className="text-2xl font-semibold text-darkgreen mb-5">
+                  Step 3: Calendar Export
+                </h2>
+              <CalendarExport
+                calendarSelection={calendarSelection}
+                setCalendarSelection={setCalendarSelection}
+                detections={state.detections}
+                generateCalendarLink={generateCalendarLink}
+              />
+            </div>
             </>
           )}
         </>

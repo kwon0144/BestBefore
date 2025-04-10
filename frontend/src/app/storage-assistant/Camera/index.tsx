@@ -162,7 +162,7 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
       
       {/* Photo gallery */}
       <div className="w-full md:w-96">
-        <div className="rounded-lg p-4 border bg-darkgreen/20">
+        <div className="rounded-lg p-4 border bg-darkgreen/10">
           <div className="flex justify-between items-center text-lg font-medium font-semibold text-darkgreen mb-4">
             <p>Captured Photos ({state.photos.length})</p>
             <Button
