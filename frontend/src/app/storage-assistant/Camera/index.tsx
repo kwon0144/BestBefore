@@ -2,15 +2,16 @@ import React, { useRef } from 'react';
 import { CameraState } from '../interfaces';
 import { Button } from '@heroui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCamera, faImage } from '@fortawesome/free-solid-svg-icons';
+import { faCamera, faImage, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 interface CameraProps {
   state: CameraState;
   setState: React.Dispatch<React.SetStateAction<CameraState>>;
   submitPhotos: () => void;
+  handleReset: () => void;
 }
 
-const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos }) => {
+const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleReset }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -89,8 +90,7 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos }) => {
       state.stream.getTracks().forEach(track => track.stop());
       setState(prev => ({
         ...prev,
-        stream: null,
-        detections: null
+        stream: null
       }));
     }
   };
@@ -160,13 +160,19 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos }) => {
         </div>
       </div>
       
+      {/* Photo gallery */}
       <div className="w-full md:w-96">
         <div className="rounded-lg p-4 border bg-darkgreen/20">
-          <h3 className="text-lg font-medium text-darkgreen mb-4">
-            Captured Photos ({state.photos.length})
-          </h3>
+          <div className="flex justify-between items-center text-lg font-medium font-semibold text-darkgreen mb-4">
+            <p>Captured Photos ({state.photos.length})</p>
+            <Button
+              onPress={handleReset}
+              className="bg-red-500 text-white rounded-lg"
+            >
+              <FontAwesomeIcon icon={faTrash} className="text-white text-lg" />
+            </Button>
+          </div>
           
-          {/* Photo gallery */}
           <div className="rounded-lg h-80 mb-4">
             {state.photos.length === 0 ? (
               <div className="flex flex-col h-80 text-center p-4 justify-center items-center">

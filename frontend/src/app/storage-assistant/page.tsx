@@ -59,8 +59,14 @@ const FoodStorageAssistant: React.FC = () => {
         images: state.photos // Send array of photos
       });
 
+      // Stop the camera stream
+      if (state.stream) {
+        state.stream.getTracks().forEach(track => track.stop());
+      }
+
       setState(prev => ({
         ...prev,
+        stream: null,
         detections: response.data as ProduceDetections,
         isAnalyzing: false,
         submittedPhotos: [...prev.photos] // Store submitted photos
@@ -202,9 +208,6 @@ const FoodStorageAssistant: React.FC = () => {
 
   // Reset functionality
   const handleReset = () => {
-    if (state.stream) {
-      state.stream.getTracks().forEach(track => track.stop());
-    }
     setState(prev => ({
       ...prev,
       photos: [],
@@ -212,7 +215,6 @@ const FoodStorageAssistant: React.FC = () => {
       submittedPhotos: [],
       error: null
     }));
-    setCurrentStep(1);
   };
 
   // Initialize with storage recommendations on mount
@@ -248,7 +250,7 @@ const FoodStorageAssistant: React.FC = () => {
             <h2 className="text-2xl font-semibold text-darkgreen mb-10">
               Step 1: Scan your Groceries
             </h2>
-            <Camera state={state} setState={setState} submitPhotos={submitPhotos} />
+            <Camera state={state} setState={setState} submitPhotos={submitPhotos} handleReset={handleReset} />
           </div>
         ) : (
           <>
