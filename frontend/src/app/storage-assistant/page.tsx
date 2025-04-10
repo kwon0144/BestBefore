@@ -66,8 +66,8 @@ const FoodStorageAssistant: React.FC = () => {
         submittedPhotos: [...prev.photos] // Store submitted photos
       }));
 
-      // Move to step 2 after submission
-      setCurrentStep(2);
+      // Move to step 1: Storage Recommendations after submission
+      setCurrentStep(1);
 
       // After submission, fetch storage recommendations
       fetchStorageRecommendations((response.data as ProduceDetections).produce_counts);
@@ -193,6 +193,11 @@ const FoodStorageAssistant: React.FC = () => {
   // Step navigation - allow users to jump to any step
   const handleStepClick = (step: number) => {
     setCurrentStep(step);
+    setState(prev => ({
+      ...prev,
+      stream: null,
+      error: null
+    }));
   };
 
   // Reset functionality
@@ -202,7 +207,6 @@ const FoodStorageAssistant: React.FC = () => {
     }
     setState(prev => ({
       ...prev,
-      stream: null,
       photos: [],
       detections: null,
       submittedPhotos: [],
@@ -228,7 +232,7 @@ const FoodStorageAssistant: React.FC = () => {
         <Title heading="Food Storage Assistant" description="Capture your groceries and get storage recommendations" />
         {/* Stepper for navigation */}
         <div className="py-12">
-          <StorageAssistantStepper currentStep={currentStep}/>
+          <StorageAssistantStepper currentStep={currentStep} onStepClick={handleStepClick}/>
         </div>
         {/* Error message display */}
         {state.error && (
