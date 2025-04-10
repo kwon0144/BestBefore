@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Button, Select, SelectItem } from "@heroui/react";
-import { CalendarSelection, ProduceDetections } from '../interfaces';
+import { CalendarSelection, ProduceDetections, StorageAdviceResponse } from '../interfaces';
+import axios from 'axios';
+import { config } from '@/config';
 
 interface CalendarExportProps {
   calendarSelection: CalendarSelection;
@@ -16,6 +18,39 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
   generateCalendarLink
 }) => {
   const [isTemporarilyDisabled, setIsTemporarilyDisabled] = useState(false);
+  const [storageTimes, setStorageTimes] = useState<{ [key: string]: number }>({});
+
+  // Get storage time for a food type
+  const getStorageTime = async (foodType: string) => {
+    try {
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+        food_type: foodType
+      });
+      return response.data.storage_time;
+    } catch (error) {
+      console.error(`Error getting storage time for ${foodType}:`, error);
+      return 7; // Default to 7 days if there's an error
+    }
+  };
+
+  // Get storage times for all detected items
+  const fetchStorageTimes = async () => {
+    if (!detections?.produce_counts) return;
+
+    const newStorageTimes: { [key: string]: number } = {};
+    for (const [item] of Object.entries(detections.produce_counts)) {
+      const storageTime = await getStorageTime(item);
+      newStorageTimes[item] = storageTime;
+    }
+    setStorageTimes(newStorageTimes);
+  };
+
+  // Fetch storage times when detections change
+  React.useEffect(() => {
+    if (detections?.produce_counts) {
+      fetchStorageTimes();
+    }
+  }, [detections]);
 
   // Copy calendar link to clipboard
   const downloadCalendar = () => {
@@ -42,7 +77,7 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
     const allItems = Object.entries(detections.produce_counts).map(([item, count]) => ({
       name: item,
       quantity: count,
-      expiry_date: 7, // Default to 7 days
+      expiry_date: storageTimes[item] || 7, // Use actual storage time or default to 7 days
       reminder_days: calendarSelection.reminderDays,
       reminder_time: calendarSelection.reminderTime
     }));
@@ -154,8 +189,8 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
                         type="checkbox"
                         checked={calendarSelection.selectedItems.some(i => i.name === item)}
                         onChange={() => {
-                          // Find the storage time for this item
-                          const storageTime = 7; // Default to 7 days if not found
+                          // Use actual storage time from storageTimes
+                          const storageTime = storageTimes[item] || 7;
                           setCalendarSelection(prev => {
                             const existingIndex = prev.selectedItems.findIndex(i => i.name === item);
                             
@@ -177,9 +212,10 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
                         }}
                         className="mr-2"
                       />
-                      <div className="flex  w-full items-center p-3 rounded-lg bg-lightgreen/20">
+                      <div className="flex w-full items-center p-3 rounded-lg bg-lightgreen/20">
                         <span className="flex-grow">{item}</span>
                         <span className="text-gray-600">Qty: {count}</span>
+                        <span className="text-gray-600 ml-2">Storage: {storageTimes[item] || '...'} days</span>
                       </div>
                     </label>
                   </li>
