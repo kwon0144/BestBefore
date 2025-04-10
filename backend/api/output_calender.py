@@ -9,6 +9,7 @@ from django.db import models
 from django.utils import timezone
 from django.conf import settings
 import pytz
+import os
 
 class FoodItem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -81,7 +82,7 @@ def generate_calendar(request):
     if not saved_items:
         return JsonResponse({"error": "No valid items provided"}, status=400)
     
-    calendar_url = f"http://192.168.3.5:8000/api/calendar/{calendar_id}.ics"
+    calendar_url = f"{os.getenv('DJANGO_ALLOWED_ORIGIN', 'http://localhost:8000')}/api/calendar/{calendar_id}.ics"
     
     return JsonResponse({
         "status": "success",

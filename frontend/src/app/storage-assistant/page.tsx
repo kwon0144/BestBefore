@@ -113,8 +113,8 @@ const FoodStorageAssistant: React.FC = () => {
           );
           
           if (matchedType) {
-            const response = await axios.get<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-              params: { food_type: matchedType }
+            const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+              food_type: matchedType
             });
             
             const recommendation = response.data;
@@ -177,6 +177,33 @@ const FoodStorageAssistant: React.FC = () => {
         pantry: pantryItems,
       });
     }
+  };
+
+  // Calculate expiry date based on storage time
+  const calculateExpiryDate = (storageTime: number): number => {
+    return storageTime;
+  };
+
+  // Toggle item selection for calendar
+  const toggleItemSelection = (item: string, quantity: number, storageTime: number) => {
+    setCalendarSelection(prev => {
+      const existingIndex = prev.selectedItems.findIndex(i => i.name === item);
+      
+      if (existingIndex >= 0) {
+        const newSelectedItems = [...prev.selectedItems];
+        newSelectedItems.splice(existingIndex, 1);
+        return { ...prev, selectedItems: newSelectedItems };
+      } else {
+        const newItem = {
+          name: item,
+          quantity,
+          expiry_date: calculateExpiryDate(storageTime),
+          reminder_days: prev.reminderDays,
+          reminder_time: prev.reminderTime
+        };
+        return { ...prev, selectedItems: [...prev.selectedItems, newItem] };
+      }
+    });
   };
 
   // Generate calendar link
