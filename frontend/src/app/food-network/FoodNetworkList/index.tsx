@@ -12,6 +12,9 @@ interface FoodNetworkListProps {
   map?: google.maps.Map | null;
   selectedType: string;
   setSelectedType: Dispatch<SetStateAction<string>>;
+  setShowInformation: Dispatch<SetStateAction<boolean>>;
+  setShowNavigation: Dispatch<SetStateAction<boolean>>;
+  setShowRouteResult: Dispatch<SetStateAction<boolean>>;
 }
 
 const typeOptions = [
@@ -24,7 +27,10 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
   setSelectedEnd, 
   map,
   selectedType,
-  setSelectedType
+  setSelectedType,
+  setShowInformation,
+  setShowNavigation,
+  setShowRouteResult
 }) => {
   const [foodbanks, setFoodbanks] = useState<Foodbank[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -121,6 +127,9 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
     }
     
     setSelectedEnd(foodbank.id.toString());
+    setShowInformation(true);
+    setShowNavigation(false);
+    setShowRouteResult(false);
 
     if (map && foodbank.latitude && foodbank.longitude) {
       map.setZoom(15);

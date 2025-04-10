@@ -34,7 +34,6 @@ export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart
         setError("");
 
         if (foodbank) {
-            console.log("Selected Food Bank:", foodbank.name);
             setRouteStart(selectedStart);
             setRouteEnd({ lat: foodbank.latitude, lng: foodbank.longitude });
             setShowNavigation(false);
