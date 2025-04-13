@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { CameraState } from '../interfaces';
 import { Button } from '@heroui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCamera, faImage, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faCamera, faImage, faTrash, faTimes, faStop } from '@fortawesome/free-solid-svg-icons';
 
 interface CameraProps {
   state: CameraState;
@@ -126,26 +126,13 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
               </p>
             </div>
           )}
-          
-          {/* Camera controls overlay */}
-          {state.stream && (
-            <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-              <button
-                onClick={takePhoto}
-                className="w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transition-all hover:shadow-xl hover:bg-white"
-                disabled={state.isAnalyzing}
-              >
-                <FontAwesomeIcon icon={faCamera} className="text-black text-xl" />
-              </button>
-            </div>
-          )}
         </div>
         
         {/* Hidden canvas for image capture */}
         <canvas ref={canvasRef} className="hidden" />
         
         {/* Camera control buttons */}
-        <div className="mt-4 flex justify-center">
+        <div className="mt-4 flex justify-center gap-4">
           {!state.stream ? (
             <Button
               onPress={startCamera}
@@ -157,13 +144,22 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
               </div>
             </Button>
           ) : (
-            <Button
-              onPress={stopCamera}
-              className="bg-red-500 text-white px-6 py-3 rounded-md"
-              disabled={state.isAnalyzing}
-            >
-              Stop Camera
-            </Button>
+            <>
+              <Button
+                onPress={takePhoto}
+                className="bg-darkgreen text-white w-12 h-12 rounded-full flex items-center justify-center"
+                disabled={state.isAnalyzing}
+              >
+                <FontAwesomeIcon icon={faCamera} className="text-white text-xl" />
+              </Button>
+              <Button
+                onPress={stopCamera}
+                className="bg-red-500 text-white w-12 h-12 rounded-full flex items-center justify-center"
+                disabled={state.isAnalyzing}
+              >
+                <FontAwesomeIcon icon={faStop} className="text-white text-xl" />
+              </Button>
+            </>
           )}
         </div>
       </div>
