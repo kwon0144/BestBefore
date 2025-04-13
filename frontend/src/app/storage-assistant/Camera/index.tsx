@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { CameraState } from '../interfaces';
 import { Button } from '@heroui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCamera, faImage, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faCamera, faImage, faTrash, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 interface CameraProps {
   state: CameraState;
@@ -95,6 +95,14 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
     }
   };
 
+  // Delete a specific photo
+  const deletePhoto = (indexToDelete: number) => {
+    setState(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, index) => index !== indexToDelete)
+    }));
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-6">
       <div className="flex-1">
@@ -124,10 +132,10 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
             <div className="absolute bottom-4 left-0 right-0 flex justify-center">
               <button
                 onClick={takePhoto}
-                className="w-16 h-16 bg-white bg-opacity-30 rounded-full flex items-center justify-center border-4 border-white focus:outline-none disabled:opacity-50 transition-transform transform hover:scale-105"
+                className="w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transition-all hover:shadow-xl hover:bg-white"
                 disabled={state.isAnalyzing}
               >
-                <div className="w-12 h-12 bg-white rounded-full"></div>
+                <FontAwesomeIcon icon={faCamera} className="text-black text-xl" />
               </button>
             </div>
           )}
@@ -189,7 +197,7 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
                   {state.photos.map((photo, index) => (
                     <div
                       key={index}
-                      className="relative h-32 bg-white rounded-lg overflow-hidden shadow-sm"
+                      className="relative h-32 bg-white rounded-lg overflow-hidden shadow-sm group"
                     >
                       <img
                         src={photo}
@@ -199,6 +207,13 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
                       <span className="absolute bottom-0 right-0 bg-black/70 text-white text-xs py-1 px-2 rounded-tl-md">
                         #{index + 1}
                       </span>
+                      <button 
+                        onClick={() => deletePhoto(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label={`Delete photo ${index + 1}`}
+                      >
+                        <FontAwesomeIcon icon={faTimes} className="text-xs" />
+                      </button>
                     </div>
                   ))}
                 </div>
