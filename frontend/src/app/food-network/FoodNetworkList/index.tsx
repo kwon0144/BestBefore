@@ -149,7 +149,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
             {/* Search Bar */}
             <Input
               isClearable
-              placeholder="Search by name or address..."
+              placeholder="Search by name, address, postcode, suburb..."
               value={searchTerm}
               onValueChange={setSearchTerm}
               onClear={() => setSearchTerm("")}
@@ -211,37 +211,50 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
             <TableColumn className="w-[150px] bg-green/50 text-black font-bold">TYPE</TableColumn>
           </TableHeader>
           <TableBody>
-            {items.map((foodbank) => (
-              <TableRow 
-                key={foodbank.id}
-                className="cursor-pointer border-b border-gray-300 hover:bg-[#fcc277]/30"
-                onClick={() => handleSelectFoodbank(foodbank)}
-              >
-                <TableCell className="w-[250px] font-medium">{foodbank.name}</TableCell>
-                <TableCell className="w-[400px]">{foodbank.address || "No address available"}</TableCell>
-                <TableCell className="w-[150px]">
-                  <div
-                    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
-                      foodbank.type === "Food Donation Point" 
-                        ? "text-darkgreen bg-primary/50" 
-                        : "text-[#15803d] bg-[#b0ebc4]"
-                    }`}
-                  >
-                    {foodbank.type === "Food Donation Point" ? (
-                      <>
-                        <FontAwesomeIcon icon={faUtensils} className="w-3.5 h-3.5" />
-                        Food Bank
-                      </>
-                    ) : (
-                      <>
-                        <FontAwesomeIcon icon={faRecycle} className="w-3.5 h-3.5" />
-                        Green Waste
-                      </>
-                    )}
+            {items.length > 0 ? (
+              items.map((foodbank) => (
+                <TableRow 
+                  key={foodbank.id}
+                  className="cursor-pointer border-b border-gray-300 hover:bg-[#fcc277]/30"
+                  onClick={() => handleSelectFoodbank(foodbank)}
+                >
+                  <TableCell className="w-[250px] font-medium">{foodbank.name}</TableCell>
+                  <TableCell className="w-[400px]">{foodbank.address || "No address available"}</TableCell>
+                  <TableCell className="w-[150px]">
+                    <div
+                      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
+                        foodbank.type === "Food Donation Point" 
+                          ? "text-darkgreen bg-primary/50" 
+                          : "text-[#15803d] bg-[#b0ebc4]"
+                      }`}
+                    >
+                      {foodbank.type === "Food Donation Point" ? (
+                        <>
+                          <FontAwesomeIcon icon={faUtensils} className="w-3.5 h-3.5" />
+                          Food Bank
+                        </>
+                      ) : (
+                        <>
+                          <FontAwesomeIcon icon={faRecycle} className="w-3.5 h-3.5" />
+                          Green Waste
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-8">
+                  <div className="flex flex-col items-center gap-2">
+                    <p className="text-lg font-medium text-gray-600">No results found</p>
+                    <p className="text-sm text-gray-500">
+                      There is no Foodbank or Green Waste bin in this area. Try searching for a different location.
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
       </Table>
     </div>
