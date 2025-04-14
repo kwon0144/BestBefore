@@ -5,8 +5,7 @@ import { Input, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
 import { Foodbank } from '@/app/api/foodbanks/route';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
-import { ViewState } from '../page';
-import { MapSectionState } from '../page';
+import { ViewState, MapSectionState } from '../interfaces';
 
 interface FoodNetworkListProps {
   setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;

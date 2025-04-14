@@ -7,7 +7,7 @@ import StartMarker from "./StartMarker";
 import { Dispatch, SetStateAction, useEffect, forwardRef, useImperativeHandle, useState } from "react";
 import type { Foodbank } from "@/app/api/foodbanks/route";
 import WhereAmIButton from "./WhereAmIButton";
-import { MapSectionState } from "@/app/food-network/page";
+import { MapSectionState } from "@/app/food-network/interfaces";
 
 type Point = google.maps.LatLngLiteral & { key: string };
 

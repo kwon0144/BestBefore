@@ -7,25 +7,9 @@ import Title from "../(components)/Title";
 import MapSection from "./MapSection";
 import DonationDisposalOptions from "./DonationDisposalOptions";
 import FoodNetworkList from "./FoodNetworkList";
+import { MapSectionState, ViewState } from "./interfaces";
 const GOOGLE_MAPS_LIBRARIES: ("places" | "routes")[] = ["places", "routes"];
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
-
-export interface ViewState {
-  showInformation: boolean;
-  showNavigation: boolean;
-  showRouteResult: boolean;
-}
-
-export type TravelMode = "WALKING" | "TRANSIT" | "BICYCLING" | "DRIVING";
-
-export interface MapSectionState {
-  selectedEnd: string | null;
-  selectedStart: {lat: number, lng: number} | null;
-  routeStart: {lat: number, lng: number} | null;
-  routeEnd: {lat: number, lng: number} | null;
-  routeDetails: {duration: string, distance: string};
-  travellingMode: TravelMode;   
-}
 
 export default function FoodNetwork() {
   // For type selection

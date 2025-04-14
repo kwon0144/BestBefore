@@ -4,7 +4,7 @@ import { useMap, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import type { Marker } from "@googlemaps/markerclusterer";
 import { useEffect, useState, useRef, SetStateAction, Dispatch } from "react";
-import { MapSectionState } from "@/app/food-network/page";
+import { MapSectionState } from "@/app/food-network/interfaces";
 type Point = google.maps.LatLngLiteral & { key: string};
 
 interface Props { 

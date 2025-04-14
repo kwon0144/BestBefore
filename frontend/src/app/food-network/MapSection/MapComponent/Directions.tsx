@@ -1,7 +1,7 @@
 import { useMap } from "@vis.gl/react-google-maps";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Dispatch, SetStateAction, useEffect, useState, useRef } from "react";
-import { MapSectionState } from "@/app/food-network/page";
+import { MapSectionState } from "@/app/food-network/interfaces";
 
 interface DirectionsProps {
     mapSectionState: MapSectionState

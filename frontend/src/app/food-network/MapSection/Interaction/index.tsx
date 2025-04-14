@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction } from "react";
 import Navigation from "./Navigation";
 import Information from "./Information";
 import RouteResult from "./RouteResult";
-import { MapSectionState, ViewState } from "../../page";
+import { MapSectionState, ViewState } from "../../interfaces";
 
 interface InteractionProps {
     mapSectionState: MapSectionState;
