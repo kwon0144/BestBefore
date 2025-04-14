@@ -102,6 +102,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
 
   const onTypeSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setTypeFilter(e.target.value);
+    setPage(1)
   };
 
   if (loading) {
@@ -128,7 +129,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
     }
 
     // Scroll to top of the page
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 700, behavior: 'smooth' });
   };
 
   return (
@@ -142,8 +143,14 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
               isClearable
               placeholder="Search by name or address..."
               value={searchTerm}
-              onValueChange={setSearchTerm}
-              onClear={() => setSearchTerm("")}
+              onValueChange={(value) => {
+                setSearchTerm(value);
+                setPage(1);
+              }}
+              onClear={() => {
+                setSearchTerm("");
+                setPage(1);
+              }}
               variant="bordered"
               startContent={<FontAwesomeIcon icon={faSearch} />}
               classNames={{

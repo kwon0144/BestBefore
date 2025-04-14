@@ -55,7 +55,7 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
   };
 
   return (
-    <>
+    <div className="mt-10">
         {/* tab selection */}
         <div className="flex flex-row w-full ">
             <div className={`flex flex-row w-1/2 py-2 px-10 rounded-t-full ${selectedType === "Food Donation Points" ? "bg-green/30" : "bg-transparent"}`}></div>
@@ -112,6 +112,6 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
                 />
             </div>
         </div>
-    </>
+    </div>
   );
 }
