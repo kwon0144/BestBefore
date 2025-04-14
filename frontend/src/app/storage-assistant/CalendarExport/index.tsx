@@ -1,24 +1,41 @@
 import React, { useState } from 'react';
 import { Button, Select, SelectItem } from "@heroui/react";
-import { CalendarSelection, ProduceDetections, StorageAdviceResponse } from '../interfaces';
+import { CalendarSelection, ProduceDetections, StorageAdviceResponse, StorageRecommendation } from '../interfaces';
 import axios from 'axios';
 import { config } from '@/config';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faDownload } from '@fortawesome/free-solid-svg-icons';
 
 interface CalendarExportProps {
   calendarSelection: CalendarSelection;
   setCalendarSelection: React.Dispatch<React.SetStateAction<CalendarSelection>>;
   detections: ProduceDetections | null;
-  generateCalendarLink: () => Promise<void>;
+  generateCalendarLink: (calendarItems: { name: string; quantity: number; expiry_date: number; reminder_days: number; reminder_time: string }[]) => Promise<void>;
+  storageRecs: StorageRecommendation;
 }
 
 const CalendarExport: React.FC<CalendarExportProps> = ({
   calendarSelection,
   setCalendarSelection,
   detections,
-  generateCalendarLink
+  generateCalendarLink,
+  storageRecs
 }) => {
   const [isTemporarilyDisabled, setIsTemporarilyDisabled] = useState(false);
   const [storageTimes, setStorageTimes] = useState<{ [key: string]: number }>({});
+  const steps = ['Select Items', 'Set Reminders', 'Download Calendar'];
+  const [activeStep, setActiveStep] = useState(0);
+  const [selectedItems, setSelectedItems] = useState<{ name: string; quantity: number }[]>([]);
+
+  // Get all items from storage recommendations
+  const getAllItems = () => {
+    const items: { [key: string]: number } = {};
+    [...storageRecs.fridge, ...storageRecs.pantry].forEach(item => {
+      const cleanName = item.name.split(' (')[0];
+      items[item.name] = item.quantity;
+    });
+    return items;
+  };
 
   // Get storage time for a food type
   const getStorageTime = async (foodType: string) => {
@@ -54,6 +71,11 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
 
   // Copy calendar link to clipboard
   const downloadCalendar = () => {
+    if (calendarSelection.selectedItems.length === 0) {
+      alert("Please select at least one item!");
+      return;
+    }
+    
     if (calendarSelection.calendarLink) {
       // Create an anchor element
       const link = document.createElement('a');
@@ -67,26 +89,59 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
       setIsTemporarilyDisabled(true);
       setTimeout(() => {
         setIsTemporarilyDisabled(false);
-      }, 30000); // 30 seconds
+      }, 3000); // 3 seconds
     }
   };
 
+  // Update the item selection handler
+  const handleItemSelection = (item: string, count: number) => {
+    // Extract storage time from the item name if it exists
+    const storageTimeMatch = item.match(/\((\d+) days\)/);
+    const storageTime = storageTimeMatch ? parseInt(storageTimeMatch[1]) : 7;
+    const cleanItemName = item.split(' (')[0]; // Remove the storage time part if it exists
+
+    setCalendarSelection(prev => {
+      const existingIndex = prev.selectedItems.findIndex(i => i.name === cleanItemName);
+      
+      if (existingIndex >= 0) {
+        const newSelectedItems = [...prev.selectedItems];
+        newSelectedItems.splice(existingIndex, 1);
+        return { ...prev, selectedItems: newSelectedItems };
+      } else {
+        const newItem = {
+          name: cleanItemName,
+          quantity: count,
+          expiry_date: storageTime,
+          reminder_days: prev.reminderDays,
+          reminder_time: prev.reminderTime
+        };
+        return { ...prev, selectedItems: [...prev.selectedItems, newItem] };
+      }
+    });
+  };
+
   const onSelectAll = () => {
-    if (!detections?.produce_counts) return;
+    const allItems = getAllItems();
     
-    const allItems = Object.entries(detections.produce_counts).map(([item, count]) => ({
-      name: item,
-      quantity: count,
-      expiry_date: storageTimes[item] || 7, // Use actual storage time or default to 7 days
-      reminder_days: calendarSelection.reminderDays,
-      reminder_time: calendarSelection.reminderTime
-    }));
+    const items = Object.entries(allItems).map(([item, count]) => {
+      // Extract storage time from the item name if it exists in the format "name (X days)"
+      const storageTimeMatch = item.match(/\((\d+) days\)/);
+      const storageTime = storageTimeMatch ? parseInt(storageTimeMatch[1]) : 7;
+      
+      return {
+        name: item.split(' (')[0], // Remove the storage time part if it exists
+        quantity: count,
+        expiry_date: storageTime,
+        reminder_days: calendarSelection.reminderDays,
+        reminder_time: calendarSelection.reminderTime
+      };
+    });
 
     setCalendarSelection(prev => ({
       ...prev,
-      selectedItems: prev.selectedItems.length === Object.keys(detections.produce_counts).length 
+      selectedItems: prev.selectedItems.length === Object.keys(allItems).length 
         ? [] // If all items are selected, deselect all
-        : allItems // Otherwise, select all items
+        : items // Otherwise, select all items
     }));
   };
 
@@ -100,6 +155,30 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
     {key: "6", label: "6 days before"},
     {key: "7", label: "7 days before"}
   ];
+
+  const handleNext = () => {
+    if (activeStep === steps.length - 1) {
+      // Generate calendar items from selected items
+      const calendarItems = selectedItems.map(item => {
+        // Extract storage time from the item name (format: "name (X days)")
+        const storageTimeMatch = item.name.match(/\((\d+) days\)/);
+        const storageTime = storageTimeMatch ? parseInt(storageTimeMatch[1]) : 7;
+        
+        return {
+          name: item.name.split(' (')[0], // Remove the storage time part
+          quantity: item.quantity,
+          expiry_date: storageTime,
+          reminder_days: 2,
+          reminder_time: "09:00"
+        };
+      });
+
+      // Generate calendar
+      generateCalendarLink(calendarItems);
+    } else {
+      setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    }
+  };
 
   return (
     <>
@@ -153,69 +232,47 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
           </div>
         </div>
       </div>
-      <div className = "grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="flex justify-between items-center">
-            <h3 className="text-xl font-medium text-darkgreen mb-4">
-              Select Items for Reminders
-            </h3>
-            <Button
-              onPress={onSelectAll}
-              className="mb-4 py-2 px-8 bg-amber-500 rounded-lg text-white font-medium"
-            >
-              {detections?.produce_counts && 
-              calendarSelection.selectedItems.length === Object.keys(detections.produce_counts).length 
-                ? "Deselect All" 
-                : "Select All"}
-            </Button>
-          </div>
-          <div>
-            <h3 className="text-xl font-medium text-darkgreen mb-4">
-                Generate Calendar
-            </h3>
-          </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="flex justify-between items-center">
+          <h3 className="text-xl font-medium text-darkgreen mb-4">
+            Select Items for Reminders
+          </h3>
+          <Button
+            onPress={onSelectAll}
+            className="mb-4 py-2 px-8 bg-amber-500 rounded-lg text-white font-medium"
+          >
+            {calendarSelection.selectedItems.length === Object.keys(getAllItems()).length 
+              ? "Deselect All" 
+              : "Select All"}
+          </Button>
+        </div>
+        <div>
+          <h3 className="text-xl font-medium text-darkgreen mb-4">
+              Generate Calendar
+          </h3>
+        </div>
       </div>
-
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Item Selection */}
         <div>
-          {detections?.produce_counts ? (
+          {Object.keys(getAllItems()).length > 0 ? (
             <div className="bg-white/70 rounded-lg p-4 h-[240px] overflow-y-auto">
               <ul className="space-y-2">
-                {Object.entries(detections.produce_counts).map(([item, count]) => (
+                {Object.entries(getAllItems()).map(([item, count]) => (
                   <li key={item} className="py-2 border-b border-gray-100 last:border-0">
                     <label className="flex items-center">
                       <input
                         type="checkbox"
-                        checked={calendarSelection.selectedItems.some(i => i.name === item)}
-                        onChange={() => {
-                          // Use actual storage time from storageTimes
-                          const storageTime = storageTimes[item] || 7;
-                          setCalendarSelection(prev => {
-                            const existingIndex = prev.selectedItems.findIndex(i => i.name === item);
-                            
-                            if (existingIndex >= 0) {
-                              const newSelectedItems = [...prev.selectedItems];
-                              newSelectedItems.splice(existingIndex, 1);
-                              return { ...prev, selectedItems: newSelectedItems };
-                            } else {
-                              const newItem = {
-                                name: item,
-                                quantity: count,
-                                expiry_date: storageTime,
-                                reminder_days: prev.reminderDays,
-                                reminder_time: prev.reminderTime
-                              };
-                              return { ...prev, selectedItems: [...prev.selectedItems, newItem] };
-                            }
-                          });
-                        }}
+                        checked={calendarSelection.selectedItems.some(i => i.name === item.split(' (')[0])}
+                        onChange={() => handleItemSelection(item, count)}
                         className="mr-2"
                       />
                       <div className="flex w-full items-center p-3 rounded-lg bg-lightgreen/20">
                         <span className="flex-grow">{item}</span>
                         <span className="text-gray-600">Qty: {count}</span>
-                        <span className="text-gray-600 ml-2">Storage: {storageTimes[item] || '...'} days</span>
+                        <span className="text-gray-600 ml-2">Storage: {item.match(/\((\d+) days\)/)?.[1] || '...'} days</span>
                       </div>
                     </label>
                   </li>
@@ -225,34 +282,35 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
           ) : (
             <div className="bg-gray-50 rounded-lg p-4 min-h-40 flex items-center justify-center">
               <p className="text-gray-500 italic">
-                Take and submit photos to see items
+                No items available
               </p>
             </div>
           )}
         </div>
         
         {/* Calendar Link */}
-        <div className="flex flex-col justify-center items-center">
-          <div>
+        <div>
           <p className="text-black text-sm">
             Click the button to download a personalized calendar file (.ics) that you can import into your digital calendar like <span className="text-green">Google Calendar, Apple Calendar, or Outlook</span>.
           </p>
           <div className="mt-6">
-            <button
-              onClick={async () => {
-                await generateCalendarLink();
+            <Button
+              onPress={async () => {
+                if (calendarSelection.selectedItems.length === 0) {
+                  alert("Please select at least one item!");
+                  return;
+                }
+                await generateCalendarLink(calendarSelection.selectedItems);
                 downloadCalendar();
               }}
-              disabled={!detections || calendarSelection.selectedItems.length === 0 || isTemporarilyDisabled}
-              className={`w-full py-4 rounded-md text-white font-medium ${
-                !detections || calendarSelection.selectedItems.length === 0 || isTemporarilyDisabled
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-amber-500 hover:bg-amber-600 transition"
+              className={`bg-darkgreen text-white py-2 px-8 rounded-lg ${
+                isTemporarilyDisabled ? 'opacity-50 cursor-not-allowed' : ''
               }`}
+              isDisabled={isTemporarilyDisabled}
             >
-              {isTemporarilyDisabled ? "✓ Calendar file downloaded!" : "Download Calendar File"}
-            </button>
-          </div>
+              <FontAwesomeIcon icon={faDownload} className="text-white mr-2" />
+              <p className="font-semibold text-white">Download Calendar File</p>
+            </Button>
           </div>
         </div>
       </div>
