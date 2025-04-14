@@ -2,30 +2,26 @@ import { Dispatch, SetStateAction } from "react";
 import { Button } from "@heroui/react";
 import { faRoute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { TravelMode } from "./TravelModeSelection";
 import { useFoodBank } from "@/hooks/useFoodBank";
+import { MapSectionState } from "@/app/food-network/page";
 
 interface SubmitButtonProps {
-    selectedStart: {lat: number, lng: number} | null;
-    selectedEnd: string | null;
-    setRouteStart: (routeStart: {lat: number, lng: number}) => void;
-    setRouteEnd: (routeEnd: {lat: number, lng: number}) => void;
+    mapSectionState: MapSectionState;
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
     setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
-    selectedMode: TravelMode;
-    setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
     setError: (error: string) => void;
 }
 
-export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart, setRouteEnd, setViewState, selectedMode, setTravellingMode, setError }: SubmitButtonProps) {
-    const { foodbank } = useFoodBank(selectedEnd);
+export default function SubmitButton({ mapSectionState, setMapSectionState, setViewState, setError }: SubmitButtonProps) {
+    const { foodbank } = useFoodBank(mapSectionState.selectedEnd);
 
     const handleSubmit = () => {
         // Error message if not selected start point or food bank
-        if (!selectedStart || !selectedEnd) {
-            if (!selectedStart) {
+        if (!mapSectionState.selectedStart || !mapSectionState.selectedEnd) {
+            if (!mapSectionState.selectedStart) {
                 setError("*not selected start point");
             }
-            if (!selectedEnd) {
+            if (!mapSectionState.selectedEnd) {
                 setError("*not selected food bank");
             }
             return;
@@ -34,10 +30,8 @@ export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart
 
         if (foodbank) {
             console.log("Selected Food Bank:", foodbank.name);
-            setRouteStart(selectedStart);
-            setRouteEnd({ lat: foodbank.latitude, lng: foodbank.longitude });
+            setMapSectionState(prev => ({...prev, routeStart: mapSectionState.selectedStart, routeEnd: { lat: foodbank.latitude, lng: foodbank.longitude }}));
             setViewState(prev => ({...prev, showNavigation: false, showRouteResult: true}));
-            setTravellingMode(selectedMode);
         } else {
             console.log("No matching food bank found");
         }

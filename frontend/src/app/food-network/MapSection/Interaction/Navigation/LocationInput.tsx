@@ -4,14 +4,14 @@ import { useMap } from "@vis.gl/react-google-maps";
 import { Input } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-
+import { MapSectionState } from "../../../page";
 interface LocationInputProps {
-    setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
     currentLocationAddress: string | null;
     setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
 }
 
-export default function LocationInput({ setSelectedStart, currentLocationAddress, setCurrentLocationAddress }: LocationInputProps) {
+export default function LocationInput({ setMapSectionState, currentLocationAddress, setCurrentLocationAddress }: LocationInputProps) {
     const map = useMap();
 
     const {
@@ -42,14 +42,14 @@ export default function LocationInput({ setSelectedStart, currentLocationAddress
         clearSuggestions();
         const results = await getGeocode({ address });
         const { lat, lng } = await getLatLng(results[0]);
-        setSelectedStart({ lat, lng });
+        setMapSectionState(prev => ({...prev, selectedStart: { lat, lng }}));
         map?.panTo({ lat: lat, lng: lng });
         map?.setZoom(15);
     };
 
     const onHandleClear = () => {
         setValue("", false);
-        setSelectedStart(null);
+        setMapSectionState(prev => ({...prev, selectedStart: null}));
         setCurrentLocationAddress(null);
     };
 

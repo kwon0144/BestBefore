@@ -6,14 +6,15 @@ import { Foodbank } from '@/app/api/foodbanks/route';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { ViewState } from '../page';
+import { MapSectionState } from '../page';
 
 interface FoodNetworkListProps {
-    onSelectFoodbank?: (foodbank: Foodbank) => void;
-  setSelectedEnd: Dispatch<SetStateAction<string | null>>;
+  setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
   map?: google.maps.Map | null;
   selectedType: string;
   setSelectedType: Dispatch<SetStateAction<string>>;  
   setViewState: Dispatch<SetStateAction<ViewState>>;
+
 }
 
 const typeOptions = [
@@ -23,7 +24,7 @@ const typeOptions = [
 ];
 
 const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ 
-  setSelectedEnd, 
+  setMapSectionState, 
   map,
   selectedType,
   setSelectedType,
@@ -124,12 +125,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
       setSelectedType("Waste Disposal Points");
     }
     
-    setSelectedEnd(foodbank.id.toString());
-
-    if (map && foodbank.latitude && foodbank.longitude) {
-      map.setZoom(15);
-      map.setCenter({ lat: Number(foodbank.latitude), lng: Number(foodbank.longitude) });
-    }
+    setMapSectionState(prev => ({...prev, selectedEnd: foodbank.id.toString()}));
 
     // Scroll to top of the page
     window.scrollTo({ top: 700, behavior: 'smooth' });

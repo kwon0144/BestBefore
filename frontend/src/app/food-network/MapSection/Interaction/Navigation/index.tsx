@@ -3,46 +3,31 @@ import SubmitButton from "./SubmitButton";
 import { Dispatch, SetStateAction, useState } from "react";
 import CurrentLocationButton from "./CurrentLocationButton";
 import { useFoodBank } from "@/hooks/useFoodBank";
-import TravelModeSelection, { TravelMode } from "./TravelModeSelection";
+import TravelModeSelection from "./TravelModeSelection";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faMapPin } from '@fortawesome/free-solid-svg-icons';
 import { useMap } from "@vis.gl/react-google-maps";
-
+import { MapSectionState } from "../../../page";
 interface NavigationProps {
-    selectedStart: {lat: number, lng: number} | null;
-    selectedEnd: string | null;
-    setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    setRouteStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    setRouteEnd: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
+    mapSectionState: MapSectionState;
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
     setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
-    setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
     currentLocationAddress: string | null;
     setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
 }
 
 export default function Navigation({
-    selectedStart,
-    selectedEnd,
-    setSelectedStart,
-    setRouteStart,
-    setRouteEnd,
-    setViewState,
-    setTravellingMode,
-    currentLocationAddress,
-    setCurrentLocationAddress,
+    mapSectionState, setMapSectionState, setViewState, currentLocationAddress, setCurrentLocationAddress
 }: NavigationProps) {
-    const { foodbank } = useFoodBank(selectedEnd);
-    const [selectedMode, setSelectedMode] = useState<TravelMode>("WALKING");
+    const { foodbank } = useFoodBank(mapSectionState.selectedEnd);
     const [error, setError] = useState<string>("");
 
     const map = useMap();
 
     const handleBackToInfo = () => {
-        setViewState(prev => ({...prev, showNavigation: false, showInformation: true}));
-        setSelectedStart(null);
-        setCurrentLocationAddress(null);
-        if (map && selectedStart) {
+        setMapSectionState(prev => ({...prev, viewState: {showNavigation: false, showInformation: true, showRouteResult: false}}));
+        if (map && mapSectionState.selectedStart) {
             map.setZoom(12);
             map.setCenter({lat: -37.8136, lng: 144.9631});
         }
@@ -84,12 +69,12 @@ export default function Navigation({
                 </label>
                 <div className="flex flex-row">
                     <LocationInput
-                        setSelectedStart={setSelectedStart}
+                        setMapSectionState={setMapSectionState}
                         currentLocationAddress={currentLocationAddress}
                         setCurrentLocationAddress={setCurrentLocationAddress}
                     />
                     <CurrentLocationButton
-                        setSelectedStart={setSelectedStart}
+                        setMapSectionState={setMapSectionState}
                         onLocationFound={setCurrentLocationAddress}
                     />
                 </div>
@@ -98,20 +83,16 @@ export default function Navigation({
             {/* Travel Mode Selection */}
             <div className="mb-10">
                 <TravelModeSelection
-                    selectedMode={selectedMode}
-                    setSelectedMode={setSelectedMode}
+                    mapSectionState={mapSectionState}
+                    setMapSectionState={setMapSectionState}
                 />
             </div>
             {/* Submit Button */}
             <div className="mb-3">
                 <SubmitButton
-                    selectedStart={selectedStart}
-                    selectedEnd={selectedEnd}
-                    setRouteStart={setRouteStart}
-                    setRouteEnd={setRouteEnd}
                     setViewState={setViewState}
-                    selectedMode={selectedMode}
-                    setTravellingMode={setTravellingMode}
+                    mapSectionState={mapSectionState}
+                    setMapSectionState={setMapSectionState}
                     setError={setError}
                 />
             </div>

@@ -2,13 +2,13 @@ import { Button } from '@heroui/react';
 import { Dispatch, SetStateAction } from 'react';
 import { useMap } from "@vis.gl/react-google-maps";
 import { Icon } from '@iconify/react';
-
+import { MapSectionState } from '../../../page';
 interface CurrentLocationButtonProps {
-    setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
     onLocationFound?: (address: string) => void;
 }
 
-export default function CurrentLocationButton({ setSelectedStart, onLocationFound }: CurrentLocationButtonProps) {
+export default function CurrentLocationButton({ setMapSectionState, onLocationFound }: CurrentLocationButtonProps) {
     const map = useMap();
 
     const getCurrentLocation = () => {
@@ -19,7 +19,7 @@ export default function CurrentLocationButton({ setSelectedStart, onLocationFoun
                         lat: position.coords.latitude,
                         lng: position.coords.longitude
                     };
-                    setSelectedStart(location);
+                    setMapSectionState(prev => ({...prev, selectedStart: location}));
                     map?.panTo({ lat: location.lat, lng: location.lng });
                     map?.setZoom(12);
 

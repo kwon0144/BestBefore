@@ -2,60 +2,44 @@ import { Dispatch, SetStateAction } from "react";
 import Navigation from "./Navigation";
 import Information from "./Information";
 import RouteResult from "./RouteResult";
-import { TravelMode } from "./Navigation/TravelModeSelection";
+import { MapSectionState, ViewState } from "../../page";
 
 interface InteractionProps {
-    selectedEnd: string | null;
-    selectedStart: {lat: number, lng: number} | null;
-    setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    setRouteStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    setRouteEnd: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    routeDetails: {duration: string, distance: string};
-    travellingMode: TravelMode;
-    setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
-    viewState: {showInformation: boolean, showNavigation: boolean, showRouteResult: boolean};
-    setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
+    mapSectionState: MapSectionState;
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
+    viewState: ViewState;
+    setViewState: Dispatch<SetStateAction<ViewState>>;
     selectedType: string;
     currentLocationAddress: string | null;
     setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
 }
+
 export default function Interaction({ 
-    selectedEnd, selectedStart, setSelectedStart, 
-    setRouteStart, setRouteEnd, routeDetails, travellingMode,
-    setTravellingMode, viewState, setViewState, selectedType,
-    currentLocationAddress, setCurrentLocationAddress
+    mapSectionState, setMapSectionState, viewState, setViewState, selectedType, currentLocationAddress, setCurrentLocationAddress
 }: InteractionProps) {
     return (
         <>
             {viewState.showInformation && (
                 <Information 
-                    selectedEnd={selectedEnd}
+                    mapSectionState={mapSectionState}
                     setViewState={setViewState}
-                    selectedType={selectedType}
                 />
             )}
             {viewState.showNavigation && (
                 <Navigation 
-                    selectedStart={selectedStart}
-                    selectedEnd={selectedEnd}
-                    setSelectedStart={setSelectedStart}
-                    setRouteStart={setRouteStart}
-                    setRouteEnd={setRouteEnd}
+                    mapSectionState={mapSectionState}
+                    setMapSectionState={setMapSectionState}
                     setViewState={setViewState}
-                    setTravellingMode={setTravellingMode}
                     currentLocationAddress={currentLocationAddress}
                     setCurrentLocationAddress={setCurrentLocationAddress}
                 />
             )}
             {viewState.showRouteResult && (
                 <RouteResult 
-                    selectedEnd={selectedEnd}
-                    selectedStart={selectedStart}
+                    mapSectionState={mapSectionState}
+                    setMapSectionState={setMapSectionState}
                     setViewState={setViewState}
-                    routeDetails={routeDetails}
-                    setRouteStart={setRouteStart}
-                    setRouteEnd={setRouteEnd}
-                    travellingMode={travellingMode}
+                    selectedType={selectedType}
                 />
             )}
         </>

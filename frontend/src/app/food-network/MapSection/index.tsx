@@ -1,13 +1,12 @@
 import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import MapComponent from "./MapComponent";
 import Interaction from "./Interaction";
-import { TravelMode } from "./Interaction/Navigation/TravelModeSelection";
-import { ViewState } from "@/app/food-network/page";
+import { MapSectionState, ViewState } from "@/app/food-network/page";
 
 
 interface MapSectionProps {
-    selectedEnd: string | null;
-    setSelectedEnd: Dispatch<SetStateAction<string | null>>;
+    mapSectionState: MapSectionState;
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
     onMapReady?: (map: google.maps.Map) => void;
     selectedType: string;
     setSelectedType: Dispatch<SetStateAction<string>>;
@@ -15,14 +14,8 @@ interface MapSectionProps {
     setViewState: Dispatch<SetStateAction<ViewState>>;
 }
 
-export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, selectedType, setSelectedType, viewState, setViewState}: MapSectionProps) {
-  // For user input and display
-  const [selectedStart, setSelectedStart] = useState<{lat: number, lng: number} | null>(null);
+export default function MapSection({mapSectionState, setMapSectionState, onMapReady, selectedType, setSelectedType, viewState, setViewState}: MapSectionProps) {
   // For submission to fetch route
-  const [routeStart, setRouteStart] = useState<{lat: number, lng: number} | null>(null);
-  const [routeEnd, setRouteEnd] = useState<{lat: number, lng: number} | null>(null);    
-  const [routeDetails, setRouteDetails] = useState<{duration: string, distance: string}>({duration: "", distance: ""});
-  const [travellingMode, setTravellingMode] = useState<TravelMode>("DRIVING");
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [currentLocationAddress, setCurrentLocationAddress] = useState<string | null>(null);
 
@@ -36,33 +29,39 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
   // Add effect to reset route states when showInformation becomes true
   useEffect(() => {
     if (viewState.showInformation || viewState.showNavigation) {
-      setRouteStart(null);
-      setRouteEnd(null);
-      setSelectedStart(null);
+      setMapSectionState({
+        ...mapSectionState,
+        selectedStart: null,
+        routeStart: null,
+        routeEnd: null,
+        routeDetails: {duration: "", distance: ""},
+      });
       setCurrentLocationAddress(null);
     }
   }, [viewState.showInformation, viewState.showNavigation]);
 
   const handleTypeSelection = (selection: string) => {
     if (selection !== selectedType) {
-        if (selection === "Food Donation Points") {
-        setSelectedEnd('1');
-        } else if (selection === "Waste Disposal Points") {
-        setSelectedEnd('50');
-        }
+        // Reset view states to Information Section
         setViewState({
             showInformation: true,
             showNavigation: false,
             showRouteResult: false,
         });
-        setRouteStart(null);
-        setRouteEnd(null);
-        setSelectedStart(null);
+        // Reset route states and set selected end
+        setMapSectionState({
+          ...mapSectionState,
+          selectedStart: null,
+          routeStart: null,
+          routeEnd: null,
+          routeDetails: {duration: "", distance: ""},
+          selectedEnd: selection === "Food Donation Points" ? "1" : "50"
+        });
         setCurrentLocationAddress(null);
         setSelectedType(selection);
+        // Reset map zoom and center
         if (map) {
             map.setZoom(12);
-            map.setCenter({lat: -37.8136, lng: 144.9631});
         }   
     }
   };
@@ -92,27 +91,16 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
         <div className={`flex flex-row w-full h-[600px] pt-10 pb-10 px-10 rounded-b-2xl ${selectedType=="Food Donation Points" ? "bg-green/30 rounded-tr-2xl" : "bg-[#b0ebc4]/50 rounded-tl-2xl"}`}>
             <div className="w-3/5">
                 <MapComponent 
-                    selectedStart={selectedStart} 
-                    selectedEnd={selectedEnd}
-                    setSelectedEnd={setSelectedEnd} 
-                    routeStart={routeStart} 
-                    routeEnd={routeEnd} 
-                    setRouteDetails={setRouteDetails}
-                    travellingMode={travellingMode}
+                    mapSectionState={mapSectionState}
+                    setMapSectionState={setMapSectionState}
                     selectedType={selectedType}
                     setMap={setMap}
                 />
             </div>
             <div className="w-2/5">
                 <Interaction 
-                    selectedEnd={selectedEnd}
-                    selectedStart={selectedStart}
-                    setSelectedStart={setSelectedStart}
-                    setRouteStart={setRouteStart}
-                    setRouteEnd={setRouteEnd}
-                    routeDetails={routeDetails}
-                    setTravellingMode={setTravellingMode}
-                    travellingMode={travellingMode}
+                    mapSectionState={mapSectionState}
+                    setMapSectionState={setMapSectionState}
                     viewState={viewState}
                     setViewState={setViewState}
                     selectedType={selectedType}

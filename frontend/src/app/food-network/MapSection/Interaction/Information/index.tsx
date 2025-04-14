@@ -7,21 +7,20 @@ import {
     faClock,
     faDirections,
 } from '@fortawesome/free-solid-svg-icons';
+import { MapSectionState, ViewState } from "../../../page";
 
 interface InformationProps {
-    selectedEnd: string | null;
-    setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
-    selectedType: string;
+    mapSectionState: MapSectionState;
+    setViewState: Dispatch<SetStateAction<ViewState>>;
 }
 
 export default function Information({ 
-    selectedEnd,
-    setViewState
+    mapSectionState, setViewState
 }: InformationProps) {
-    const { foodbank, loading, error } = useFoodBank(selectedEnd);
+    const { foodbank, loading, error } = useFoodBank(mapSectionState.selectedEnd);
     
     const handleClick = () => {
-        setViewState(prev => ({...prev, showInformation: false, showNavigation: true}));
+        setViewState(prev => ({...prev, showInformation: false, showNavigation: true, showRouteResult: false}));
     };
 
     const formatHours = (hoursString: string | null) => {
@@ -48,7 +47,7 @@ export default function Information({
         return hoursString;
     };
 
-    if (!selectedEnd || loading) {
+    if (!mapSectionState.selectedEnd || loading) {
         return null;
     }
 

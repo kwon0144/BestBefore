@@ -16,13 +16,32 @@ export interface ViewState {
   showRouteResult: boolean;
 }
 
+export type TravelMode = "WALKING" | "TRANSIT" | "BICYCLING" | "DRIVING";
+
+export interface MapSectionState {
+  selectedEnd: string | null;
+  selectedStart: {lat: number, lng: number} | null;
+  routeStart: {lat: number, lng: number} | null;
+  routeEnd: {lat: number, lng: number} | null;
+  routeDetails: {duration: string, distance: string};
+  travellingMode: TravelMode;   
+}
+
 export default function FoodNetwork() {
-  // For user input and display
-  const [selectedEnd, setSelectedEnd] = useState<string | null>("1");
-  // For the map instance
-  const [map, setMap] = useState<google.maps.Map | null>(null);
   // For type selection
   const [selectedType, setSelectedType] = useState<string>("Food Donation Points");
+  // For user input and display
+  const [mapSectionState, setMapSectionState] = useState<MapSectionState>({
+    selectedEnd: "1", 
+    selectedStart: null,
+    routeStart: null,
+    routeEnd: null,
+    routeDetails: {duration: "", distance: ""},
+    travellingMode: "WALKING",
+  });
+  // For the map instance
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+
   // For loading the map
   const {isLoaded} = useLoadScript({
     googleMapsApiKey: apiKey,
@@ -53,8 +72,8 @@ export default function FoodNetwork() {
       <APIProvider apiKey={apiKey}>
         <div className="mb-20">
           <MapSection 
-            selectedEnd={selectedEnd} 
-            setSelectedEnd={setSelectedEnd}
+            mapSectionState={mapSectionState}
+            setMapSectionState={setMapSectionState}
             onMapReady={handleMapReady}
             selectedType={selectedType}
             setSelectedType={setSelectedType}
@@ -65,7 +84,7 @@ export default function FoodNetwork() {
         <div>
           <div>
             <FoodNetworkList 
-              setSelectedEnd={setSelectedEnd} 
+              setMapSectionState={setMapSectionState}
               map={map}
               selectedType={selectedType}
               setSelectedType={setSelectedType}
