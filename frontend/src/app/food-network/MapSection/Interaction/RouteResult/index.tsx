@@ -5,7 +5,7 @@ import { Dispatch, SetStateAction } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 import { faRoad, faClock, faMapPin, faWalking, faBicycle, faBus, faCar, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { MapSectionState } from "@/app/food-network/page";
+import { MapSectionState } from "@/app/food-network/interfaces";
 
 interface RouteResultProps {
     mapSectionState: MapSectionState;
@@ -24,7 +24,6 @@ export default function RouteResult({
 
     const handleClick = () => {
         setViewState(prev => ({...prev, showRouteResult: false, showInformation: true}));
-        setMapSectionState(prev => ({...prev, selectedStart: null, selectedEnd: null}));
         if (map) {
             map.setZoom(12);
             map.setCenter({lat: -37.8136, lng: 144.9631});
