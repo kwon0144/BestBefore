@@ -103,7 +103,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         
         try {
           map.panTo(location);
-          map.setZoom(13);
+          map.setZoom(15);
         } catch (e) {
           console.error("Error focusing map on foodbank:", e);
         }

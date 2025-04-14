@@ -48,7 +48,7 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
         if (selection === "Food Donation Points") {
         setSelectedEnd('1');
         } else if (selection === "Waste Disposal Points") {
-        setSelectedEnd('41');
+        setSelectedEnd('50');
         }
         setViewState({
             showInformation: true,

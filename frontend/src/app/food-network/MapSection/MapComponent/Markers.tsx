@@ -45,8 +45,7 @@ export default function Markers({ points, setSelectedEnd, selectedEnd }: Props) 
   };
 
   const handleMarkerClick = (point: Point) => {
-    setSelectedEnd(point.key);
-    map?.panTo({ lat: point.lat, lng: point.lng });
+    setSelectedEnd(point.key);  
   };
 
   return (
