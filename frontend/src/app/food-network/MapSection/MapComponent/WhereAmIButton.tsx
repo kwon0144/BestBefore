@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useMap, AdvancedMarker } from "@vis.gl/react-google-maps";
 import { Icon } from '@iconify/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPersonRunning } from '@fortawesome/free-solid-svg-icons';
+import { faLocationCrosshairs } from '@fortawesome/free-solid-svg-icons';
 
 export default function WhereAmIButton() {
     const map = useMap();
@@ -59,8 +59,8 @@ export default function WhereAmIButton() {
             </div>
             {currentLocation && isMarkerVisible && (
                 <AdvancedMarker position={currentLocation}>
-                    <div className="text-[#fc9003] text-5xl">
-                        <FontAwesomeIcon icon={faPersonRunning} />
+                    <div className="text-[#964B00] text-4xl">
+                        <FontAwesomeIcon icon={faLocationCrosshairs} />
                     </div>
                 </AdvancedMarker>
             )}
