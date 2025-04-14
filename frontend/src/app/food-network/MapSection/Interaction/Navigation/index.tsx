@@ -15,10 +15,7 @@ interface NavigationProps {
     setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
     setRouteStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
     setRouteEnd: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    showNavigation: boolean;
-    setShowNavigation: Dispatch<SetStateAction<boolean>>;
-    setShowRouteResult: Dispatch<SetStateAction<boolean>>;
-    setShowInformation: Dispatch<SetStateAction<boolean>>;
+    setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
     setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
     currentLocationAddress: string | null;
     setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
@@ -30,10 +27,7 @@ export default function Navigation({
     setSelectedStart,
     setRouteStart,
     setRouteEnd,
-    showNavigation,
-    setShowNavigation,
-    setShowRouteResult,
-    setShowInformation,
+    setViewState,
     setTravellingMode,
     currentLocationAddress,
     setCurrentLocationAddress,
@@ -45,8 +39,9 @@ export default function Navigation({
     const map = useMap();
 
     const handleBackToInfo = () => {
-        setShowNavigation(false);
-        setShowInformation(true);
+        setViewState(prev => ({...prev, showNavigation: false, showInformation: true}));
+        setSelectedStart(null);
+        setCurrentLocationAddress(null);
         if (map && selectedStart) {
             map.setZoom(12);
             map.setCenter({lat: -37.8136, lng: 144.9631});
@@ -54,7 +49,7 @@ export default function Navigation({
     }
 
     return (
-        <div className={`h-full flex flex-col pl-10 w-full ${showNavigation ? "display" : "hidden"}`}>
+        <div className="h-full flex flex-col pl-10 w-full">
             {/* Navigation Back Button */}
             <div className="mb-3">
                 <Button
@@ -114,8 +109,7 @@ export default function Navigation({
                     selectedEnd={selectedEnd}
                     setRouteStart={setRouteStart}
                     setRouteEnd={setRouteEnd}
-                    setShowNavigation={setShowNavigation}
-                    setShowRouteResult={setShowRouteResult}
+                    setViewState={setViewState}
                     selectedMode={selectedMode}
                     setTravellingMode={setTravellingMode}
                     setError={setError}

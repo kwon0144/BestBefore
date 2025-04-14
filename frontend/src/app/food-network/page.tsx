@@ -5,11 +5,16 @@ import { useState } from "react";
 import { APIProvider } from "@vis.gl/react-google-maps";
 import Title from "../(components)/Title";
 import MapSection from "./MapSection";
-import FoodNetworkList from "./FoodNetworkList"
 import DonationDisposalOptions from "./DonationDisposalOptions";
-
+import FoodNetworkList from "./FoodNetworkList";
 const GOOGLE_MAPS_LIBRARIES: ("places" | "routes")[] = ["places", "routes"];
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+
+export interface ViewState {
+  showInformation: boolean;
+  showNavigation: boolean;
+  showRouteResult: boolean;
+}
 
 export default function FoodNetwork() {
   // For user input and display
@@ -22,6 +27,12 @@ export default function FoodNetwork() {
   const {isLoaded} = useLoadScript({
     googleMapsApiKey: apiKey,
     libraries: GOOGLE_MAPS_LIBRARIES
+  });
+  // For the view state
+  const [viewState, setViewState] = useState<ViewState>({
+    showInformation: true,
+    showNavigation: false,
+    showRouteResult: false,
   });
 
   const handleMapReady = (mapInstance: google.maps.Map) => {
@@ -47,6 +58,8 @@ export default function FoodNetwork() {
             onMapReady={handleMapReady}
             selectedType={selectedType}
             setSelectedType={setSelectedType}
+            viewState={viewState}
+            setViewState={setViewState}
           />
         </div>
         <div>
@@ -56,6 +69,7 @@ export default function FoodNetwork() {
               map={map}
               selectedType={selectedType}
               setSelectedType={setSelectedType}
+              setViewState={setViewState}
             />
           </div>
         </div>

@@ -5,13 +5,15 @@ import { Input, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
 import { Foodbank } from '@/app/api/foodbanks/route';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { ViewState } from '../page';
 
 interface FoodNetworkListProps {
     onSelectFoodbank?: (foodbank: Foodbank) => void;
   setSelectedEnd: Dispatch<SetStateAction<string | null>>;
   map?: google.maps.Map | null;
   selectedType: string;
-  setSelectedType: Dispatch<SetStateAction<string>>;
+  setSelectedType: Dispatch<SetStateAction<string>>;  
+  setViewState: Dispatch<SetStateAction<ViewState>>;
 }
 
 const typeOptions = [
@@ -24,7 +26,8 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
   setSelectedEnd, 
   map,
   selectedType,
-  setSelectedType
+  setSelectedType,
+  setViewState
 }) => {
   const [foodbanks, setFoodbanks] = useState<Foodbank[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -130,6 +133,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
 
     // Scroll to top of the page
     window.scrollTo({ top: 700, behavior: 'smooth' });
+    setViewState({ showInformation: true, showNavigation: false, showRouteResult: false});
   };
 
   return (

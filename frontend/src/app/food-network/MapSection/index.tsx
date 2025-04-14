@@ -2,6 +2,8 @@ import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import MapComponent from "./MapComponent";
 import Interaction from "./Interaction";
 import { TravelMode } from "./Interaction/Navigation/TravelModeSelection";
+import { ViewState } from "@/app/food-network/page";
+
 
 interface MapSectionProps {
     selectedEnd: string | null;
@@ -9,9 +11,11 @@ interface MapSectionProps {
     onMapReady?: (map: google.maps.Map) => void;
     selectedType: string;
     setSelectedType: Dispatch<SetStateAction<string>>;
+    viewState: ViewState;
+    setViewState: Dispatch<SetStateAction<ViewState>>;
 }
 
-export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, selectedType, setSelectedType}: MapSectionProps) {
+export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, selectedType, setSelectedType, viewState, setViewState}: MapSectionProps) {
   // For user input and display
   const [selectedStart, setSelectedStart] = useState<{lat: number, lng: number} | null>(null);
   // For submission to fetch route
@@ -19,9 +23,6 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
   const [routeEnd, setRouteEnd] = useState<{lat: number, lng: number} | null>(null);    
   const [routeDetails, setRouteDetails] = useState<{duration: string, distance: string}>({duration: "", distance: ""});
   const [travellingMode, setTravellingMode] = useState<TravelMode>("DRIVING");
-  const [showRouteResult, setShowRouteResult] = useState<boolean>(false);
-  const [showNavigation, setShowNavigation] = useState<boolean>(false);
-  const [showInformation, setShowInformation] = useState<boolean>(true);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [currentLocationAddress, setCurrentLocationAddress] = useState<string | null>(null);
 
@@ -32,6 +33,16 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
     }
   }, [map, onMapReady]);
 
+  // Add effect to reset route states when showInformation becomes true
+  useEffect(() => {
+    if (viewState.showInformation || viewState.showNavigation) {
+      setRouteStart(null);
+      setRouteEnd(null);
+      setSelectedStart(null);
+      setCurrentLocationAddress(null);
+    }
+  }, [viewState.showInformation, viewState.showNavigation]);
+
   const handleTypeSelection = (selection: string) => {
     if (selection !== selectedType) {
         if (selection === "Food Donation Points") {
@@ -39,9 +50,11 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
         } else if (selection === "Waste Disposal Points") {
         setSelectedEnd('41');
         }
-        setShowRouteResult(false);
-        setShowNavigation(false);
-        setShowInformation(true);
+        setViewState({
+            showInformation: true,
+            showNavigation: false,
+            showRouteResult: false,
+        });
         setRouteStart(null);
         setRouteEnd(null);
         setSelectedStart(null);
@@ -100,12 +113,8 @@ export default function MapSection({selectedEnd, setSelectedEnd, onMapReady, sel
                     routeDetails={routeDetails}
                     setTravellingMode={setTravellingMode}
                     travellingMode={travellingMode}
-                    showRouteResult={showRouteResult}
-                    setShowRouteResult={setShowRouteResult}
-                    showNavigation={showNavigation}
-                    setShowNavigation={setShowNavigation}
-                    showInformation={showInformation}
-                    setShowInformation={setShowInformation}
+                    viewState={viewState}
+                    setViewState={setViewState}
                     selectedType={selectedType}
                     currentLocationAddress={currentLocationAddress}
                     setCurrentLocationAddress={setCurrentLocationAddress}

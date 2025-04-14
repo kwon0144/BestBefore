@@ -10,10 +10,7 @@ import { TravelMode } from "../Navigation/TravelModeSelection";
 interface RouteResultProps {
     selectedEnd: string | null;
     selectedStart: {lat: number, lng: number} | null;
-    showRouteResult: boolean;
-    setShowRouteResult: Dispatch<SetStateAction<boolean>>;
-    setShowInformation: Dispatch<SetStateAction<boolean>>;
-    setShowNavigation: Dispatch<SetStateAction<boolean>>;
+    setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
     routeDetails: {
         duration: string;
         distance: string;
@@ -26,21 +23,16 @@ interface RouteResultProps {
 export default function RouteResult({ 
     selectedEnd, 
     selectedStart, 
-    showRouteResult, 
-    setShowRouteResult, 
-    setShowInformation, 
-    setShowNavigation,
+    setViewState,
     routeDetails, 
     setRouteStart,
     setRouteEnd,
     travellingMode
 }: RouteResultProps) {
-
     const map = useMap();
 
     const handleClick = () => {
-        setShowRouteResult(false);
-        setShowInformation(true);
+        setViewState(prev => ({...prev, showRouteResult: false, showInformation: true}));
         setRouteStart(null);
         setRouteEnd(null);
         if (map) {
@@ -50,8 +42,7 @@ export default function RouteResult({
     }
 
     const handleBackToNavigation = () => {
-        setShowRouteResult(false);
-        setShowNavigation(true);
+        setViewState(prev => ({...prev, showRouteResult: false, showNavigation: true}));
         setRouteStart(null);
         setRouteEnd(null);
         if (map && selectedStart) {
@@ -64,7 +55,7 @@ export default function RouteResult({
     const { foodbank: selectedFoodBank } = useFoodBank(selectedEnd);
 
     return (
-        <div className={`flex flex-col pl-10 w-full ${showRouteResult ? "display" : "hidden"}`}>
+        <div className="flex flex-col pl-10 w-full">
             {/* Navigation Back Button */}
             <div className="mb-3">
                 <Button

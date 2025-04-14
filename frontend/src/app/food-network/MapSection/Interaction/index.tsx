@@ -13,12 +13,8 @@ interface InteractionProps {
     routeDetails: {duration: string, distance: string};
     travellingMode: TravelMode;
     setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
-    showInformation: boolean;
-    showNavigation: boolean;
-    showRouteResult: boolean;
-    setShowInformation: Dispatch<SetStateAction<boolean>>;
-    setShowNavigation: Dispatch<SetStateAction<boolean>>;
-    setShowRouteResult: Dispatch<SetStateAction<boolean>>;
+    viewState: {showInformation: boolean, showNavigation: boolean, showRouteResult: boolean};
+    setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
     selectedType: string;
     currentLocationAddress: string | null;
     setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
@@ -26,47 +22,42 @@ interface InteractionProps {
 export default function Interaction({ 
     selectedEnd, selectedStart, setSelectedStart, 
     setRouteStart, setRouteEnd, routeDetails, travellingMode,
-    setTravellingMode, showInformation, showNavigation, showRouteResult,
-    setShowInformation, setShowNavigation, setShowRouteResult, selectedType,
+    setTravellingMode, viewState, setViewState, selectedType,
     currentLocationAddress, setCurrentLocationAddress
 }: InteractionProps) {
     return (
         <>
-            <Information 
-                selectedEnd={selectedEnd}
-                setShowInformation={setShowInformation}
-                setShowNavigation={setShowNavigation}
-                showInformation={showInformation}
-                selectedType={selectedType}
-            />
-            {showNavigation && (
+            {viewState.showInformation && (
+                <Information 
+                    selectedEnd={selectedEnd}
+                    setViewState={setViewState}
+                    selectedType={selectedType}
+                />
+            )}
+            {viewState.showNavigation && (
                 <Navigation 
                     selectedStart={selectedStart}
                     selectedEnd={selectedEnd}
                     setSelectedStart={setSelectedStart}
                     setRouteStart={setRouteStart}
                     setRouteEnd={setRouteEnd}
-                    showNavigation={showNavigation}
-                    setShowNavigation={setShowNavigation}
-                    setShowRouteResult={setShowRouteResult}
-                    setShowInformation={setShowInformation}
+                    setViewState={setViewState}
                     setTravellingMode={setTravellingMode}
                     currentLocationAddress={currentLocationAddress}
                     setCurrentLocationAddress={setCurrentLocationAddress}
                 />
             )}
-            <RouteResult 
-                selectedEnd={selectedEnd}
-                selectedStart={selectedStart}
-                showRouteResult={showRouteResult}
-                setShowRouteResult={setShowRouteResult}
-                setShowInformation={setShowInformation}
-                setShowNavigation={setShowNavigation}
-                routeDetails={routeDetails}
-                setRouteStart={setRouteStart}
-                setRouteEnd={setRouteEnd}
-                travellingMode={travellingMode}
-            />
+            {viewState.showRouteResult && (
+                <RouteResult 
+                    selectedEnd={selectedEnd}
+                    selectedStart={selectedStart}
+                    setViewState={setViewState}
+                    routeDetails={routeDetails}
+                    setRouteStart={setRouteStart}
+                    setRouteEnd={setRouteEnd}
+                    travellingMode={travellingMode}
+                />
+            )}
         </>
     )
 }

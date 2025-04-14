@@ -10,14 +10,13 @@ interface SubmitButtonProps {
     selectedEnd: string | null;
     setRouteStart: (routeStart: {lat: number, lng: number}) => void;
     setRouteEnd: (routeEnd: {lat: number, lng: number}) => void;
-    setShowNavigation: (showNavigation: boolean) => void;
-    setShowRouteResult: (showRouteResult: boolean) => void;
+    setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
     selectedMode: TravelMode;
     setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
     setError: (error: string) => void;
 }
 
-export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart, setRouteEnd, setShowNavigation, setShowRouteResult, selectedMode, setTravellingMode, setError }: SubmitButtonProps) {
+export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart, setRouteEnd, setViewState, selectedMode, setTravellingMode, setError }: SubmitButtonProps) {
     const { foodbank } = useFoodBank(selectedEnd);
 
     const handleSubmit = () => {
@@ -37,8 +36,7 @@ export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart
             console.log("Selected Food Bank:", foodbank.name);
             setRouteStart(selectedStart);
             setRouteEnd({ lat: foodbank.latitude, lng: foodbank.longitude });
-            setShowNavigation(false);
-            setShowRouteResult(true);
+            setViewState(prev => ({...prev, showNavigation: false, showRouteResult: true}));
             setTravellingMode(selectedMode);
         } else {
             console.log("No matching food bank found");
