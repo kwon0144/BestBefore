@@ -137,7 +137,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
             />
           </AdvancedMarker>
         )} */}
-        {selectedStart && travellingMode && <Directions routeStart={routeStart} routeEnd={routeEnd} setRouteDetails={setRouteDetails} travellingMode={travellingMode} />}
+        {routeStart && routeEnd&& <Directions routeStart={routeStart} routeEnd={routeEnd} setRouteDetails={setRouteDetails} travellingMode={travellingMode} />}
         {selectedStart && <StartMarker selectedStart={selectedStart}/>}
         <WhereAmIButton />
       </Map>

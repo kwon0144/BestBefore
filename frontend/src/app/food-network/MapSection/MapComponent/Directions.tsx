@@ -1,6 +1,6 @@
 import { useMap } from "@vis.gl/react-google-maps";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState, useRef } from "react";
 
 interface DirectionsProps {
     routeStart: { lat: number, lng: number } | null
@@ -14,24 +14,27 @@ export default function Directions({ routeStart, routeEnd, setRouteDetails, trav
     const routesLibrary = useMapsLibrary("routes")
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+    const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
 
     // Initialize directions service and renderer
     useEffect(() => {
         if (!routesLibrary || !map) return;
         
         setDirectionsService(new routesLibrary.DirectionsService());
-        setDirectionsRenderer(new routesLibrary.DirectionsRenderer({
+        const renderer = new routesLibrary.DirectionsRenderer({
             map,
             suppressMarkers: true,
             polylineOptions: {
                 strokeColor: "#964B00",
                 strokeWeight: 10
             }
-        }));
+        });
+        setDirectionsRenderer(renderer);
+        directionsRendererRef.current = renderer;
 
         return () => {
-            if (directionsRenderer) {
-                directionsRenderer.setMap(null);
+            if (directionsRendererRef.current) {
+                directionsRendererRef.current.setMap(null);
             }
         };
     }, [routesLibrary, map]);
