@@ -64,8 +64,8 @@ export default function Markers({ points, setSelectedEnd, selectedEnd }: Props) 
           {selectedEnd === point.key ?
             <Pin
               glyph="D"
-              background="green" 
-              borderColor="white"
+              background="#fc9003" 
+              borderColor="#964B00"
               glyphColor="white"
               scale={1.5}
             />:

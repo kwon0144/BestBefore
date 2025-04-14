@@ -24,7 +24,7 @@ export default function Directions({ routeStart, routeEnd, setRouteDetails, trav
             map,
             suppressMarkers: true,
             polylineOptions: {
-                strokeColor: '#148526',
+                strokeColor: "#964B00",
                 strokeWeight: 10
             }
         }));
