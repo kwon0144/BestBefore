@@ -57,7 +57,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           name: `${editValues.name} (${storageTime} days)`,
           quantity: editValues.quantity
         };
-      } catch (error) {
+      } catch {
         // If API call fails, keep the original storage time
         const originalStorageTime = item.name.match(/\((\d+) days\)/)?.[1] || '7';
         newStorageRecs[section][index] = {
@@ -112,7 +112,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
       
       setLocalStorageRecs(newStorageRecs);
       onUpdateStorageRecs(newStorageRecs);
-    } catch (error) {
+    } catch {
       // If API call fails, use default storage time
       const newStorageRecs = { ...localStorageRecs };
       
@@ -234,7 +234,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
               }}
             >
               <Tooltip title={`Expires in approximately ${days} days`}>
-                <span className="flex-grow">{item.name}</span>
+                <span className="flex-grow">{itemName}</span>
               </Tooltip>
               <span className="text-black mr-4">Qty: {item.quantity}</span>
               <button onClick={() => handleEdit(index, section)} className="text-blue-500 mr-2">

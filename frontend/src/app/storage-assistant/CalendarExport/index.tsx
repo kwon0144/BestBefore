@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button, Select, SelectItem } from "@heroui/react";
 import { CalendarSelection, ProduceDetections, StorageAdviceResponse, StorageRecommendation } from '../interfaces';
 import axios from 'axios';
@@ -22,16 +22,13 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
   storageRecs
 }) => {
   const [isTemporarilyDisabled, setIsTemporarilyDisabled] = useState(false);
-  const [storageTimes, setStorageTimes] = useState<{ [key: string]: number }>({});
-  const steps = ['Select Items', 'Set Reminders', 'Download Calendar'];
-  const [activeStep, setActiveStep] = useState(0);
-  const [selectedItems, setSelectedItems] = useState<{ name: string; quantity: number }[]>([]);
+  // const steps = ['Select Items', 'Set Reminders', 'Download Calendar'];
+  // const [activeStep, setActiveStep] = useState(0);
 
   // Get all items from storage recommendations
   const getAllItems = () => {
     const items: { [key: string]: number } = {};
     [...storageRecs.fridge, ...storageRecs.pantry].forEach(item => {
-      const cleanName = item.name.split(' (')[0];
       items[item.name] = item.quantity;
     });
     return items;
@@ -51,23 +48,20 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
   };
 
   // Get storage times for all detected items
-  const fetchStorageTimes = async () => {
+  const fetchStorageTimes = useCallback(async () => {
     if (!detections?.produce_counts) return;
 
-    const newStorageTimes: { [key: string]: number } = {};
     for (const [item] of Object.entries(detections.produce_counts)) {
-      const storageTime = await getStorageTime(item);
-      newStorageTimes[item] = storageTime;
+      await getStorageTime(item);
     }
-    setStorageTimes(newStorageTimes);
-  };
+  }, [detections?.produce_counts]);
 
   // Fetch storage times when detections change
   React.useEffect(() => {
     if (detections?.produce_counts) {
       fetchStorageTimes();
     }
-  }, [detections]);
+  }, [detections?.produce_counts, fetchStorageTimes]);
 
   // Copy calendar link to clipboard
   const downloadCalendar = () => {
@@ -156,29 +150,29 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
     {key: "7", label: "7 days before"}
   ];
 
-  const handleNext = () => {
-    if (activeStep === steps.length - 1) {
-      // Generate calendar items from selected items
-      const calendarItems = selectedItems.map(item => {
-        // Extract storage time from the item name (format: "name (X days)")
-        const storageTimeMatch = item.name.match(/\((\d+) days\)/);
-        const storageTime = storageTimeMatch ? parseInt(storageTimeMatch[1]) : 7;
+  // const handleNext = () => {
+  //   if (activeStep === steps.length - 1) {
+  //     // Generate calendar items from selected items
+  //     const calendarItems = calendarSelection.selectedItems.map(item => {
+  //       // Extract storage time from the item name (format: "name (X days)")
+  //       const storageTimeMatch = item.name.match(/\((\d+) days\)/);
+  //       const storageTime = storageTimeMatch ? parseInt(storageTimeMatch[1]) : 7;
         
-        return {
-          name: item.name.split(' (')[0], // Remove the storage time part
-          quantity: item.quantity,
-          expiry_date: storageTime,
-          reminder_days: 2,
-          reminder_time: "09:00"
-        };
-      });
+  //       return {
+  //         name: item.name.split(' (')[0], // Remove the storage time part
+  //         quantity: item.quantity,
+  //         expiry_date: storageTime,
+  //         reminder_days: 2,
+  //         reminder_time: "09:00"
+  //       };
+  //     });
 
-      // Generate calendar
-      generateCalendarLink(calendarItems);
-    } else {
-      setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    }
-  };
+  //     // Generate calendar
+  //     generateCalendarLink(calendarItems);
+  //   } else {
+  //     setActiveStep((prevActiveStep) => prevActiveStep + 1);
+  //   }
+  // };
 
   return (
     <>
