@@ -6,6 +6,7 @@ import { APIProvider } from "@vis.gl/react-google-maps";
 import Title from "../(components)/Title";
 import MapSection from "./MapSection";
 import FoodNetworkList from "./FoodNetworkList"
+import DonationDisposalOptions from "./DonationDisposalOptions";
 
 const GOOGLE_MAPS_LIBRARIES: ("places" | "routes")[] = ["places", "routes"];
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
@@ -37,6 +38,7 @@ export default function FoodNetwork() {
   return (
     <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
       <Title heading="Food Network" description="Contribute to the community by donation or efficient disposal" />
+      <DonationDisposalOptions />
       <APIProvider apiKey={apiKey}>
         <div className="mb-20">
           <MapSection 

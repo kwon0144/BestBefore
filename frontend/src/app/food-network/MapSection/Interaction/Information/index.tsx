@@ -7,8 +7,6 @@ import {
     faClock,
     faDirections,
 } from '@fortawesome/free-solid-svg-icons';
-import DonationGuideButton from "./DonationGuideButton";
-import DisposalGuideButton from "./DisposalGuideButton";
 
 interface InformationProps {
     selectedEnd: string | null;
@@ -131,10 +129,6 @@ export default function Information({
                         <FontAwesomeIcon icon={faDirections} className="mr-2" />
                         Get Directions
                     </Button>
-                    {/* Get Donation Guide */}
-                    {selectedType === "Food Donation Points" ? (
-                        <DonationGuideButton />
-                    ): <DisposalGuideButton />}
                 </div>
             </div>
         </div>
