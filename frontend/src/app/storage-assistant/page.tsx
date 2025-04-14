@@ -179,6 +179,11 @@ const FoodStorageAssistant: React.FC = () => {
     }
   };
 
+  // Handle storage recommendations update
+  const handleStorageRecsUpdate = (newStorageRecs: StorageRecommendation) => {
+    setStorageRecs(newStorageRecs);
+  };
+
   // Calculate expiry date based on storage time
   // const calculateExpiryDate = (storageTime: number): number => {
   //   return storageTime;
@@ -306,7 +311,10 @@ const FoodStorageAssistant: React.FC = () => {
                 <h2 className="text-2xl font-semibold text-darkgreen mb-5">
                   Step 2: Storage Recommendations
                 </h2>
-              <StorageRecommendations storageRecs={storageRecs} />
+              <StorageRecommendations 
+                storageRecs={storageRecs} 
+                onUpdateStorageRecs={handleStorageRecsUpdate} 
+              />
               <div className="flex justify-end mt-8">
                 <Button
                   onPress={() => setCurrentStep(2)}
@@ -337,6 +345,7 @@ const FoodStorageAssistant: React.FC = () => {
                 setCalendarSelection={setCalendarSelection}
                 detections={state.detections}
                 generateCalendarLink={generateCalendarLink}
+                storageRecs={storageRecs}
               />
             </div>
             </>
