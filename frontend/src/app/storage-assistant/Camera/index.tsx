@@ -147,17 +147,19 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
             <>
               <Button
                 onPress={takePhoto}
-                className="bg-darkgreen text-white w-12 h-12 rounded-full flex items-center justify-center"
+                className="bg-green text-white px-5 py-2 rounded-md flex items-center gap-2"
                 disabled={state.isAnalyzing}
               >
-                <FontAwesomeIcon icon={faCamera} className="text-white text-xl" />
+                <FontAwesomeIcon icon={faCamera} className="text-white" />
+                <span>Capture</span>
               </Button>
               <Button
                 onPress={stopCamera}
-                className="bg-red-500 text-white w-12 h-12 rounded-full flex items-center justify-center"
+                className="bg-red-500 text-white px-5 py-2 rounded-md flex items-center gap-2"
                 disabled={state.isAnalyzing}
               >
-                <FontAwesomeIcon icon={faStop} className="text-white text-xl" />
+                <FontAwesomeIcon icon={faStop} className="text-white" />
+                <span>Stop</span>
               </Button>
             </>
           )}
