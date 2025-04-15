@@ -9,6 +9,8 @@ interface MapSectionProps {
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
     selectedType: string;
     setSelectedType: Dispatch<SetStateAction<string>>;
+    viewState: ViewState;
+    setViewState: Dispatch<SetStateAction<ViewState>>;
 }
 
 export default function MapSection({mapSectionState, setMapSectionState, selectedType, setSelectedType, viewState, setViewState}: MapSectionProps) {
