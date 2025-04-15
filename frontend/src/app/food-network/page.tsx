@@ -14,6 +14,7 @@ const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 export default function FoodNetwork() {
   // For type selection
   const [selectedType, setSelectedType] = useState<string>("Food Donation Points");
+  
   // For user input and display
   const [mapSectionState, setMapSectionState] = useState<MapSectionState>({
     selectedEnd: "1", 

@@ -37,42 +37,42 @@ export default function Solution() {
             title: "Storage Assistant",
             description: "Store food properly and track expiry dates",
             buttonText: "Explore",
-            image: "https://public.readdy.ai/ai/img_res/0bd4f0ad6478adc29b07e7e7ddc5c63e.jpg",
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/storageassistant.jpeg",
         },
         {
             icon: 'faUsers',
             title: "Food Network",
             description: "Share excess food with your community",
             buttonText: "Join Network",
-            image: "https://public.readdy.ai/ai/img_res/0bd4f0ad6478adc29b07e7e7ddc5c63e.jpg"
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/foodnetwork.jpeg"
         },
         {
             icon: 'faRecycle',
             title: "Second Life",
             description: "Repurpose aging food with creative recipes",
             buttonText: "Get Ideas",
-            image: "https://public.readdy.ai/ai/img_res/56e0b21b5fa0a06e75e5cd9102aaed83.jpg"
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/secondlife.jpeg"
         },
         {
             icon: 'faGamepad',
             title: "Waste Game",
             description: "Make sustainability fun with challenges",
             buttonText: "Play Now",
-            image: "https://public.readdy.ai/ai/img_res/ada654995b8ad5cbf18bd3be63baa6da.jpg"
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/wastegame.jpeg"
         },
         {
             icon: 'faChartLine',
             title: "Impact",
             description: "Measure your environmental and financial savings",
             buttonText: "Calculate Impact",
-            image: "https://public.readdy.ai/ai/img_res/7259c0ce2dfe3fbf6dc85b5c1443809e.jpg"
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/impact.jpeg"
         },
         {
             icon: 'faShoppingBasket',
             title: "Eco Grocery",
             description: "Start with smart shopping to buy only what you need",
             buttonText: "Shop Smart",
-            image: "https://public.readdy.ai/ai/img_res/cfd8e780f5d6602592cdf696d533c3a2.jpg"
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/ecogrocery.jpeg"
         }
     ];
 

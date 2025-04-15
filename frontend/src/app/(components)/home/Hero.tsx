@@ -25,15 +25,15 @@ export default function Hero() {
             <div
                 className="h-screen bg-cover bg-center"
                 style={{
-                backgroundImage: `url('https://public.readdy.ai/ai/img_res/142495065a2d00bebbba9eff65e1f5cb.jpg')`
+                backgroundImage: `url('https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/hero.jpg')`
                 }}
             >
             </div>
-            <div className="max-w-7xl mx-auto absolute inset-0 flex flex-col justify-center items-start px-8 md:px-16 z-20">
-                <div className="max-w-2xl">
+            <div className="max-w-6xl mx-auto absolute inset-0 flex flex-col justify-center items-start md:px-16 z-20">
+                <div className="max-w-3xl pl-10">
                     <GradientText
-                        colors={["#1B5E20", "#2D5A4B",  "#2f8f58", "#2D5A4B", "#1B5E20"]}
-                        animationSpeed={5}
+                        colors={["#1B5E20", "#0d9488",  "#2D5A4B", "#0d9488", "#1B5E20"]}
+                        animationSpeed={10}
                         showBorder={false}
                         className="text-4xl md:text-5xl font-bold text-darkgreen mb-6"
                     >
