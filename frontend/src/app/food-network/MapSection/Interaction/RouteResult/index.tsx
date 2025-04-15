@@ -32,10 +32,9 @@ export default function RouteResult({
 
     const handleBackToNavigation = () => {
         setViewState(prev => ({...prev, showRouteResult: false, showNavigation: true}));
-        setMapSectionState(prev => ({...prev, selectedStart: null, selectedEnd: null}));
+        setMapSectionState(prev => ({...prev, selectedStart: null, currentLocationAddress: ""}));
         if (map && mapSectionState.selectedStart) {
-            map.setZoom(15);
-            map.setCenter(mapSectionState.selectedStart);
+            map.setZoom(12);
         }
     }
 

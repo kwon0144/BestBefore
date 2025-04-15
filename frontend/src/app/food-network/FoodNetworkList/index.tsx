@@ -9,11 +9,9 @@ import { ViewState, MapSectionState } from '../interfaces';
 
 interface FoodNetworkListProps {
   setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
-  map?: google.maps.Map | null;
   selectedType: string;
   setSelectedType: Dispatch<SetStateAction<string>>;  
   setViewState: Dispatch<SetStateAction<ViewState>>;
-
 }
 
 const typeOptions = [
@@ -24,7 +22,6 @@ const typeOptions = [
 
 const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ 
   setMapSectionState, 
-  map,
   selectedType,
   setSelectedType,
   setViewState

@@ -31,6 +31,15 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   const map = useMap();
   const [foodBanks, setFoodBanks] = useState<Foodbank[]>([]);
 
+  useImperativeHandle(ref, () => ({
+    focusOnLocation: (location: {lat: number, lng: number}) => {
+      if (map) {
+        map.panTo(location);
+        map.setZoom(12);
+      }
+    }
+  }));
+
   useEffect(() => {
     if (map) {
       setMap(map);
@@ -84,7 +93,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         
         try {
           map.panTo(location);
-          map.setZoom(12);
+          map.setZoom(15);
         } catch (e) {
           console.error("Error focusing map on foodbank:", e);
         }

@@ -13,4 +13,5 @@ export interface MapSectionState {
     routeEnd: { lat: number, lng: number } | null;
     routeDetails: { duration: string, distance: string };
     travellingMode: TravelMode;
+    currentLocationAddress: string;
 }

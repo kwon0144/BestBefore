@@ -7,24 +7,15 @@ import { MapSectionState, ViewState } from "@/app/food-network/interfaces";
 interface MapSectionProps {
     mapSectionState: MapSectionState;
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
-    onMapReady?: (map: google.maps.Map) => void;
     selectedType: string;
     setSelectedType: Dispatch<SetStateAction<string>>;
     viewState: ViewState;
     setViewState: Dispatch<SetStateAction<ViewState>>;
 }
 
-export default function MapSection({mapSectionState, setMapSectionState, onMapReady, selectedType, setSelectedType, viewState, setViewState}: MapSectionProps) {
+export default function MapSection({mapSectionState, setMapSectionState, selectedType, setSelectedType, viewState, setViewState}: MapSectionProps) {
   // For submission to fetch route
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [currentLocationAddress, setCurrentLocationAddress] = useState<string | null>(null);
-
-  // Add effect to notify parent when map is ready
-  useEffect(() => {
-    if (map && onMapReady) {
-      onMapReady(map);
-    }
-  }, [map, onMapReady]);
 
   // Add effect to reset route states when showInformation becomes true
   useEffect(() => {
@@ -35,8 +26,8 @@ export default function MapSection({mapSectionState, setMapSectionState, onMapRe
         routeStart: null,
         routeEnd: null,
         routeDetails: {duration: "", distance: ""},
+        currentLocationAddress: ""
       });
-      setCurrentLocationAddress(null);
     }
   }, [viewState.showInformation, viewState.showNavigation]);
 
@@ -55,9 +46,9 @@ export default function MapSection({mapSectionState, setMapSectionState, onMapRe
           routeStart: null,
           routeEnd: null,
           routeDetails: {duration: "", distance: ""},
-          selectedEnd: selection === "Food Donation Points" ? "1" : "50"
+          selectedEnd: selection === "Food Donation Points" ? "1" : "50",
+          currentLocationAddress: ""
         });
-        setCurrentLocationAddress(null);
         setSelectedType(selection);
         // Reset map zoom and center
         if (map) {
@@ -104,8 +95,6 @@ export default function MapSection({mapSectionState, setMapSectionState, onMapRe
                     viewState={viewState}
                     setViewState={setViewState}
                     selectedType={selectedType}
-                    currentLocationAddress={currentLocationAddress}
-                    setCurrentLocationAddress={setCurrentLocationAddress}
                 />
             </div>
         </div>

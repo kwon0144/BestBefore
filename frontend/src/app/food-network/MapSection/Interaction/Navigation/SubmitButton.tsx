@@ -3,7 +3,7 @@ import { Button } from "@heroui/react";
 import { faRoute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useFoodBank } from "@/hooks/useFoodBank";
-import { MapSectionState } from "@/app/food-network/page";
+import { MapSectionState } from "@/app/food-network/interfaces";
 
 interface SubmitButtonProps {
     mapSectionState: MapSectionState;

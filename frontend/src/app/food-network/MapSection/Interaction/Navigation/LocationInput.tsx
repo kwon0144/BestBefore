@@ -4,14 +4,14 @@ import { useMap } from "@vis.gl/react-google-maps";
 import { Input } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { MapSectionState } from "../../../page";
+import { MapSectionState } from "../../../interfaces";
+
 interface LocationInputProps {
+    mapSectionState: MapSectionState;
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
-    currentLocationAddress: string | null;
-    setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
 }
 
-export default function LocationInput({ setMapSectionState, currentLocationAddress, setCurrentLocationAddress }: LocationInputProps) {
+export default function LocationInput({ mapSectionState, setMapSectionState }: LocationInputProps) {
     const map = useMap();
 
     const {
@@ -32,10 +32,10 @@ export default function LocationInput({ setMapSectionState, currentLocationAddre
 
     // Update input value when currentLocationAddress changes
     useEffect(() => {
-        if (currentLocationAddress) {
-            setValue(currentLocationAddress, false);
+        if (mapSectionState.currentLocationAddress) {
+            setValue(mapSectionState.currentLocationAddress, false);
         }
-    }, [currentLocationAddress, setValue]);
+    }, [mapSectionState.currentLocationAddress, setValue]);
 
     const handleSelect = async (address: string) => {
         setValue(address, false);
@@ -49,8 +49,7 @@ export default function LocationInput({ setMapSectionState, currentLocationAddre
 
     const onHandleClear = () => {
         setValue("", false);
-        setMapSectionState(prev => ({...prev, selectedStart: null}));
-        setCurrentLocationAddress(null);
+        setMapSectionState(prev => ({...prev, selectedStart: null, currentLocationAddress: "" }));
     };
 
     return (

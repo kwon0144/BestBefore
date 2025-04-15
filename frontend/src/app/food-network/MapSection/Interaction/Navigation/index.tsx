@@ -8,17 +8,16 @@ import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faMapPin } from '@fortawesome/free-solid-svg-icons';
 import { useMap } from "@vis.gl/react-google-maps";
-import { MapSectionState } from "../../../page";
+import { MapSectionState } from "../../../interfaces";
+
 interface NavigationProps {
     mapSectionState: MapSectionState;
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
     setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
-    currentLocationAddress: string | null;
-    setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
 }
 
 export default function Navigation({
-    mapSectionState, setMapSectionState, setViewState, currentLocationAddress, setCurrentLocationAddress
+    mapSectionState, setMapSectionState, setViewState
 }: NavigationProps) {
     const { foodbank } = useFoodBank(mapSectionState.selectedEnd);
     const [error, setError] = useState<string>("");
@@ -26,10 +25,13 @@ export default function Navigation({
     const map = useMap();
 
     const handleBackToInfo = () => {
-        setMapSectionState(prev => ({...prev, viewState: {showNavigation: false, showInformation: true, showRouteResult: false}}));
+        setViewState(prev => ({...prev, showInformation: true, showNavigation: false, showRouteResult:false }))
+        setMapSectionState(prev => ({
+            ...prev,
+            selectedStart: null
+        }))
         if (map && mapSectionState.selectedStart) {
             map.setZoom(12);
-            map.setCenter({lat: -37.8136, lng: 144.9631});
         }
     }
 
@@ -69,13 +71,11 @@ export default function Navigation({
                 </label>
                 <div className="flex flex-row">
                     <LocationInput
+                        mapSectionState={mapSectionState}
                         setMapSectionState={setMapSectionState}
-                        currentLocationAddress={currentLocationAddress}
-                        setCurrentLocationAddress={setCurrentLocationAddress}
                     />
                     <CurrentLocationButton
                         setMapSectionState={setMapSectionState}
-                        onLocationFound={setCurrentLocationAddress}
                     />
                 </div>
                 {error && <p className="text-red-500 text-sm mt-2">{error}</p>}

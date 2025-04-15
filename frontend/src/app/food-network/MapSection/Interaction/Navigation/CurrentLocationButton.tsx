@@ -2,13 +2,12 @@ import { Button } from '@heroui/react';
 import { Dispatch, SetStateAction } from 'react';
 import { useMap } from "@vis.gl/react-google-maps";
 import { Icon } from '@iconify/react';
-import { MapSectionState } from '../../../page';
+import { MapSectionState } from '../../../interfaces';
 interface CurrentLocationButtonProps {
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
-    onLocationFound?: (address: string) => void;
 }
 
-export default function CurrentLocationButton({ setMapSectionState, onLocationFound }: CurrentLocationButtonProps) {
+export default function CurrentLocationButton({setMapSectionState }: CurrentLocationButtonProps) {
     const map = useMap();
 
     const getCurrentLocation = () => {
@@ -16,8 +15,8 @@ export default function CurrentLocationButton({ setMapSectionState, onLocationFo
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
                     const location = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
+                        lat: Number(position.coords.latitude),
+                        lng: Number(position.coords.longitude)
                     };
                     setMapSectionState(prev => ({...prev, selectedStart: location}));
                     map?.panTo({ lat: location.lat, lng: location.lng });
@@ -28,7 +27,7 @@ export default function CurrentLocationButton({ setMapSectionState, onLocationFo
                         const geocoder = new google.maps.Geocoder();
                         const response = await geocoder.geocode({ location });
                         if (response.results[0]) {
-                            onLocationFound?.(response.results[0].formatted_address);
+                            setMapSectionState(prev => ({...prev, currentLocationAddress:response.results[0].formatted_address }));
                         }
                     } catch (error) {
                         console.error("Error getting address:", error);

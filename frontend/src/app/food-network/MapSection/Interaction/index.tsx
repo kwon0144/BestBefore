@@ -9,13 +9,11 @@ interface InteractionProps {
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
     viewState: ViewState;
     setViewState: Dispatch<SetStateAction<ViewState>>;
-    selectedType: string;
-    currentLocationAddress: string | null;
-    setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
+    selectedType: string;       
 }
 
 export default function Interaction({ 
-    mapSectionState, setMapSectionState, viewState, setViewState, selectedType, currentLocationAddress, setCurrentLocationAddress
+    mapSectionState, setMapSectionState, viewState, setViewState, selectedType
 }: InteractionProps) {
     return (
         <>
@@ -30,8 +28,6 @@ export default function Interaction({
                     mapSectionState={mapSectionState}
                     setMapSectionState={setMapSectionState}
                     setViewState={setViewState}
-                    currentLocationAddress={currentLocationAddress}
-                    setCurrentLocationAddress={setCurrentLocationAddress}
                 />
             )}
             {viewState.showRouteResult && (

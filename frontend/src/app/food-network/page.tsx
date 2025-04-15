@@ -22,9 +22,8 @@ export default function FoodNetwork() {
     routeEnd: null,
     routeDetails: {duration: "", distance: ""},
     travellingMode: "WALKING",
+    currentLocationAddress: ""
   });
-  // For the map instance
-  const [map, setMap] = useState<google.maps.Map | null>(null);
 
   // For loading the map
   const {isLoaded} = useLoadScript({
@@ -37,10 +36,6 @@ export default function FoodNetwork() {
     showNavigation: false,
     showRouteResult: false,
   });
-
-  const handleMapReady = (mapInstance: google.maps.Map) => {
-    setMap(mapInstance);
-  };
 
   if (!isLoaded) return (
     <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
@@ -58,7 +53,6 @@ export default function FoodNetwork() {
           <MapSection 
             mapSectionState={mapSectionState}
             setMapSectionState={setMapSectionState}
-            onMapReady={handleMapReady}
             selectedType={selectedType}
             setSelectedType={setSelectedType}
             viewState={viewState}
@@ -69,7 +63,6 @@ export default function FoodNetwork() {
           <div>
             <FoodNetworkList 
               setMapSectionState={setMapSectionState}
-              map={map}
               selectedType={selectedType}
               setSelectedType={setSelectedType}
               setViewState={setViewState}
