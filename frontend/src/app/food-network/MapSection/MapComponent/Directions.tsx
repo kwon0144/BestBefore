@@ -1,37 +1,39 @@
 import { useMap } from "@vis.gl/react-google-maps";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState, useRef } from "react";
+import { MapSectionState } from "@/app/food-network/interfaces";
 
 interface DirectionsProps {
-    routeStart: { lat: number, lng: number } | null
-    routeEnd: { lat: number, lng: number } | null
-    setRouteDetails: Dispatch<SetStateAction<{ duration: string, distance: string }>>
-    travellingMode: string
+    mapSectionState: MapSectionState
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>
 }
 
-export default function Directions({ routeStart, routeEnd, setRouteDetails, travellingMode }: DirectionsProps) {
+export default function Directions({ mapSectionState, setMapSectionState }: DirectionsProps) {
     const map = useMap();
     const routesLibrary = useMapsLibrary("routes")
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService | null>(null);
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+    const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
 
     // Initialize directions service and renderer
     useEffect(() => {
         if (!routesLibrary || !map) return;
         
         setDirectionsService(new routesLibrary.DirectionsService());
-        setDirectionsRenderer(new routesLibrary.DirectionsRenderer({
+        const renderer = new routesLibrary.DirectionsRenderer({
             map,
             suppressMarkers: true,
             polylineOptions: {
-                strokeColor: '#148526',
+                strokeColor: "#964B00",
                 strokeWeight: 10
             }
-        }));
+        });
+        setDirectionsRenderer(renderer);
+        directionsRendererRef.current = renderer;
 
         return () => {
-            if (directionsRenderer) {
-                directionsRenderer.setMap(null);
+            if (directionsRendererRef.current) {
+                directionsRendererRef.current.setMap(null);
             }
         };
     }, [routesLibrary, map]);
@@ -40,7 +42,7 @@ export default function Directions({ routeStart, routeEnd, setRouteDetails, trav
     useEffect(() => {
         if (!directionsService || !directionsRenderer || !map) return;
 
-        if (!routeStart || !routeEnd) {
+        if (!mapSectionState.routeStart || !mapSectionState.routeEnd) {
             // Remove route from map
             directionsRenderer.setMap(null);
             return;
@@ -51,23 +53,24 @@ export default function Directions({ routeStart, routeEnd, setRouteDetails, trav
 
         // Calculate and show new route
         directionsService.route({
-            origin: { lat: routeStart.lat, lng: routeStart.lng },
-            destination: { lat: routeEnd.lat, lng: routeEnd.lng },
-            travelMode: travellingMode as google.maps.TravelMode,
+            origin: { lat: mapSectionState.routeStart.lat, lng: mapSectionState.routeStart.lng },
+            destination: { lat: mapSectionState.routeEnd.lat, lng: mapSectionState.routeEnd.lng },
+            travelMode: mapSectionState.travellingMode as google.maps.TravelMode,
             provideRouteAlternatives: true
         }, (result, status) => {
             if (status === "OK") {
                 directionsRenderer.setDirections(result);
             }
         }).then((result) => {
-            setRouteDetails(
-                {
+            setMapSectionState({
+                ...mapSectionState,
+                routeDetails: {
                     duration: result.routes[0]?.legs[0]?.duration?.text || "Unknown",
                     distance: result.routes[0]?.legs[0]?.distance?.text || "Unknown"
                 }
-            );
+            });
         });
-    }, [directionsService, directionsRenderer, routeStart, routeEnd, travellingMode, map]);
+    }, [directionsService, directionsRenderer, map]);
 
     return null;
 }

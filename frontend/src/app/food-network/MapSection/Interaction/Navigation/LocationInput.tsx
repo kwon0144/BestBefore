@@ -4,14 +4,14 @@ import { useMap } from "@vis.gl/react-google-maps";
 import { Input } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { MapSectionState } from "../../../interfaces";
 
 interface LocationInputProps {
-    setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    currentLocationAddress: string | null;
-    setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
+    mapSectionState: MapSectionState;
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
 }
 
-export default function LocationInput({ setSelectedStart, currentLocationAddress, setCurrentLocationAddress }: LocationInputProps) {
+export default function LocationInput({ mapSectionState, setMapSectionState }: LocationInputProps) {
     const map = useMap();
 
     const {
@@ -32,25 +32,24 @@ export default function LocationInput({ setSelectedStart, currentLocationAddress
 
     // Update input value when currentLocationAddress changes
     useEffect(() => {
-        if (currentLocationAddress) {
-            setValue(currentLocationAddress, false);
+        if (mapSectionState.currentLocationAddress) {
+            setValue(mapSectionState.currentLocationAddress, false);
         }
-    }, [currentLocationAddress, setValue]);
+    }, [mapSectionState.currentLocationAddress, setValue]);
 
     const handleSelect = async (address: string) => {
         setValue(address, false);
         clearSuggestions();
         const results = await getGeocode({ address });
         const { lat, lng } = await getLatLng(results[0]);
-        setSelectedStart({ lat, lng });
+        setMapSectionState(prev => ({...prev, selectedStart: { lat, lng }}));
         map?.panTo({ lat: lat, lng: lng });
         map?.setZoom(15);
     };
 
     const onHandleClear = () => {
         setValue("", false);
-        setSelectedStart(null);
-        setCurrentLocationAddress(null);
+        setMapSectionState(prev => ({...prev, selectedStart: null, currentLocationAddress: "" }));
     };
 
     return (

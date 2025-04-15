@@ -3,58 +3,40 @@ import SubmitButton from "./SubmitButton";
 import { Dispatch, SetStateAction, useState } from "react";
 import CurrentLocationButton from "./CurrentLocationButton";
 import { useFoodBank } from "@/hooks/useFoodBank";
-import TravelModeSelection, { TravelMode } from "./TravelModeSelection";
+import TravelModeSelection from "./TravelModeSelection";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faMapPin } from '@fortawesome/free-solid-svg-icons';
 import { useMap } from "@vis.gl/react-google-maps";
+import { MapSectionState } from "../../../interfaces";
 
 interface NavigationProps {
-    selectedStart: {lat: number, lng: number} | null;
-    selectedEnd: string | null;
-    setSelectedStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    setRouteStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    setRouteEnd: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    showNavigation: boolean;
-    setShowNavigation: Dispatch<SetStateAction<boolean>>;
-    setShowRouteResult: Dispatch<SetStateAction<boolean>>;
-    setShowInformation: Dispatch<SetStateAction<boolean>>;
-    setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
-    currentLocationAddress: string | null;
-    setCurrentLocationAddress: Dispatch<SetStateAction<string | null>>;
+    mapSectionState: MapSectionState;
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
+    setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
 }
 
 export default function Navigation({
-    selectedStart,
-    selectedEnd,
-    setSelectedStart,
-    setRouteStart,
-    setRouteEnd,
-    showNavigation,
-    setShowNavigation,
-    setShowRouteResult,
-    setShowInformation,
-    setTravellingMode,
-    currentLocationAddress,
-    setCurrentLocationAddress,
+    mapSectionState, setMapSectionState, setViewState
 }: NavigationProps) {
-    const { foodbank } = useFoodBank(selectedEnd);
-    const [selectedMode, setSelectedMode] = useState<TravelMode>("WALKING");
+    const { foodbank } = useFoodBank(mapSectionState.selectedEnd);
     const [error, setError] = useState<string>("");
 
     const map = useMap();
 
     const handleBackToInfo = () => {
-        setShowNavigation(false);
-        setShowInformation(true);
-        if (map && selectedStart) {
+        setViewState(prev => ({...prev, showInformation: true, showNavigation: false, showRouteResult:false }))
+        setMapSectionState(prev => ({
+            ...prev,
+            selectedStart: null
+        }))
+        if (map && mapSectionState.selectedStart) {
             map.setZoom(12);
-            map.setCenter({lat: -37.8136, lng: 144.9631});
         }
     }
 
     return (
-        <div className={`h-full flex flex-col pl-10 w-full ${showNavigation ? "display" : "hidden"}`}>
+        <div className="h-full flex flex-col pl-10 w-full">
             {/* Navigation Back Button */}
             <div className="mb-3">
                 <Button
@@ -89,13 +71,11 @@ export default function Navigation({
                 </label>
                 <div className="flex flex-row">
                     <LocationInput
-                        setSelectedStart={setSelectedStart}
-                        currentLocationAddress={currentLocationAddress}
-                        setCurrentLocationAddress={setCurrentLocationAddress}
+                        mapSectionState={mapSectionState}
+                        setMapSectionState={setMapSectionState}
                     />
                     <CurrentLocationButton
-                        setSelectedStart={setSelectedStart}
-                        onLocationFound={setCurrentLocationAddress}
+                        setMapSectionState={setMapSectionState}
                     />
                 </div>
                 {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
@@ -103,21 +83,16 @@ export default function Navigation({
             {/* Travel Mode Selection */}
             <div className="mb-10">
                 <TravelModeSelection
-                    selectedMode={selectedMode}
-                    setSelectedMode={setSelectedMode}
+                    mapSectionState={mapSectionState}
+                    setMapSectionState={setMapSectionState}
                 />
             </div>
             {/* Submit Button */}
             <div className="mb-3">
                 <SubmitButton
-                    selectedStart={selectedStart}
-                    selectedEnd={selectedEnd}
-                    setRouteStart={setRouteStart}
-                    setRouteEnd={setRouteEnd}
-                    setShowNavigation={setShowNavigation}
-                    setShowRouteResult={setShowRouteResult}
-                    selectedMode={selectedMode}
-                    setTravellingMode={setTravellingMode}
+                    setViewState={setViewState}
+                    mapSectionState={mapSectionState}
+                    setMapSectionState={setMapSectionState}
                     setError={setError}
                 />
             </div>

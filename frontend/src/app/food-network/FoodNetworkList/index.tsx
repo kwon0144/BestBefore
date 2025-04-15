@@ -5,16 +5,13 @@ import { Input, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
 import { Foodbank } from '@/app/api/foodbanks/route';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { ViewState, MapSectionState } from '../interfaces';
 
 interface FoodNetworkListProps {
-    onSelectFoodbank?: (foodbank: Foodbank) => void;
-  setSelectedEnd: Dispatch<SetStateAction<string | null>>;
-  map?: google.maps.Map | null;
+  setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
   selectedType: string;
-  setSelectedType: Dispatch<SetStateAction<string>>;
-  setShowInformation: Dispatch<SetStateAction<boolean>>;
-  setShowNavigation: Dispatch<SetStateAction<boolean>>;
-  setShowRouteResult: Dispatch<SetStateAction<boolean>>;
+  setSelectedType: Dispatch<SetStateAction<string>>;  
+  setViewState: Dispatch<SetStateAction<ViewState>>;
 }
 
 const typeOptions = [
@@ -24,13 +21,10 @@ const typeOptions = [
 ];
 
 const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ 
-  setSelectedEnd, 
-  map,
+  setMapSectionState, 
   selectedType,
   setSelectedType,
-  setShowInformation,
-  setShowNavigation,
-  setShowRouteResult
+  setViewState
 }) => {
   const [foodbanks, setFoodbanks] = useState<Foodbank[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -108,6 +102,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
 
   const onTypeSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setTypeFilter(e.target.value);
+    setPage(1)
   };
 
   if (loading) {
@@ -125,19 +120,11 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
     } else if (foodbank.type !== "Food Donation Point" && selectedType !== "Waste Disposal Points") {
       setSelectedType("Waste Disposal Points");
     }
-    
-    setSelectedEnd(foodbank.id.toString());
-    setShowInformation(true);
-    setShowNavigation(false);
-    setShowRouteResult(false);
-
-    if (map && foodbank.latitude && foodbank.longitude) {
-      map.setZoom(15);
-      map.setCenter({ lat: Number(foodbank.latitude), lng: Number(foodbank.longitude) });
-    }
+    setMapSectionState(prev => ({...prev, selectedEnd: foodbank.id.toString()}));
 
     // Scroll to top of the page
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 700, behavior: 'smooth' });
+    setViewState({ showInformation: true, showNavigation: false, showRouteResult: false});
   };
 
   return (
@@ -151,8 +138,14 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
               isClearable
               placeholder="Search by name, address, postcode, suburb..."
               value={searchTerm}
-              onValueChange={setSearchTerm}
-              onClear={() => setSearchTerm("")}
+              onValueChange={(value) => {
+                setSearchTerm(value);
+                setPage(1);
+              }}
+              onClear={() => {
+                setSearchTerm("");
+                setPage(1);
+              }}
               variant="bordered"
               startContent={<FontAwesomeIcon icon={faSearch} />}
               classNames={{

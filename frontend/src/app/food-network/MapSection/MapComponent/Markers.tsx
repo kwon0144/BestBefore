@@ -4,16 +4,16 @@ import { useMap, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import type { Marker } from "@googlemaps/markerclusterer";
 import { useEffect, useState, useRef, SetStateAction, Dispatch } from "react";
-
+import { MapSectionState } from "@/app/food-network/interfaces";
 type Point = google.maps.LatLngLiteral & { key: string};
 
 interface Props { 
   points: Point[]
-  setSelectedEnd: Dispatch<SetStateAction<string | null>>
-  selectedEnd: string | null
+  setMapSectionState: Dispatch<SetStateAction<MapSectionState>>
+  mapSectionState: MapSectionState
 }
 
-export default function Markers({ points, setSelectedEnd, selectedEnd }: Props) {
+export default function Markers({ points, setMapSectionState, mapSectionState }: Props) {
   const map = useMap();
   const [markers, setMarkers] = useState<{ [key: string]: Marker }>({});
   const clusterer = useRef<MarkerClusterer | null>(null);
@@ -45,8 +45,10 @@ export default function Markers({ points, setSelectedEnd, selectedEnd }: Props) 
   };
 
   const handleMarkerClick = (point: Point) => {
-    setSelectedEnd(point.key);
-    map?.panTo({ lat: point.lat, lng: point.lng });
+    setMapSectionState({
+      ...mapSectionState,
+      selectedEnd: point.key,
+    });  
   };
 
   return (
@@ -61,11 +63,11 @@ export default function Markers({ points, setSelectedEnd, selectedEnd }: Props) 
             setMarkerRef(marker, point.key);
           }}
         >
-          {selectedEnd === point.key ?
+          {mapSectionState.selectedEnd === point.key ?
             <Pin
               glyph="D"
-              background="green" 
-              borderColor="white"
+              background="#fc9003" 
+              borderColor="#964B00"
               glyphColor="white"
               scale={1.5}
             />:

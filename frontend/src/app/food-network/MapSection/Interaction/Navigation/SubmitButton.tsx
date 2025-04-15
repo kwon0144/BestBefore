@@ -2,31 +2,26 @@ import { Dispatch, SetStateAction } from "react";
 import { Button } from "@heroui/react";
 import { faRoute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { TravelMode } from "./TravelModeSelection";
 import { useFoodBank } from "@/hooks/useFoodBank";
+import { MapSectionState } from "@/app/food-network/interfaces";
 
 interface SubmitButtonProps {
-    selectedStart: {lat: number, lng: number} | null;
-    selectedEnd: string | null;
-    setRouteStart: (routeStart: {lat: number, lng: number}) => void;
-    setRouteEnd: (routeEnd: {lat: number, lng: number}) => void;
-    setShowNavigation: (showNavigation: boolean) => void;
-    setShowRouteResult: (showRouteResult: boolean) => void;
-    selectedMode: TravelMode;
-    setTravellingMode: Dispatch<SetStateAction<TravelMode>>;
+    mapSectionState: MapSectionState;
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
+    setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
     setError: (error: string) => void;
 }
 
-export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart, setRouteEnd, setShowNavigation, setShowRouteResult, selectedMode, setTravellingMode, setError }: SubmitButtonProps) {
-    const { foodbank } = useFoodBank(selectedEnd);
+export default function SubmitButton({ mapSectionState, setMapSectionState, setViewState, setError }: SubmitButtonProps) {
+    const { foodbank } = useFoodBank(mapSectionState.selectedEnd);
 
     const handleSubmit = () => {
         // Error message if not selected start point or food bank
-        if (!selectedStart || !selectedEnd) {
-            if (!selectedStart) {
+        if (!mapSectionState.selectedStart || !mapSectionState.selectedEnd) {
+            if (!mapSectionState.selectedStart) {
                 setError("*not selected start point");
             }
-            if (!selectedEnd) {
+            if (!mapSectionState.selectedEnd) {
                 setError("*not selected food bank");
             }
             return;
@@ -34,11 +29,9 @@ export default function SubmitButton({ selectedStart, selectedEnd, setRouteStart
         setError("");
 
         if (foodbank) {
-            setRouteStart(selectedStart);
-            setRouteEnd({ lat: foodbank.latitude, lng: foodbank.longitude });
-            setShowNavigation(false);
-            setShowRouteResult(true);
-            setTravellingMode(selectedMode);
+            console.log("Selected Food Bank:", foodbank.name);
+            setMapSectionState(prev => ({...prev, routeStart: mapSectionState.selectedStart, routeEnd: { lat: foodbank.latitude, lng: foodbank.longitude }}));
+            setViewState(prev => ({...prev, showNavigation: false, showRouteResult: true}));
         } else {
             console.log("No matching food bank found");
         }

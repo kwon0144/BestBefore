@@ -10,7 +10,7 @@ return (
   <>
     <Button 
         onPress={onOpen}
-        className="flex-1 bg-darkgreen text-white py-2 px-4 rounded-lg">
+        className="flex-1 bg-[#4cbd2c] text-white py-2 px-4 rounded-lg">
         <FontAwesomeIcon icon={faBook} className="mr-2" />
         Get Disposal Guide
     </Button>

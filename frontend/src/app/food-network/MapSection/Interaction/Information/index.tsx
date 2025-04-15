@@ -7,29 +7,20 @@ import {
     faClock,
     faDirections,
 } from '@fortawesome/free-solid-svg-icons';
-import DonationGuideButton from "./DonationGuideButton";
-import DisposalGuideButton from "./DisposalGuideButton";
+import { MapSectionState, ViewState } from "../../../interfaces";
 
 interface InformationProps {
-    selectedEnd: string | null;
-    setShowInformation: Dispatch<SetStateAction<boolean>>;
-    setShowNavigation: Dispatch<SetStateAction<boolean>>;
-    showInformation: boolean;
-    selectedType: string;
+    mapSectionState: MapSectionState;
+    setViewState: Dispatch<SetStateAction<ViewState>>;
 }
 
 export default function Information({ 
-    selectedEnd,
-    setShowInformation,
-    setShowNavigation,
-    showInformation,
-    selectedType
+    mapSectionState, setViewState
 }: InformationProps) {
-    const { foodbank, loading, error } = useFoodBank(selectedEnd);
+    const { foodbank, loading, error } = useFoodBank(mapSectionState.selectedEnd);
     
     const handleClick = () => {
-        setShowInformation(false);
-        setShowNavigation(true);
+        setViewState((prev: ViewState) => ({...prev, showInformation: false, showNavigation: true, showRouteResult: false}));
     };
 
     const formatHours = (hoursString: string | null) => {
@@ -56,7 +47,7 @@ export default function Information({
         return hoursString;
     };
 
-    if (!selectedEnd || loading) {
+    if (!mapSectionState.selectedEnd || loading) {
         return null;
     }
 
@@ -79,7 +70,7 @@ export default function Information({
     ];
 
     return (
-        <div className={`flex flex-col gap-4 pl-10 w-full ${showInformation ? "display" : "hidden"}`}>
+        <div className="flex flex-col gap-4 pl-10 w-full">
             <div className="h-full flex flex-col">
                 <div className="h-[180px] flex flex-col justify-center">
                     <h2 className="text-2xl font-bold text-darkgreen mb-6">
@@ -131,10 +122,6 @@ export default function Information({
                         <FontAwesomeIcon icon={faDirections} className="mr-2" />
                         Get Directions
                     </Button>
-                    {/* Get Donation Guide */}
-                    {selectedType === "Food Donation Points" ? (
-                        <DonationGuideButton />
-                    ): <DisposalGuideButton />}
                 </div>
             </div>
         </div>

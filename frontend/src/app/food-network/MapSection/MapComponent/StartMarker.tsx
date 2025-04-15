@@ -9,8 +9,8 @@ export default function StartMarker({ selectedStart }: StartMarkerProps) {
         <AdvancedMarker position={selectedStart}>            
             <Pin
                 glyph="S"
-                background="green" 
-                borderColor="white"
+              background="#fc9003" 
+              borderColor="#964B00"
                 glyphColor="white"
                 scale={1.5}
             />

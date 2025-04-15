@@ -5,44 +5,25 @@ import { Dispatch, SetStateAction } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 import { faRoad, faClock, faMapPin, faWalking, faBicycle, faBus, faCar, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { TravelMode } from "../Navigation/TravelModeSelection";
+import { MapSectionState } from "@/app/food-network/interfaces";
 
 interface RouteResultProps {
-    selectedEnd: string | null;
-    selectedStart: {lat: number, lng: number} | null;
-    showRouteResult: boolean;
-    setShowRouteResult: Dispatch<SetStateAction<boolean>>;
-    setShowInformation: Dispatch<SetStateAction<boolean>>;
-    setShowNavigation: Dispatch<SetStateAction<boolean>>;
-    routeDetails: {
-        duration: string;
-        distance: string;
-    };
-    setRouteStart: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    setRouteEnd: Dispatch<SetStateAction<{lat: number, lng: number} | null>>;
-    travellingMode: TravelMode;
+    mapSectionState: MapSectionState;
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
+    setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
+    selectedType: string;
 }
 
 export default function RouteResult({ 
-    selectedEnd, 
-    selectedStart, 
-    showRouteResult, 
-    setShowRouteResult, 
-    setShowInformation, 
-    setShowNavigation,
-    routeDetails, 
-    setRouteStart,
-    setRouteEnd,
-    travellingMode
+    mapSectionState, 
+    setMapSectionState,
+    setViewState,
+    selectedType
 }: RouteResultProps) {
-
     const map = useMap();
 
     const handleClick = () => {
-        setShowRouteResult(false);
-        setShowInformation(true);
-        setRouteStart(null);
-        setRouteEnd(null);
+        setViewState(prev => ({...prev, showRouteResult: false, showInformation: true}));
         if (map) {
             map.setZoom(12);
             map.setCenter({lat: -37.8136, lng: 144.9631});
@@ -50,21 +31,18 @@ export default function RouteResult({
     }
 
     const handleBackToNavigation = () => {
-        setShowRouteResult(false);
-        setShowNavigation(true);
-        setRouteStart(null);
-        setRouteEnd(null);
-        if (map && selectedStart) {
-            map.setZoom(15);
-            map.setCenter(selectedStart);
+        setViewState(prev => ({...prev, showRouteResult: false, showNavigation: true}));
+        setMapSectionState(prev => ({...prev, selectedStart: null, currentLocationAddress: ""}));
+        if (map && mapSectionState.selectedStart) {
+            map.setZoom(12);
         }
     }
 
-    const startAddress = useGeocoding(selectedStart);
-    const { foodbank: selectedFoodBank } = useFoodBank(selectedEnd);
+    const startAddress = useGeocoding(mapSectionState.selectedStart);
+    const { foodbank: selectedFoodBank } = useFoodBank(mapSectionState.selectedEnd);
 
     return (
-        <div className={`flex flex-col pl-10 w-full ${showRouteResult ? "display" : "hidden"}`}>
+        <div className="flex flex-col pl-10 w-full">
             {/* Navigation Back Button */}
             <div className="mb-3">
                 <Button
@@ -92,15 +70,15 @@ export default function RouteResult({
                 {/* Travelling Mode */}
                 <div className="pl-5 ml-[0.625rem] border-l-2 border-dashed border-gray-400 py-2">
                     <div className="flex items-center text-gray-600">
-                    {travellingMode === "WALKING"
+                    {mapSectionState.travellingMode === "WALKING"
                         ? <FontAwesomeIcon icon={faWalking} className="mr-2" />
-                        : travellingMode === "BICYCLING"
+                        : mapSectionState.travellingMode === "BICYCLING"
                             ? <FontAwesomeIcon icon={faBicycle} className="mr-2" />
-                            : travellingMode === "TRANSIT"
+                            : mapSectionState.travellingMode === "TRANSIT"
                             ? <FontAwesomeIcon icon={faBus} className="mr-2" />
                             : <FontAwesomeIcon icon={faCar} className="mr-2" />
                     }
-                    <span>via {travellingMode}</span>
+                    <span>via {mapSectionState.travellingMode}</span>
                     </div>
                 </div>
                 {/* Destination */}
@@ -130,7 +108,7 @@ export default function RouteResult({
                     <div className="flex items-center">
                       <FontAwesomeIcon icon={faClock} className="mr-2 text-green" />
                       <p className="text-md font-bold text-darkgreen">
-                        {routeDetails.duration}
+                        {mapSectionState.routeDetails.duration}
                       </p>
                     </div>
                   </div>
@@ -141,7 +119,7 @@ export default function RouteResult({
                     <div className="flex items-center">
                       <FontAwesomeIcon icon={faRoad} className="mr-2 text-green" />
                       <p className="text-md font-bold text-darkgreen">
-                        {routeDetails.distance}
+                        {mapSectionState.routeDetails.distance}
                       </p>
                     </div>
                 </div>
@@ -151,7 +129,7 @@ export default function RouteResult({
                 onPress={() => {handleClick()}}
                 className="bg-darkgreen hover:bg-darkgreen/50 text-white font-bold py-2 px-4 rounded-lg"
             >
-                Choose another Food Bank
+                {selectedType === "Food Donation Points" ? "Choose another Food Bank" : "Choose another Green Waste Bin"}
             </Button>
         </div>
     )

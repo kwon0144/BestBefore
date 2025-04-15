@@ -7,17 +7,13 @@ import StartMarker from "./StartMarker";
 import { Dispatch, SetStateAction, useEffect, forwardRef, useImperativeHandle, useState } from "react";
 import type { Foodbank } from "@/app/api/foodbanks/route";
 import WhereAmIButton from "./WhereAmIButton";
+import { MapSectionState } from "@/app/food-network/interfaces";
 
 type Point = google.maps.LatLngLiteral & { key: string };
 
 interface MapComponentProps {
-    selectedStart: {lat: number, lng: number} | null;
-    selectedEnd: string | null;
-    setSelectedEnd: Dispatch<SetStateAction<string | null>>;
-    routeStart: {lat: number, lng: number} | null;
-    routeEnd: {lat: number, lng: number} | null;
-    setRouteDetails: Dispatch<SetStateAction<{duration: string, distance: string}>>;
-    travellingMode: string;
+    mapSectionState: MapSectionState;
+    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
     selectedType: string;
     setMap: Dispatch<SetStateAction<google.maps.Map | null>>;
 }
@@ -27,18 +23,22 @@ interface MapComponentRef {
 }
 
 const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
-    selectedStart, 
-    selectedEnd,
-    setSelectedEnd, 
-    routeStart, 
-    routeEnd, 
-    setRouteDetails, 
-    travellingMode,
+    mapSectionState,
+    setMapSectionState,
     selectedType,
     setMap,
 }, ref) => {
   const map = useMap();
   const [foodBanks, setFoodBanks] = useState<Foodbank[]>([]);
+
+  useImperativeHandle(ref, () => ({
+    focusOnLocation: (location: {lat: number, lng: number}) => {
+      if (map) {
+        map.panTo(location);
+        map.setZoom(12);
+      }
+    }
+  }));
 
   useEffect(() => {
     if (map) {
@@ -81,20 +81,10 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
     operation_schedule: foodbank.operation_schedule
   }));
   
-  // Expose methods to parent through useImperativeHandle
-  useImperativeHandle(ref, () => ({
-    focusOnLocation: (location: {lat: number, lng: number}) => {
-      if (map) {
-        map.panTo(location);
-        map.setZoom(12);
-      }
-    }
-  }));
-  
   // Effect to handle focusing on selected foodbank
   useEffect(() => {
-    if (selectedEnd && map) {
-      const selectedFoodBank = foodBanks.find(fb => fb.id.toString() === selectedEnd);
+    if ( mapSectionState.selectedEnd && map) {
+      const selectedFoodBank = foodBanks.find(fb => fb.id.toString() === mapSectionState.selectedEnd);
       if (selectedFoodBank) {
         const location = {
           lat: selectedFoodBank.latitude,
@@ -103,13 +93,13 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         
         try {
           map.panTo(location);
-          map.setZoom(13);
+          map.setZoom(15);
         } catch (e) {
           console.error("Error focusing map on foodbank:", e);
         }
       }
     }
-  }, [selectedEnd, map, foodBanks]);
+  }, [mapSectionState.selectedEnd, map, foodBanks]);
 
   return (
       <Map
@@ -119,26 +109,9 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         gestureHandling="greedy"
         disableDefaultUI={false}
       > 
-        <Markers points={points} setSelectedEnd={setSelectedEnd} selectedEnd={selectedEnd}/>
-        {/* Add a special marker for the selected foodbank if it exists */}
-        {/* {selectedEnd && foodBanks.find(fb => fb.id.toString() === selectedEnd) && (
-          <AdvancedMarker
-            position={{
-              lat: foodBanks.find(fb => fb.id.toString() === selectedEnd)!.latitude,
-              lng: foodBanks.find(fb => fb.id.toString() === selectedEnd)!.longitude
-            }}
-            title={foodBanks.find(fb => fb.id.toString() === selectedEnd)!.name}
-          >
-            <Pin
-              background={"#22c55e"} // Green color for selected foodbank
-              borderColor={"#166534"}
-              glyphColor={"#ffffff"}
-              scale={1.2} // Slightly larger than regular pins
-            />
-          </AdvancedMarker>
-        )} */}
-        {selectedStart && travellingMode && <Directions routeStart={routeStart} routeEnd={routeEnd} setRouteDetails={setRouteDetails} travellingMode={travellingMode} />}
-        {selectedStart && <StartMarker selectedStart={selectedStart}/>}
+        <Markers points={points} setMapSectionState={setMapSectionState} mapSectionState={mapSectionState}/>
+        {mapSectionState.routeStart && mapSectionState.routeEnd&& <Directions mapSectionState={mapSectionState} setMapSectionState={setMapSectionState} />}
+        {mapSectionState.selectedStart && <StartMarker selectedStart={mapSectionState.selectedStart}/>}
         <WhereAmIButton />
       </Map>
   );
