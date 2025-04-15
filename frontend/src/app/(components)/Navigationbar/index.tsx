@@ -16,7 +16,9 @@ import { useCallback, useState, useEffect } from "react";
 const menuItems = [
   { path: "/", label: "Home" },
   { path: "/storage-assistant", label: "Storage Assistant" },
+  { path: "/eco-grocery", label: "Eco Grocery" },
   { path: "/food-network", label: "Food Network" },
+  { path: "/second-life", label: "Second Life" },
 ];
 
 const Navigationbar = () => {
