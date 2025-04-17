@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import status, viewsets
-from .models import Geospatial
+from .models import Geospatial, SecondLife
 from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
 from rest_framework import viewsets
 from .db_service import get_storage_recommendations, get_all_food_types
@@ -266,3 +266,51 @@ def get_foodbanks(request):
             'status': 'error',
             'message': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def get_second_life_items(request):
+    """
+    Get all second life items or filter by search query
+    """
+    search_query = request.GET.get('search', '')
+    
+    if search_query:
+        items = SecondLife.objects.filter(items__icontains=search_query)
+    else:
+        items = SecondLife.objects.all()
+    
+    data = []
+    for item in items:
+        data.append({
+            'id': item.id,
+            'items': item.items,
+            'type': item.type,
+            'method': item.method,
+            'label': item.label,
+            'description': item.description,
+            'picture': item.picture,
+            'inside_picture': item.inside_picture
+        })
+    
+    return Response(data)
+
+@api_view(['GET'])
+def get_second_life_item_detail(request, item_id):
+    """
+    Get details for a specific second life item
+    """
+    try:
+        item = SecondLife.objects.get(id=item_id)
+        data = {
+            'id': item.id,
+            'items': item.items,
+            'type': item.type,
+            'method': item.method,
+            'label': item.label,
+            'description': item.description,
+            'picture': item.picture,
+            'inside_picture': item.inside_picture
+        }
+        return Response(data)
+    except SecondLife.DoesNotExist:
+        return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
