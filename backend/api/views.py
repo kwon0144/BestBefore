@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import status, viewsets
-from .models import User, Temperature, Geospatial, SecondLife
-from .serializer import UserSerializer, TemperatureSerializer, FoodBankListSerializer, FoodBankDetailSerializer
+from .models import Geospatial, SecondLife
+from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
 from rest_framework import viewsets
 from .db_service import get_storage_recommendations, get_all_food_types
 import json
@@ -11,41 +11,6 @@ from django.utils import timezone
 import uuid
 from django.db import connection
 import re
-
-@api_view(['GET'])
-def get_users(request):
-    users = User.objects.all()
-    serializer = UserSerializer(users, many=True)
-    return Response(serializer.data)
-
-@api_view(['POST'])
-def create_user(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['GET'])
-def get_temperature_data(request):
-    try:
-        # Get all temperature records
-        temperatures = Temperature.objects.all()
-        # You can add filtering here if needed, for example:
-        # temperatures = Temperature.objects.filter(timestamp__gte='2024-01-01')
-        
-        # Serialize the data
-        serializer = TemperatureSerializer(temperatures, many=True)
-        
-        return Response({
-            'status': 'success',
-            'data': serializer.data
-        })
-    except Exception as e:
-        return Response({
-            'status': 'error',
-            'message': str(e)
-        }, status=500)
 
 @api_view(['POST'])
 def get_storage_advice(request):
