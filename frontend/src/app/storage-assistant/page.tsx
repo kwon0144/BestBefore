@@ -53,6 +53,7 @@ const FoodStorageAssistant: React.FC = () => {
   const submitPhotos = async () => {
     if (state.photos.length === 0) return;
 
+    console.log('API URL:', config.apiUrl);
     setState(prev => ({ ...prev, isAnalyzing: true, error: null }));
 
     try {

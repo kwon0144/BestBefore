@@ -48,4 +48,16 @@ class Geospatial(models.Model):
     
     def __str__(self):
         return self.name
+
+class Game(models.Model):
+    player_id = models.CharField(max_length=100)
+    score = models.IntegerField(default=0)
+    time_remaining = models.IntegerField(default=60)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-score', '-created_at']
+
     

@@ -65,7 +65,8 @@ CORS SETTINGS
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "http://localhost:443"
+    "http://localhost:443",
+    "http://192.168.3.5:3000"
 ]
 
 # Add additional allowed origins from environment variable

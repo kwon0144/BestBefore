@@ -1,16 +1,21 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import status, viewsets
-from .models import User, Temperature, Geospatial
+from .models import User, Temperature, Geospatial, Game
 from .serializer import UserSerializer, TemperatureSerializer, FoodBankListSerializer, FoodBankDetailSerializer
 from rest_framework import viewsets
 from .db_service import get_storage_recommendations, get_all_food_types
+from .game_logic import start_new_game, update_game_state, end_game_session, get_top_scores, generate_food_item
 import json
 from datetime import datetime, timedelta, date
 from django.utils import timezone
 import uuid
 from django.db import connection
 import re
+import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
 def get_users(request):
@@ -301,3 +306,93 @@ def get_foodbanks(request):
             'status': 'error',
             'message': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+def start_game(request):
+    """
+    Start a new game for a player.
+    
+    Expected request data:
+    {
+        "player_id": "string"
+    }
+    
+    Returns:
+        200 OK: Game started successfully
+        400 Bad Request: Invalid player_id
+        500 Internal Server Error: Server error
+    """
+    try:
+        player_id = request.data.get('player_id')
+        
+        if not player_id:
+            return Response(
+                {'error': 'player_id is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        game_data = start_new_game(player_id)
+        return Response(game_data, status=status.HTTP_200_OK)
+        
+    except ValueError as e:
+        return Response(
+            {'error': str(e)}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        logger.error(f"Error starting game: {str(e)}")
+        return Response(
+            {'error': 'Failed to start game'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+def update_game(request):
+    game_id = request.data.get('game_id')
+    action = request.data.get('action')
+    food_type = request.data.get('food_type')
+    
+    if not all([game_id, action, food_type]):
+        return Response({'error': 'Missing required parameters'}, status=400)
+    
+    try:
+        game_data = update_game_state(game_id, action, food_type)
+        return Response(game_data)
+    except ValueError as e:
+        return Response({'error': str(e)}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+def end_game(request):
+    game_id = request.data.get('game_id')
+    if not game_id:
+        return Response({'error': 'Game ID is required'}, status=400)
+    
+    try:
+        game_data = end_game_session(game_id)
+        return Response(game_data)
+    except ValueError as e:
+        return Response({'error': str(e)}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def get_leaderboard(request):
+    try:
+        top_scores = get_top_scores()
+        return Response(top_scores)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def get_food_items(request):
+    """
+    Get a list of food items for the game.
+    """
+    try:
+        # Generate 5 random food items
+        food_items = [generate_food_item() for _ in range(5)]
+        return Response({'food_items': food_items})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
