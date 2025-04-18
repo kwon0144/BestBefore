@@ -61,7 +61,7 @@ jobs:
             --build-arg NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY} \
             --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} \
             --build-arg NEXT_PUBLIC_MAP_ID=${NEXT_PUBLIC_MAP_ID} \
-            -t ${{ env.DOCKER_USERNAME }}/react-django-frontend:${TAG} \
+            -t ${{ env.DOCKER_USERNAME }}/bestbefore-frontend:${TAG} \
             --platform linux/amd64 --push \
             .
 
@@ -89,7 +89,7 @@ jobs:
             TAG="latest"
           fi
           docker buildx build \
-            -t ${{ env.DOCKER_USERNAME }}/react-django-backend:${TAG} \
+            -t ${{ env.DOCKER_USERNAME }}/bestbefore-backend:${TAG} \
             --platform linux/amd64 --push \
             .
 
