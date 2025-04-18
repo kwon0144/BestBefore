@@ -28,4 +28,21 @@ class Geospatial(models.Model):
     
     def __str__(self):
         return self.name
+
+class SecondLife(models.Model):
+    id = models.IntegerField(primary_key=True)
+    items = models.CharField(max_length=255)
+    type = models.CharField(max_length=255)
+    method = models.CharField(max_length=255)
+    label = models.CharField(max_length=255)
+    description = models.TextField()  
+    picture = models.URLField(max_length=255)
+    inside_picture = models.URLField(max_length=255)
+
+    class Meta:
+        db_table = 'diy_projects'  
+        managed = False  
+
+    def __str__(self):
+        return f"{self.items} - {self.method}"
     
