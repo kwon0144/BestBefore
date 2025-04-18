@@ -56,6 +56,12 @@ jobs:
           cd frontend
           if [ "$GITHUB_REF" = "refs/heads/iteration1" ]; then
             TAG="iteration1"
+          elif [ "$GITHUB_REF" = "refs/heads/iteration2" ]; then
+            TAG="iteration2"
+          elif [ "$GITHUB_REF" = "refs/heads/iteration3" ]; then
+            TAG="iteration3" 
+          elif [ "$GITHUB_REF" = "refs/heads/develop" ]; then
+            TAG="develop"
           else
             TAG="latest"
           fi
