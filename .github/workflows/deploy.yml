@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+      - develop
+      - iteration1
+      - iteration2
+      - iteration3
 
 env:
   # Frontend Environment Variables
@@ -31,7 +35,6 @@ env:
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-
 jobs:
   build-frontend:
     runs-on: ubuntu-latest
@@ -51,12 +54,18 @@ jobs:
       - name: Build and push frontend Docker image
         run: |
           cd frontend
+          if [ "$GITHUB_REF" = "refs/heads/iteration1" ]; then
+            TAG="iteration1"
+          else
+            TAG="latest"
+          fi
           docker buildx build \
             --build-arg NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
             --build-arg NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY} \
             --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} \
             --build-arg NEXT_PUBLIC_MAP_ID=${NEXT_PUBLIC_MAP_ID} \
-            -t ${{ env.DOCKER_USERNAME }}/react-django-frontend:latest \
+            --build-arg NEXT_PUBLIC_BRANCH_NAME=${{ github.ref_name }} \
+            -t ${{ env.DOCKER_USERNAME }}/bestbefore-frontend:${TAG} \
             --platform linux/amd64 --push \
             .
 
@@ -78,8 +87,13 @@ jobs:
       - name: Build and push backend Docker image
         run: |
           cd backend
+          if [ "$GITHUB_REF" = "refs/heads/iteration1" ]; then
+            TAG="iteration1"
+          else
+            TAG="latest"
+          fi
           docker buildx build \
-            -t ${{ env.DOCKER_USERNAME }}/react-django-backend:latest \
+            -t ${{ env.DOCKER_USERNAME }}/bestbefore-backend:${TAG} \
             --platform linux/amd64 --push \
             .
 
@@ -97,6 +111,7 @@ jobs:
           EC2_USER: ${{ env.EC2_USER }}
           EC2_HOST: ${{ env.EC2_HOST }}
           EC2_KEY: ${{ env.EC2_KEY }}
+          BRANCH: ${{ github.ref_name }}
         run: |
           echo "${{ env.EC2_KEY }}" > ec2-key.pem
           chmod 400 ec2-key.pem
@@ -121,4 +136,4 @@ jobs:
           
           # Transfer and run deploy script
           scp -o StrictHostKeyChecking=no -i ec2-key.pem deploy.sh ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/
-          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'bash /home/${{ env.EC2_USER }}/deploy.sh'
+          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'bash /home/${{ env.EC2_USER }}/deploy.sh' ${{ github.ref_name }}
