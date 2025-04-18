@@ -20,9 +20,9 @@ else
   BACKEND_NAME="backend"
 fi
 
-# Restart Docker services
-sudo systemctl restart docker.socket docker.service
-docker network prune -f
+# # Restart Docker services
+# sudo systemctl restart docker.socket docker.service
+# docker network prune -f
 
 # Check and create network
 if ! docker network ls | grep -q app-network; then
