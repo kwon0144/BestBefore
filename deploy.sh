@@ -3,6 +3,9 @@ set -a
 source .env
 set +a
 
+# Get branch name from argument
+BRANCH=$1
+
 # Set ports based on branch
 if [ "$BRANCH" = "iteration1" ]; then
   FRONTEND_PORT=3001
@@ -11,6 +14,27 @@ if [ "$BRANCH" = "iteration1" ]; then
   BACKEND_TAG="iteration1"
   FRONTEND_NAME="frontend-iteration1"
   BACKEND_NAME="backend-iteration1"
+elif [ "$BRANCH" = "iteration2" ]; then
+  FRONTEND_PORT=3002
+  BACKEND_PORT=8002
+  FRONTEND_TAG="iteration2"
+  BACKEND_TAG="iteration2"
+  FRONTEND_NAME="frontend-iteration2"
+  BACKEND_NAME="backend-iteration2"
+elif [ "$BRANCH" = "iteration3" ]; then
+  FRONTEND_PORT=3003
+  BACKEND_PORT=8003
+  FRONTEND_TAG="iteration3"
+  BACKEND_TAG="iteration3"
+  FRONTEND_NAME="frontend-iteration3"
+  BACKEND_NAME="backend-iteration3"
+elif [ "$BRANCH" = "develop" ]; then
+  FRONTEND_PORT=3004
+  BACKEND_PORT=8004
+  FRONTEND_TAG="develop"
+  BACKEND_TAG="develop"
+  FRONTEND_NAME="frontend-develop"
+  BACKEND_NAME="backend-develop"
 else
   FRONTEND_PORT=3000
   BACKEND_PORT=8000
@@ -19,10 +43,6 @@ else
   FRONTEND_NAME="frontend"
   BACKEND_NAME="backend"
 fi
-
-# # Restart Docker services
-# sudo systemctl restart docker.socket docker.service
-# docker network prune -f
 
 # Check and create network
 if ! docker network ls | grep -q app-network; then
@@ -48,6 +68,7 @@ docker run -d --name $FRONTEND_NAME --network app-network -p $FRONTEND_PORT:3000
   -e NEXT_PUBLIC_API_KEY="$NEXT_PUBLIC_API_KEY" \
   -e NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY" \
   -e NEXT_PUBLIC_MAP_ID="$NEXT_PUBLIC_MAP_ID" \
+  -e NEXT_PUBLIC_BRANCH_NAME="$BRANCH" \
   $DOCKER_USERNAME/bestbefore-frontend:$FRONTEND_TAG
 echo "Frontend deployed successfully on HTTP (port $FRONTEND_PORT)"
 

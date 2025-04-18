@@ -4,7 +4,10 @@ on:
   push:
     branches:
       - main
+      - develop
       - iteration1
+      - iteration2
+      - iteration3
 
 env:
   # Frontend Environment Variables
@@ -61,6 +64,7 @@ jobs:
             --build-arg NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY} \
             --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} \
             --build-arg NEXT_PUBLIC_MAP_ID=${NEXT_PUBLIC_MAP_ID} \
+            --build-arg NEXT_PUBLIC_BRANCH_NAME=${{ github.ref_name }} \
             -t ${{ env.DOCKER_USERNAME }}/bestbefore-frontend:${TAG} \
             --platform linux/amd64 --push \
             .
@@ -125,7 +129,6 @@ jobs:
           DB_HOST=${{ env.DB_HOST }}
           DB_PORT=${{ env.DB_PORT }}
           CLAUDE_API_KEY=${{ env.CLAUDE_API_KEY }}
-          BRANCH=${{ github.ref_name }}
           EOF
           
           # Transfer .env file to EC2
@@ -133,4 +136,4 @@ jobs:
           
           # Transfer and run deploy script
           scp -o StrictHostKeyChecking=no -i ec2-key.pem deploy.sh ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/
-          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'bash /home/${{ env.EC2_USER }}/deploy.sh'
+          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'bash /home/${{ env.EC2_USER }}/deploy.sh' ${{ github.ref_name }}
