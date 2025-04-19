@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import get_users, create_user, get_temperature_data, get_storage_advice, get_food_types, get_foodbanks, start_game, update_game, end_game, get_leaderboard, get_food_items
+from .views import get_users, create_user, get_temperature_data, get_storage_advice, get_food_types, get_foodbanks, start_game, update_game, end_game, get_leaderboard, get_food_items, pickup_food, perform_action
 from . import produce_detection
 from .output_calender import generate_calendar, generate_ical
 from rest_framework.routers import DefaultRouter
@@ -20,4 +20,6 @@ urlpatterns = [
     path('game/end/', end_game, name='end_game'),
     path('game/leaderboard/', get_leaderboard, name='get_leaderboard'),
     path('game/food-items/', get_food_items, name='get_food_items'),
+    path('game/pickup/', pickup_food, name='pickup_food'),
+    path('game/action/', perform_action, name='perform_action'),
 ]

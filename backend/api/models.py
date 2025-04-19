@@ -60,4 +60,18 @@ class Game(models.Model):
     class Meta:
         ordering = ['-score', '-created_at']
 
+class GameFoodResources(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=255)
+    type = models.CharField(max_length=255)
+    image = models.URLField(max_length=255)
+    description = models.TextField()
+
+    class Meta:
+        db_table = 'game_foodresources'  # Specify the actual table name
+        managed = False  # Since the table already exists
+
+    def __str__(self):
+        return f"{self.name} - {self.type}"
+
     

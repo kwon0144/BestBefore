@@ -1,11 +1,12 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import status, viewsets
-from .models import User, Temperature, Geospatial, Game
+from .models import User, Temperature, Geospatial, Game, GameFoodResources
 from .serializer import UserSerializer, TemperatureSerializer, FoodBankListSerializer, FoodBankDetailSerializer
 from rest_framework import viewsets
 from .db_service import get_storage_recommendations, get_all_food_types
-from .game_logic import start_new_game, update_game_state, end_game_session, get_top_scores, generate_food_item
+from .game_core import start_new_game, update_game_state, end_game_session
+from .game_validators import get_top_scores, validate_pickup, validate_action
 import json
 from datetime import datetime, timedelta, date
 from django.utils import timezone
@@ -348,15 +349,40 @@ def start_game(request):
 
 @api_view(['POST'])
 def update_game(request):
+    """
+    Update the game state based on player action.
+    
+    Expected request data:
+    {
+        "game_id": "string",
+        "action": "string",
+        "food_type": "string",
+        "character_position": {"x": float, "y": float},
+        "food": {"id": int, "type": string, "name": string, "image": string, "x": float, "y": float}
+    }
+    
+    Returns:
+        200 OK: Game updated successfully
+        400 Bad Request: Missing required parameters
+        404 Not Found: Game not found
+        500 Internal Server Error: Server error
+    """
     game_id = request.data.get('game_id')
     action = request.data.get('action')
     food_type = request.data.get('food_type')
+    character_position = request.data.get('character_position')
+    food = request.data.get('food')
     
     if not all([game_id, action, food_type]):
         return Response({'error': 'Missing required parameters'}, status=400)
     
     try:
-        game_data = update_game_state(game_id, action, food_type)
+        # If character position and food are provided, use them for validation
+        if character_position and food:
+            game_data = update_game_state(game_id, action, food_type, character_position, food)
+        else:
+            game_data = update_game_state(game_id, action, food_type)
+            
         return Response(game_data)
     except ValueError as e:
         return Response({'error': str(e)}, status=404)
@@ -388,11 +414,105 @@ def get_leaderboard(request):
 @api_view(['GET'])
 def get_food_items(request):
     """
-    Get a list of food items for the game.
+    Get a list of food items for the game from the database.
+    Optional query parameter: type (trash, foodbank, greenbin, both)
     """
     try:
-        # Generate 5 random food items
-        food_items = [generate_food_item() for _ in range(5)]
-        return Response({'food_items': food_items})
+        food_type = request.GET.get('type', None)
+        query = GameFoodResources.objects.all()
+        
+        # Filter by type if specified
+        if food_type:
+            query = query.filter(type=food_type)
+        
+        # Get all items if no type specified or filtered items if type specified
+        food_items = list(query.values('id', 'name', 'type', 'image', 'description'))
+        
+        # If we need exactly 5 items and have more, randomly select 5
+        if len(food_items) > 5:
+            food_items = random.sample(food_items, 5)
+        
+        return Response({
+            'food_items': food_items,
+            'count': len(food_items)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching food items: {str(e)}")
+        return Response(
+            {'error': 'Failed to fetch food items'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+def pickup_food(request):
+    """
+    Validate if a player can pick up food based on their position and available foods.
+    
+    Expected request data:
+    {
+        "game_id": "string",
+        "character_position": {"x": float, "y": float},
+        "foods": [{"id": int, "type": string, "name": string, "image": string, "x": float, "y": float}, ...]
+    }
+    
+    Returns:
+        200 OK: Pickup validation result
+        400 Bad Request: Missing required parameters
+        404 Not Found: Game not found
+        500 Internal Server Error: Server error
+    """
+    game_id = request.data.get('game_id')
+    character_position = request.data.get('character_position')
+    foods = request.data.get('foods')
+    
+    if not all([game_id, character_position, foods]):
+        return Response({'error': 'Missing required parameters'}, status=400)
+    
+    try:
+        # Check if the game exists
+        if game_id not in games:
+            return Response({'error': 'Game not found'}, status=404)
+            
+        # Validate pickup
+        result = validate_pickup(character_position, foods)
+        return Response(result)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+def perform_action(request):
+    """
+    Validate if a player can perform an action (donate, compost, eat) based on their position.
+    
+    Expected request data:
+    {
+        "game_id": "string",
+        "character_position": {"x": float, "y": float},
+        "food": {"id": int, "type": string, "name": string, "image": string, "x": float, "y": float},
+        "action_type": "string"  # "donate", "compost", or "eat"
+    }
+    
+    Returns:
+        200 OK: Action validation result
+        400 Bad Request: Missing required parameters
+        404 Not Found: Game not found
+        500 Internal Server Error: Server error
+    """
+    game_id = request.data.get('game_id')
+    character_position = request.data.get('character_position')
+    food = request.data.get('food')
+    action_type = request.data.get('action_type')
+    
+    if not all([game_id, character_position, food, action_type]):
+        return Response({'error': 'Missing required parameters'}, status=400)
+    
+    try:
+        # Check if the game exists
+        if game_id not in games:
+            return Response({'error': 'Game not found'}, status=404)
+            
+        # Validate action
+        result = validate_action(character_position, food, action_type)
+        return Response(result)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
