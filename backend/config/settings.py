@@ -202,6 +202,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '30/minute',
+        'produce_detection': '2/minute',
     }
 }
 

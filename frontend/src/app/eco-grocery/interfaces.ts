@@ -4,6 +4,16 @@ export interface MealChoice {
   name: string;
   description: string;
   imageUrl: string;
+  cuisine?: string;
+}
+
+// Interface for signature dishes
+export interface SignatureDish {
+  id: number;
+  name: string;
+  description: string;
+  imageUrl: string;
+  cuisine: string;
 }
 
 // Interface for grocery items
@@ -45,13 +55,15 @@ export interface SearchBarProps {
 
 export interface PopularMealsProps {
   popularMeals: string[];
-  setSearchQuery: (query: string) => void;
+  setSearchQuery: (cuisine: string) => void;
 }
 
 export interface MealChoicesProps {
   mealChoices: MealChoice[];
   filteredMealChoices: MealChoice[];
   addMeal: (meal: { id: number; name: string }) => void;
+  isLoading?: boolean;
+  selectedCuisine?: string | null;
 }
 
 export interface SelectedMealsProps {

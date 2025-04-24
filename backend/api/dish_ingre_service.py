@@ -20,6 +20,9 @@ class DishIngredientService:
         self.dish_cache = {}  # Cache for dish-ingredient mappings
         self._load_dish_cache()
         
+        # Ensure the dish_mappings table exists
+        self._ensure_dish_mappings_table()
+        
         # Common household items to exclude from results
         self.household_items = {
             'salt', 'pepper', 'olive oil', 'vegetable oil', 'canola oil', 'cooking oil',
@@ -45,6 +48,35 @@ class DishIngredientService:
                 print(f"Loaded {len(self.dish_cache)} dishes into cache")
         except Exception as e:
             print(f"Error loading dish cache: {str(e)}")
+    
+    def _ensure_dish_mappings_table(self):
+        """Create the dish_mappings table if it doesn't exist"""
+        try:
+            with connection.cursor() as cursor:
+                # Check which database engine is being used
+                db_engine = connection.vendor
+                
+                if db_engine == 'sqlite':
+                    # SQLite syntax
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS dish_mappings (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_term VARCHAR(255) NOT NULL UNIQUE,
+                            dish_name VARCHAR(255) NOT NULL
+                        )
+                    """)
+                else:
+                    # MySQL/PostgreSQL syntax
+                    cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS dish_mappings (
+                            id SERIAL PRIMARY KEY,
+                            user_term VARCHAR(255) NOT NULL UNIQUE,
+                            dish_name VARCHAR(255) NOT NULL
+                        )
+                    """)
+                print("Ensured dish_mappings table exists")
+        except Exception as e:
+            print(f"Error ensuring dish_mappings table: {str(e)}")
     
     def get_ingredients(self, user_dish_input):
         """
@@ -288,12 +320,29 @@ class DishIngredientService:
         # Store mappings in database and update cache
         try:
             with connection.cursor() as cursor:
+                db_engine = connection.vendor
+                
                 for term in common_terms:
-                    cursor.execute(
-                        "INSERT INTO dish_mappings (user_term, dish_name) VALUES (%s, %s) "
-                        "ON DUPLICATE KEY UPDATE dish_name = %s",
-                        [term.lower(), dish_name, dish_name]
-                    )
+                    if db_engine == 'sqlite':
+                        # SQLite doesn't support ON DUPLICATE KEY UPDATE
+                        cursor.execute("SELECT COUNT(*) FROM dish_mappings WHERE user_term = %s", [term.lower()])
+                        if cursor.fetchone()[0] > 0:
+                            cursor.execute(
+                                "UPDATE dish_mappings SET dish_name = %s WHERE user_term = %s",
+                                [dish_name, term.lower()]
+                            )
+                        else:
+                            cursor.execute(
+                                "INSERT INTO dish_mappings (user_term, dish_name) VALUES (%s, %s)",
+                                [term.lower(), dish_name]
+                            )
+                    else:
+                        # MySQL syntax
+                        cursor.execute(
+                            "INSERT INTO dish_mappings (user_term, dish_name) VALUES (%s, %s) "
+                            "ON DUPLICATE KEY UPDATE dish_name = %s",
+                            [term.lower(), dish_name, dish_name]
+                        )
             return True
         except Exception as e:
             print(f"Error adding dish mapping: {str(e)}")

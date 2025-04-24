@@ -1,20 +1,27 @@
+# Django imports
+from django.db import connection
+from django.http import JsonResponse
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+
+# Django REST framework imports
+from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
-from rest_framework import status, viewsets
-from .models import Geospatial, SecondLife
-from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
-from rest_framework import viewsets
-from .db_service import get_storage_recommendations, get_all_food_types
+
+# Python standard library imports
 import json
-from datetime import datetime, timedelta, date
-from django.utils import timezone
-import uuid
-from django.db import connection
 import re
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+import uuid
+from datetime import datetime, timedelta, date
+
+# Local application imports
+from .db_service import get_storage_recommendations, get_all_food_types
 from .dish_ingre_service import DishIngredientService
 from .hours_parser import parse_operating_hours
+from .models import Geospatial, SecondLife, Dish
+from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
+
 
 @api_view(['POST'])
 def get_storage_advice(request):
@@ -174,17 +181,6 @@ def get_second_life_item_detail(request, item_id):
     except SecondLife.DoesNotExist:
         return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
     
-
-
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-import json
-
-# Import the DishIngredientService
-from .dish_ingre_service import DishIngredientService
 
 # Initialize service
 dish_service = DishIngredientService()
@@ -397,3 +393,31 @@ def add_dish_mapping(request):
                           status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+@api_view(['GET'])
+def get_signature_dishes(request):
+    """
+    Get dishes, optionally filtered by cuisine
+    """
+    cuisine_filter = request.GET.get('cuisine', '')
+    
+    # Start with all dishes
+    dishes = Dish.objects.all()
+    
+    # Apply cuisine filter if provided
+    if cuisine_filter:
+        dishes = dishes.filter(cuisine__iexact=cuisine_filter)
+    
+    # Format the data for response
+    data = []
+    for dish in dishes:
+        data.append({
+            'id': dish.id,
+            'name': dish.name,
+            'description': dish.description,
+            'cuisine': dish.cuisine,
+            'imageUrl': dish.URL
+        })
+    
+    return Response(data)

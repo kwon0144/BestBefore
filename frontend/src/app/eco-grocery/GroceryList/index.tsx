@@ -103,13 +103,6 @@ export default function GroceryList({
         )}
       </Button>
       
-      {/* Debug Section - Only visible during development */}
-      {process.env.NODE_ENV === 'development' && groceryList && (
-        <div className="mt-6 p-4 bg-slate-100 rounded text-xs overflow-auto max-h-96">
-          <h4 className="font-medium mb-2">API Response:</h4>
-          <pre>{JSON.stringify(groceryList, null, 2)}</pre>
-        </div>
-      )}
     </div>
   );
 } 

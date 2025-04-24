@@ -8,6 +8,7 @@ from .views import (
     get_dish_ingredients,
     add_dish_mapping,
     search_dishes,
+    get_signature_dishes,
 )
 from . import produce_detection
 from .output_calender import generate_calendar, generate_ical
@@ -26,6 +27,6 @@ urlpatterns = [
     path('dish-ingredients/', get_dish_ingredients, name='get_dish_ingredients'),
     path('dish-mappings/add/', add_dish_mapping, name='add_dish_mapping'),
     path('search-dishes/', search_dishes, name='search_dishes'),
-
+    path('signature-dishes/', get_signature_dishes, name='get_signature_dishes'),
 ]
 

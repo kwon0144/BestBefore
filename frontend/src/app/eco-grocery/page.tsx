@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Title from "../(components)/Title"
 import { useGroceryPlanner } from "@/hooks/useGroceryPlanner";
 import { PantrySummary } from "../(components)/Inventory";
-import { MealChoice as MealChoiceType } from "./interfaces";
+import { MealChoice as MealChoiceType, SignatureDish } from "./interfaces";
+import axios from 'axios';
+import { config } from '@/config';
 
-// Import new components from their folders
 import Search from "./Search";
 import PopularMeal from "./PopularMeal";
 import MealChoice from "./MealChoice";
@@ -15,6 +16,9 @@ import GroceryList from "./GroceryList";
 
 export default function EcoGrocery() {
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
+    const [signatureDishes, setSignatureDishes] = useState<SignatureDish[]>([]);
+    const [isLoadingSignatureDishes, setIsLoadingSignatureDishes] = useState(false);
     
     // Use the grocery planner hook
     const {
@@ -33,42 +37,114 @@ export default function EcoGrocery() {
     } = useGroceryPlanner();
 
     const popularMeals = [
-        'Grilled Chicken',
-        'Beef Steak',
-        'Salmon Fillet',
-        'Pork Chops',
-        'Turkey Breast',
-        'Lamb Chops',
-        'Tuna Steak',
-        'Duck Breast'
+        'Chinese Cuisine',
+        'Italian Cuisine',
+        'Thai Cuisine',
+        'Mexican Cuisine',
+        'French Cuisine',
+        'Japanese Cuisine',
+        'Korean Cuisine',
+        'Indian Cuisine',
+        'Beef Dishes',
+        'Lamb Dishes',
+        'Seafood',
+        'Vegetarian',
+        'Mediterranean'
     ];
     
-    const mealChoices: MealChoiceType[] = [
+    // Complete meal list with all options, including cuisine categorization
+    const allMealChoices: (MealChoiceType & { cuisine?: string })[] = [
         {
             id: 1,
             name: 'Vegetarian Buddha Bowl',
             description: 'Colorful bowl with quinoa, roasted vegetables, and tahini dressing.',
-            imageUrl: 'https://readdy.ai/api/search-image?query=A%20vibrant%20buddha%20bowl%20filled%20with%20colorful%20roasted%20vegetables%2C%20quinoa%2C%20avocado%2C%20and%20drizzled%20with%20tahini%20sauce%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20natural%20lighting&width=300&height=200&seq=1&orientation=landscape'
+            imageUrl: 'https://readdy.ai/api/search-image?query=A%20vibrant%20buddha%20bowl%20filled%20with%20colorful%20roasted%20vegetables%2C%20quinoa%2C%20avocado%2C%20and%20drizzled%20with%20tahini%20sauce%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20natural%20lighting&width=300&height=200&seq=1&orientation=landscape',
+            cuisine: 'Vegetarian'
         },
         {
             id: 2,
             name: 'Kung Pao Chicken',
             description: 'Spicy Chinese stir-fry with peanuts and vegetables.',
-            imageUrl: 'https://readdy.ai/api/search-image?query=A%20traditional%20Chinese%20Kung%20Pao%20chicken%20dish%20with%20diced%20chicken%2C%20peanuts%2C%20dried%20chilies%2C%20and%20scallions%20in%20a%20glossy%20sauce%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20dramatic%20lighting&width=300&height=200&seq=2&orientation=landscape'
+            imageUrl: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/meal-img/01_Kung+Pao+Chicken.jpg',
+            cuisine: 'Chinese Cuisine'
         },
         {
             id: 3,
             name: 'Fettuccine Alfredo',
             description: 'Creamy Italian pasta with parmesan cheese.',
-            imageUrl: 'https://readdy.ai/api/search-image?query=A%20luxurious%20plate%20of%20fettuccine%20alfredo%20pasta%20in%20creamy%20white%20sauce%2C%20garnished%20with%20fresh%20parsley%20and%20black%20pepper%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20soft%20natural%20lighting&width=300&height=200&seq=3&orientation=landscape'
+            imageUrl: 'https://readdy.ai/api/search-image?query=A%20luxurious%20plate%20of%20fettuccine%20alfredo%20pasta%20in%20creamy%20white%20sauce%2C%20garnished%20with%20fresh%20parsley%20and%20black%20pepper%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20soft%20natural%20lighting&width=300&height=200&seq=3&orientation=landscape',
+            cuisine: 'Italian Cuisine'
         },
         {
             id: 4,
             name: 'Mediterranean Salad',
             description: 'Fresh salad with feta, olives, and grilled vegetables.',
-            imageUrl: 'https://readdy.ai/api/search-image?query=A%20fresh%20Mediterranean%20salad%20with%20mixed%20greens%2C%20cherry%20tomatoes%2C%20cucumber%2C%20red%20onions%2C%20kalamata%20olives%2C%20and%20crumbled%20feta%20cheese%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20natural%20lighting&width=300&height=200&seq=4&orientation=landscape'
+            imageUrl: 'https://readdy.ai/api/search-image?query=A%20fresh%20Mediterranean%20salad%20with%20mixed%20greens%2C%20cherry%20tomatoes%2C%20cucumber%2C%20red%20onions%2C%20kalamata%20olives%2C%20and%20crumbled%20feta%20cheese%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20natural%20lighting&width=300&height=200&seq=4&orientation=landscape',
+            cuisine: 'Mediterranean'
         }
     ];
+    
+    // Fetch signature dishes when a cuisine is selected
+    useEffect(() => {
+        if (!selectedCuisine) {
+            setSignatureDishes([]);
+            return;
+        }
+
+        const fetchSignatureDishes = async () => {
+            setIsLoadingSignatureDishes(true);
+            try {
+                const apiUrl = `${config.apiUrl}/api/signature-dishes/`;
+                console.log('Fetching from URL:', apiUrl);
+                console.log('With params:', { cuisine: selectedCuisine });
+                
+                const response = await axios.get<SignatureDish[]>(apiUrl, {
+                    params: { cuisine: selectedCuisine }
+                });
+                
+                console.log('API response status:', response.status);
+                console.log('API response data:', response.data);
+                
+                setSignatureDishes(response.data);
+            } catch (error) {
+                console.error('Error fetching signature dishes:', error);
+                setSignatureDishes([]);
+            } finally {
+                setIsLoadingSignatureDishes(false);
+            }
+        };
+
+        fetchSignatureDishes();
+    }, [selectedCuisine]);
+    
+    // Filter meals based on selected cuisine from popular meals or search query
+    const getMealsByFilter = () => {
+        // If we have signature dishes for the selected cuisine, use those instead
+        if (selectedCuisine && signatureDishes.length > 0) {
+            return signatureDishes;
+        }
+        
+        // If search query matches a cuisine category, show meals for that cuisine
+        const cuisineMatch = popularMeals.find(cuisine => 
+            cuisine.toLowerCase() === searchQuery.toLowerCase()
+        );
+        
+        if (cuisineMatch) {
+            return allMealChoices.filter(meal => meal.cuisine === cuisineMatch);
+        }
+        
+        // For search by name
+        if (searchQuery) {
+            return allMealChoices.filter(meal => 
+                meal.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+        
+        // Default view
+        return allMealChoices;
+    };
+    
+    const filteredMealChoices = getMealsByFilter();
     
     const addSearchResultMeal = () => {
         if (!searchQuery.trim()) return;
@@ -76,17 +152,10 @@ export default function EcoGrocery() {
         setSearchQuery('');
     };
     
-    // Filter meal choices by search query
-    const filteredMealChoices = searchQuery
-        ? mealChoices.filter(meal => 
-            meal.name.toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        : mealChoices;
-    
     // Check if search query exactly matches a popular meal or meal choice
     const exactMatchExists = popularMeals.some(meal => 
         meal.toLowerCase() === searchQuery.toLowerCase()
-    ) || mealChoices.some(meal => 
+    ) || allMealChoices.some(meal => 
         meal.name.toLowerCase() === searchQuery.toLowerCase()
     );
     
@@ -94,7 +163,7 @@ export default function EcoGrocery() {
         if (e.key === 'Enter' && searchQuery.trim()) {
             if (exactMatchExists) {
                 // If exact match exists, add that meal
-                const matchedChoice = mealChoices.find(meal => 
+                const matchedChoice = allMealChoices.find(meal => 
                     meal.name.toLowerCase() === searchQuery.toLowerCase()
                 );
                 
@@ -117,6 +186,12 @@ export default function EcoGrocery() {
         }
     };
     
+    // Handle cuisine selection
+    const handleCuisineSelect = (cuisine: string) => {
+        setSearchQuery(cuisine);
+        setSelectedCuisine(cuisine);
+    };
+    
     return (
         <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
             {/* Title */}
@@ -133,18 +208,20 @@ export default function EcoGrocery() {
             {/* Popular Meals */}
             <PopularMeal 
                 popularMeals={popularMeals}
-                setSearchQuery={setSearchQuery}
+                setSearchQuery={handleCuisineSelect}
             />
             
             {/* Main Grid Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Left Column - Selected Meals and Grocery List */}
                 <div className="lg:col-span-2 space-y-8">
-                    {/* Meal Choices */}
+                    {/* Meal Choices - now includes signature dishes when a cuisine is selected */}
                     <MealChoice 
-                        mealChoices={mealChoices}
+                        mealChoices={allMealChoices}
                         filteredMealChoices={filteredMealChoices}
                         addMeal={addMeal}
+                        isLoading={isLoadingSignatureDishes && selectedCuisine !== null}
+                        selectedCuisine={selectedCuisine}
                     />
                     
                     {/* Selected Meals */}

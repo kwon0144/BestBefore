@@ -148,7 +148,15 @@ export const useGroceryPlanner = () => {
         });
         
         setGroceryItems(newGroceryItems);
-        setPantryItems(data.pantry_items || []);
+        
+        // Use inventory items instead of API pantry items
+        // Transform inventory items to match the pantryItems format
+        const inventoryPantryItems = inventoryItems.map(item => ({
+          name: item.name,
+          quantity: item.quantity
+        }));
+        setPantryItems(inventoryPantryItems);
+        
         setGroceryList(data);
       } else {
         setError(data.error || 'Failed to generate grocery list');
