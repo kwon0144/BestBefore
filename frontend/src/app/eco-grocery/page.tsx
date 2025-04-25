@@ -211,26 +211,34 @@ export default function EcoGrocery() {
                 setSearchQuery={handleCuisineSelect}
             />
             
-            {/* Main Grid Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column - Selected Meals and Grocery List */}
-                <div className="lg:col-span-2 space-y-8">
-                    {/* Meal Choices - now includes signature dishes when a cuisine is selected */}
+            {/* Meal Choices and Selected Meals (side by side) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                {/* Meal Choices (takes 2/3 of the width) */}
+                <div className="lg:col-span-2 h-full">
                     <MealChoice 
-                        mealChoices={allMealChoices}
                         filteredMealChoices={filteredMealChoices}
                         addMeal={addMeal}
                         isLoading={isLoadingSignatureDishes && selectedCuisine !== null}
                         selectedCuisine={selectedCuisine}
                     />
-                    
-                    {/* Selected Meals */}
+                </div>
+                
+                {/* Selected Meals (takes 1/3 of the width) */}
+                <div className="h-full">
                     <SelectedMeal 
                         selectedMeals={selectedMeals}
                         adjustQuantity={adjustQuantity}
                         removeMeal={removeMeal}
+                        generateGroceryList={generateGroceryList}
+                        loading={loading}
                     />
-                    
+                </div>
+            </div>
+            
+            {/* Grocery List and Food Inventory Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column - Grocery List */}
+                <div className="lg:col-span-2">
                     {/* Smart Grocery List */}
                     <GroceryList 
                         selectedMeals={selectedMeals}
@@ -239,16 +247,13 @@ export default function EcoGrocery() {
                         loading={loading}
                         error={error}
                         groceryList={groceryList}
-                        generateGroceryList={generateGroceryList}
                         getGroceryItemsByCategory={getGroceryItemsByCategory}
                     />
                 </div>
                 
                 {/* Right Column - Food Inventory */}
-                <div>
-                    <PantrySummary 
-                        ecoTipContent="Planning your meals and creating precise shopping lists can reduce food waste by up to 25%. Your smart choices help the planet!"
-                    />
+                <div className="h-full">
+                    <PantrySummary />
                 </div>
             </div>
         </div>

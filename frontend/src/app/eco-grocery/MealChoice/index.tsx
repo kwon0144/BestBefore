@@ -1,11 +1,10 @@
-import { useState } from "react";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faSpinner, faUtensils } from "@fortawesome/free-solid-svg-icons";
 import { MealChoicesProps } from "../interfaces";
+import Image from "next/image";
 
 export default function MealChoice({ 
-  mealChoices, 
   filteredMealChoices, 
   addMeal,
   isLoading = false,
@@ -31,10 +30,12 @@ export default function MealChoice({
             <div key={meal.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="relative h-32 overflow-hidden">
                 {meal.imageUrl ? (
-                  <img
+                  <Image
                     src={meal.imageUrl}
                     alt={meal.name}
-                    className="w-full h-full object-cover object-top"
+                    className="object-cover object-top"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 300px"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-200">

@@ -40,7 +40,7 @@ export interface PantryItem {
 export interface GroceryListResponse {
   success: boolean;
   dishes?: string[];
-  items_by_category?: Record<string, any[]>;
+  items_by_category?: Record<string, GroceryItem[]>;
   pantry_items?: Array<PantryItem>;
   error?: string;
 }
@@ -59,7 +59,7 @@ export interface PopularMealsProps {
 }
 
 export interface MealChoicesProps {
-  mealChoices: MealChoice[];
+  mealChoices?: MealChoice[];
   filteredMealChoices: MealChoice[];
   addMeal: (meal: { id: number; name: string }) => void;
   isLoading?: boolean;
