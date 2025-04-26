@@ -14,7 +14,7 @@ const api = axios.create({
 
 export const startGame = async (playerId) => {
     try {
-        const response = await axios.post(`${API_URL}/api/game/start/`, { player_id: playerId });
+        const response = await api.post('/api/game/start/', { player_id: playerId });
         return response.data;
     } catch (error) {
         console.error('Error starting game:', error);
@@ -24,7 +24,7 @@ export const startGame = async (playerId) => {
 
 export const updateGame = async (gameId, action, foodType) => {
     try {
-        const response = await axios.post(`${API_URL}/api/game/update/`, {
+        const response = await api.post('/api/game/update/', {
             game_id: gameId,
             action: action,
             food_type: foodType
@@ -38,17 +38,21 @@ export const updateGame = async (gameId, action, foodType) => {
 
 export const endGame = async (gameId) => {
     try {
-        const response = await axios.post(`${API_URL}/api/game/end/`, { game_id: gameId });
+        const response = await api.post('/api/game/end/', { game_id: gameId });
         return response.data;
     } catch (error) {
+        // If the game end fails, just log the error and return a default response
         console.error('Error ending game:', error);
-        throw error;
+        return {
+            score: 0,
+            time_played: 0
+        };
     }
 };
 
 export const getLeaderboard = async () => {
     try {
-        const response = await axios.get(`${API_URL}/api/game/leaderboard/`);
+        const response = await api.get('/api/game/leaderboard/');
         return response.data;
     } catch (error) {
         console.error('Error getting leaderboard:', error);

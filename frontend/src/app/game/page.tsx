@@ -9,28 +9,34 @@ import Title from "../(components)/Title";
 import { Button } from "@heroui/react";
 
 // Sound effects
-let sounds: { [key: string]: HTMLAudioElement } = {};
 const playSound = (type: 'donate' | 'eatFood' | 'gameStart' | 'wasteFood' | 'wrongAction') => {
-  if (typeof window !== 'undefined' && sounds[type]) {
-    try {
-      // Create a new instance of the audio to avoid overlapping playback issues
-      const sound = new Audio(sounds[type].src);
-      sound.volume = 0.5; // Set volume to 50%
-      
-      // Add event listeners for debugging
-      sound.addEventListener('play', () => console.log(`Sound ${type} started playing`));
-      sound.addEventListener('error', (e) => console.error(`Sound ${type} error:`, e));
-      
-      // Force play with user interaction
-      const playPromise = sound.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(err => console.log(`Audio play failed for ${type}:`, err));
-      }
-    } catch (err) {
-      console.log('Sound playback error:', err);
+  if (typeof window === 'undefined') return;
+  
+  const soundUrls = {
+    donate: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/donate.wav',
+    eatFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/eatFood.wav',
+    gameStart: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/gameStart.wav',
+    wasteFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/wasteFodd.wav',
+    wrongAction: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/wrongAction.wav'
+  };
+  
+  try {
+    const audio = new Audio(soundUrls[type]);
+    audio.volume = 0.5;
+    
+    // Add event listeners for debugging
+    audio.addEventListener('play', () => console.log(`Sound ${type} started playing`));
+    audio.addEventListener('error', (e) => console.error(`Sound ${type} error:`, e));
+    
+    // Play the sound
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(err => {
+        console.error(`Audio play failed for ${type}:`, err);
+      });
     }
-  } else {
-    console.log(`Sound ${type} not available`);
+  } catch (err) {
+    console.error('Sound playback error:', err);
   }
 };
 
@@ -41,48 +47,8 @@ const App: React.FC = () => {
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      console.log('Initializing sounds...');
-      
-      // Pre-load sound files with the specific URLs provided
-      const soundUrls = {
-        donate: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/donate.wav',
-        eatFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/eatFood.wav',
-        gameStart: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/gameStart.wav',
-        wasteFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/wasteFodd.wav',
-        wrongAction: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/wrongAction.wav'
-      };
-      
-      // Create audio objects
-      sounds = {};
-      
-      // Load each sound and track loading status
-      let loadedCount = 0;
-      const totalSounds = Object.keys(soundUrls).length;
-      
-      Object.entries(soundUrls).forEach(([key, url]) => {
-        const audio = new Audio();
-        
-        // Add event listeners for loading
-        audio.addEventListener('canplaythrough', () => {
-          console.log(`Sound ${key} loaded successfully`);
-          loadedCount++;
-          if (loadedCount === totalSounds) {
-            console.log('All sounds loaded successfully');
-            setSoundsLoaded(true);
-          }
-        });
-        
-        audio.addEventListener('error', (e) => {
-          console.error(`Error loading sound ${key}:`, e);
-        });
-        
-        // Set source and load
-        audio.src = url;
-        audio.volume = 0.5;
-        audio.load();
-        
-        sounds[key] = audio;
-      });
+      // Set sounds as loaded immediately since we're using direct URLs
+      setSoundsLoaded(true);
     }
   }, []);
 
@@ -244,8 +210,10 @@ const App: React.FC = () => {
             if (gameId && food.type !== 'trash') {
               updateGame(gameId, 'incorrect', food.type)
                 .then(response => {
+                  // Only update score, not time for food waste
                   setScore(response.score);
-                  setTime(response.time_remaining);
+                  // Don't update time for food waste
+                  // setTime(response.time_remaining);
                   if (soundsLoaded) {
                     console.log('Playing waste food sound');
                     playSound('wasteFood');
@@ -365,7 +333,8 @@ const App: React.FC = () => {
         const isCorrect = holdingFood.type === 'foodbank' || holdingFood.type === 'both';
         const response = await updateGame(gameId, isCorrect ? 'correct' : 'incorrect', holdingFood.type);
         setScore(response.score);
-        setTime(response.time_remaining);
+        // Don't update time from backend response
+        // setTime(response.time_remaining);
         
         if (isCorrect) {
           if (soundsLoaded) {
@@ -387,7 +356,8 @@ const App: React.FC = () => {
         const isCorrect = holdingFood.type === 'greenbin' || holdingFood.type === 'both';
         const response = await updateGame(gameId, isCorrect ? 'correct' : 'incorrect', holdingFood.type);
         setScore(response.score);
-        setTime(response.time_remaining);
+        // Don't update time from backend response
+        // setTime(response.time_remaining);
         
         if (isCorrect) {
           if (soundsLoaded) {
@@ -486,7 +456,8 @@ const App: React.FC = () => {
       // Only trash food should be incorrect for eating
       const response = await updateGame(gameId, holdingFood.type === 'trash' ? 'incorrect' : 'correct', holdingFood.type);
       setScore(response.score);
-      setTime(response.time_remaining);
+      // Don't update time from backend response
+      // setTime(response.time_remaining);
 
       if (holdingFood.type === 'trash') {
         if (soundsLoaded) {
@@ -584,7 +555,7 @@ const App: React.FC = () => {
             onPress={() => setDifficulty('easy')}
             className={`py-2 px-6 rounded-lg ${
               difficulty === 'easy'
-                ? 'bg-green-600 text-white'
+                ? 'bg-orange-500 text-white'
                 : 'bg-gray-100 text-green-600 hover:bg-gray-200'
             }`}
           >
@@ -594,7 +565,7 @@ const App: React.FC = () => {
             onPress={() => setDifficulty('normal')}
             className={`py-2 px-6 rounded-lg ${
               difficulty === 'normal'
-                ? 'bg-green-600 text-white'
+                ? 'bg-orange-500 text-white'
                 : 'bg-gray-100 text-green-600 hover:bg-gray-200'
             }`}
           >
@@ -604,7 +575,7 @@ const App: React.FC = () => {
             onPress={() => setDifficulty('hard')}
             className={`py-2 px-6 rounded-lg ${
               difficulty === 'hard'
-                ? 'bg-green-600 text-white'
+                ? 'bg-orange-500 text-white'
                 : 'bg-gray-100 text-green-600 hover:bg-gray-200'
             }`}
           >
