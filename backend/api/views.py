@@ -7,6 +7,7 @@ from rest_framework import viewsets
 from .db_service import get_storage_recommendations, get_all_food_types
 from .game_core import start_new_game, update_game_state, end_game_session
 from .game_validators import get_top_scores, validate_pickup, validate_action
+from .game_state import games
 import json
 from datetime import datetime, timedelta, date
 from django.utils import timezone

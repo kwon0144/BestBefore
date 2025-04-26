@@ -124,8 +124,6 @@ def update_game_state(game_id, action, food_type, character_position=None, food=
     # Update game score (ensure score doesn't go below 0)
     game['score'] = max(0, game['score'] + score_change)
     
-    # Update time remaining (decrease by 1 second for each action)
-    game['time_remaining'] = max(0, game['time_remaining'] - 1)
     
     # Check if game should end (time ran out)
     if game['time_remaining'] <= 0:
@@ -160,6 +158,7 @@ def end_game_session(game_id):
     # Calculate time played
     time_played = INITIAL_TIME - game['time_remaining']
     
+    # Return final game data
     return {
         'score': game['score'],
         'time_played': time_played
