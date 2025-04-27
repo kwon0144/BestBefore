@@ -327,9 +327,12 @@ const FoodStorageAssistant: React.FC = () => {
                   <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
                   Back to Camera
                 </Button>
-                <h2 className="text-2xl font-semibold text-darkgreen mb-5">
+                <h2 className="text-2xl font-semibold text-darkgreen mb-2">
                   Step 2: Storage Recommendations
                 </h2>
+                <p className="text-md text-gray-700 mb-10">
+                  Review your grocery items with the storage recommendations and estimated expiration time.
+                </p>
                 
                 {/* Add the notification for items added to inventory */}
                 {itemsAddedToInventory && (
@@ -343,7 +346,7 @@ const FoodStorageAssistant: React.FC = () => {
                   storageRecs={storageRecs} 
                   onUpdateStorageRecs={handleStorageRecsUpdate} 
                 />
-                <div className="flex justify-end mt-8">
+                <div className="flex justify-center md:justify-end mt-8">
                   <Button
                     onPress={() => setCurrentStep(2)}
                     className="bg-darkgreen text-white py-2 px-8 rounded-lg"
