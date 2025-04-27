@@ -21,7 +21,7 @@ export default function Hero() {
 
     return (
         <div id="hero-section" className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#F5F5F1]/90 to-transparent z-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#F5F5F1]/90 to-[#F5F5F1]/10 z-10"></div>
             <div
                 className="h-screen bg-cover bg-center"
                 style={{
