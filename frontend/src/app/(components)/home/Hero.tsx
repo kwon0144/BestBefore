@@ -5,6 +5,44 @@ import { useRouter } from "next/navigation";
 import GradientText from "../Gradient Text";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { motion } from 'framer-motion';
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            duration: 1,
+            ease: "easeInOut"
+        }
+    }
+};
+
+const contentVariants = {
+    hidden: { x: -100, opacity: 0 },
+    visible: {
+        x: 0,
+        opacity: 1,
+        transition: {
+            duration: 0.8,
+            delay: 1.2,
+            ease: "easeOut"
+        }
+    }
+};
+
+const scrollButtonVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+        y: 0,
+        opacity: 1,
+        transition: {
+            duration: 0.8,
+            delay: 1,
+            ease: "easeOut"
+        }
+    }
+};
 
 export default function Hero() {
     const router = useRouter();
@@ -20,16 +58,29 @@ export default function Hero() {
     };
 
     return (
-        <div id="hero-section" className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#F5F5F1]/90 to-[#F5F5F1]/10 z-10"></div>
-            <div
+        <motion.div 
+            id="hero-section" 
+            className="relative"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+        >
+            <motion.div 
+                className="absolute inset-0 bg-gradient-to-r from-[#F5F5F1]/90 to-[#F5F5F1]/10 z-10"
+                variants={containerVariants}
+            />
+            <motion.div
                 className="h-screen bg-cover bg-center"
                 style={{
                 backgroundImage: `url('https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/hero.jpg')`
                 }}
+                variants={containerVariants}
             >
-            </div>
-            <div className="max-w-6xl mx-auto absolute inset-0 flex flex-col justify-center items-start md:px-16 z-20">
+            </motion.div>
+            <motion.div 
+                className="max-w-6xl mx-auto absolute inset-0 flex flex-col justify-center items-start md:px-16 z-20"
+                variants={contentVariants}
+            >
                 <div className="max-w-3xl pl-10">
                     <GradientText
                         colors={["#1B5E20", "#0d9488",  "#2D5A4B", "#0d9488", "#1B5E20"]}
@@ -51,16 +102,19 @@ export default function Hero() {
                         Start Your Zero-Waste Journey
                     </Button>
                 </div>
-            </div>
-            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+            </motion.div>
+            <motion.div 
+                className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
+                variants={scrollButtonVariants}
+            >
                 <div
                     className="w-15 h-15 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center mr-3 p-4 cursor-pointer transition-all duration-300 hover:-translate-y-1"
                     onClick={scrollToProblemStatement}
                 >
                     <FontAwesomeIcon icon={faChevronDown} className="text-2xl text-white" />
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     )
 }
 
