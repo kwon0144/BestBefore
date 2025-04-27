@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@heroui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import RotatingText from '../(components)/RotatingTextRef';
+import { config } from '@/config';
 
 export default function LoginPage() {
   const [password, setPassword] = useState('');
@@ -17,11 +18,12 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${config.apiUrl}/api/auth/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ password }),
       });
 

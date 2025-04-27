@@ -14,6 +14,7 @@ import json
 import re
 import uuid
 from datetime import datetime, timedelta, date
+import os
 
 # Local application imports
 from .db_service import get_storage_recommendations, get_all_food_types
@@ -421,3 +422,36 @@ def get_signature_dishes(request):
         })
     
     return Response(data)
+
+@api_view(['POST'])
+def login(request):
+    try:
+        password = request.data.get('password')
+        
+        if not os.getenv('NEXT_PUBLIC_SITE_PASSWORD'):
+            return Response(
+                {'error': 'Server configuration error'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        if password == os.getenv('NEXT_PUBLIC_SITE_PASSWORD'):
+            response = Response({'success': True})
+            response.set_cookie(
+                'session_token',
+                'authenticated',
+                httponly=True,
+                secure=True,
+                samesite='Strict',
+                max_age=60 * 60 * 24 * 7  # 1 week
+            )
+            return response
+
+        return Response(
+            {'error': 'Invalid password'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+    except Exception as e:
+        return Response(
+            {'error': 'Internal server error'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
