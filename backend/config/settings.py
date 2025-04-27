@@ -63,15 +63,16 @@ MIDDLEWARE = [
 CORS SETTINGS
 """
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:443"
+    os.getenv('DJANGO_ALLOWED_ORIGIN')
+    # # "http://localhost:3000",
+    # "http://localhost:3001",
+    # "http://localhost:443"
 ]
 
-# Add additional allowed origins from environment variable
-allowed_origin = os.getenv('DJANGO_ALLOWED_ORIGIN')
-if allowed_origin and allowed_origin not in CORS_ALLOWED_ORIGINS:
-    CORS_ALLOWED_ORIGINS.append(allowed_origin)
+# # Add additional allowed origins from environment variable
+# allowed_origin = os.getenv('DJANGO_ALLOWED_ORIGIN')
+# if allowed_origin and allowed_origin not in CORS_ALLOWED_ORIGINS:
+#     CORS_ALLOWED_ORIGINS.append(allowed_origin)
 
 CORS_ALLOW_METHODS = (
     "GET",
@@ -194,4 +195,15 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # CLAUDE_API_KEY
 CLAUDE_API_KEY = os.environ.get('CLAUDE_API_KEY')
+
+# REST_FRAMEWORK THROTTLE SETTINGS (API RATE LIMITING for Security)
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '30/minute',
+        'produce_detection': '10/minute',
+    }
+}
 

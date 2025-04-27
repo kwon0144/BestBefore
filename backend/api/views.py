@@ -1,16 +1,27 @@
+# Django imports
+from django.db import connection
+from django.http import JsonResponse
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+
+# Django REST framework imports
+from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
-from rest_framework import status, viewsets
-from .models import Geospatial, SecondLife
-from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
-from rest_framework import viewsets
-from .db_service import get_storage_recommendations, get_all_food_types
+
+# Python standard library imports
 import json
-from datetime import datetime, timedelta, date
-from django.utils import timezone
-import uuid
-from django.db import connection
 import re
+import uuid
+from datetime import datetime, timedelta, date
+
+# Local application imports
+from .db_service import get_storage_recommendations, get_all_food_types
+from .dish_ingre_service import DishIngredientService
+from .hours_parser_service import parse_operating_hours
+from .models import Geospatial, SecondLife, Dish
+from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
+
 
 @api_view(['POST'])
 def get_storage_advice(request):
@@ -76,151 +87,6 @@ def generate_calendar(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class FoodBankViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Geospatial.objects.all()
-    
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return FoodBankDetailSerializer
-        return FoodBankListSerializer
-
-
-def parse_operating_hours(hours_text):
-    """
-    Parse operating hours text into structured data with frontend-ready daily schedules
-    """
-    if not hours_text or not isinstance(hours_text, str):
-        return {
-            'is_24_hours': False,
-            'days': [],
-            'hours': None,
-            'raw_text': str(hours_text) if hours_text else "",
-            'daily_schedule': {
-                'monday': {'is_open': False, 'hours': None},
-                'tuesday': {'is_open': False, 'hours': None},
-                'wednesday': {'is_open': False, 'hours': None},
-                'thursday': {'is_open': False, 'hours': None},
-                'friday': {'is_open': False, 'hours': None},
-                'saturday': {'is_open': False, 'hours': None},
-                'sunday': {'is_open': False, 'hours': None}
-            }
-        }
-        
-    weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
-    weekend = ['saturday', 'sunday']
-    all_days = weekdays + weekend
-    
-    # Initialize daily schedule with all days closed
-    daily_schedule = {
-        day: {'is_open': False, 'hours': None} for day in all_days
-    }
-    
-    # Initialize result
-    result = {
-        'is_24_hours': '24 hours' in hours_text.lower(),
-        'days': [],
-        'hours': None,
-        'raw_text': hours_text,
-        'daily_schedule': daily_schedule
-    }
-    
-    # If it's 24 hours, set all days to open
-    if result['is_24_hours'] or hours_text.strip().lower() == '24 hours':
-        result['is_24_hours'] = True
-        result['days'] = [day.capitalize() for day in all_days]
-        result['hours'] = '00:00-24:00'
-        
-        for day in all_days:
-            result['daily_schedule'][day] = {
-                'is_open': True,
-                'hours': '00:00-24:00'
-            }
-            
-        return result
-    
-    try:
-        hours_text = hours_text.lower().strip()
-        extracted_hours = None
-        
-        # Extract time pattern if available
-        time_match = re.search(r'(\d{1,2}[:\.]\d{2})-(\d{1,2}[:\.]\d{2})', hours_text)
-        if time_match:
-            extracted_hours = time_match.group(0)
-            # Standardize time format (replace dots with colons)
-            if '.' in extracted_hours:
-                extracted_hours = extracted_hours.replace('.', ':')
-        
-        # Case 1: Weekday hours, closed on weekends
-        if ('weekday' in hours_text or 'weekdays' in hours_text) and ('close in weekend' in hours_text or 'closed in weekend' in hours_text):
-            result['days'] = [day.capitalize() for day in weekdays]
-            result['hours'] = extracted_hours
-            
-            for day in weekdays:
-                result['daily_schedule'][day] = {
-                    'is_open': True,
-                    'hours': extracted_hours
-                }
-                
-        # Case 2: Daily hours except certain days
-        elif 'daily beside' in hours_text:
-            excluded_days = []
-            
-            # Find excluded days
-            after_beside = hours_text.split('daily beside')[1].strip()
-            day_names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-            
-            for day in day_names:
-                if day in after_beside:
-                    excluded_days.append(day)
-            
-            # If no explicit excluded days were found, try to extract the first word
-            if not excluded_days:
-                first_word = after_beside.split()[0].rstrip(',.:;')
-                if first_word in day_names:
-                    excluded_days.append(first_word)
-            
-            # Add all days except the excluded ones
-            for day in all_days:
-                if day not in excluded_days:
-                    result['days'].append(day.capitalize())
-                    result['daily_schedule'][day] = {
-                        'is_open': True,
-                        'hours': extracted_hours
-                    }
-            
-            result['hours'] = extracted_hours
-            
-        # Case 3: Daily operations
-        elif 'daily' in hours_text:
-            result['days'] = [day.capitalize() for day in all_days]
-            result['hours'] = extracted_hours
-            
-            for day in all_days:
-                result['daily_schedule'][day] = {
-                    'is_open': True,
-                    'hours': extracted_hours
-                }
-                
-        # Case 4: Specific days mentioned
-        else:
-            # Check for each day mentioned
-            for day in all_days:
-                if day in hours_text:
-                    result['days'].append(day.capitalize())
-                    result['daily_schedule'][day] = {
-                        'is_open': True,
-                        'hours': extracted_hours
-                    }
-            
-            result['hours'] = extracted_hours
-    
-    except Exception as e:
-        print(f"Error parsing hours: {e}")
-    
-    # Format all days for consistent capitalization
-    result['days'] = [day.capitalize() for day in result['days']]
-    
-    return result
 
 @api_view(['GET'])
 def get_foodbanks(request):
@@ -314,3 +180,153 @@ def get_second_life_item_detail(request, item_id):
         return Response(data)
     except SecondLife.DoesNotExist:
         return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+# Initialize service
+dish_service = DishIngredientService()
+
+@csrf_exempt
+@api_view(['POST'])
+def search_dishes(request):
+    """
+    API endpoint to generate grocery lists based on selected meals
+    """
+    try:
+        data = request.data
+        selected_meals = data.get('selected_meals', [])
+        
+        if not selected_meals:
+            return Response({'success': False, 'error': 'No meals selected'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        # Use the new function to handle ingredient combining
+        from .ingredient_combiner_service import combine_dish_ingredients
+        
+        result = combine_dish_ingredients(selected_meals)
+        
+        # Add pantry items processing
+        pantry_items = []
+        for category, ingredients in result.get('items_by_category', {}).items():
+            for ingredient in ingredients:
+                if is_pantry_item(ingredient.get('name', '')):
+                    pantry_items.append(ingredient)
+        
+        # If we found pantry items, remove them from the categories and add as separate list
+        if pantry_items:
+            # Remove pantry items from categories
+            for category in result.get('items_by_category', {}):
+                result['items_by_category'][category] = [
+                    ingredient for ingredient in result['items_by_category'][category]
+                    if not is_pantry_item(ingredient.get('name', ''))
+                ]
+            
+            # Add pantry items to the result
+            result['pantry_items'] = pantry_items
+            
+            # Remove empty categories
+            result['items_by_category'] = {
+                k: v for k, v in result.get('items_by_category', {}).items() if v
+            }
+        
+        return Response(result)
+        
+    except Exception as e:
+        return Response({'success': False, 'error': str(e)}, 
+                      status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def categorize_ingredient(ingredient):
+
+    ingredient = ingredient.lower()
+    
+    # Meat
+    meat_keywords = ['beef', 'chicken', 'pork', 'turkey', 'veal', 'lamb', 'ground meat', 'steak', 'sausage', 
+                     'bacon', 'ham', 'salami', 'sausage', 'sausages', 'sausages']
+    if any(keyword in ingredient for keyword in meat_keywords):
+        return 'Meat'
+    
+    # Fish
+    fish_keywords = ['fish', 'salmon', 'tuna', 'cod', 'tilapia', 'shrimp', 'seafood', 'crab', 'lobster',
+                     'clam', 'oyster', 'mussel', 'scallop', 'scallops', 'crab legs', 'crab claws', 'crab claws']
+    if any(keyword in ingredient for keyword in fish_keywords):
+        return 'Fish'
+    
+    # Produce
+    produce_keywords = ['vegetable', 'fruit', 'tomato', 'lettuce', 'onion', 'garlic', 'pepper', 'carrot', 
+                       'broccoli', 'cabbage', 'spinach', 'apple', 'orange', 'banana', 'herb', 'lemon']
+    if any(keyword in ingredient for keyword in produce_keywords):
+        return 'Produce'
+    
+    # Dairy
+    dairy_keywords = ['milk', 'cheese', 'yogurt', 'butter', 'cream', 'dairy', 'ice cream']
+    if any(keyword in ingredient for keyword in dairy_keywords):
+        return 'Dairy'
+    
+    # Grains
+    grain_keywords = ['rice', 'pasta', 'bread', 'flour', 'cereal', 'oat', 'grain', 'wheat', 'barley']
+    if any(keyword in ingredient for keyword in grain_keywords):
+        return 'Grains'
+    
+    # Condiments
+    condiment_keywords = ['sauce', 'oil', 'vinegar', 'ketchup', 'mustard', 'mayo', 'dressing', 'seasoning', 'spice']
+    if any(keyword in ingredient for keyword in condiment_keywords):
+        return 'Condiments'
+    
+    # Default to Other
+    return 'Other'
+
+def is_pantry_item(ingredient):
+
+    ingredient = ingredient.lower()
+    pantry_keywords = ['salt', 'pepper', 'sugar', 'flour', 'oil', 'vinegar', 'spice', 'herb', 'seasoning', 
+                     'stock', 'pasta', 'rice', 'grain', 'canned', 'dried', 'baking', 'sauce']
+    
+    return any(keyword in ingredient for keyword in pantry_keywords)
+
+@csrf_exempt
+@api_view(['POST'])
+def get_dish_ingredients(request):
+
+    try:
+        data = request.data
+        dish_name = data.get('dish_name')
+
+        if not dish_name:
+            return Response({'error': 'Dish name is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get ingredients using DishIngredientService
+        result = dish_service.get_ingredients(dish_name)
+
+        if 'error' in result:
+            return Response({'error': result['error']}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(result)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def get_signature_dishes(request):
+    """
+    Get dishes, optionally filtered by cuisine
+    """
+    cuisine_filter = request.GET.get('cuisine', '')
+    
+    # Start with all dishes
+    dishes = Dish.objects.all()
+    
+    # Apply cuisine filter if provided
+    if cuisine_filter:
+        dishes = dishes.filter(cuisine__iexact=cuisine_filter)
+    
+    # Format the data for response
+    data = []
+    for dish in dishes:
+        data.append({
+            'id': dish.id,
+            'name': dish.name,
+            'description': dish.description,
+            'cuisine': dish.cuisine,
+            'imageUrl': dish.URL
+        })
+    
+    return Response(data)

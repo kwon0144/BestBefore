@@ -20,6 +20,7 @@ import StorageAssistantStepper from "./StorageAssistantStepper";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faBell } from "@fortawesome/free-solid-svg-icons";
+import useInventoryStore from "@/store/useInventoryStore";
 
 const FoodStorageAssistant: React.FC = () => {
   // State for step navigation
@@ -49,6 +50,12 @@ const FoodStorageAssistant: React.FC = () => {
     pantry: [],
   });
 
+  // Get the addIdentifiedItem function from the inventory store
+  const addIdentifiedItem = useInventoryStore((state) => state.addIdentifiedItem);
+  
+  // State to track if items were added to inventory
+  const [itemsAddedToInventory, setItemsAddedToInventory] = useState(false);
+  
   // Submit photos for analysis
   const submitPhotos = async () => {
     if (state.photos.length === 0) return;
@@ -91,6 +98,9 @@ const FoodStorageAssistant: React.FC = () => {
   // Fetch storage recommendations for detected items
   const fetchStorageRecommendations = async (produceCounts: { [key: string]: number } = {}) => {
     try {
+      // Reset the items added flag
+      setItemsAddedToInventory(false);
+      
       // Get all food types
       const foodTypesResponse = await axios.get<FoodTypesResponse>(`${config.apiUrl}/api/food-types/`);
       const allFoodTypes = foodTypesResponse.data.food_types;
@@ -103,6 +113,11 @@ const FoodStorageAssistant: React.FC = () => {
       // Get storage advice for each item
       const fridgeItems: Array<{ name: string; quantity: number }> = [];
       const pantryItems: Array<{ name: string; quantity: number }> = [];
+      
+      // Only add to inventory if there are items detected
+      if (allItems.length > 0) {
+        setItemsAddedToInventory(true);
+      }
       
       for (const item of allItems) {
         try {
@@ -119,6 +134,14 @@ const FoodStorageAssistant: React.FC = () => {
 
             const recommendation = response.data;
             const quantity = produceCounts[item] || 1;
+            const storageTime = recommendation.storage_time;
+            
+            // Add the item to inventory store
+            addIdentifiedItem(
+              item,                                     // Item name 
+              `${quantity} item${quantity > 1 ? 's' : ''}`,  // Quantity
+              storageTime                               // Expiry days
+            );
 
             if (recommendation.method === 1) {
               fridgeItems.push({
@@ -133,7 +156,17 @@ const FoodStorageAssistant: React.FC = () => {
             }
           } else {
             const quantity = produceCounts[item] || 1;
-            if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
+            const isRefrigeratedItem = ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase());
+            const defaultStorageTime = isRefrigeratedItem ? 7 : 14; // Default storage times
+            
+            // Add to inventory with default values
+            addIdentifiedItem(
+              item,
+              `${quantity} item${quantity > 1 ? 's' : ''}`,
+              defaultStorageTime
+            );
+            
+            if (isRefrigeratedItem) {
               fridgeItems.push({ name: item, quantity: quantity });
             } else {
               pantryItems.push({ name: item, quantity: quantity });
@@ -144,7 +177,17 @@ const FoodStorageAssistant: React.FC = () => {
 
           // Use default categorization
           const quantity = produceCounts[item] || 1;
-          if (['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase())) {
+          const isRefrigeratedItem = ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase());
+          const defaultStorageTime = isRefrigeratedItem ? 7 : 14;
+          
+          // Add to inventory even if there's an error
+          addIdentifiedItem(
+            item,
+            `${quantity} item${quantity > 1 ? 's' : ''}`,
+            defaultStorageTime
+          );
+          
+          if (isRefrigeratedItem) {
             fridgeItems.push({ name: item, quantity: quantity });
           } else {
             pantryItems.push({ name: item, quantity: quantity });
@@ -311,19 +354,28 @@ const FoodStorageAssistant: React.FC = () => {
                 <h2 className="text-2xl font-semibold text-darkgreen mb-5">
                   Step 2: Storage Recommendations
                 </h2>
-              <StorageRecommendations 
-                storageRecs={storageRecs} 
-                onUpdateStorageRecs={handleStorageRecsUpdate} 
-              />
-              <div className="flex justify-end mt-8">
-                <Button
-                  onPress={() => setCurrentStep(2)}
-                  className="bg-darkgreen text-white py-2 px-8 rounded-lg"
-                >
-                  <FontAwesomeIcon icon={faBell} className="text-white"/> 
-                  <p className="font-semibold text-white">Set Up Expiry Reminders</p>
-                </Button>
-              </div>
+                
+                {/* Add the notification for items added to inventory */}
+                {itemsAddedToInventory && (
+                  <div className="bg-green-100 text-green-800 p-4 rounded-md mb-5 border-l-4 border-green-500">
+                    <p className="font-medium">Items have been added to your food inventory!</p>
+                    <p>All detected items have been automatically added to your inventory and will be available in the Eco Grocery page.</p>
+                  </div>
+                )}
+                
+                <StorageRecommendations 
+                  storageRecs={storageRecs} 
+                  onUpdateStorageRecs={handleStorageRecsUpdate} 
+                />
+                <div className="flex justify-end mt-8">
+                  <Button
+                    onPress={() => setCurrentStep(2)}
+                    className="bg-darkgreen text-white py-2 px-8 rounded-lg"
+                  >
+                    <FontAwesomeIcon icon={faBell} className="text-white"/> 
+                    <p className="font-semibold text-white">Set Up Expiry Reminders</p>
+                  </Button>
+                </div>
               </div>
             </>
             ) : (
