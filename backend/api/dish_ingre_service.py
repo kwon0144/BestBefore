@@ -6,6 +6,7 @@ from django.conf import settings
 import os
 from collections import Counter
 
+
 class DishIngredientService:
 
     
@@ -15,8 +16,6 @@ class DishIngredientService:
         self.dish_cache = {}  # Cache for dish-ingredient mappings
         self._load_dish_cache()
         
-        # Ensure the dish_mappings table exists
-        self._ensure_dish_mappings_table()
         
         # Common household items to exclude from results
         self.household_items = {
@@ -44,21 +43,6 @@ class DishIngredientService:
         except Exception as e:
             print(f"Error loading dish cache: {str(e)}")
     
-    def _ensure_dish_mappings_table(self):
-        """Create the dish_mappings table if it doesn't exist"""
-        try:
-            with connection.cursor() as cursor:
-                # MySQL syntax
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS dish_mappings (
-                        id SERIAL PRIMARY KEY,
-                        user_term VARCHAR(255) NOT NULL UNIQUE,
-                        dish_name VARCHAR(255) NOT NULL
-                    )
-                """)
-                print("Ensured dish_mappings table exists")
-        except Exception as e:
-            print(f"Error ensuring dish_mappings table: {str(e)}")
     
     def get_ingredients(self, user_dish_input):
 
@@ -76,20 +60,8 @@ class DishIngredientService:
                 'match_type': 'exact'
             }
         
-        # Step 2: Check for any direct mappings from the dish_mappings table
-        mapped_dish = self._get_mapped_dish(user_input)
-        if mapped_dish and mapped_dish.lower() in self.dish_cache:
-            ingredients_data = self.dish_cache[mapped_dish.lower()]
-            parsed_ingredients = self._parse_ingredients(ingredients_data)
-            filtered_ingredients = self._filter_fresh_ingredients(parsed_ingredients)
-            combined_ingredients = self._combine_duplicate_ingredients(filtered_ingredients)
-            return {
-                'dish': mapped_dish,
-                'ingredients': combined_ingredients,
-                'match_type': 'mapped'
-            }
         
-        # Step 3: Direct Claude API response with improved guidelines
+        # Step 2: Direct Claude API response with improved guidelines
         claude_ingredients = self._get_claude_direct_ingredients(user_input)
         if claude_ingredients:
             combined_ingredients = self._combine_duplicate_ingredients(claude_ingredients)
@@ -254,21 +226,6 @@ class DishIngredientService:
         # If no conversion was possible, return the original
         return quantity
     
-    def _get_mapped_dish(self, user_input):
-        """Get any mapped dish from the dish_mappings table"""
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT dish_name FROM dish_mappings WHERE LOWER(user_term) = LOWER(%s)",
-                    [user_input]
-                )
-                row = cursor.fetchone()
-                if row:
-                    return row[0]
-                return None
-        except Exception as e:
-            print(f"Error getting mapped dish: {str(e)}")
-            return None
     
     def _get_claude_direct_ingredients(self, dish_name):
         """Use Claude API to directly generate fresh ingredients with standardized measurements"""
@@ -287,10 +244,10 @@ class DishIngredientService:
             I need a list of ONLY FRESH ingredients for the dish: "{dish_name}".
             
             IMPORTANT GUIDELINES:
-            1. Include ONLY fresh produce like meats, fish, vegetables, fruits, and dairy
-            2. EXCLUDE common household items like oil, salt, pepper, spices, flour, sugar, etc.
+            1. Include ONLY fresh produce like meats, fish, vegetables, fruits, eggs, and dairy
+            2. EXCLUDE common household items like oil, salt, pepper, spices, flour, sugar, etc. 
             3. Use METRIC measurements: grams (g) for solids and milliliters (ml) for liquids
-            4. For meat and fish, specify quantity in grams (e.g., "250g")
+            4. For meat and fish, specify quantity in grams (e.g., "250g chicken breast")
             5. For produce, specify quantity in grams or by count (e.g., "2 large onions" or "150g onions")
             6. Do NOT use cups, tablespoons, or teaspoons as measurements
             7. Do Not return in plural form
@@ -367,28 +324,6 @@ class DishIngredientService:
         # Simplified implementation - in a real system, this would be based on usage analytics
         return list(self.dish_cache.keys())[:count]
 
-    def add_dish_mapping(self, dish_name, common_terms):
-        """
-        Add mapping between common user terms and official dish names
-        For example: {"spag bol": "Spaghetti Bolognese", "mac n cheese": "Macaroni and Cheese"}
-        """
-        if not isinstance(common_terms, list):
-            common_terms = [common_terms]
-            
-        # Store mappings in database and update cache
-        try:
-            with connection.cursor() as cursor:
-                for term in common_terms:
-                    # MySQL syntax
-                    cursor.execute(
-                        "INSERT INTO dish_mappings (user_term, dish_name) VALUES (%s, %s) "
-                        "ON DUPLICATE KEY UPDATE dish_name = %s",
-                        [term.lower(), dish_name, dish_name]
-                    )
-            return True
-        except Exception as e:
-            print(f"Error adding dish mapping: {str(e)}")
-            return False
 
     def _parse_ingredients(self, ingredients_string):
         """

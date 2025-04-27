@@ -6,7 +6,6 @@ from .views import (
     get_second_life_items,
     get_second_life_item_detail,
     get_dish_ingredients,
-    add_dish_mapping,
     search_dishes,
     get_signature_dishes,
 )
@@ -25,7 +24,6 @@ urlpatterns = [
     path('second-life/', get_second_life_items, name='get_second_life_items'),
     path('second-life/<int:item_id>/', get_second_life_item_detail, name='get_second_life_item_detail'),
     path('dish-ingredients/', get_dish_ingredients, name='get_dish_ingredients'),
-    path('dish-mappings/add/', add_dish_mapping, name='add_dish_mapping'),
     path('search-dishes/', search_dishes, name='search_dishes'),
     path('signature-dishes/', get_signature_dishes, name='get_signature_dishes'),
 ]
