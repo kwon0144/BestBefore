@@ -19,7 +19,7 @@ import os
 # Local application imports
 from .db_service import get_storage_recommendations, get_all_food_types
 from .dish_ingre_service import DishIngredientService
-from .hours_parser import parse_operating_hours
+from .hours_parser_service import parse_operating_hours
 from .models import Geospatial, SecondLife, Dish
 from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
 
@@ -200,115 +200,54 @@ def search_dishes(request):
             return Response({'success': False, 'error': 'No meals selected'}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
-        # Extract meal names and quantities
-        meal_names = [meal.get('name') for meal in selected_meals if meal.get('name')]
-        meal_quantities = {meal.get('name'): meal.get('quantity', 1) for meal in selected_meals if meal.get('name')}
+        # Use the new function to handle ingredient combining
+        from .ingredient_combiner_service import combine_dish_ingredients
         
-        if not meal_names:
-            return Response({'success': False, 'error': 'Invalid meal data provided'}, 
-                          status=status.HTTP_400_BAD_REQUEST)
+        result = combine_dish_ingredients(selected_meals)
         
-        # Process each meal to get ingredients
-        groceries_by_category = {
-            'Meat': [],
-            'Fish': [],
-            'Produce': [],
-            'Dairy': [],
-            'Grains': [],
-            'Condiments': [],
-            'Other': []
-        }
-        
+        # Add pantry items processing
         pantry_items = []
-        found_dishes = []
-        missing_dishes = []
+        for category, ingredients in result.get('items_by_category', {}).items():
+            for ingredient in ingredients:
+                if is_pantry_item(ingredient.get('name', '')):
+                    pantry_items.append(ingredient)
         
-        # Process each meal
-        for meal_name in meal_names:
-            quantity = meal_quantities.get(meal_name, 1)
+        # If we found pantry items, remove them from the categories and add as separate list
+        if pantry_items:
+            # Remove pantry items from categories
+            for category in result.get('items_by_category', {}):
+                result['items_by_category'][category] = [
+                    ingredient for ingredient in result['items_by_category'][category]
+                    if not is_pantry_item(ingredient.get('name', ''))
+                ]
             
-            # Get ingredients using our hybrid matching service
-            result = dish_service.get_ingredients(meal_name)
+            # Add pantry items to the result
+            result['pantry_items'] = pantry_items
             
-            if 'error' in result:
-                # Dish not found
-                missing_dishes.append(meal_name)
-                continue
-            
-            # Add to found dishes
-            found_dishes.append(result.get('dish', meal_name))
-            
-            # Process ingredients
-            ingredients_data = result.get('ingredients', [])
-            if not ingredients_data:
-                continue
-                
-            # Parse ingredients - now structured as a list of objects with 'name' and 'quantity'
-            for ingredient_obj in ingredients_data:
-                ingredient = ingredient_obj.get('name', '').strip()
-                ingredient_quantity = ingredient_obj.get('quantity', 'as needed')
-                
-                if not ingredient:
-                    continue
-                
-                # Scale quantity if necessary
-                if quantity > 1 and ingredient_quantity != 'as needed':
-                    # Try to multiply numeric quantities
-                    try:
-                        qty_parts = ingredient_quantity.split()
-                        if len(qty_parts) > 0 and qty_parts[0].replace('.', '', 1).isdigit():
-                            amount = float(qty_parts[0]) * quantity
-                            # Format with up to 2 decimal places, remove trailing zeros
-                            formatted_amount = str(amount).rstrip('0').rstrip('.') if '.' in str(amount) else str(int(amount))
-                            ingredient_quantity = f"{formatted_amount} {' '.join(qty_parts[1:])}"
-                    except:
-                        # If parsing fails, fall back to simple format
-                        ingredient_quantity = f"{quantity}x {ingredient_quantity}"
-                
-                # Determine if it's a pantry item
-                if is_pantry_item(ingredient):
-                    pantry_items.append({
-                        'name': ingredient,
-                        'quantity': ingredient_quantity
-                    })
-                else:
-                    # Add to appropriate category
-                    category = categorize_ingredient(ingredient)
-                    groceries_by_category[category].append({
-                        'name': ingredient,
-                        'quantity': ingredient_quantity
-                    })
+            # Remove empty categories
+            result['items_by_category'] = {
+                k: v for k, v in result.get('items_by_category', {}).items() if v
+            }
         
-        # Filter out empty categories
-        groceries_by_category = {k: v for k, v in groceries_by_category.items() if v}
-        
-        # Return the response
-        return Response({
-            'success': True,
-            'dishes': found_dishes,
-            'missing_dishes': missing_dishes,
-            'items_by_category': groceries_by_category,
-            'pantry_items': pantry_items
-        })
+        return Response(result)
         
     except Exception as e:
         return Response({'success': False, 'error': str(e)}, 
                       status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def categorize_ingredient(ingredient):
-    """
-    Simple categorization of ingredients
-    This would be more sophisticated in a real system
-    """
+
     ingredient = ingredient.lower()
     
     # Meat
-    meat_keywords = ['beef', 'chicken', 'pork', 'turkey', 'veal', 'lamb', 'ground meat', 'steak', 'sausage']
+    meat_keywords = ['beef', 'chicken', 'pork', 'turkey', 'veal', 'lamb', 'ground meat', 'steak', 'sausage', 
+                     'bacon', 'ham', 'salami', 'sausage', 'sausages', 'sausages']
     if any(keyword in ingredient for keyword in meat_keywords):
         return 'Meat'
     
     # Fish
-    fish_keywords = ['fish', 'salmon', 'tuna', 'cod', 'tilapia', 'shrimp', 'seafood', 'crab', 'lobster']
+    fish_keywords = ['fish', 'salmon', 'tuna', 'cod', 'tilapia', 'shrimp', 'seafood', 'crab', 'lobster',
+                     'clam', 'oyster', 'mussel', 'scallop', 'scallops', 'crab legs', 'crab claws', 'crab claws']
     if any(keyword in ingredient for keyword in fish_keywords):
         return 'Fish'
     
@@ -337,10 +276,7 @@ def categorize_ingredient(ingredient):
     return 'Other'
 
 def is_pantry_item(ingredient):
-    """
-    Determine if an ingredient is typically a pantry item
-    This would be more sophisticated in a real system
-    """
+
     ingredient = ingredient.lower()
     pantry_keywords = ['salt', 'pepper', 'sugar', 'flour', 'oil', 'vinegar', 'spice', 'herb', 'seasoning', 
                      'stock', 'pasta', 'rice', 'grain', 'canned', 'dried', 'baking', 'sauce']
@@ -350,9 +286,7 @@ def is_pantry_item(ingredient):
 @csrf_exempt
 @api_view(['POST'])
 def get_dish_ingredients(request):
-    """
-    API endpoint to get ingredients for a specific dish
-    """
+
     try:
         data = request.data
         dish_name = data.get('dish_name')
@@ -370,31 +304,6 @@ def get_dish_ingredients(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@csrf_exempt
-@api_view(['POST'])
-def add_dish_mapping(request):
-    """
-    API endpoint to add mapping between common user terms and official dish names
-    """
-    try:
-        data = request.data
-        dish_name = data.get('dish_name')
-        common_terms = data.get('common_terms')
-        
-        if not dish_name or not common_terms:
-            return Response({'error': 'Both dish_name and common_terms are required'}, 
-                          status=status.HTTP_400_BAD_REQUEST)
-        
-        success = dish_service.add_dish_mapping(dish_name, common_terms)
-        
-        if success:
-            return Response({'success': True, 'message': f'Mapping added for {dish_name}'})
-        else:
-            return Response({'success': False, 'error': 'Failed to add mapping'}, 
-                          status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
 
 @api_view(['GET'])
 def get_signature_dishes(request):

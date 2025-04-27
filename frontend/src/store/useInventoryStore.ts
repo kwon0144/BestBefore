@@ -23,8 +23,6 @@ type InventoryState = {
   getItemsByLocation: (location: FoodItem['location']) => FoodItem[];
   calculateDaysLeft: (expiryDate: string) => number;
   refreshDaysLeft: () => void;
-  // Migration function
-  migrateFreezers: () => void;
 };
 
 const useInventoryStore = create<InventoryState>()(
@@ -130,39 +128,13 @@ const useInventoryStore = create<InventoryState>()(
         set({ items: [] });
       },
 
-      // Migrate freezer items to refrigerator
-      migrateFreezers: () => {
-        set((state) => {
-          // Check if there are any items with location 'freezer'
-          // @ts-ignore - We're handling items that might still have freezer location from previous versions
-          const freezerItems = state.items.filter(item => item.location === 'freezer');
-          
-          if (freezerItems.length === 0) {
-            return state; // No migration needed
-          }
-          
-          // Migrate freezer items to refrigerator
-          return {
-            items: state.items.map(item => {
-              // @ts-ignore - We're handling items that might still have freezer location
-              if (item.location === 'freezer') {
-                return {
-                  ...item,
-                  location: 'refrigerator'
-                };
-              }
-              return item;
-            })
-          };
-        });
-      }
+    
     }),
     {
       name: 'food-inventory-storage', // name for localStorage
       onRehydrateStorage: () => (state) => {
-        // Migrate any freezer items to refrigerator when rehydrating from storage
+        
         if (state) {
-          state.migrateFreezers();
           state.refreshDaysLeft();
         }
       }

@@ -134,7 +134,6 @@ const FoodStorageAssistant: React.FC = () => {
 
             const recommendation = response.data;
             const quantity = produceCounts[item] || 1;
-            const location = recommendation.method === 1 ? 'refrigerator' : 'pantry';
             const storageTime = recommendation.storage_time;
             
             // Add the item to inventory store
@@ -158,7 +157,6 @@ const FoodStorageAssistant: React.FC = () => {
           } else {
             const quantity = produceCounts[item] || 1;
             const isRefrigeratedItem = ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase());
-            const location = isRefrigeratedItem ? 'refrigerator' : 'pantry';
             const defaultStorageTime = isRefrigeratedItem ? 7 : 14; // Default storage times
             
             // Add to inventory with default values
