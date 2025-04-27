@@ -41,7 +41,7 @@ export default function LoginPage() {
         const data = await response.json();
         setError(data.error || 'Incorrect password');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
     }
   };
