@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const Footer = () => {
   const menuItems = [
@@ -19,16 +20,18 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center mb-8">
           <div className="mb-6 md:mb-0 ">
-            <div className='px-16'>
-              <img 
+            <div className='px-16 relative h-24 w-52'>
+              <Image 
                 src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo.png" 
-                alt="Best Before Logo" 
-                className="h-24 w-52"
+                alt="Best Before Logo"
+                fill
+                style={{ objectFit: 'contain' }}
+                sizes="(max-width: 768px) 100vw, 208px"
               />
             </div>
             <div className="mb-6 px-20 md:mb-0 ">
               <p className="mt-4 max-w-md">
-                Together for a zero-waste kitchen — save food, money, and our planet with BestBefore
+                Together for a zero-waste kitchen - save food, money, and our planet with BestBefore
               </p>
             </div>
           </div>

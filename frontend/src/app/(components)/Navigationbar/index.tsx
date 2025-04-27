@@ -1,5 +1,6 @@
 "use client";
 
+import Image from 'next/image';
 import {
   Navbar,
   NavbarBrand,
@@ -68,15 +69,15 @@ const Navigationbar = () => {
       }`}
     >
       <NavbarBrand>
-        <p className={`font-bold text-inherit text-xl ${
-          !isHomePage || isScrolled ? 'text-primary' : 'text-primary'
-        }`}>
-          <img 
+        <div className="relative h-24 w-52">
+          <Image 
             src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo.png" 
-            alt="Best Before Logo" 
-            className="h-24 w-52"
+            alt="Best Before Logo"
+            fill
+            style={{ objectFit: 'contain' }}
+            sizes="(max-width: 768px) 100vw, 208px"
           />
-        </p>
+        </div>
       </NavbarBrand>
 
       <div

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import useInventoryStore, { FoodItem } from '@/store/useInventoryStore';
+import useInventoryStore from '@/store/useInventoryStore';
 import axios from 'axios';
 import { config } from '@/config';
 
@@ -7,7 +7,7 @@ import { config } from '@/config';
 export type GroceryListResponse = {
   success: boolean;
   dishes?: string[];
-  items_by_category?: Record<string, any[]>;
+  items_by_category?: Record<string, GroceryItem[]>;
   pantry_items?: Array<{name: string; quantity: string}>;
   error?: string;
 };
@@ -138,7 +138,7 @@ export const useGroceryPlanner = () => {
         const categories = data.items_by_category || {};
         
         Object.keys(categories).forEach(category => {
-          categories[category].forEach((item: any) => {
+          categories[category].forEach((item: GroceryItem) => {
             newGroceryItems.push({
               name: item.name,
               quantity: item.quantity,
@@ -161,8 +161,9 @@ export const useGroceryPlanner = () => {
       } else {
         setError(data.error || 'Failed to generate grocery list');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
       console.error('Error generating grocery list:', err);
     } finally {
       setLoading(false);

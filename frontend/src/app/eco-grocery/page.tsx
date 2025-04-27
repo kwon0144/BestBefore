@@ -14,6 +14,28 @@ import MealChoice from "./MealChoice";
 import SelectedMeal from "./SelectedMeal";
 import GroceryList from "./GroceryList";
 
+// Debug JSON Display Component
+const JsonDebugDisplay = ({ data, title }: { data: unknown; title: string }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    
+    return (
+        <div className="mt-4 border border-gray-300 rounded-md overflow-hidden">
+            <div 
+                className="bg-gray-100 p-2 flex justify-between items-center cursor-pointer"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <h3 className="text-sm font-medium">{title}</h3>
+                <span>{isOpen ? '[-]' : '[+]'}</span>
+            </div>
+            {isOpen && (
+                <pre className="p-4 bg-gray-50 text-xs overflow-auto max-h-96">
+                    {JSON.stringify(data, null, 2)}
+                </pre>
+            )}
+        </div>
+    );
+};
+
 export default function EcoGrocery() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
@@ -40,11 +62,11 @@ export default function EcoGrocery() {
         'Chinese Cuisine',
         'Italian Cuisine',
         'Thai Cuisine',
-        'Mexican Cuisine',
         'French Cuisine',
+        'Indian Cuisine',
+        'Mexican Cuisine',
         'Japanese Cuisine',
         'Korean Cuisine',
-        'Indian Cuisine',
         'Beef Dishes',
         'Lamb Dishes',
         'Seafood',
@@ -211,26 +233,34 @@ export default function EcoGrocery() {
                 setSearchQuery={handleCuisineSelect}
             />
             
-            {/* Main Grid Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column - Selected Meals and Grocery List */}
-                <div className="lg:col-span-2 space-y-8">
-                    {/* Meal Choices - now includes signature dishes when a cuisine is selected */}
+            {/* Meal Choices and Selected Meals (side by side) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                {/* Meal Choices (takes 2/3 of the width) */}
+                <div className="lg:col-span-2 h-full">
                     <MealChoice 
-                        mealChoices={allMealChoices}
                         filteredMealChoices={filteredMealChoices}
                         addMeal={addMeal}
                         isLoading={isLoadingSignatureDishes && selectedCuisine !== null}
                         selectedCuisine={selectedCuisine}
                     />
-                    
-                    {/* Selected Meals */}
+                </div>
+                
+                {/* Selected Meals (takes 1/3 of the width) */}
+                <div className="h-full">
                     <SelectedMeal 
                         selectedMeals={selectedMeals}
                         adjustQuantity={adjustQuantity}
                         removeMeal={removeMeal}
+                        generateGroceryList={generateGroceryList}
+                        loading={loading}
                     />
-                    
+                </div>
+            </div>
+            
+            {/* Grocery List and Food Inventory Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column - Grocery List */}
+                <div className="lg:col-span-2">
                     {/* Smart Grocery List */}
                     <GroceryList 
                         selectedMeals={selectedMeals}
@@ -239,16 +269,26 @@ export default function EcoGrocery() {
                         loading={loading}
                         error={error}
                         groceryList={groceryList}
-                        generateGroceryList={generateGroceryList}
                         getGroceryItemsByCategory={getGroceryItemsByCategory}
                     />
                 </div>
                 
                 {/* Right Column - Food Inventory */}
-                <div>
-                    <PantrySummary 
-                        ecoTipContent="Planning your meals and creating precise shopping lists can reduce food waste by up to 25%. Your smart choices help the planet!"
-                    />
+                <div className="h-full">
+                    <PantrySummary />
+                </div>
+            </div>
+            
+            {/* Debug JSON Display Section */}
+            <div className="mt-12 mb-8 border-t pt-4">
+                <h2 className="text-xl font-semibold mb-4">Debug Data</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <JsonDebugDisplay data={selectedMeals} title="Selected Meals" />
+                    <JsonDebugDisplay data={groceryItems} title="Grocery Items" />
+                    <JsonDebugDisplay data={pantryItems} title="Pantry Items" />
+                    <JsonDebugDisplay data={groceryList} title="Grocery List Response" />
+                    <JsonDebugDisplay data={signatureDishes} title="Signature Dishes" />
+                    <JsonDebugDisplay data={{ loading, error, selectedCuisine }} title="UI State" />
                 </div>
             </div>
         </div>

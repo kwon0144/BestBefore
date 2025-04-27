@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, Tabs, Tab, Spinner } from "@heroui/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
 import useInventoryStore from "@/store/useInventoryStore";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faEdit, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faEdit } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { config } from "@/config";
 
@@ -31,15 +31,15 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   const [itemToEdit, setItemToEdit] = useState<FoodItem | null>(null);
   const [isFetchingRecommendation, setIsFetchingRecommendation] = useState(false);
   const [foodTypeOptions, setFoodTypeOptions] = useState<string[]>([]);
-  const [fetchingFoodTypes, setFetchingFoodTypes] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   // Form state
   const [formState, setFormState] = useState<Omit<FoodItem, "id" | "daysLeft">>({
     name: "",
     quantity: "",
-    location: "refrigerator",
-    expiryDate: new Date().toISOString().split("T")[0],
+    location: null as unknown as "refrigerator" | "pantry", // Default to not selected
+    expiryDate: "", // Default to not selected
   });
 
   // Fetch food types when component mounts
@@ -52,15 +52,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   // Fetch all available food types from the API
   const fetchFoodTypes = async () => {
     try {
-      setFetchingFoodTypes(true);
       const response = await axios.get<FoodTypesResponse>(`${config.apiUrl}/api/food-types/`);
       if (response.data && response.data.food_types) {
         setFoodTypeOptions(response.data.food_types);
       }
-    } catch (error) {
+    } catch {
       setError("Failed to load food types from the database.");
-    } finally {
-      setFetchingFoodTypes(false);
     }
   };
 
@@ -82,13 +79,8 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       });
       
       return response.data;
-    } catch (err) {
-      const error = err as any;
-      if (error.response) {
-        setError(`API error: ${error.response.status} - Failed to get storage recommendation`);
-      } else {
-        setError("Failed to get storage recommendation from the database.");
-      }
+    } catch {
+      setError("Failed to get storage recommendation from the database.");
       return null;
     } finally {
       setIsFetchingRecommendation(false);
@@ -146,179 +138,149 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     return null;
   };
 
+  // Add item to inventory
   const handleAddItem = async () => {
-    if (!formState.name || !formState.quantity) {
-      setError("Food item name and quantity are required.");
-      return;
-    }
-
-    setError(null);
-
-    if (isEditing && itemToEdit) {
-      updateItem(itemToEdit.id, formState);
-      resetForm();
-      return;
-    }
-
-    // For new items, fetch storage recommendation
-    setIsFetchingRecommendation(true);
-    const recommendation = await fetchStorageRecommendation(formState.name);
-    
-    if (recommendation) {
-      // Use the recommended storage location and expiry date
-      const storageMethod = recommendation.method === 1 ? "refrigerator" : "pantry";
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + recommendation.storage_time);
-      const expiryDateString = expiryDate.toISOString();
-      
-      // Check if item already exists with similar expiry date
-      const existingItem = findMatchingItem(formState.name, expiryDateString);
-      
-      if (existingItem) {
-        // Accumulate quantity for existing item
-        const currentQuantity = existingItem.quantity;
-        const newQuantity = combineQuantities(currentQuantity, formState.quantity);
-        
-        // Update the existing item with new quantity
-        updateItem(existingItem.id, {
-          ...existingItem,
-          quantity: newQuantity
-        });
-        
-        // Let the user know that quantities were combined
-        setError(`Added to existing "${formState.name}" with similar expiry date.`);
-      } else {
-        // Add as new item with recommended values
-        addItem({
-          name: formState.name,
-          quantity: formState.quantity,
-          location: storageMethod,
-          expiryDate: expiryDateString,
-        });
-      }
-      
-      // Switch to the appropriate tab
-      setSelectedTab(storageMethod);
-    } else {
-      // Show warning if no matching food type is found
-      setError(`No matching food type found for "${formState.name}". Using default values.`);
-      
-      const expiryDateString = new Date(formState.expiryDate).toISOString();
-      
-      // Check if item already exists with similar expiry date
-      const existingItem = findMatchingItem(formState.name, expiryDateString);
-      
-      if (existingItem) {
-        // Accumulate quantity for existing item
-        const currentQuantity = existingItem.quantity;
-        const newQuantity = combineQuantities(currentQuantity, formState.quantity);
-        
-        // Update the existing item with new quantity
-        updateItem(existingItem.id, {
-          ...existingItem,
-          quantity: newQuantity
-        });
-        
-        // Let the user know that quantities were combined
-        setError(`Added to existing "${formState.name}" with similar expiry date.`);
-      } else {
-        // Add as new item with default values
-        addItem({
+    if (validateForm()) {
+      try {
+        const newItem = {
           ...formState,
-          expiryDate: expiryDateString,
-        });
+          id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
+          // Use current tab as location when not specified
+          location: formState.location || selectedTab as "refrigerator" | "pantry",
+          // Use current date if no expiry date
+          expiryDate: formState.expiryDate || new Date().toISOString(),
+          daysLeft: 0, // Will be calculated by the server
+        };
+
+        if (isEditing && itemToEdit) {
+          updateItem(itemToEdit.id, newItem);
+          resetForm();
+          return;
+        }
+
+        // For new items, fetch storage recommendation
+        setIsFetchingRecommendation(true);
+        const recommendation = await fetchStorageRecommendation(newItem.name);
+        
+        if (recommendation) {
+          // Use the recommended storage location and expiry date
+          const storageMethod = recommendation.method === 1 ? "refrigerator" : "pantry";
+          const expiryDate = new Date();
+          expiryDate.setDate(expiryDate.getDate() + recommendation.storage_time);
+          const expiryDateString = expiryDate.toISOString();
+          
+          // Check if item already exists with similar expiry date
+          const existingItem = findMatchingItem(newItem.name, expiryDateString);
+          
+          if (existingItem) {
+            // Accumulate quantity for existing item
+            const currentQuantity = existingItem.quantity;
+            const newQuantity = combineQuantities(currentQuantity, newItem.quantity);
+            
+            // Update the existing item with new quantity
+            updateItem(existingItem.id, {
+              ...existingItem,
+              quantity: newQuantity
+            });
+            
+            // Let the user know that quantities were combined
+            setError(`Added to existing "${newItem.name}" with similar expiry date.`);
+          } else {
+            // Add as new item with recommended values
+            const recommendedItem = {
+              ...newItem,
+              location: formState.location || storageMethod, // Use selected location or recommendation
+              expiryDate: formState.expiryDate || expiryDateString // Use selected date or recommendation
+            };
+            addItem(recommendedItem);
+          }
+          
+          // Switch to the appropriate tab if location wasn't manually specified
+          if (!formState.location) {
+            setSelectedTab(storageMethod);
+          }
+        } else {
+          // No recommendation found, use default values
+          addItem(newItem);
+        }
+        
+        resetForm();
+      } catch {
+        setError("Failed to add item to the inventory.");
+      } finally {
+        setIsFetchingRecommendation(false);
       }
     }
-    
-    resetForm();
   };
 
-  // Helper function to combine quantity strings
+  // Helper to combine quantities
   const combineQuantities = (q1: string, q2: string): string => {
-    // Try to extract numeric parts
-    const num1 = parseFloat(q1.replace(/[^0-9.]/g, '')) || 0;
-    const num2 = parseFloat(q2.replace(/[^0-9.]/g, '')) || 0;
-    
-    // Try to extract units
-    const unit1 = q1.replace(/[0-9.]/g, '').trim();
-    const unit2 = q2.replace(/[0-9.]/g, '').trim();
-    
-    // If both are just numbers (no units), return the sum as a number
-    if (!unit1 && !unit2) {
-      return `${num1 + num2}`;
+    // Special case for items already with combined quantities
+    if (q1.includes('+')) {
+      const parts = q1.split('+').map(p => p.trim());
+      parts.push(q2);
+      return parts.join(' + ');
     }
     
-    // If both have the same unit, combine them
-    if (unit1 && unit1 === unit2) {
-      return `${num1 + num2}${unit1}`;
+    // Convert to numbers if both quantities are numeric
+    const num1 = parseFloat(q1);
+    const num2 = parseFloat(q2);
+    
+    if (!isNaN(num1) && !isNaN(num2)) {
+      // If both quantities have the same unit (e.g., "g", "kg", "ml", etc.)
+      const unit1 = q1.replace(/[\d.]/g, '').trim();
+      const unit2 = q2.replace(/[\d.]/g, '').trim();
+      
+      if (unit1 === unit2) {
+        return `${(num1 + num2).toString()}${unit1}`;
+      }
     }
     
-    // If one is just a number and the other has a unit
-    if (!unit1 && unit2) {
-      return `${num1 + num2}${unit2}`;
-    }
-    
-    if (unit1 && !unit2) {
-      return `${num1 + num2}${unit1}`;
-    }
-    
-    // Otherwise, just concatenate with a +
+    // If quantities cannot be combined numerically, concatenate with '+'
     return `${q1} + ${q2}`;
   };
 
+  // Reset form to default state
   const resetForm = () => {
-    // Reset form
     setFormState({
       name: "",
       quantity: "",
-      location: selectedTab as "refrigerator" | "pantry",
-      expiryDate: new Date().toISOString().split("T")[0],
+      expiryDate: "",
+      location: null as unknown as "refrigerator" | "pantry",
     });
     setIsEditing(false);
     setItemToEdit(null);
-    
-    // Only reset errors that aren't warnings about food type matches
-    if (error && !error.includes("No matching food type found") && !error.includes("Added to existing")) {
-      setError(null);
-    }
-    
-    // Set a timeout to clear the warning after 5 seconds
-    if (error && (error.includes("No matching food type found") || error.includes("Added to existing"))) {
-      setTimeout(() => {
-        setError(null);
-      }, 5000);
-    }
+    setError(null);
   };
 
+  // Validate form fields before submission
+  const validateForm = () => {
+    if (!formState.name || !formState.quantity) {
+      setError("Food item name and quantity are required.");
+      return false;
+    }
+    setError(null);
+    return true;
+  };
+
+  // Handle edit item operation
   const handleEditItem = (item: FoodItem) => {
     setIsEditing(true);
     setItemToEdit(item);
+    setShowMoreOptions(true); // Show more options when editing
     setFormState({
       name: item.name,
       quantity: item.quantity,
       location: item.location,
-      expiryDate: new Date(item.expiryDate).toISOString().split("T")[0],
+      expiryDate: item.expiryDate.split('T')[0],
     });
-    setError(null);
   };
 
+  // Handle delete item operation
   const handleDeleteItem = (id: string) => {
     removeItem(id);
-    if (isEditing && itemToEdit?.id === id) {
+    if (itemToEdit && itemToEdit.id === id) {
       resetForm();
-    }
-  };
-
-  // Safe method to handle tab changes with any type of key
-  const handleTabChange = (key: any) => {
-    // Convert to string and ensure it's a valid location
-    const tabKey = String(key);
-    if (["refrigerator", "pantry"].includes(tabKey)) {
-      setSelectedTab(tabKey);
-      setFormState(prev => ({
-        ...prev,
-        location: tabKey as "refrigerator" | "pantry",
-      }));
     }
   };
 
@@ -366,53 +328,67 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <Select
-                  label="Location"
-                  selectedKeys={[formState.location]}
-                  onChange={(e) => setFormState({ ...formState, location: e.target.value as "refrigerator" | "pantry" })}
-                >
-                  <SelectItem key="refrigerator">Refrigerator</SelectItem>
-                  <SelectItem key="pantry">Pantry</SelectItem>
-                </Select>
-                {!isEditing && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Will be auto-set based on food type when adding
-                  </p>
-                )}
+            {showMoreOptions && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                  <Select
+                    label="Location"
+                    placeholder="Choose location"
+                    selectedKeys={formState.location ? [formState.location] : []}
+                    onSelectionChange={(keys) => {
+                      const selectedKey = Array.from(keys)[0] as string;
+                      if (selectedKey) {
+                        setFormState({
+                          ...formState,
+                          location: selectedKey as "refrigerator" | "pantry"
+                        });
+                      }
+                    }}
+                  >
+                    <SelectItem key="refrigerator">Refrigerator</SelectItem>
+                    <SelectItem key="pantry">Pantry</SelectItem>
+                  </Select>
+                </div>
+                <div>
+                  <Input
+                    type="date"
+                    label="Expiry Date"
+                    placeholder="Choose expiry date"
+                    value={formState.expiryDate}
+                    onChange={(e) => setFormState({ ...formState, expiryDate: e.target.value })}
+                  />
+                </div>
               </div>
-              <div>
-                <Input
-                  type="date"
-                  label="Expiry Date"
-                  value={formState.expiryDate}
-                  onChange={(e) => setFormState({ ...formState, expiryDate: e.target.value })}
-                />
-                {!isEditing && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Will be auto-calculated based on food type when adding
-                  </p>
-                )}
-              </div>
-            </div>
+            )}
 
-            <Button
-              color="primary"
-              className="w-full bg-[#2F5233] text-white hover:bg-[#1B371F]"
-              onPress={handleAddItem}
-              isLoading={isFetchingRecommendation}
-            >
-              {isEditing ? "Update Item" : "Add Item"}
-            </Button>
+            <div className="flex gap-4 mb-6">
+              <Button
+                color="primary"
+                className="flex-1 bg-[#2F5233] text-white hover:bg-[#1B371F]"
+                onPress={handleAddItem}
+                isLoading={isFetchingRecommendation}
+              >
+                {isEditing ? "Update Item" : "Add Item"}
+              </Button>
+              
+              <Button
+                variant="flat"
+                onPress={() => setShowMoreOptions(!showMoreOptions)}
+                className="flex-none"
+              >
+                {showMoreOptions ? "Hide Options" : "More Options"}
+              </Button>
+            </div>
           </div>
 
-          <Tabs
-            selectedKey={selectedTab}
-            onSelectionChange={handleTabChange}
-            color="primary"
-          >
-            <Tab key="refrigerator" title="Refrigerator">
+          {/* Replace tabs with side-by-side layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Refrigerator Section */}
+            <div className="border border-gray-200 p-4 rounded-lg">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium">Refrigerator</h3>
+              </div>
+              
               <div className="mt-4">
                 {getItemsByLocation("refrigerator").length === 0 ? (
                   <p className="text-gray-500">No items in refrigerator</p>
@@ -421,11 +397,11 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
                     {getItemsByLocation("refrigerator").map((item) => (
                       <li key={item.id} className="py-3 flex justify-between items-center">
                         <div>
-                          <span className="font-medium">{item.name}</span>
+                          <div className="font-medium">
+                            {item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()} <span className="text-sm text-gray-500">qty: {item.quantity}</span>
+                          </div>
                           <div className="text-sm text-gray-500">
-                            {item.quantity.includes('+') 
-                              ? item.quantity 
-                              : `${item.quantity}`} · Expires in {item.daysLeft} days
+                            Expires in {item.daysLeft} days
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -450,8 +426,14 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
                   </ul>
                 )}
               </div>
-            </Tab>
-            <Tab key="pantry" title="Pantry">
+            </div>
+
+            {/* Pantry Section */}
+            <div className="border border-gray-200 p-4 rounded-lg">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium">Pantry</h3>
+              </div>
+
               <div className="mt-4">
                 {getItemsByLocation("pantry").length === 0 ? (
                   <p className="text-gray-500">No items in pantry</p>
@@ -460,11 +442,11 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
                     {getItemsByLocation("pantry").map((item) => (
                       <li key={item.id} className="py-3 flex justify-between items-center">
                         <div>
-                          <span className="font-medium">{item.name}</span>
+                          <div className="font-medium">
+                            {item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()} <span className="text-sm text-gray-500">qty: {item.quantity}</span>
+                          </div>
                           <div className="text-sm text-gray-500">
-                            {item.quantity.includes('+') 
-                              ? item.quantity 
-                              : `${item.quantity}`} · Expires in {item.daysLeft} days
+                            Expires in {item.daysLeft} days
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -489,8 +471,8 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
                   </ul>
                 )}
               </div>
-            </Tab>
-          </Tabs>
+            </div>
+          </div>
         </ModalBody>
         <ModalFooter>
           <div className="flex justify-between w-full">
