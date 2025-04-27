@@ -368,9 +368,12 @@ const FoodStorageAssistant: React.FC = () => {
                   <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
                   Back to Storage Recommendations
                 </Button>
-                <h2 className="text-2xl font-semibold text-darkgreen mb-5">
+                <h2 className="text-2xl font-semibold text-darkgreen mb-2">
                   Step 3: Calendar Export
                 </h2>
+                <p className="text-md text-gray-700 mb-10">
+                  Export expiration dates reminders for your grocery items.
+                </p>
               <CalendarExport
                 calendarSelection={calendarSelection}
                 setCalendarSelection={setCalendarSelection}
