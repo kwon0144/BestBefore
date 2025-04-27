@@ -143,6 +143,7 @@ jobs:
           DB_HOST=${{ env.DB_HOST }}
           DB_PORT=${{ env.DB_PORT }}
           CLAUDE_API_KEY=${{ env.CLAUDE_API_KEY }}
+          NEXT_PUBLIC_SITE_PASSWORD=${{ env.NEXT_PUBLIC_SITE_PASSWORD }}
           EOF
           
           # Transfer .env file to EC2
