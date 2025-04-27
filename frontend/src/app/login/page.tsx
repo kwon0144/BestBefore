@@ -32,11 +32,11 @@ export default function LoginPage() {
         // Start final exit animation after text rotation
         setTimeout(() => setShowText(false), 6000);
         // Trigger final animations
-        setTimeout(() => setFinalExit(true), 7000);
+        setTimeout(() => setFinalExit(true), 7300);
         // Finally route to home
         setTimeout(() => {
           router.replace('/');
-        }, 7500);
+        }, 8000);
       } else {
         const data = await response.json();
         setError(data.error || 'Incorrect password');
