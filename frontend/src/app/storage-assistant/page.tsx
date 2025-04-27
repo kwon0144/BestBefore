@@ -227,33 +227,6 @@ const FoodStorageAssistant: React.FC = () => {
     setStorageRecs(newStorageRecs);
   };
 
-  // Calculate expiry date based on storage time
-  // const calculateExpiryDate = (storageTime: number): number => {
-  //   return storageTime;
-  // };
-
-  // Toggle item selection for calendar
-  // const toggleItemSelection = (item: string, quantity: number, storageTime: number) => {
-  //   setCalendarSelection(prev => {
-  //     const existingIndex = prev.selectedItems.findIndex(i => i.name === item);
-      
-  //     if (existingIndex >= 0) {
-  //       const newSelectedItems = [...prev.selectedItems];
-  //       newSelectedItems.splice(existingIndex, 1);
-  //       return { ...prev, selectedItems: newSelectedItems };
-  //     } else {
-  //       const newItem = {
-  //         name: item,
-  //         quantity,
-  //         expiry_date: calculateExpiryDate(storageTime),
-  //         reminder_days: prev.reminderDays,
-  //         reminder_time: prev.reminderTime
-  //       };
-  //       return { ...prev, selectedItems: [...prev.selectedItems, newItem] };
-  //     }
-  //   });
-  // };
-
   // Generate calendar link
   const generateCalendarLink = async () => {
     if (calendarSelection.selectedItems.length === 0) return;
@@ -317,7 +290,7 @@ const FoodStorageAssistant: React.FC = () => {
   return (
     <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
         {/* Title section */}
-        <Title heading="Food Storage Assistant" description="Capture your groceries and get storage recommendations" />
+        <Title heading="Food Storage Assistant" description="Capture your groceries and get personalised storage recommendations and expiration reminders" />
         {/* Stepper for navigation */}
         <div className="py-12">
           <StorageAssistantStepper currentStep={currentStep} onStepClick={handleStepClick}/>
@@ -333,9 +306,12 @@ const FoodStorageAssistant: React.FC = () => {
         {/* Step 1: Camera and Photo Capture */}
         {currentStep === 0 ? (
           <div className="border-green border-2 rounded-lg p-10 mb-8">
-            <h2 className="text-2xl font-semibold text-darkgreen mb-10">
+            <h2 className="text-2xl font-semibold text-darkgreen mb-2">
               Step 1: Scan your Groceries
             </h2>
+            <p className="text-md text-gray-700 mb-10">
+              Take photos of your groceries to get personalised storage recommendations.
+            </p>
             <Camera state={state} setState={setState} submitPhotos={submitPhotos} handleReset={handleReset} />
           </div>
         ) : (
