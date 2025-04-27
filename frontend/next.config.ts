@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const getBasePath = () => {
   const branch = process.env.NEXT_PUBLIC_BRANCH_NAME || 'main';
+  console.log('branch', branch);
   if (branch === 'main') {
     return '';
   }
