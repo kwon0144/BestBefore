@@ -149,7 +149,7 @@ export default function LoginPage() {
               >
                 <p className='text-center text-2xl font-bold text-darkgreen'>Together for a</p>
                 <RotatingText
-                  texts={['Green', 'Sustainable', 'Cost Effective', 'Zero Waste']}
+                  texts={['Sustainable', 'Cost Effective', 'Zero Waste']}
                   mainClassName="px-2 sm:px-2 md:px-3 text-green font-bold text-3xl overflow-hidden py-0.5 sm:py-1 md:py-2 justify-center rounded-lg"
                   staggerFrom={"last"}
                   initial={{ y: "100%" }}
