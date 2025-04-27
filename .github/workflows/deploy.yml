@@ -11,6 +11,7 @@ env:
   NEXT_PUBLIC_API_KEY: ${{ secrets.NEXT_PUBLIC_API_KEY }}
   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
   NEXT_PUBLIC_MAP_ID: ${{ secrets.NEXT_PUBLIC_MAP_ID }}
+  NEXT_PUBLIC_SITE_PASSWORD: ${{ secrets.NEXT_PUBLIC_SITE_PASSWORD }}
   # Backend Environment Variables
   DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
   DJANGO_API_KEY: ${{ secrets.DJANGO_API_KEY }}
@@ -56,6 +57,7 @@ jobs:
             --build-arg NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY} \
             --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} \
             --build-arg NEXT_PUBLIC_MAP_ID=${NEXT_PUBLIC_MAP_ID} \
+            --build-arg NEXT_PUBLIC_SITE_PASSWORD=${NEXT_PUBLIC_SITE_PASSWORD} \
             -t ${{ env.DOCKER_USERNAME }}/react-django-frontend:latest \
             --platform linux/amd64 --push \
             .

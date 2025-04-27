@@ -31,6 +31,7 @@ docker run -d --name frontend --network app-network -p 3000:3000 \
   -e NEXT_PUBLIC_API_KEY="$NEXT_PUBLIC_API_KEY" \
   -e NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY" \
   -e NEXT_PUBLIC_MAP_ID="$NEXT_PUBLIC_MAP_ID" \
+  -e NEXT_PUBLIC_SITE_PASSWORD="$NEXT_PUBLIC_SITE_PASSWORD" \
   $DOCKER_USERNAME/react-django-frontend:latest
 echo "Frontend deployed successfully on HTTP (port 3000)"
 
