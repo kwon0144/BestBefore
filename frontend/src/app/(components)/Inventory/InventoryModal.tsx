@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, Tabs, Tab, Spinner } from "@heroui/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
 import useInventoryStore from "@/store/useInventoryStore";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faEdit, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faEdit } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { config } from "@/config";
 
@@ -31,7 +31,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   const [itemToEdit, setItemToEdit] = useState<FoodItem | null>(null);
   const [isFetchingRecommendation, setIsFetchingRecommendation] = useState(false);
   const [foodTypeOptions, setFoodTypeOptions] = useState<string[]>([]);
-  const [fetchingFoodTypes, setFetchingFoodTypes] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
@@ -53,15 +52,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   // Fetch all available food types from the API
   const fetchFoodTypes = async () => {
     try {
-      setFetchingFoodTypes(true);
       const response = await axios.get<FoodTypesResponse>(`${config.apiUrl}/api/food-types/`);
       if (response.data && response.data.food_types) {
         setFoodTypeOptions(response.data.food_types);
       }
-    } catch (error) {
+    } catch {
       setError("Failed to load food types from the database.");
-    } finally {
-      setFetchingFoodTypes(false);
     }
   };
 
@@ -83,13 +79,8 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       });
       
       return response.data;
-    } catch (err) {
-      const error = err as any;
-      if (error.response) {
-        setError(`API error: ${error.response.status} - Failed to get storage recommendation`);
-      } else {
-        setError("Failed to get storage recommendation from the database.");
-      }
+    } catch {
+      setError("Failed to get storage recommendation from the database.");
       return null;
     } finally {
       setIsFetchingRecommendation(false);
@@ -214,7 +205,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         }
         
         resetForm();
-      } catch (error) {
+      } catch {
         setError("Failed to add item to the inventory.");
       } finally {
         setIsFetchingRecommendation(false);
@@ -290,17 +281,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     removeItem(id);
     if (itemToEdit && itemToEdit.id === id) {
       resetForm();
-    }
-  };
-
-  // Handle tab change
-  const handleTabChange = (tabKey: any) => {
-    if (tabKey) {
-      setSelectedTab(tabKey);
-      setFormState(prev => ({
-        ...prev,
-        location: tabKey as "refrigerator" | "pantry",
-      }));
     }
   };
 

@@ -4,23 +4,10 @@ export default function GroceryList({
   selectedMeals,
   groceryItems,
   pantryItems,
-  loading,
   error,
-  groceryList,
   getGroceryItemsByCategory
 }: Omit<GroceryListProps, 'generateGroceryList'>) {
-  // List of categories to display
-  const categories = [
-    'Meat', 
-    'Fish', 
-    'Produce', 
-    'Dairy', 
-    'Grains', 
-    'Condiments', 
-    'Other'
-  ];
-  
-  // Split categories for two-column layout
+  // List of all categories
   const leftColumnCategories = ['Fish', 'Produce', 'Dairy'];
   const rightColumnCategories = ['Meat', 'Grains', 'Condiments', 'Other'];
   
@@ -91,7 +78,7 @@ export default function GroceryList({
               {pantryItems.length > 0 && (
                 <div className="mt-6 bg-gray-50 p-3 rounded-md">
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Note:</span> Items crossed out are already in your food inventory and don't need to be purchased.
+                    <span className="font-medium">Note:</span> Items crossed out are already in your food inventory and don&apos;t need to be purchased.
                   </p>
                 </div>
               )}

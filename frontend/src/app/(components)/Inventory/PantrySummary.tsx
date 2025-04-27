@@ -26,8 +26,8 @@ export default function PantrySummary() {
           <div className="bg-blue-50 p-4 rounded-md mb-6">
             <p className="font-medium text-blue-700 mb-2">No items in your inventory yet!</p>
             <p className="text-blue-600">
-              Use the "Storage Assistant" feature to quickly add items by taking photos of your groceries, 
-              or add items manually by clicking the "Update Inventory" button below.
+              Use the &quot;Storage Assistant&quot; feature to quickly add items by taking photos of your groceries, 
+              or add items manually by clicking the &quot;Update Inventory&quot; button below.
             </p>
           </div>
         ) : (

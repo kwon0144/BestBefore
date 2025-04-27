@@ -15,7 +15,7 @@ import SelectedMeal from "./SelectedMeal";
 import GroceryList from "./GroceryList";
 
 // Debug JSON Display Component
-const JsonDebugDisplay = ({ data, title }: { data: any; title: string }) => {
+const JsonDebugDisplay = ({ data, title }: { data: unknown; title: string }) => {
     const [isOpen, setIsOpen] = useState(false);
     
     return (
