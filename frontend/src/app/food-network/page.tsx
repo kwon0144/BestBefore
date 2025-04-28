@@ -44,7 +44,7 @@ export default function FoodNetwork() {
         <Title 
         heading="Food Network" 
         description="Contribute to the community by donation or efficient disposal" 
-        background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/foodnetwork-titlebg.png"
+        background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/foodnetwork-titlebg.jpeg"
         />
       </div>
       <div className="min-h-screen max-w-7xl mx-auto px-10">

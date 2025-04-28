@@ -4,7 +4,7 @@ import "./globals.css";
 import { Poppins } from "next/font/google";
 import { Providers } from "./providers";
 import LayoutWrapper from "./(components)/Layout/LayoutWrapper";
-
+  
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

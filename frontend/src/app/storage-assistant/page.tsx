@@ -386,7 +386,7 @@ const FoodStorageAssistant: React.FC = () => {
             )}
           </>
         )}
-      </div>  
+      </div> 
   );
 };
 
