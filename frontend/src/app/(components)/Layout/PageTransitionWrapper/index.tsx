@@ -45,9 +45,9 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
     }
 
     const perspective = {
-        initial: { y:0, opacity: 1},
-        enter: { y:0, opacity: 1 },
-        exit: { y:-100, opacity: 0, transition: { duration: 1.5, ease: [0.76, 0, 0.24, 1] } }
+        initial: { y: "0vh", opacity: 1},
+        enter: { y: "0vh", opacity: 1 },
+        exit: { y: "0vh", opacity: 0, transition: { duration: 1.5, ease: [0.76, 0, 0.24, 1] } }
     }
 
     return (
@@ -59,7 +59,10 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
                     className="fixed inset-0 bg-background z-50 w-full h-full"
                 />
             </AnimatePresence>
-            <AnimatePresence mode="wait">
+            <AnimatePresence 
+                mode="wait"
+                onExitComplete={() => window.scrollTo(0, 0)}
+            >
                 <motion.div
                     key={pathname}
                     {...animate(perspective)}
@@ -68,10 +71,13 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
                     key={pathname}
                     {...animate(opacity)}
                 >
-                    <FrozenRouter>{children}</FrozenRouter>
+                    <div className="relative">
+                        <FrozenRouter>{children}</FrozenRouter>
+                    </div>
                 </motion.div>
                 </motion.div>
             </AnimatePresence>
+            
         </div>
     );
 }

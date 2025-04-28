@@ -15,7 +15,17 @@ import Image from 'next/image';
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Create NoScrollLink component
+const NoScrollLink = React.forwardRef<HTMLAnchorElement, React.ComponentPropsWithRef<typeof Link>>(
+  ({ children, ...props }, ref) => (
+    <Link {...props} scroll={false} ref={ref}>
+      {children}
+    </Link>
+  )
+);
+NoScrollLink.displayName = 'NoScrollLink';
 
 const menuItems = [
   { path: "/", label: "Home" },
@@ -125,7 +135,7 @@ const Navigationbar = () => {
                   <MenuItem 
                     key={item.path} 
                     onClick={handleCloseNavMenu}
-                    component={Link}
+                    component={NoScrollLink}
                     href={item.path}
                     selected={pathname === item.path}
                   >
@@ -160,7 +170,7 @@ const Navigationbar = () => {
               {menuItems.map((item) => (
                 <Button
                   key={item.path}
-                  component={Link}
+                  component={NoScrollLink}
                   href={item.path}
                   onClick={handleCloseNavMenu}
                   sx={{
