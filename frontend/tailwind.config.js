@@ -25,6 +25,7 @@ module.exports = {
       },
       colors: {
         primary: {
+          light: teal[500],
           main: green[900],
         },
         green: green,

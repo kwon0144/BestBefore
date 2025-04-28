@@ -31,6 +31,7 @@ export default function Solution() {
         description: string;
         buttonText: string;
         image: string;
+        link: string;
     }> = [
         {
             icon: 'faBoxArchive',
@@ -38,42 +39,48 @@ export default function Solution() {
             description: "Store food properly and track expiry dates",
             buttonText: "Explore",
             image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/storageassistant.jpeg",
-        },
-        {
-            icon: 'faUsers',
-            title: "Food Network",
-            description: "Share excess food with your community",
-            buttonText: "Join Network",
-            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/foodnetwork.jpeg"
-        },
-        {
-            icon: 'faRecycle',
-            title: "Second Life",
-            description: "Repurpose aging food with creative recipes",
-            buttonText: "Get Ideas",
-            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/secondlife.jpeg"
-        },
-        {
-            icon: 'faGamepad',
-            title: "Waste Game",
-            description: "Make sustainability fun with challenges",
-            buttonText: "Play Now",
-            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/wastegame.jpeg"
-        },
-        {
-            icon: 'faChartLine',
-            title: "Impact",
-            description: "Measure your environmental and financial savings",
-            buttonText: "Calculate Impact",
-            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/impact.jpeg"
+            link: "/storage-assistant"
         },
         {
             icon: 'faShoppingBasket',
             title: "Eco Grocery",
             description: "Start with smart shopping to buy only what you need",
             buttonText: "Shop Smart",
-            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/ecogrocery.jpeg"
-        }
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/ecogrocery.jpeg",
+            link: "/eco-grocery"
+        },
+        {
+            icon: 'faRecycle',
+            title: "Second Life",
+            description: "Repurpose aging food with creative recipes",
+            buttonText: "Get Ideas",
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/secondlife.jpeg",
+            link: "/second-life"
+        },
+        {
+            icon: 'faUsers',
+            title: "Food Network",
+            description: "Share excess food with your community",
+            buttonText: "Join Network",
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/foodnetwork.jpeg",
+            link: "/food-network"
+        },
+        {
+            icon: 'faGamepad',
+            title: "Waste Game",
+            description: "Make sustainability fun with challenges",
+            buttonText: "Play Now",
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/wastegame.jpeg",
+            link: "/"
+        },
+        {
+            icon: 'faChartLine',
+            title: "Impact",
+            description: "Measure your environmental and financial savings",
+            buttonText: "Calculate Impact",
+            image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/impact.jpeg",
+            link: "/"
+        },
     ];
 
     return (
@@ -82,30 +89,29 @@ export default function Solution() {
                 Your Roadmap to Zero Kitchen Waste
             </h2>
             <div className="max-w-7xl mx-auto">
-                {/* Roadmap container */}
-                <div className="flex flex-col">
+                {/* Roadmap container Tablets and Desktop*/}
+                <div className="hidden md:flex flex-col md:justify-center md:items-center">
                     {/* First row - Top cards */}
-                    <div className="grid grid-cols-6 gap-8 mb-5">
-                        {/* Storage Assistant Card */}
-                        <SolutionCard step={steps[0]} onClick={() => router.push('/storage-assistant')} />
-                        <div className="col-span-1"></div>
-                        {/* Second Life Card */}
-                        <SolutionCard step={steps[2]} />
-                        <div className="col-span-1"></div>
-                        {/* Impact Card */}
-                        <SolutionCard step={steps[4]} />
-                        <div className="col-span-1"></div>
-                        <div className="col-span-1"></div>
+                    <div className="grid grid-cols-3 gap-8 mb-12 xl:grid-cols-6">
+                        {/* Card 0 */}
+                        <SolutionCard step={steps[0]} onClick={() => router.push(steps[0].link)} />
+                        <div className="col-span-1 hidden xl:block"></div>
+                        {/* Card 2 */}
+                        <SolutionCard step={steps[2]} onClick={() => router.push(steps[2].link)} />
+                        <div className="col-span-1 hidden xl:block"></div>
+                        {/* Card 4 */}
+                        <SolutionCard step={steps[4]} onClick={() => router.push(steps[4].link)} />
+                        <div className="col-span-1 hidden xl:block"></div>
                     </div>
 
                     {/* Second row - Icons */}
-                    <div className="relative">
-                        <div className="absolute left-0 right-0 h-1 bg-[#8fbba9] top-1/2 transform -translate-y-1/2]"></div>
+                    <div className="w-full relative hidden xl:block">
+                        <div className="absolute left-0 right-0 h-1 bg-primary-light top-1/2 transform -translate-y-1/2]"></div>
                         <div className="grid grid-cols-6 gap-4">
                             {steps.map((step, index) => (
                                 <div key={index} className="col-span-1">
                                 <div className="flex justify-center">
-                                    <div className="w-16 h-16 rounded-full bg-[#2d4f3c] flex items-center justify-center z-10">
+                                    <div className="w-16 h-16 rounded-full bg-primary-main flex items-center justify-center z-10">
                                         <FontAwesomeIcon icon={iconMap[step.icon]} className="text-white text-xl" />
                                     </div>
                                 </div>
@@ -115,25 +121,23 @@ export default function Solution() {
                     </div>
 
                     {/* Third row - Bottom cards */}
-                    <div className="grid grid-cols-6 gap-8 mt-3 mb-8">
-                        <div className="col-span-1">
-                        </div>
-                        <div className="col-span-1">
-                            {/* Food Network Card */}
-                            <SolutionCard step={steps[1]} onClick={() => router.push('/food-network')}/>
-                        </div>
-                        <div className="col-span-1">
-                        </div>
-                        <div className="col-span-1">
-                            {/* Waste Game Card */}
-                            <SolutionCard step={steps[3]}/>
-                        </div>
-                        <div className="col-span-1"></div>
-                        <div className="col-span-1">
-                            {/* Eco Grocery Card */}
-                            <SolutionCard step={steps[5]} />
-                        </div>
+                    <div className="grid grid-cols-3 gap-8 mt-3 mb-8 xl:grid-cols-6">
+                        <div className="col-span-1 hidden xl:block"></div>
+                        <SolutionCard step={steps[1]} onClick={() => router.push(steps[1].link)}/>
+                        <div className="col-span-1 hidden xl:block"></div>
+                        {/* Card 3 */}
+                        <SolutionCard step={steps[3]} onClick={() => router.push(steps[3].link)}/>
+                        <div className="col-span-1 hidden xl:block"></div>
+                        {/* Card 5 */}
+                        <SolutionCard step={steps[5]} onClick={() => router.push(steps[5].link)}/>
                     </div>
+                </div>
+                
+                {/* Roadmap container Mobile*/}
+                <div className="flex flex-col grid grid-cols-2 gap-8 md:hidden">
+                    {steps.map((step, index) => (
+                        <SolutionCard key={index} step={step} onClick={() => router.push(step.link)}/>
+                    ))}
                 </div>
             </div>
         </div>

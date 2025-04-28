@@ -1,4 +1,5 @@
 import { FlipCard } from "../../FlipCard";
+import Image from 'next/image';
 
 interface SolutionCardProps {
     step: {
@@ -13,15 +14,17 @@ interface SolutionCardProps {
 
 export default function SolutionCard({ step, onClick }: SolutionCardProps) {
     return (
-        <div className="col-span-1 cursor-pointer" onClick={onClick}>
+        <div className="col-span-1 cursor-pointer w-[200px]" onClick={onClick}>
             <FlipCard 
                 frontContent={
-                    <div className='bg-[#E8F3EE] p-2 rounded-lg'>
+                    <div className='bg-green-50 p-2 rounded-lg'>
                         {step.image && (
-                            <div className="h-40 overflow-hidden rounded-lg mb-4 hidden xl:block">
-                                <img 
+                            <div className="h-40 overflow-hidden rounded-lg mb-4">
+                                <Image 
                                     src={step.image}
                                     alt={step.title}
+                                    width={500}
+                                    height={200}
                                     className="w-full h-full object-cover object-top transform group-hover:scale-110 transition-transform duration-500"
                                 />
                             </div>
@@ -34,10 +37,10 @@ export default function SolutionCard({ step, onClick }: SolutionCardProps) {
                     </div>
                 } 
                 backContent={
-                    <div className='bg-[#E8F3EE] p-2 rounded-lg'>
-                        <div className="flex flex-col h-52 overflow-hidden rounded-lg hidden xl:block items-center justify-center text-center">
+                    <div className='bg-green-50 p-2 rounded-lg'>
+                        <div className="h-52 overflow-hidden rounded-lg items-center justify-center text-center">
                             <h3 className="mt-14 px-2">
-                                <p className="text-primary-main">{step.description}</p>
+                                <p className="text-primary-main font-semibold">{step.description}</p>
                             </h3>
                         </div>
                     </div>
