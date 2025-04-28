@@ -4,52 +4,59 @@ import { useState, useEffect } from "react";
 import Title from "../(components)/Title"
 import { Button, Input, Modal, ModalContent, ModalHeader, ModalBody } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass, faArrowRight, faSpa, faBroom, faSeedling, faPalette, faPaw, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass, faArrowRight, faSpa, faBroom, faSeedling, faPalette, faPaw, faTimes, faPaintBrush, faUtensils, faHome, faBowlFood, faKitMedical } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { config } from "@/config";
 
 // Interface for items from the diy_projects database
 interface SecondLifeItem {
-    id: number;
-    items: string;
-    type: string;
-    method: string;
-    label: string;
+    method_id: number;
+    method_name: string;
+    is_combo: boolean;
+    method_category: string;
+    ingredient: string;
     description: string;
     picture: string;
-    inside_picture: string;
 }
 
 export default function SecondLife() {
     // State management for search, filters, and data
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-    const [selectedFoodType, setSelectedFoodType] = useState<string | null>(null);
+    const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
     const [items, setItems] = useState<SecondLifeItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<SecondLifeItem | null>(null);
 
-    // Predefined food types for quick search
-    const foodTypes = [
-        'Coffee Grounds',
-        'Fruit Peels',
-        'Vegetable Scraps',
-        'Eggshells',
-        'Bread Crusts',
-        'Avocado Pits',
-        'Citrus Rinds',
-        'Banana Peels'
+    // Predefined ingredients for quick search
+    const ingredients = [
+        'apple',
+        'potato',
+        'banana',
+        'lemon',
+        'orange',
+        'grapefruit',
+        'onion',
+        'celery',
+        'carrot',
+        'mushroom',
+        'tomato',
+        'avocado',
+        'cucumber',
+        'citrus',
+        'sour milk'
     ];
 
-    // Category options with their respective icons
+    // Category options with icons
     const categories = [
-        { name: 'Beauty & Personal Care', icon: faSpa },
-        { name: 'Home Cleaning', icon: faBroom },
-        { name: 'Garden & Compost', icon: faSeedling },
-        { name: 'Natural Dyes', icon: faPalette },
-        { name: 'Pet Care', icon: faPaw }
+        { name: 'craft', icon: faPaintBrush },
+        { name: 'food', icon: faUtensils },
+        { name: 'beauty', icon: faSpa },
+        { name: 'household', icon: faHome },
+        { name: 'cooking', icon: faBowlFood },
+        { name: 'first aid', icon: faKitMedical }
     ];
 
     // Fetch items when search query changes
@@ -79,7 +86,7 @@ export default function SecondLife() {
     // Event handlers for search and filters
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
-        setSelectedFoodType(null);
+        setSelectedIngredient(null);
     };
 
     const handleCategorySelect = (category: string) => {
@@ -88,11 +95,11 @@ export default function SecondLife() {
         );
     };
 
-    const handleFoodTypeSelect = (foodType: string) => {
-        setSelectedFoodType(prevType =>
-            prevType === foodType ? null : foodType
+    const handleIngredientSelect = (ingredient: string) => {
+        setSelectedIngredient(prevIngredient =>
+            prevIngredient === ingredient ? null : ingredient
         );
-        setSearchQuery(foodType);
+        setSearchQuery(ingredient);
     };
 
     const handleCardClick = (item: SecondLifeItem) => {
@@ -108,7 +115,7 @@ export default function SecondLife() {
     // Filter items based on selected category
     const filteredItems = items.filter(item => {
         const matchesCategory = selectedCategory === null ||
-            item.label === selectedCategory;
+            item.method_category === selectedCategory;
         return matchesCategory;
     });
 
@@ -136,20 +143,20 @@ into useful products for your home, garden, and beauty routine." />
                 </div>
             </div>
 
-            {/* Quick Access Food Categories */}
-            <div className="mt-8 overflow-x-auto pb-2">
+            {/* Quick Access Ingredients */}
+            <div className="mt-6 overflow-x-auto">
                 <div className="flex space-x-3 min-w-max px-2">
-                    {foodTypes.map((foodType) => (
+                    {ingredients.map((ingredient) => (
                         <Button
-                            key={foodType}
-                            onPress={() => handleFoodTypeSelect(foodType)}
+                            key={ingredient}
+                            onPress={() => handleIngredientSelect(ingredient)}
                             className={`py-2 px-4 rounded-full whitespace-nowrap !rounded-button cursor-pointer ${
-                                selectedFoodType === foodType
+                                selectedIngredient === ingredient
                                 ? 'bg-[#2c5e2e] text-white'
                                 : 'bg-white text-[#2c5e2e] hover:bg-gray-100'
                             } shadow-sm transition-colors`}
                         >
-                            {foodType}
+                            {ingredient}
                         </Button>
                     ))}
                     <Button
@@ -162,7 +169,7 @@ into useful products for your home, garden, and beauty routine." />
             </div>
 
             {/* Filter Section */}
-            <div className="mt-10">
+            <div className="mt-8">
                 <h3 className="text-lg font-medium text-gray-700 mb-4">Filter by category:</h3>
                 <div className="flex flex-wrap gap-3">
                     {categories.map((category) => (
@@ -183,7 +190,7 @@ into useful products for your home, garden, and beauty routine." />
             </div>
 
             {/* Results Grid */}
-            <div className="mt-10">
+            <div className="mt-8">
                 <h3 className="text-lg font-medium text-gray-700 mb-4">
                     {filteredItems.length} items found
                 </h3>
@@ -195,26 +202,23 @@ into useful products for your home, garden, and beauty routine." />
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredItems.map((item) => (
                             <div
-                                key={item.id}
+                                key={item.method_id}
                                 onClick={() => handleCardClick(item)}
                                 className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
                             >
                                 <div className="h-48 overflow-hidden">
                                     <img
                                         src={item.picture}
-                                        alt={item.items}
+                                        alt={item.method_name}
                                         className="w-full h-full object-cover object-top"
                                     />
                                 </div>
-                                <div className="p-5">
-                                    <h3 className="text-xl font-semibold text-[#2c5e2e] mb-2">{item.method}</h3>
-                                    <p className="text-gray-600 mb-4">{item.items}</p>
+                                <div className="p-4">
+                                    <h3 className="text-xl font-semibold text-[#2c5e2e] mb-2">{item.method_name}</h3>
+                                    <p className="text-gray-600 mb-4">{item.ingredient}</p>
                                     <div className="flex flex-wrap gap-2">
                                         <span className="text-xs py-1 px-3 bg-[#f0f7f0] text-[#2c5e2e] rounded-full">
-                                            {item.label}
-                                        </span>
-                                        <span className="text-xs py-1 px-3 bg-[#f0f7f0] text-[#2c5e2e] rounded-full">
-                                            {item.type}
+                                            {item.method_category}
                                         </span>
                                     </div>
                                 </div>
@@ -225,7 +229,7 @@ into useful products for your home, garden, and beauty routine." />
             </div>
 
             {/* Detail Modal */}
-            <Modal 
+            <Modal
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 size="2xl"
@@ -235,7 +239,7 @@ into useful products for your home, garden, and beauty routine." />
                     <ModalHeader className="flex flex-col gap-1 border-b">
                         <div className="flex justify-between items-center">
                             <h2 className="text-2xl font-semibold text-[#2c5e2e]">
-                                {selectedItem?.method}
+                                {selectedItem?.method_name}
                             </h2>
                             <Button
                                 isIconOnly
@@ -246,13 +250,13 @@ into useful products for your home, garden, and beauty routine." />
                             </Button>
                         </div>
                     </ModalHeader>
-                    <ModalBody className="p-6">
+                    <ModalBody>
                         {selectedItem && (
                             <>
                                 <div className="mb-6">
                                     <img
-                                        src={selectedItem.inside_picture}
-                                        alt={`${selectedItem.method} process`}
+                                        src={selectedItem.picture}
+                                        alt={`${selectedItem.method_name} process`}
                                         className="w-full h-64 object-cover rounded-lg"
                                     />
                                 </div>
@@ -260,10 +264,7 @@ into useful products for your home, garden, and beauty routine." />
                                 <div className="space-y-4">
                                     <div className="flex gap-2">
                                         <span className="px-3 py-1 bg-[#f0f7f0] text-[#2c5e2e] rounded-full text-sm">
-                                            {selectedItem.label}
-                                        </span>
-                                        <span className="px-3 py-1 bg-[#f0f7f0] text-[#2c5e2e] rounded-full text-sm">
-                                            {selectedItem.type}
+                                            {selectedItem.method_category}
                                         </span>
                                     </div>
                                     

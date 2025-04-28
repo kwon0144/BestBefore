@@ -275,21 +275,20 @@ def get_second_life_items(request):
     search_query = request.GET.get('search', '')
     
     if search_query:
-        items = SecondLife.objects.filter(items__icontains=search_query)
+        items = SecondLife.objects.filter(ingredient__icontains=search_query)
     else:
         items = SecondLife.objects.all()
     
     data = []
     for item in items:
         data.append({
-            'id': item.id,
-            'items': item.items,
-            'type': item.type,
-            'method': item.method,
-            'label': item.label,
+            'method_id': item.method_id,
+            'method_name': item.method_name,
+            'is_combo': item.is_combo,
+            'method_category': item.method_category,
+            'ingredient': item.ingredient,
             'description': item.description,
-            'picture': item.picture,
-            'inside_picture': item.inside_picture
+            'picture': item.picture
         })
     
     return Response(data)
@@ -300,16 +299,15 @@ def get_second_life_item_detail(request, item_id):
     Get details for a specific second life item
     """
     try:
-        item = SecondLife.objects.get(id=item_id)
+        item = SecondLife.objects.get(method_id=item_id)
         data = {
-            'id': item.id,
-            'items': item.items,
-            'type': item.type,
-            'method': item.method,
-            'label': item.label,
+            'method_id': item.method_id,
+            'method_name': item.method_name,
+            'is_combo': item.is_combo,
+            'method_category': item.method_category,
+            'ingredient': item.ingredient,
             'description': item.description,
-            'picture': item.picture,
-            'inside_picture': item.inside_picture
+            'picture': item.picture
         }
         return Response(data)
     except SecondLife.DoesNotExist:
