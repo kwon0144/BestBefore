@@ -9,6 +9,19 @@ export default function PantrySummary() {
   const items = useInventoryStore((state) => state.items);
   const refreshDaysLeft = useInventoryStore((state) => state.refreshDaysLeft);
 
+  // Helper to display quantity with correct unit
+  const formatQuantity = (quantity: string) => {
+    // If it ends with g, kg, ml, l, L, or contains any letter, show as is
+    if (/\d+\s*(g|kg|ml|l|L)$/i.test(quantity) || /[a-zA-Z]/.test(quantity.replace(/\d+/g, ''))) {
+      return quantity;
+    }
+    // If it's just a number, show as qty: X
+    if (/^\d+$/.test(quantity.trim())) {
+      return `qty: ${quantity.trim()}`;
+    }
+    return quantity;
+  };
+
   // Refresh days left on component mount
   useEffect(() => {
     refreshDaysLeft();
@@ -39,7 +52,7 @@ export default function PantrySummary() {
                   <li key={item.id} className="flex justify-between items-center">
                     <span>{item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-600">{item.quantity}</span>
+                      <span className="text-gray-600">{formatQuantity(item.quantity)}</span>
                       <span className={`text-sm ${
                         item.daysLeft && item.daysLeft <= 1 ? 'text-red-500' :
                         item.daysLeft && item.daysLeft <= 3 ? 'text-orange-500' : 'text-green-500'
@@ -61,7 +74,7 @@ export default function PantrySummary() {
                   <li key={item.id} className="flex justify-between items-center">
                     <span>{item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-600">{item.quantity}</span>
+                      <span className="text-gray-600">{formatQuantity(item.quantity)}</span>
                       <span className={`text-sm ${
                         item.daysLeft && item.daysLeft <= 7 ? 'text-red-500' :
                         item.daysLeft && item.daysLeft <= 14 ? 'text-orange-500' : 'text-green-500'

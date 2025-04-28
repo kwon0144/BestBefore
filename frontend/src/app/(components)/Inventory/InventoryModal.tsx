@@ -13,7 +13,7 @@ type InventoryModalProps = {
 };
 
 // Type for storage recommendation from the API
-type StorageRecommendation = {
+type StorageAdviceResponse = {
   type: string;
   storage_time: number;
   method: number; // 1 for refrigerator, 0 for pantry
@@ -61,27 +61,29 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     }
   };
 
-  // Fetch storage recommendation from the API
-  const fetchStorageRecommendation = async (foodName: string): Promise<StorageRecommendation | null> => {
+  // Get storage time for a food type - simplified to match CalendarExport approach
+  const getStorageTime = async (foodName: string): Promise<{storage_time: number; method: number}> => {
     try {
       setIsFetchingRecommendation(true);
-      setError(null);
       
       // Find the closest match in the food types
       const matchedType = findClosestFoodType(foodName);
       
       if (!matchedType) {
-        return null;
+        return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
       }
       
-      const response = await axios.post<StorageRecommendation>(`${config.apiUrl}/api/storage-advice/`, {
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
         food_type: matchedType
       });
       
-      return response.data;
-    } catch {
-      setError("Failed to get storage recommendation from the database.");
-      return null;
+      return { 
+        storage_time: response.data.storage_time,
+        method: response.data.method
+      };
+    } catch (error) {
+      console.error(`Error getting storage time for ${foodName}:`, error);
+      return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
     } finally {
       setIsFetchingRecommendation(false);
     }
@@ -158,50 +160,44 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
           return;
         }
 
-        // For new items, fetch storage recommendation
-        setIsFetchingRecommendation(true);
-        const recommendation = await fetchStorageRecommendation(newItem.name);
+        // For new items, get storage time using the simplified approach
+        const { storage_time, method } = await getStorageTime(newItem.name);
         
-        if (recommendation) {
-          // Use the recommended storage location and expiry date
-          const storageMethod = recommendation.method === 1 ? "refrigerator" : "pantry";
-          const expiryDate = new Date();
-          expiryDate.setDate(expiryDate.getDate() + recommendation.storage_time);
-          const expiryDateString = expiryDate.toISOString();
+        // Use the recommended storage location and expiry date
+        const storageMethod = method === 1 ? "refrigerator" : "pantry";
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + storage_time);
+        const expiryDateString = expiryDate.toISOString();
+        
+        // Check if item already exists with similar expiry date
+        const existingItem = findMatchingItem(newItem.name, expiryDateString);
+        
+        if (existingItem) {
+          // Accumulate quantity for existing item
+          const currentQuantity = existingItem.quantity;
+          const newQuantity = combineQuantities(currentQuantity, newItem.quantity);
           
-          // Check if item already exists with similar expiry date
-          const existingItem = findMatchingItem(newItem.name, expiryDateString);
+          // Update the existing item with new quantity
+          updateItem(existingItem.id, {
+            ...existingItem,
+            quantity: newQuantity
+          });
           
-          if (existingItem) {
-            // Accumulate quantity for existing item
-            const currentQuantity = existingItem.quantity;
-            const newQuantity = combineQuantities(currentQuantity, newItem.quantity);
-            
-            // Update the existing item with new quantity
-            updateItem(existingItem.id, {
-              ...existingItem,
-              quantity: newQuantity
-            });
-            
-            // Let the user know that quantities were combined
-            setError(`Added to existing "${newItem.name}" with similar expiry date.`);
-          } else {
-            // Add as new item with recommended values
-            const recommendedItem = {
-              ...newItem,
-              location: formState.location || storageMethod, // Use selected location or recommendation
-              expiryDate: formState.expiryDate || expiryDateString // Use selected date or recommendation
-            };
-            addItem(recommendedItem);
-          }
-          
-          // Switch to the appropriate tab if location wasn't manually specified
-          if (!formState.location) {
-            setSelectedTab(storageMethod);
-          }
+          // Let the user know that quantities were combined
+          setError(`Added to existing "${newItem.name}" with similar expiry date.`);
         } else {
-          // No recommendation found, use default values
-          addItem(newItem);
+          // Add as new item with recommended values
+          const recommendedItem = {
+            ...newItem,
+            location: formState.location || storageMethod, // Use selected location or recommendation
+            expiryDate: formState.expiryDate || expiryDateString // Use selected date or recommendation
+          };
+          addItem(recommendedItem);
+        }
+        
+        // Switch to the appropriate tab if location wasn't manually specified
+        if (!formState.location) {
+          setSelectedTab(storageMethod);
         }
         
         resetForm();

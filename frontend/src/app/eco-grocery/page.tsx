@@ -14,27 +14,6 @@ import MealChoice from "./MealChoice";
 import SelectedMeal from "./SelectedMeal";
 import GroceryList from "./GroceryList";
 
-// Debug JSON Display Component
-const JsonDebugDisplay = ({ data, title }: { data: unknown; title: string }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    
-    return (
-        <div className="mt-4 border border-gray-300 rounded-md overflow-hidden">
-            <div 
-                className="bg-gray-100 p-2 flex justify-between items-center cursor-pointer"
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                <h3 className="text-sm font-medium">{title}</h3>
-                <span>{isOpen ? '[-]' : '[+]'}</span>
-            </div>
-            {isOpen && (
-                <pre className="p-4 bg-gray-50 text-xs overflow-auto max-h-96">
-                    {JSON.stringify(data, null, 2)}
-                </pre>
-            )}
-        </div>
-    );
-};
 
 export default function EcoGrocery() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -117,15 +96,10 @@ export default function EcoGrocery() {
             setIsLoadingSignatureDishes(true);
             try {
                 const apiUrl = `${config.apiUrl}/api/signature-dishes/`;
-                console.log('Fetching from URL:', apiUrl);
-                console.log('With params:', { cuisine: selectedCuisine });
                 
                 const response = await axios.get<SignatureDish[]>(apiUrl, {
                     params: { cuisine: selectedCuisine }
                 });
-                
-                console.log('API response status:', response.status);
-                console.log('API response data:', response.data);
                 
                 setSignatureDishes(response.data);
             } catch (error) {
@@ -277,20 +251,7 @@ export default function EcoGrocery() {
                 <div className="h-full">
                     <PantrySummary />
                 </div>
-            </div>
-            
-            {/* Debug JSON Display Section */}
-            <div className="mt-12 mb-8 border-t pt-4">
-                <h2 className="text-xl font-semibold mb-4">Debug Data</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <JsonDebugDisplay data={selectedMeals} title="Selected Meals" />
-                    <JsonDebugDisplay data={groceryItems} title="Grocery Items" />
-                    <JsonDebugDisplay data={pantryItems} title="Pantry Items" />
-                    <JsonDebugDisplay data={groceryList} title="Grocery List Response" />
-                    <JsonDebugDisplay data={signatureDishes} title="Signature Dishes" />
-                    <JsonDebugDisplay data={{ loading, error, selectedCuisine }} title="UI State" />
-                </div>
-            </div>
+            </div>     
         </div>
     );
 }
