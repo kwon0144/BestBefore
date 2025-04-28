@@ -91,7 +91,7 @@ export default function Solution() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                transition={{ duration: 1, ease: "easeOut" }}
             >
                 Your Roadmap to Zero Kitchen Waste
             </motion.h2>
@@ -102,7 +102,7 @@ export default function Solution() {
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
+                    transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
                 >
                     {/* First row - Top cards */}
                     <div className="grid grid-cols-3 gap-8 mb-12 xl:grid-cols-6">
