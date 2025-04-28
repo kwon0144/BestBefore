@@ -127,7 +127,7 @@ const Navigationbar = () => {
                     textAlign="center"
                     sx={{
                       color: pathname === item.path ? 'primary.dark' : 'grey.700',
-                      fontWeight: pathname === item.path ? 'bold' : 'normal',
+                      fontWeight: pathname === item.path ? 'semibold' : 'normal',
                     }}
                   >
                     {item.label}
