@@ -26,11 +26,6 @@ export default function FoodNetwork() {
     currentLocationAddress: ""
   });
 
-  // For loading the map
-  const {isLoaded} = useLoadScript({
-    googleMapsApiKey: apiKey,
-    libraries: GOOGLE_MAPS_LIBRARIES
-  });
   // For the view state
   const [viewState, setViewState] = useState<ViewState>({
     showInformation: true,
