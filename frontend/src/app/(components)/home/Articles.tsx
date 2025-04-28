@@ -3,8 +3,6 @@ import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
-const STAGGER_DELAY = 0.2;
-
 export default function Articles() {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     
@@ -54,7 +52,7 @@ export default function Articles() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ 
-                                duration: 0.8,
+                                duration: 1,
                                 ease: "easeOut",
                                 delay: 0.5 + (index * 0.2)
                             }}

@@ -37,12 +37,12 @@ export default function ProblemStatement() {
                     {cards.map((card, index) => (
                         <motion.div 
                             key={index} 
-                            className="bg-white p-8 rounded-lg shadow-md text-center hover:scale-105 transition-all duration-300"
+                            className="bg-white p-8 rounded-lg shadow-md text-center"
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ 
-                                duration: 0.8,
+                                duration: 1,
                                 ease: "easeOut",
                                 delay: 0.5 + (index * 0.2)
                             }}

@@ -3,8 +3,6 @@
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import GradientText from "../Gradient Text";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 
 const containerVariants = {
@@ -24,21 +22,8 @@ const contentVariants = {
         x: 0,
         opacity: 1,
         transition: {
-            duration: 0.8,
+            duration: 1,
             delay: 1.2,
-            ease: "easeOut"
-        }
-    }
-};
-
-const scrollButtonVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-        y: 0,
-        opacity: 1,
-        transition: {
-            duration: 0.8,
-            delay: 1,
             ease: "easeOut"
         }
     }
@@ -46,16 +31,6 @@ const scrollButtonVariants = {
 
 export default function Hero() {
     const router = useRouter();
-
-    const scrollToProblemStatement = () => {
-        const element = document.getElementById('problem-statement');
-        if (element) {
-            window.scrollTo({
-                top: element.offsetTop - 60, // Offset by 100px to account for any fixed headers
-                behavior: 'smooth'
-            });
-        }
-    };
 
     return (
         <motion.div 
@@ -101,17 +76,6 @@ export default function Hero() {
                     >
                         Start Your Zero-Waste Journey
                     </Button>
-                </div>
-            </motion.div>
-            <motion.div 
-                className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
-                variants={scrollButtonVariants}
-            >
-                <div
-                    className="w-15 h-15 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center mr-3 p-4 cursor-pointer transition-all duration-300 hover:-translate-y-1"
-                    onClick={scrollToProblemStatement}
-                >
-                    <FontAwesomeIcon icon={faChevronDown} className="text-2xl text-white" />
                 </div>
             </motion.div>
         </motion.div>
