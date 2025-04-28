@@ -1,6 +1,24 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LayoutRouterContext } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { useContext } from 'react';
 import { usePathname } from 'next/navigation';
+import { useRef } from 'react';
+
+function FrozenRouter(props: { children: React.ReactNode }) {
+    const context = useContext(LayoutRouterContext ?? {});
+    const frozen = useRef(context).current;
+  
+    if (!frozen) {
+      return <>{props.children}</>;
+    }
+  
+    return (
+      <LayoutRouterContext.Provider value={frozen}>
+        {props.children}
+      </LayoutRouterContext.Provider>
+    );
+  }
 
 export default function PageTransitionWrapper({ children }: { children: React.ReactNode }) {
 
@@ -27,9 +45,9 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
     }
 
     const perspective = {
-        initial: { y:0, scale:1, opacity: 1},
-        enter: { y:0, scale:1, opacity: 1 },
-        exit: { y:-100, scale:0.9, opacity: 0, transition: { duration: 1.5, ease: [0.76, 0, 0.24, 1] } }
+        initial: { y:0, opacity: 1},
+        enter: { y:0, opacity: 1 },
+        exit: { y:-100, opacity: 0, transition: { duration: 1.5, ease: [0.76, 0, 0.24, 1] } }
     }
 
     return (
@@ -50,7 +68,7 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
                     key={pathname}
                     {...animate(opacity)}
                 >
-                    {children}
+                    <FrozenRouter>{children}</FrozenRouter>
                 </motion.div>
                 </motion.div>
             </AnimatePresence>
