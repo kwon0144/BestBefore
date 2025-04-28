@@ -15,7 +15,7 @@ export default function LayoutWrapper({
   return (
     <>
       {!isLoginPage && <Navigationbar />}
-      <main>{children}</main>
+      <main className='bg-background'>{children}</main>
       {!isLoginPage && <Footer />}
     </>
   );
