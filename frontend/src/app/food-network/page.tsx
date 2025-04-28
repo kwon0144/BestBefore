@@ -38,17 +38,6 @@ export default function FoodNetwork() {
     showRouteResult: false,
   });
 
-  // if (!isLoaded) return (
-  //   <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
-  //     <Title 
-  //     heading="Food Network" 
-  //     description="Contribute to the community by donation or efficient disposal" 
-  //     background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/foodnetwork-titlebg.png"
-  //     />
-  //     <div>Loading...</div>
-  //   </div>
-  // );
-
   return (
     <div>
       <div className="py-16">
