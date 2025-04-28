@@ -11,6 +11,6 @@ export default function Home() {
       <ProblemStatement />
       <Solution />
       <Articles />
-    </div>
+      </div>
   );
 }
