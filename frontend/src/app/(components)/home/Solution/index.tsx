@@ -10,6 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import SolutionCard from './SolutionCard';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 type IconName = 'faBoxArchive' | 'faUsers' | 'faRecycle' | 'faGamepad' | 'faChartLine' | 'faShoppingBasket';
 
@@ -85,12 +86,24 @@ export default function Solution() {
 
     return (
         <div className="h-full bg-white py-24 px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12">
+            <motion.h2 
+                className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+            >
                 Your Roadmap to Zero Kitchen Waste
-            </h2>
-            <div className="max-w-7xl mx-auto">
+            </motion.h2>
+            <div className="max-w-7xl mx-auto mb-4">
                 {/* Roadmap container Tablets and Desktop*/}
-                <div className="hidden md:flex flex-col md:justify-center md:items-center">
+                <motion.div 
+                    className="hidden md:flex flex-col md:justify-center md:items-center"
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
+                >
                     {/* First row - Top cards */}
                     <div className="grid grid-cols-3 gap-8 mb-12 xl:grid-cols-6">
                         {/* Card 0 */}
@@ -131,14 +144,32 @@ export default function Solution() {
                         {/* Card 5 */}
                         <SolutionCard step={steps[5]} onClick={() => router.push(steps[5].link)}/>
                     </div>
-                </div>
+                </motion.div>
                 
                 {/* Roadmap container Mobile*/}
-                <div className="flex flex-col grid grid-cols-2 gap-8 md:hidden">
+                <motion.div 
+                    className="flex flex-col grid grid-cols-2 gap-8 md:hidden"
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
+                >
                     {steps.map((step, index) => (
-                        <SolutionCard key={index} step={step} onClick={() => router.push(step.link)}/>
+                        <motion.div 
+                            key={index}
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ 
+                                duration: 0.8,
+                                ease: "easeOut",
+                                delay: 0.5 + (index * 0.2)
+                            }}
+                        >
+                            <SolutionCard step={step} onClick={() => router.push(step.link)}/>
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             </div>
         </div>
     );
