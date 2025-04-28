@@ -33,9 +33,7 @@ module.exports = {
         amber: amber,
         grey: grey,
         background: '#f5f6f2',
-      },
-      background: {
-        default: '#f5f6f2',
+        darkGreen: '#2d5a4b'
       },
     },
   },
