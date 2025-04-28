@@ -23,8 +23,14 @@ const muiTheme = createTheme({
       light: lightGreen[500],
       main: green[500],
       dark: green[900],
+      contrastText: '#FFFFFF',
     },
     secondary: amber,
+  },
+  typography: {
+    button: {
+      textTransform: 'none'
+    }
   }
 });
 

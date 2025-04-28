@@ -17,7 +17,7 @@ export default function SolutionCard({ step, onClick }: SolutionCardProps) {
         <div className="col-span-1 cursor-pointer w-[200px]" onClick={onClick}>
             <FlipCard 
                 frontContent={
-                    <div className='bg-green-50 p-2 rounded-lg'>
+                    <div className='bg-lightgreen/30 p-2 rounded-lg'>
                         {step.image && (
                             <div className="h-40 overflow-hidden rounded-lg mb-4">
                                 <Image 
@@ -29,7 +29,7 @@ export default function SolutionCard({ step, onClick }: SolutionCardProps) {
                                 />
                             </div>
                         )}
-                        <h3 className="text-md font-semibold text-primary-main mb-3">
+                        <h3 className="text-md font-semibold text-darkgreen mb-3">
                             <div className="flex items-center justify-center">
                                 {step.title}
                             </div>
@@ -37,10 +37,10 @@ export default function SolutionCard({ step, onClick }: SolutionCardProps) {
                     </div>
                 } 
                 backContent={
-                    <div className='bg-green-50 p-2 rounded-lg'>
+                    <div className='bg-lightgreen/30 p-2 rounded-lg'>
                         <div className="h-52 overflow-hidden rounded-lg items-center justify-center text-center">
                             <h3 className="mt-14 px-2">
-                                <p className="text-primary-main font-semibold">{step.description}</p>
+                                <p className="text-darkgreen font-semibold">{step.description}</p>
                             </h3>
                         </div>
                     </div>

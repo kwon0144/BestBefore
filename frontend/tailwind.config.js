@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 import { heroui } from "@heroui/react";
-import { green, amber, grey, teal, lightGreen } from "@mui/material/colors";
 
 module.exports = {
   content: [
@@ -23,26 +22,29 @@ module.exports = {
           '50%': { backgroundPosition: '100% 50%' },
         }
       },
-      colors: {
-        primary: {
-          light: teal[500],
-          main: green[900],
-        },
-        green: green,
-        teal: teal,
-        lightGreen: lightGreen,
-        amber: amber,
-        grey: grey,
-        background: '#f5f6f2',
-        darkGreen: '#2d5a4b'
-      },
-    },
+    }
   },
   darkMode: "class",
   plugins: [heroui({
     themes: {
       light: {
         colors: {
+          foregroud: "#FFFFFF",
+          primary: {
+            DEFAULT: "#0d9488"
+          },
+          background: {
+            DEFAULT: "#f5f6f2"
+          },
+          lightgreen: {
+            DEFAULT: "#78bba2"
+          },
+          green: {
+            DEFAULT: "#0d9488"
+          },
+          darkgreen: {
+            DEFAULT: "#2d5a4b"
+          }
         }
       }
     }

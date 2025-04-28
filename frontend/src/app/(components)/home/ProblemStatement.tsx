@@ -23,7 +23,7 @@ export default function ProblemStatement() {
     return (
         <div id="problem-statement" className="py-24 bg-background">
             <div className="max-w-7xl mx-auto px-6">
-                <h2 className="text-3xl md:text-4xl font-bold text-primary-main text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12">
                     The Food Waste Crisis
                 </h2>
                 <div className="grid md:grid-cols-3 gap-8">
@@ -32,7 +32,7 @@ export default function ProblemStatement() {
                             <div className="text-[#FF8C42] mb-4">
                                 <FontAwesomeIcon icon={card.icon} className="text-5xl" />
                             </div>
-                            <h3 className="text-2xl font-semibold text-primary-main mb-3">{card.title}</h3>
+                            <h3 className="text-2xl font-semibold text-darkgreen mb-3">{card.title}</h3>
                             <p className="text-gray-700">
                                 {card.description}
                             </p>

@@ -86,11 +86,11 @@ export default function Hero() {
                         colors={["#2D5A4B", "#6FCF97",  "#2D5A4B", "#6FCF97", "#2D5A4B"]}
                         animationSpeed={15}
                         showBorder={false}
-                        className="text-4xl md:text-5xl font-bold text-primary-main mb-6"
+                        className="text-4xl md:text-5xl font-bold text-darkgreen mb-6"
                     >
                         Together for a zero-waste kitchen
                     </GradientText>
-                    <p className="text-xl md:text-2xl text-primary-main mb-8 font-semibold">
+                    <p className="text-xl md:text-2xl text-darkgreen mb-8 font-semibold">
                         Save food, money, and our planet with BestBefore
                     </p>
                     <Button 
