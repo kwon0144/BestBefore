@@ -8,7 +8,7 @@ import {
     faShoppingBasket,
     IconDefinition
 } from '@fortawesome/free-solid-svg-icons';
-import { SolutionCard } from './SolutionCard';
+import SolutionCard from './SolutionCard';
 import { useRouter } from 'next/navigation';
 
 type IconName = 'faBoxArchive' | 'faUsers' | 'faRecycle' | 'faGamepad' | 'faChartLine' | 'faShoppingBasket';
@@ -78,7 +78,7 @@ export default function Solution() {
 
     return (
         <div className="h-full bg-white py-24 px-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-main text-center mb-12">
                 Your Roadmap to Zero Kitchen Waste
             </h2>
             <div className="max-w-7xl mx-auto">

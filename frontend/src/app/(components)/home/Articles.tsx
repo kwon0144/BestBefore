@@ -29,7 +29,7 @@ export default function Articles() {
     return (
         <div className="py-24 bg-background">
             <div className="max-w-7xl mx-auto px-6">
-                <h2 className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold text-primary-main text-center mb-12">
                     Food Waste Insights
                 </h2>
                 <div className="grid md:grid-cols-3 gap-8">
@@ -45,14 +45,14 @@ export default function Articles() {
                                 />
                             </div>
                             <div className="p-6">
-                                <h3 className="text-xl font-semibold text-[#2E5A4B] mb-2">
+                                <h3 className="text-xl font-semibold text-primary-main mb-2">
                                     {article.title}
                                 </h3>
                                 <p className="text-gray-700 mb-4">
                                     {article.description}
                                 </p>
                                 <a
-                                    className="text-[#2E5A4B] font-medium hover:underline cursor-pointer"
+                                    className="text-primary-main font-medium hover:underline cursor-pointer"
                                 >
                                     Read More <FontAwesomeIcon icon={faArrowRight} className="ml-1" />
                                 </a>

@@ -1,6 +1,6 @@
 import { FlipCard } from "../../FlipCard";
 
-export interface SolutionCardProps {
+interface SolutionCardProps {
     step: {
         icon: React.ReactNode;
         title: string;
@@ -11,7 +11,7 @@ export interface SolutionCardProps {
     onClick?: () => void;
 }
 
-export function SolutionCard({ step, onClick }: SolutionCardProps) {
+export default function SolutionCard({ step, onClick }: SolutionCardProps) {
     return (
         <div className="col-span-1 cursor-pointer" onClick={onClick}>
             <FlipCard 
@@ -26,7 +26,7 @@ export function SolutionCard({ step, onClick }: SolutionCardProps) {
                                 />
                             </div>
                         )}
-                        <h3 className="text-md font-semibold text-darkgreen mb-3">
+                        <h3 className="text-md font-semibold text-primary-main mb-3">
                             <div className="flex items-center justify-center">
                                 {step.title}
                             </div>
@@ -37,7 +37,7 @@ export function SolutionCard({ step, onClick }: SolutionCardProps) {
                     <div className='bg-[#E8F3EE] p-2 rounded-lg'>
                         <div className="flex flex-col h-52 overflow-hidden rounded-lg hidden xl:block items-center justify-center text-center">
                             <h3 className="mt-14 px-2">
-                                <p className="text-darkgreen">{step.description}</p>
+                                <p className="text-primary-main">{step.description}</p>
                             </h3>
                         </div>
                     </div>

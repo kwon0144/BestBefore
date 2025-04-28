@@ -22,7 +22,7 @@ const muiTheme = createTheme({
     primary: {
       light: lightGreen[500],
       main: green[500],
-      dark: green[800],
+      dark: green[900],
     },
     secondary: amber,
   }

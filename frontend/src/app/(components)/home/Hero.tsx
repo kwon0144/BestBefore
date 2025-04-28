@@ -78,19 +78,19 @@ export default function Hero() {
             >
             </motion.div>
             <motion.div 
-                className="max-w-6xl mx-auto absolute inset-0 flex flex-col justify-center items-start md:px-16 z-20"
+                className="max-w-6xl mx-auto absolute inset-0 flex flex-col justify-center items-start pl-5 z-20"
                 variants={contentVariants}
             >
-                <div className="max-w-3xl pl-10">
+                <div className="max-w-3xl">
                     <GradientText
-                        colors={["#1B5E20", "#0d9488",  "#2D5A4B", "#0d9488", "#1B5E20"]}
-                        animationSpeed={10}
+                        colors={["#2D5A4B", "#6FCF97",  "#2D5A4B", "#6FCF97", "#2D5A4B"]}
+                        animationSpeed={15}
                         showBorder={false}
-                        className="text-4xl md:text-5xl font-bold text-darkgreen mb-6"
+                        className="text-4xl md:text-5xl font-bold text-primary-main mb-6"
                     >
                         Together for a zero-waste kitchen
                     </GradientText>
-                    <p className="text-xl md:text-2xl text-darkgreen mb-8 font-semibold">
+                    <p className="text-xl md:text-2xl text-primary-main mb-8 font-semibold">
                         Save food, money, and our planet with BestBefore
                     </p>
                     <Button 
