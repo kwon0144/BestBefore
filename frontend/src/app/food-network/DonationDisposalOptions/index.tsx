@@ -3,7 +3,7 @@ import DisposalGuideButton from "./DisposalGuideButton";
 import Image from "next/image";
 export default function DonationDisposalOptions() {
     return (
-        <div className="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto p-5">
+        <div className="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto">
           {/* Foodbank Component */}
           <div 
           className="p-8 flex flex-col rounded-3xl shadow-lg items-center text-center hover:translate-y-[-5px] transition-all duration-300 relative overflow-hidden"

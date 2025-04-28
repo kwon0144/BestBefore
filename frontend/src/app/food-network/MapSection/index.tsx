@@ -58,7 +58,7 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
   };
 
   return (
-    <div className="mt-10">
+    <div>
         {/* tab selection */}
         <div className="flex flex-row w-full ">
             <div className={`flex flex-row w-1/2 py-2 px-10 rounded-t-full ${selectedType === "Food Donation Points" ? "bg-green/30" : "bg-transparent"}`}></div>

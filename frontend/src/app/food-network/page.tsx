@@ -59,9 +59,11 @@ export default function FoodNetwork() {
         />
       </div>
       <div className="min-h-screen max-w-7xl mx-auto px-10">
-        <DonationDisposalOptions />
+        <div className="mt-10">
+          <DonationDisposalOptions />
+        </div>
         <APIProvider apiKey={apiKey}>
-          <div className="mb-20">
+          <div className="mt-20">
             <MapSection 
               mapSectionState={mapSectionState}
               setMapSectionState={setMapSectionState}
@@ -72,7 +74,7 @@ export default function FoodNetwork() {
             />
           </div>
           <div>
-            <div>
+            <div className="mt-20">
               <FoodNetworkList 
                 setMapSectionState={setMapSectionState}
                 selectedType={selectedType}
