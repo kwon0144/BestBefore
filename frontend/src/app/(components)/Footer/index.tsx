@@ -51,7 +51,7 @@ const Footer = () => {
                     <p className="underline text-md font-bold mb-4 hover:text-[#A5D6B7] transition-colors duration-300 cursor-pointer">
                       {item.name}
                     </p>
-                    <ul className="space-y-2 text-grey-300 pl-2">
+                    <ul className="space-y-2 text-gray-300 pl-2">
                     {item.section.map((section) => (
                       <div key={section.name}>
                           <li>
