@@ -26,6 +26,11 @@ export default function FoodNetwork() {
     currentLocationAddress: ""
   });
 
+  // For loading the map
+  const {isLoaded} = useLoadScript({
+    googleMapsApiKey: apiKey,
+    libraries: GOOGLE_MAPS_LIBRARIES
+  });
   // For the view state
   const [viewState, setViewState] = useState<ViewState>({
     showInformation: true,
@@ -43,16 +48,17 @@ export default function FoodNetwork() {
         />
       </div>
       <div className="min-h-screen max-w-7xl mx-auto px-10">
-        <div className="mt-10">
+        <div className="mt-20">
           <DonationDisposalOptions />
         </div>
-        <APIProvider apiKey={apiKey}>
-          <div className="mt-20">
-            <MapSection 
-              mapSectionState={mapSectionState}
-              setMapSectionState={setMapSectionState}
-              selectedType={selectedType}
-              setSelectedType={setSelectedType}
+        {isLoaded && (
+          <APIProvider apiKey={apiKey}>
+            <div className="mt-20">
+              <MapSection 
+                mapSectionState={mapSectionState}
+                setMapSectionState={setMapSectionState}
+                selectedType={selectedType}
+                setSelectedType={setSelectedType}
               viewState={viewState}
               setViewState={setViewState}
             />
@@ -68,6 +74,7 @@ export default function FoodNetwork() {
             </div>
           </div>
         </APIProvider>
+        )}
       </div>
     </div>
   );
