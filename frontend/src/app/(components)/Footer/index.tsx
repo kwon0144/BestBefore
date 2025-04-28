@@ -27,7 +27,7 @@ const Footer = () => {
   return (
     <footer className="bg-darkgreen text-white py-12">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-10">
           <div>
             <div className='px-40 relative h-24 w-52'>
               <Image 
@@ -65,8 +65,8 @@ const Footer = () => {
               ))}
             </div>
           </div>
-        <div className="border-t border-[#A5D6B7]/30 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-[#A5D6B7] px-20">
+        <div className="border-t border-gray-300/30 pt-12 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm text-gray-300 px-20">
                 © {new Date().getFullYear()} BestBefore. All rights reserved.
             </p>
         </div>
