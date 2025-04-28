@@ -38,39 +38,51 @@ export default function FoodNetwork() {
     showRouteResult: false,
   });
 
-  if (!isLoaded) return (
-    <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
-      <Title heading="Food Network" description="Contribute to the community by donation or efficient disposal" />
-      <div>Loading...</div>
-    </div>
-  );
+  // if (!isLoaded) return (
+  //   <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
+  //     <Title 
+  //     heading="Food Network" 
+  //     description="Contribute to the community by donation or efficient disposal" 
+  //     background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/foodnetwork-titlebg.png"
+  //     />
+  //     <div>Loading...</div>
+  //   </div>
+  // );
 
   return (
-    <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
-      <Title heading="Food Network" description="Contribute to the community by donation or efficient disposal" />
-      <DonationDisposalOptions />
-      <APIProvider apiKey={apiKey}>
-        <div className="mb-20">
-          <MapSection 
-            mapSectionState={mapSectionState}
-            setMapSectionState={setMapSectionState}
-            selectedType={selectedType}
-            setSelectedType={setSelectedType}
-            viewState={viewState}
-            setViewState={setViewState}
-          />
-        </div>
-        <div>
-          <div>
-            <FoodNetworkList 
+    <div>
+      <div className="py-16">
+        <Title 
+        heading="Food Network" 
+        description="Contribute to the community by donation or efficient disposal" 
+        background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/foodnetwork-titlebg.png"
+        />
+      </div>
+      <div className="min-h-screen max-w-7xl mx-auto px-10">
+        <DonationDisposalOptions />
+        <APIProvider apiKey={apiKey}>
+          <div className="mb-20">
+            <MapSection 
+              mapSectionState={mapSectionState}
               setMapSectionState={setMapSectionState}
               selectedType={selectedType}
               setSelectedType={setSelectedType}
+              viewState={viewState}
               setViewState={setViewState}
             />
           </div>
-        </div>
-      </APIProvider>
+          <div>
+            <div>
+              <FoodNetworkList 
+                setMapSectionState={setMapSectionState}
+                selectedType={selectedType}
+                setSelectedType={setSelectedType}
+                setViewState={setViewState}
+              />
+            </div>
+          </div>
+        </APIProvider>
+      </div>
     </div>
   );
 }

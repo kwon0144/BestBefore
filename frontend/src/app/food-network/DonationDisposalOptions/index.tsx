@@ -1,5 +1,3 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuildingColumns, faRecycle } from "@fortawesome/free-solid-svg-icons";
 import DonationGuideButton from "./DonationGuideButton";
 import DisposalGuideButton from "./DisposalGuideButton";
 import Image from "next/image";
@@ -44,7 +42,7 @@ export default function DonationDisposalOptions() {
                 Recycle your food waste smartly
               </p>
               <div className="text-darkgreen flex justify-center items-center">
-                <Image src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/foodbank-icon.png" 
+                <Image src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/greenbin-icon.png" 
                   alt="Green Waste Bin" width={250} height={250}/>
               </div>
               <p className="text-darkgreen mb-8 font-semibold">
