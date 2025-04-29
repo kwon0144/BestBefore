@@ -1,6 +1,6 @@
 import React from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
+import NoScrollLink from '../NoScrollLink';
 
 const Footer = () => {
   const menuItems = [
@@ -43,8 +43,8 @@ const Footer = () => {
           </div>
             <div className="grid grid-cols-2 gap-8 text-sm px-20 ">
               {menuItems.map((item) => (
-                <Link href={item.link}>
-                  <div key={item.name}>
+                <NoScrollLink href={item.link} key={item.name}>
+                  <div>
                     <p className="underline text-md font-bold mb-4 hover:text-[#A5D6B7] transition-colors duration-300 cursor-pointer">
                       {item.name}
                     </p>
@@ -58,7 +58,7 @@ const Footer = () => {
                     ))}
                     </ul>
                   </div>
-                </Link>
+                </NoScrollLink>
               ))}
             </div>
           </div>

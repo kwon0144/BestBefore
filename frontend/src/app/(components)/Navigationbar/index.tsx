@@ -14,18 +14,8 @@ import MenuItem from '@mui/material/MenuItem';
 import Image from 'next/image';
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-
-// Create NoScrollLink component
-const NoScrollLink = React.forwardRef<HTMLAnchorElement, React.ComponentPropsWithRef<typeof Link>>(
-  ({ children, ...props }, ref) => (
-    <Link {...props} scroll={false} ref={ref}>
-      {children}
-    </Link>
-  )
-);
-NoScrollLink.displayName = 'NoScrollLink';
+import NoScrollLink from '../NoScrollLink';
 
 const menuItems = [
   { path: "/", label: "Home" },

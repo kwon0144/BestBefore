@@ -1,3 +1,4 @@
+import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faBoxArchive, 
@@ -9,8 +10,8 @@ import {
     IconDefinition
 } from '@fortawesome/free-solid-svg-icons';
 import SolutionCard from './SolutionCard';
-import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import NoScrollLink from '../../NoScrollLink';
 
 type IconName = 'faBoxArchive' | 'faUsers' | 'faRecycle' | 'faGamepad' | 'faChartLine' | 'faShoppingBasket';
 
@@ -24,8 +25,6 @@ const iconMap: Record<IconName, IconDefinition> = {
 };
 
 export default function Solution() {
-    const router = useRouter();
-    
     const steps: Array<{
         icon: IconName;
         title: string;
@@ -107,13 +106,19 @@ export default function Solution() {
                     {/* First row - Top cards */}
                     <div className="grid grid-cols-3 gap-8 mb-12 xl:grid-cols-6">
                         {/* Card 0 */}
-                        <SolutionCard step={steps[0]} onClick={() => router.push(steps[0].link)} />
+                        <NoScrollLink href={steps[0].link}>
+                            <SolutionCard step={steps[0]} />
+                        </NoScrollLink>
                         <div className="col-span-1 hidden xl:block"></div>
                         {/* Card 2 */}
-                        <SolutionCard step={steps[2]} onClick={() => router.push(steps[2].link)} />
+                        <NoScrollLink href={steps[2].link}>
+                            <SolutionCard step={steps[2]} />
+                        </NoScrollLink>
                         <div className="col-span-1 hidden xl:block"></div>
                         {/* Card 4 */}
-                        <SolutionCard step={steps[4]} onClick={() => router.push(steps[4].link)} />
+                        <NoScrollLink href={steps[4].link}>
+                            <SolutionCard step={steps[4]} />
+                        </NoScrollLink>
                         <div className="col-span-1 hidden xl:block"></div>
                     </div>
 
@@ -136,13 +141,19 @@ export default function Solution() {
                     {/* Third row - Bottom cards */}
                     <div className="grid grid-cols-3 gap-8 mt-3 mb-8 xl:grid-cols-6">
                         <div className="col-span-1 hidden xl:block"></div>
-                        <SolutionCard step={steps[1]} onClick={() => router.push(steps[1].link)}/>
+                        <NoScrollLink href={steps[1].link}>
+                            <SolutionCard step={steps[1]} />
+                        </NoScrollLink>
                         <div className="col-span-1 hidden xl:block"></div>
                         {/* Card 3 */}
-                        <SolutionCard step={steps[3]} onClick={() => router.push(steps[3].link)}/>
+                        <NoScrollLink href={steps[3].link}>
+                            <SolutionCard step={steps[3]} />
+                        </NoScrollLink>
                         <div className="col-span-1 hidden xl:block"></div>
                         {/* Card 5 */}
-                        <SolutionCard step={steps[5]} onClick={() => router.push(steps[5].link)}/>
+                        <NoScrollLink href={steps[5].link}>
+                            <SolutionCard step={steps[5]} />
+                        </NoScrollLink>
                     </div>
                 </motion.div>
                 
@@ -166,7 +177,9 @@ export default function Solution() {
                                 delay: 0.5 + (index * 0.2)
                             }}
                         >
-                            <SolutionCard step={step} onClick={() => router.push(step.link)}/>
+                            <NoScrollLink href={step.link}>
+                                <SolutionCard step={step} />
+                            </NoScrollLink>
                         </motion.div>
                     ))}
                 </motion.div>
