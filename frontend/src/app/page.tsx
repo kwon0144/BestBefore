@@ -1,8 +1,8 @@
 'use client';
-import Articles from '@/app/(components)/Home/Articles';
-import Hero from '@/app/(components)/Home/Hero';
-import ProblemStatement from '@/app/(components)/Home/ProblemStatement';
-import Solution from '@/app/(components)/Home/Solution';
+import Articles from './(components)/home/Articles';
+import Hero from './(components)/home/Hero';
+import ProblemStatement from './(components)/home/ProblemStatement';
+import Solution from './(components)/home/Solution';
 
 export default function Home() {
   return (
