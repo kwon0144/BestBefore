@@ -246,7 +246,6 @@ export default function EcoGrocery() {
                 setSearchQuery={setSearchQuery}
                 addSearchResultMeal={addSearchResultMeal}
                 handleSearchKeyPress={handleSearchKeyPress}
-                notification={null}
             />
             
             {/* Popular Meals */}

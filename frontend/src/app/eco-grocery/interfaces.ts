@@ -77,7 +77,6 @@ export interface SearchBarProps {
   setSearchQuery: (query: string) => void;
   addSearchResultMeal: () => void;
   handleSearchKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  notification: string | null;
 }
 
 /**
