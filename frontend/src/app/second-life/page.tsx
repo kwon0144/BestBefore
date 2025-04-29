@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Title from "../(components)/Title"
 import { Button, Input, Modal, ModalContent, ModalHeader, ModalBody } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass, faArrowRight, faSpa, faBroom, faSeedling, faPalette, faPaw, faTimes, faPaintBrush, faUtensils, faHome, faBowlFood, faKitMedical } from "@fortawesome/free-solid-svg-icons";
+import { faMagnifyingGlass, faArrowRight, faSpa, faTimes, faPaintBrush, faUtensils, faHome, faBowlFood, faKitMedical } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { config } from "@/config";
 
@@ -59,13 +59,8 @@ export default function SecondLife() {
         { name: 'first aid', icon: faKitMedical }
     ];
 
-    // Fetch items when search query changes
-    useEffect(() => {
-        fetchItems();
-    }, [searchQuery]);
-
     // Fetch items from the backend API
-    const fetchItems = async () => {
+    const fetchItems = useCallback(async () => {
         try {
             setLoading(true);
             const response = await axios.get<SecondLifeItem[]>(`${config.apiUrl}/api/second-life/`, {
@@ -81,7 +76,12 @@ export default function SecondLife() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchQuery]);
+
+    // Fetch items when search query changes
+    useEffect(() => {
+        fetchItems();
+    }, [fetchItems]);
 
     // Event handlers for search and filters
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
