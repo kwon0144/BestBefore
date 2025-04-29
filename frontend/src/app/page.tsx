@@ -1,8 +1,8 @@
 'use client';
-import Articles from './(components)/home/Articles';
 import Hero from './(components)/home/Hero';
 import ProblemStatement from './(components)/home/ProblemStatement';
 import Solution from './(components)/home/Solution';
+import Articles from './(components)/home/Articles';
 
 export default function Home() {
   return (
@@ -11,6 +11,6 @@ export default function Home() {
       <ProblemStatement />
       <Solution />
       <Articles />
-      </div>
+    </div>
   );
 }
