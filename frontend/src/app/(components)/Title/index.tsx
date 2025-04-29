@@ -10,7 +10,7 @@ export default function Title({heading, description, background}: TitleProps) {
     return <motion.div
     initial={{ y: -50, opacity: 0 }}
     animate={{ y: 0, opacity: 1 }}
-    transition={{ duration: 1, delay: 1, ease: "easeOut" }}
+    transition={{ duration: 1, ease: "easeOut" }}
     style={{
         backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url(${background})`,
         backgroundSize: 'cover',

@@ -44,12 +44,6 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
         exit: { y: "0vh", transition: { duration: 2, ease: [0.76, 0, 0.24, 1] } }
     }
 
-    const perspective = {
-        initial: { y: "0vh", opacity: 1},
-        enter: { y: "0vh", opacity: 1 },
-        exit: { y: "0vh", opacity: 0, transition: { duration: 1.5, ease: [0.76, 0, 0.24, 1] } }
-    }
-
     return (
         <div className="relative">
             <AnimatePresence initial={false}>
@@ -65,16 +59,11 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
             >
                 <motion.div
                     key={pathname}
-                    {...animate(perspective)}
-                >
-                <motion.div
-                    key={pathname}
                     {...animate(opacity)}
                 >
                     <div className="relative">
                         <FrozenRouter>{children}</FrozenRouter>
                     </div>
-                </motion.div>
                 </motion.div>
             </AnimatePresence>
             

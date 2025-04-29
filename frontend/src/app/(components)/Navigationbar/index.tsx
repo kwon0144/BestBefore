@@ -15,7 +15,7 @@ import Image from 'next/image';
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 // Create NoScrollLink component
 const NoScrollLink = React.forwardRef<HTMLAnchorElement, React.ComponentPropsWithRef<typeof Link>>(

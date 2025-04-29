@@ -16,11 +16,11 @@ export default function LayoutWrapper({
   return (
     <>
       {!isLoginPage && <Navigationbar />}
-      <PageTransitionWrapper>
-        <main className='bg-background'>
-          {children}
-        </main>
-      </PageTransitionWrapper>
+        <PageTransitionWrapper>
+          <main className='bg-background'>
+            {children}
+          </main>
+        </PageTransitionWrapper>
       {!isLoginPage && <Footer />}
     </>
   );
