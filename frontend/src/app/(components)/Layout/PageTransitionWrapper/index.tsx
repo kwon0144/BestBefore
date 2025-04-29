@@ -1,5 +1,5 @@
 'use client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, TargetAndTransition } from 'framer-motion';
 import { LayoutRouterContext } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { useContext } from 'react';
 import { usePathname } from 'next/navigation';
@@ -23,7 +23,14 @@ function FrozenRouter(props: { children: React.ReactNode }) {
 export default function PageTransitionWrapper({ children }: { children: React.ReactNode }) {
 
     const pathname = usePathname();
-    const animate = (variants: any) => {
+    
+    type AnimationVariants = {
+        initial: TargetAndTransition;
+        enter: TargetAndTransition;
+        exit: TargetAndTransition;
+    };
+
+    const animate = (variants: AnimationVariants) => {
         return {
             initial: "initial",
             animate: "enter",
@@ -32,7 +39,7 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
         }
     }
 
-    const opacity = {
+    const opacity: AnimationVariants = {
         initial: { opacity: 0 },
         enter: { opacity: 1, transition: { duration: 1, ease: [0.76, 0, 0.24, 1] } },
         exit: { opacity: 1 }

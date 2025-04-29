@@ -47,7 +47,7 @@ export default function DonationDisposalOptions() {
                   alt="Green Waste Bin" width={250} height={250}/>
               </div>
               <p className="text-darkgreen mb-8 font-semibold">
-                Don't toss it! Compost it! See how to sort your scraps the eco-friendly way.
+                Don&apos;t toss it! Compost it! See how to sort your scraps the eco-friendly way.
               </p>
               <DisposalGuideButton />
             </div>

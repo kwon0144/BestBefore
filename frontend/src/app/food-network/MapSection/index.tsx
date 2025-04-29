@@ -29,7 +29,7 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
         currentLocationAddress: ""
       });
     }
-  }, [viewState.showInformation, viewState.showNavigation]);
+  }, [viewState.showInformation, viewState.showNavigation, mapSectionState, setMapSectionState]);
 
   const handleTypeSelection = (selection: string) => {
     if (selection !== selectedType) {
