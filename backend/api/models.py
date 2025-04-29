@@ -40,7 +40,7 @@ class SecondLife(models.Model):
 
     class Meta:
         db_table = 'diy_products'
-        managed = False
+        managed = False 
 
     def __str__(self):
         return f"{self.method_name} - {self.ingredient}"

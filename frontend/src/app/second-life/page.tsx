@@ -270,9 +270,14 @@ into useful products for your home, garden, and beauty routine." />
                                     
                                     <div>
                                         <h3 className="text-lg font-medium text-gray-700 mb-2">Description</h3>
-                                        <p className="text-gray-600 whitespace-pre-line">
-                                            {selectedItem.description}
-                                        </p>
+                                        {selectedItem.description
+                                            .split('.')
+                                            .filter(line => line.trim() !== '')
+                                            .map((line, idx) => (
+                                                <div key={idx} className="text-gray-600 whitespace-pre-line mt-2">
+                                                    {line.trim() + '.'}
+                                                </div>
+                                            ))}
                                     </div>
                                 </div>
                             </>
