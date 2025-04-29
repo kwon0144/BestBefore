@@ -4,6 +4,7 @@ import "./globals.css";
 import { Poppins } from "next/font/google";
 import { Providers } from "./providers";
 import LayoutWrapper from "./(components)/Layout/LayoutWrapper";
+import { Toaster } from 'react-hot-toast';
   
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -47,11 +48,12 @@ export default function RootLayout({
           sizes="<generated>"
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable}`}>
         <Providers>
-          <div className={poppins.className}>
-            <LayoutWrapper>{children}</LayoutWrapper>
-          </div>
+          <LayoutWrapper>
+            {children}
+            <Toaster position="top-right" />
+          </LayoutWrapper>
         </Providers>
       </body>
     </html>

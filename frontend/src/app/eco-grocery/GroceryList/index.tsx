@@ -1,5 +1,23 @@
+/**
+ * GroceryList Component
+ * 
+ * This component displays the generated grocery list based on selected meals,
+ * organized by food categories. It intelligently identifies items already in the
+ * user's pantry and marks them accordingly to prevent unnecessary purchases.
+ */
 import { GroceryListProps } from "../interfaces";
 
+/**
+ * Renders a categorized list of grocery items needed for selected meals
+ * 
+ * @param {object} props - Component properties
+ * @param {Array} props.selectedMeals - Meals selected by the user
+ * @param {Array} props.groceryItems - Items needed for the selected meals
+ * @param {Array} props.pantryItems - Items already available in user's pantry
+ * @param {string|null} props.error - Error message, if any
+ * @param {Function} props.getGroceryItemsByCategory - Function to filter items by category
+ * @returns {JSX.Element} Rendered grocery list component
+ */
 export default function GroceryList({
   selectedMeals,
   groceryItems,
@@ -11,14 +29,24 @@ export default function GroceryList({
   const leftColumnCategories = ['Fish', 'Produce', 'Dairy'];
   const rightColumnCategories = ['Meat', 'Grains', 'Condiments', 'Other'];
   
-  // Helper function to check if an item is in the pantry
+  /**
+   * Checks if a grocery item is already available in the pantry
+   * 
+   * @param {string} itemName - Name of the grocery item to check
+   * @returns {boolean} True if the item is in the pantry
+   */
   const isInPantry = (itemName: string) => {
     return pantryItems.some(pantryItem => 
       pantryItem.name.toLowerCase() === itemName.toLowerCase()
     );
   };
   
-  // Render a category section
+  /**
+   * Renders a category section with its items
+   * 
+   * @param {string} category - Category name to render
+   * @returns {JSX.Element|null} Rendered category section or null if empty
+   */
   const renderCategory = (category: string) => {
     if (getGroceryItemsByCategory(category).length === 0) return null;
     

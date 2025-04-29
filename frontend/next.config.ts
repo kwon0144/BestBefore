@@ -12,19 +12,11 @@ const nextConfig: NextConfig = {
   /* config options here */
   basePath: getBasePath(),
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'readdy.ai',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 's3-tp22.s3.ap-southeast-2.amazonaws.com',
-        pathname: '/**',
-      }
+    domains: [
+      's3-tp22.s3.ap-southeast-2.amazonaws.com'
     ],
   },
+  allowedDevOrigins: ['local-origin.dev', '*.local-origin.dev'],
 };
 
 export default nextConfig;

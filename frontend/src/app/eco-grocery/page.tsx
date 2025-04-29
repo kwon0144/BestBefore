@@ -1,3 +1,17 @@
+/**
+ * EcoGrocery Page Component
+ * 
+ * This component provides a comprehensive grocery planning interface that helps users:
+ * - Search for meals by name or cuisine type
+ * - Browse popular cuisine categories
+ * - Select meals for their weekly plan
+ * - Generate optimized grocery lists based on selected meals
+ * - Identify items already available in their pantry/inventory
+ * 
+ * The component intelligently combines meal planning with inventory management
+ * to reduce food waste by preventing duplicate purchases and suggesting recipes
+ * based on available ingredients.
+ */
 "use client"
 
 import { useState, useEffect } from "react";
@@ -13,33 +27,17 @@ import MealChoice from "./MealChoice";
 import SelectedMeal from "./SelectedMeal";
 import GroceryList from "./GroceryList";
 
-// Debug JSON Display Component
-const JsonDebugDisplay = ({ data, title }: { data: unknown; title: string }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    
-    return (
-        <div className="mt-4 border border-gray-300 rounded-md overflow-hidden">
-            <div 
-                className="bg-gray-100 p-2 flex justify-between items-center cursor-pointer"
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                <h3 className="text-sm font-medium">{title}</h3>
-                <span>{isOpen ? '[-]' : '[+]'}</span>
-            </div>
-            {isOpen && (
-                <pre className="p-4 bg-gray-50 text-xs overflow-auto max-h-96">
-                    {JSON.stringify(data, null, 2)}
-                </pre>
-            )}
-        </div>
-    );
-};
-
+/**
+ * EcoGrocery page component for meal planning and grocery list generation
+ * 
+ * @returns {JSX.Element} Rendered component with meal planning and grocery list interfaces
+ */
 export default function EcoGrocery() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
     const [signatureDishes, setSignatureDishes] = useState<SignatureDish[]>([]);
     const [isLoadingSignatureDishes, setIsLoadingSignatureDishes] = useState(false);
+    const [notification, setNotification] = useState<string | null>(null);
     
     // Use the grocery planner hook
     const {
@@ -79,7 +77,7 @@ export default function EcoGrocery() {
             id: 1,
             name: 'Vegetarian Buddha Bowl',
             description: 'Colorful bowl with quinoa, roasted vegetables, and tahini dressing.',
-            imageUrl: 'https://readdy.ai/api/search-image?query=A%20vibrant%20buddha%20bowl%20filled%20with%20colorful%20roasted%20vegetables%2C%20quinoa%2C%20avocado%2C%20and%20drizzled%20with%20tahini%20sauce%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20natural%20lighting&width=300&height=200&seq=1&orientation=landscape',
+            imageUrl: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/meal-img/49_Vegetarian+Buddha+Bowl.jpg',
             cuisine: 'Vegetarian'
         },
         {
@@ -93,19 +91,21 @@ export default function EcoGrocery() {
             id: 3,
             name: 'Fettuccine Alfredo',
             description: 'Creamy Italian pasta with parmesan cheese.',
-            imageUrl: 'https://readdy.ai/api/search-image?query=A%20luxurious%20plate%20of%20fettuccine%20alfredo%20pasta%20in%20creamy%20white%20sauce%2C%20garnished%20with%20fresh%20parsley%20and%20black%20pepper%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20soft%20natural%20lighting&width=300&height=200&seq=3&orientation=landscape',
+            imageUrl: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/meal-img/50_Fettuccine+Alfredo.jpg',
             cuisine: 'Italian Cuisine'
         },
         {
             id: 4,
             name: 'Mediterranean Salad',
             description: 'Fresh salad with feta, olives, and grilled vegetables.',
-            imageUrl: 'https://readdy.ai/api/search-image?query=A%20fresh%20Mediterranean%20salad%20with%20mixed%20greens%2C%20cherry%20tomatoes%2C%20cucumber%2C%20red%20onions%2C%20kalamata%20olives%2C%20and%20crumbled%20feta%20cheese%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20natural%20lighting&width=300&height=200&seq=4&orientation=landscape',
+            imageUrl: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/meal-img/51_Mediterranean+Salad.jpg',
             cuisine: 'Mediterranean'
         }
     ];
     
-    // Fetch signature dishes when a cuisine is selected
+    /**
+     * Fetches signature dishes from the API when a cuisine is selected
+     */
     useEffect(() => {
         if (!selectedCuisine) {
             setSignatureDishes([]);
@@ -116,15 +116,10 @@ export default function EcoGrocery() {
             setIsLoadingSignatureDishes(true);
             try {
                 const apiUrl = `${config.apiUrl}/api/signature-dishes/`;
-                console.log('Fetching from URL:', apiUrl);
-                console.log('With params:', { cuisine: selectedCuisine });
                 
                 const response = await axios.get<SignatureDish[]>(apiUrl, {
                     params: { cuisine: selectedCuisine }
                 });
-                
-                console.log('API response status:', response.status);
-                console.log('API response data:', response.data);
                 
                 setSignatureDishes(response.data);
             } catch (error) {
@@ -138,7 +133,10 @@ export default function EcoGrocery() {
         fetchSignatureDishes();
     }, [selectedCuisine]);
     
-    // Filter meals based on selected cuisine from popular meals or search query
+    /**
+     * Filters meals based on selected cuisine or search query
+     * @returns {Array} Filtered meal choices or signature dishes
+     */
     const getMealsByFilter = () => {
         // If we have signature dishes for the selected cuisine, use those instead
         if (selectedCuisine && signatureDishes.length > 0) {
@@ -167,10 +165,20 @@ export default function EcoGrocery() {
     
     const filteredMealChoices = getMealsByFilter();
     
+    /**
+     * Adds a custom meal based on search query
+     */
     const addSearchResultMeal = () => {
-        if (!searchQuery.trim()) return;
-        addCustomMeal(searchQuery);
-        setSearchQuery('');
+        if (searchQuery.trim()) {
+            addCustomMeal(searchQuery);
+            setNotification(`${searchQuery} added!`);
+            setSearchQuery('');
+            
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                setNotification(null);
+            }, 3000);
+        }
     };
     
     // Check if search query exactly matches a popular meal or meal choice
@@ -180,6 +188,10 @@ export default function EcoGrocery() {
         meal.name.toLowerCase() === searchQuery.toLowerCase()
     );
     
+    /**
+     * Handles keyboard events in the search input
+     * @param {React.KeyboardEvent<HTMLInputElement>} e - Keyboard event
+     */
     const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && searchQuery.trim()) {
             if (exactMatchExists) {
@@ -207,7 +219,10 @@ export default function EcoGrocery() {
         }
     };
     
-    // Handle cuisine selection
+    /**
+     * Handles selection of a cuisine category
+     * @param {string} cuisine - The cuisine category selected
+     */
     const handleCuisineSelect = (cuisine: string) => {
         setSearchQuery(cuisine);
         setSelectedCuisine(cuisine);
@@ -217,6 +232,13 @@ export default function EcoGrocery() {
         <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
             {/* Title */}
             <Title heading="Eco Grocery" description="Create a precise shopping list to reduce food waste." />
+            
+            {/* Notification Banner */}
+            {notification && (
+                <div className="bg-green-100 border border-green-300 text-green-800 text-base font-medium px-3 py-2 rounded-md mb-4 text-center shadow-sm max-w-lg mx-auto">
+                    {notification}
+                </div>
+            )}
             
             {/* Search Section */}
             <Search 
@@ -276,20 +298,7 @@ export default function EcoGrocery() {
                 <div className="h-full">
                     <PantrySummary />
                 </div>
-            </div>
-            
-            {/* Debug JSON Display Section */}
-            <div className="mt-12 mb-8 border-t pt-4">
-                <h2 className="text-xl font-semibold mb-4">Debug Data</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <JsonDebugDisplay data={selectedMeals} title="Selected Meals" />
-                    <JsonDebugDisplay data={groceryItems} title="Grocery Items" />
-                    <JsonDebugDisplay data={pantryItems} title="Pantry Items" />
-                    <JsonDebugDisplay data={groceryList} title="Grocery List Response" />
-                    <JsonDebugDisplay data={signatureDishes} title="Signature Dishes" />
-                    <JsonDebugDisplay data={{ loading, error, selectedCuisine }} title="UI State" />
-                </div>
-            </div>
+            </div>     
         </div>
     );
 }
