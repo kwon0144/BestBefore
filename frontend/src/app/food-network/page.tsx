@@ -40,7 +40,7 @@ export default function FoodNetwork() {
 
   return (
     <div>
-      <div className="py-16">
+      <div className="py-12">
         <Title 
         heading="Food Network" 
         description="Contribute to the community by donation or efficient disposal" 
@@ -48,12 +48,18 @@ export default function FoodNetwork() {
         />
       </div>
       <div className="min-h-screen max-w-7xl mx-auto px-10">
-        <div className="mt-20">
+        <div className="py-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12">
+            What are the options?
+          </h2>
           <DonationDisposalOptions />
         </div>
         {isLoaded && (
           <APIProvider apiKey={apiKey}>
             <div className="mt-20">
+            <h2 className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12">
+              Where is it?
+            </h2>
               <MapSection 
                 mapSectionState={mapSectionState}
                 setMapSectionState={setMapSectionState}
