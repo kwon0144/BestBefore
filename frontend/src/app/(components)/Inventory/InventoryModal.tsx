@@ -1,3 +1,8 @@
+/**
+ * This component provides a modal interface for managing food inventory.
+ * It allows users to add, edit, and remove food items from their refrigerator and pantry,
+ * with intelligent recommendations for storage locations and expiry dates based on food types.
+ */
 import { useState, useEffect } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
@@ -7,23 +12,39 @@ import { faTrash, faEdit } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { config } from "@/config";
 
+/**
+ * Props for the InventoryModal component
+ * @interface
+ */
 type InventoryModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
 
-// Type for storage recommendation from the API
-type StorageRecommendation = {
+/**
+ * Type for storage recommendation from the API
+ * @interface
+ */
+type StorageAdviceResponse = {
   type: string;
   storage_time: number;
   method: number; // 1 for refrigerator, 0 for pantry
 };
 
-// Type for food types API response
+/**
+ * Type for food types API response
+ * @interface
+ */
 type FoodTypesResponse = {
   food_types: string[];
 };
 
+/**
+ * Modal component for managing food inventory
+ * Provides UI for adding, editing, and removing food items with expiry date tracking
+ * @param {InventoryModalProps} props - Component props
+ * @returns {JSX.Element} Rendered component
+ */
 export default function InventoryModal({ isOpen, onClose }: InventoryModalProps) {
   const { items, addItem, updateItem, removeItem, getItemsByLocation, clearAll } = useInventoryStore();
   const [selectedTab, setSelectedTab] = useState<string>("refrigerator");
@@ -42,14 +63,18 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     expiryDate: "", // Default to not selected
   });
 
-  // Fetch food types when component mounts
+  /**
+   * Fetches food types from the API when the component mounts
+   */
   useEffect(() => {
     if (isOpen) {
       fetchFoodTypes();
     }
   }, [isOpen]);
 
-  // Fetch all available food types from the API
+  /**
+   * Fetches all available food types from the API
+   */
   const fetchFoodTypes = async () => {
     try {
       const response = await axios.get<FoodTypesResponse>(`${config.apiUrl}/api/food-types/`);
@@ -61,33 +86,43 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     }
   };
 
-  // Fetch storage recommendation from the API
-  const fetchStorageRecommendation = async (foodName: string): Promise<StorageRecommendation | null> => {
+  /**
+   * Gets storage time recommendation for a food type from the API
+   * @param {string} foodName - Name of the food to get storage advice for
+   * @returns {Promise<{storage_time: number; method: number}>} Storage time and method recommendation
+   */
+  const getStorageTime = async (foodName: string): Promise<{storage_time: number; method: number}> => {
     try {
       setIsFetchingRecommendation(true);
-      setError(null);
       
       // Find the closest match in the food types
       const matchedType = findClosestFoodType(foodName);
       
       if (!matchedType) {
-        return null;
+        return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
       }
       
-      const response = await axios.post<StorageRecommendation>(`${config.apiUrl}/api/storage-advice/`, {
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
         food_type: matchedType
       });
       
-      return response.data;
-    } catch {
-      setError("Failed to get storage recommendation from the database.");
-      return null;
+      return { 
+        storage_time: response.data.storage_time,
+        method: response.data.method
+      };
+    } catch (error) {
+      console.error(`Error getting storage time for ${foodName}:`, error);
+      return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
     } finally {
       setIsFetchingRecommendation(false);
     }
   };
 
-  // Find closest matching food type from the available options
+  /**
+   * Finds closest matching food type from available options
+   * @param {string} inputName - Food name to match
+   * @returns {string | null} Matched food type or null if no match found
+   */
   const findClosestFoodType = (inputName: string): string | null => {
     if (foodTypeOptions.length === 0) return null;
     
@@ -113,7 +148,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     return null;
   };
 
-  // Find matching item with similar expiry date
+  /**
+   * Finds an existing item with similar name and expiry date
+   * @param {string} name - Item name to check
+   * @param {string} expiryDate - Expiry date to compare
+   * @returns {FoodItem | null} Matching item or null if no match found
+   */
   const findMatchingItem = (name: string, expiryDate: string): FoodItem | null => {
     // Case insensitive name match
     const matchingItems = items.filter(item => 
@@ -138,7 +178,10 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     return null;
   };
 
-  // Add item to inventory
+  /**
+   * Handles adding or updating an item in the inventory
+   * Gets storage recommendations for new items
+   */
   const handleAddItem = async () => {
     if (validateForm()) {
       try {
@@ -158,50 +201,44 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
           return;
         }
 
-        // For new items, fetch storage recommendation
-        setIsFetchingRecommendation(true);
-        const recommendation = await fetchStorageRecommendation(newItem.name);
+        // For new items, get storage time using the simplified approach
+        const { storage_time, method } = await getStorageTime(newItem.name);
         
-        if (recommendation) {
-          // Use the recommended storage location and expiry date
-          const storageMethod = recommendation.method === 1 ? "refrigerator" : "pantry";
-          const expiryDate = new Date();
-          expiryDate.setDate(expiryDate.getDate() + recommendation.storage_time);
-          const expiryDateString = expiryDate.toISOString();
+        // Use the recommended storage location and expiry date
+        const storageMethod = method === 1 ? "refrigerator" : "pantry";
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + storage_time);
+        const expiryDateString = expiryDate.toISOString();
+        
+        // Check if item already exists with similar expiry date
+        const existingItem = findMatchingItem(newItem.name, expiryDateString);
+        
+        if (existingItem) {
+          // Accumulate quantity for existing item
+          const currentQuantity = existingItem.quantity;
+          const newQuantity = combineQuantities(currentQuantity, newItem.quantity);
           
-          // Check if item already exists with similar expiry date
-          const existingItem = findMatchingItem(newItem.name, expiryDateString);
+          // Update the existing item with new quantity
+          updateItem(existingItem.id, {
+            ...existingItem,
+            quantity: newQuantity
+          });
           
-          if (existingItem) {
-            // Accumulate quantity for existing item
-            const currentQuantity = existingItem.quantity;
-            const newQuantity = combineQuantities(currentQuantity, newItem.quantity);
-            
-            // Update the existing item with new quantity
-            updateItem(existingItem.id, {
-              ...existingItem,
-              quantity: newQuantity
-            });
-            
-            // Let the user know that quantities were combined
-            setError(`Added to existing "${newItem.name}" with similar expiry date.`);
-          } else {
-            // Add as new item with recommended values
-            const recommendedItem = {
-              ...newItem,
-              location: formState.location || storageMethod, // Use selected location or recommendation
-              expiryDate: formState.expiryDate || expiryDateString // Use selected date or recommendation
-            };
-            addItem(recommendedItem);
-          }
-          
-          // Switch to the appropriate tab if location wasn't manually specified
-          if (!formState.location) {
-            setSelectedTab(storageMethod);
-          }
+          // Let the user know that quantities were combined
+          setError(`Added to existing "${newItem.name}" with similar expiry date.`);
         } else {
-          // No recommendation found, use default values
-          addItem(newItem);
+          // Add as new item with recommended values
+          const recommendedItem = {
+            ...newItem,
+            location: formState.location || storageMethod, // Use selected location or recommendation
+            expiryDate: formState.expiryDate || expiryDateString // Use selected date or recommendation
+          };
+          addItem(recommendedItem);
+        }
+        
+        // Switch to the appropriate tab if location wasn't manually specified
+        if (!formState.location) {
+          setSelectedTab(storageMethod);
         }
         
         resetForm();
@@ -213,7 +250,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     }
   };
 
-  // Helper to combine quantities
+  /**
+   * Combines quantities when adding to existing items
+   * @param {string} q1 - First quantity
+   * @param {string} q2 - Second quantity
+   * @returns {string} Combined quantity string
+   */
   const combineQuantities = (q1: string, q2: string): string => {
     // Special case for items already with combined quantities
     if (q1.includes('+')) {
@@ -240,7 +282,9 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     return `${q1} + ${q2}`;
   };
 
-  // Reset form to default state
+  /**
+   * Resets the form to default values
+   */
   const resetForm = () => {
     setFormState({
       name: "",
