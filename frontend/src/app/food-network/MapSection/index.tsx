@@ -58,7 +58,7 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
   };
 
   return (
-    <div className="mt-10">
+    <div>
         {/* tab selection */}
         <div className="flex flex-row w-full ">
             <div className={`flex flex-row w-1/2 py-2 px-10 rounded-t-full ${selectedType === "Food Donation Points" ? "bg-green/30" : "bg-transparent"}`}></div>
@@ -79,8 +79,8 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
             </div>
         </div>
         {/* map and interaction */}
-        <div className={`flex flex-row w-full h-[600px] pt-10 pb-10 px-10 rounded-b-2xl ${selectedType=="Food Donation Points" ? "bg-green/30 rounded-tr-2xl" : "bg-[#b0ebc4]/50 rounded-tl-2xl"}`}>
-            <div className="w-3/5">
+        <div className={`flex flex-col md:flex-row w-full h-auto md:h-[600px] pt-10 pb-10 px-10 rounded-b-2xl gap-10 md:gap-0 ${selectedType=="Food Donation Points" ? "bg-green/30 rounded-tr-2xl" : "bg-[#b0ebc4]/50 rounded-tl-2xl"}`}>
+            <div className="w-full md:w-3/5 h-[400px] md:h-full">
                 <MapComponent 
                     mapSectionState={mapSectionState}
                     setMapSectionState={setMapSectionState}
@@ -88,7 +88,7 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
                     setMap={setMap}
                 />
             </div>
-            <div className="w-2/5">
+            <div className="w-full md:w-2/5 md:pl-5">
                 <Interaction 
                     mapSectionState={mapSectionState}
                     setMapSectionState={setMapSectionState}

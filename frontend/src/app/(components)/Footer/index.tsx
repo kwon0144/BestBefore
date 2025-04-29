@@ -1,6 +1,6 @@
 import React from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
+import NoScrollLink from '../NoScrollLink';
 
 const Footer = () => {
   const menuItems = [
@@ -9,55 +9,64 @@ const Footer = () => {
         {name: "Storage Management"},
         {name: "Expiration Reminder"},
     ]},
+    {name: "Eco Grocery", link: "/eco-grocery", section: [
+        {name: "Choices of Meals"},
+        {name: "Food Inventory"},
+        {name: "Smart Grocery List"},
+    ]},
+    {name: "Second Life", link: "/second-life", section: [
+      {name: "Search for DIY ideas"},
+      {name: "DIY procedures"},
+    ]},
     {name: "Food Network", link: "/food-network", section: [
         {name: "Food Bank Network"},
         {name: "Green Waste Bin Network"},
-    ]}
+    ]},
   ];
 
   return (
     <footer className="bg-darkgreen text-white py-12">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <div className="mb-6 md:mb-0 ">
-            <div className='px-16 relative h-24 w-52'>
+        <div className="flex flex-col justify-center mb-10 md:flex-row md:justify-between">
+          <div className='flex flex-col items-center md:items-start md:justify-start md:pl-16'>
+            <NoScrollLink href="/">
               <Image 
-                src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo.png" 
+                src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo-white.png" 
                 alt="Best Before Logo"
-                fill
-                style={{ objectFit: 'contain' }}
-                sizes="(max-width: 768px) 100vw, 208px"
+                width={208}
+                height={208}
+                className="cursor-pointer"
               />
-            </div>
-            <div className="mb-6 px-20 md:mb-0 ">
-              <p className="mt-4 max-w-md">
+            </NoScrollLink>
+            <div className="max-w-md mb-10 pl-3 md:mb-0 text-center md:text-left">
+              <p>
                 Together for a zero-waste kitchen - save food, money, and our planet with BestBefore
               </p>
             </div>
           </div>
             <div className="grid grid-cols-2 gap-8 text-sm px-20 ">
               {menuItems.map((item) => (
-                <div key={item.name}>
-                  <Link href={item.link}>
+                <NoScrollLink href={item.link} key={item.name}>
+                  <div>
                     <p className="underline text-md font-bold mb-4 hover:text-[#A5D6B7] transition-colors duration-300 cursor-pointer">
                       {item.name}
                     </p>
-                  </Link>
-                  <ul className="space-y-2">
-                  {item.section.map((section) => (
-                    <div key={section.name}>
-                        <li>
-                            {section.name}
-                        </li>
-                    </div>
-                  ))}
-                  </ul>
-                </div>
+                    <ul className="space-y-2 text-gray-300 pl-2 hidden xl:block">
+                    {item.section.map((section) => (
+                      <div key={section.name}>
+                          <li>
+                            •  {section.name}
+                          </li>
+                      </div>
+                    ))}
+                    </ul>
+                  </div>
+                </NoScrollLink>
               ))}
             </div>
           </div>
-        <div className="border-t border-[#A5D6B7]/30 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-[#A5D6B7] px-20">
+        <div className="border-t border-gray-300/30 pt-12 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-sm text-gray-300 px-20">
                 © {new Date().getFullYear()} BestBefore. All rights reserved.
             </p>
         </div>

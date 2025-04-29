@@ -36,7 +36,7 @@ export default function Navigation({
     }
 
     return (
-        <div className="h-full flex flex-col pl-10 w-full">
+        <div className="flex flex-col md:pl-1 lg:pl-10 w-full">
             {/* Navigation Back Button */}
             <div className="mb-3">
                 <Button
@@ -62,7 +62,7 @@ export default function Navigation({
                 </div>
             </div>
             {/* Location Input */}
-            <div className="mb-10">
+            <div className="mb-5">
                 <label
                     htmlFor="starting-point"
                     className="block text-lg font-semibold mb-2 text-gray-700"
@@ -81,7 +81,7 @@ export default function Navigation({
                 {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </div>
             {/* Travel Mode Selection */}
-            <div className="mb-10">
+            <div className="mb-8">
                 <TravelModeSelection
                     mapSectionState={mapSectionState}
                     setMapSectionState={setMapSectionState}

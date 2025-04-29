@@ -118,11 +118,11 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
           />
           {!state.stream && (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#2A5F5E]/10 flex items-center justify-center">
-                <FontAwesomeIcon icon={faCamera} className="text-2xl text-gray-400" />
+              <div className="mx-auto mb-4 flex items-center justify-center">
+                <FontAwesomeIcon icon={faCamera} className="text-3xl text-gray-400" />
               </div>
-              <p className="text-gray-300 text-lg animate-pulse">
-                Camera inactive
+              <p className="text-gray-300 text-lg animate-pulse text-center">
+                Click "Start Camera" to begin
               </p>
             </div>
           )}

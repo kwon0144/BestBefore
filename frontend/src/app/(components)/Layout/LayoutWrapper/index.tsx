@@ -1,8 +1,9 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import Navigationbar from '../Navigationbar';
-import Footer from '../Footer';
+import Navigationbar from '../../Navigationbar';
+import Footer from '../../Footer';
+import PageTransitionWrapper from '../PageTransitionWrapper';
 
 export default function LayoutWrapper({
   children,
@@ -15,7 +16,11 @@ export default function LayoutWrapper({
   return (
     <>
       {!isLoginPage && <Navigationbar />}
-      <main>{children}</main>
+        <PageTransitionWrapper>
+          <main className='bg-background'>
+            {children}
+          </main>
+        </PageTransitionWrapper>
       {!isLoginPage && <Footer />}
     </>
   );
