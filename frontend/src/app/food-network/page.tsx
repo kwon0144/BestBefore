@@ -38,39 +38,50 @@ export default function FoodNetwork() {
     showRouteResult: false,
   });
 
-  if (!isLoaded) return (
-    <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
-      <Title heading="Food Network" description="Contribute to the community by donation or efficient disposal" />
-      <div>Loading...</div>
-    </div>
-  );
-
   return (
-    <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
-      <Title heading="Food Network" description="Contribute to the community by donation or efficient disposal" />
-      <DonationDisposalOptions />
-      <APIProvider apiKey={apiKey}>
-        <div className="mb-20">
-          <MapSection 
-            mapSectionState={mapSectionState}
-            setMapSectionState={setMapSectionState}
-            selectedType={selectedType}
-            setSelectedType={setSelectedType}
-            viewState={viewState}
-            setViewState={setViewState}
-          />
+    <div>
+      <div className="py-12">
+        <Title 
+        heading="Food Network" 
+        description="Contribute to the community by donation or efficient disposal" 
+        background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/foodnetwork-titlebg.jpeg"
+        />
+      </div>
+      <div className="min-h-screen max-w-7xl mx-auto px-10">
+        <div className="py-16">
+          <h2 className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12">
+            What are the options?
+          </h2>
+          <DonationDisposalOptions />
         </div>
-        <div>
-          <div>
-            <FoodNetworkList 
-              setMapSectionState={setMapSectionState}
-              selectedType={selectedType}
-              setSelectedType={setSelectedType}
+        {isLoaded && (
+          <APIProvider apiKey={apiKey}>
+            <div className="mt-20">
+            <h2 className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12">
+              Where is it?
+            </h2>
+              <MapSection 
+                mapSectionState={mapSectionState}
+                setMapSectionState={setMapSectionState}
+                selectedType={selectedType}
+                setSelectedType={setSelectedType}
+              viewState={viewState}
               setViewState={setViewState}
             />
           </div>
-        </div>
-      </APIProvider>
+          <div>
+            <div className="mt-20">
+              <FoodNetworkList 
+                setMapSectionState={setMapSectionState}
+                selectedType={selectedType}
+                setSelectedType={setSelectedType}
+                setViewState={setViewState}
+              />
+            </div>
+          </div>
+        </APIProvider>
+        )}
+      </div>
     </div>
   );
 }

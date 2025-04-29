@@ -42,7 +42,7 @@ export default function RouteResult({
     const { foodbank: selectedFoodBank } = useFoodBank(mapSectionState.selectedEnd);
 
     return (
-        <div className="flex flex-col pl-10 w-full">
+        <div className="flex flex-col md:pl-1 lg:pl-10 w-full">
             {/* Navigation Back Button */}
             <div className="mb-3">
                 <Button
@@ -54,9 +54,9 @@ export default function RouteResult({
                 </Button>
             </div>
             {/* Route Details */}
-            <div className="border-2 border-gray-400 rounded-lg p-6 mb-6 shadow-sm">
+            <div className="border-2 border-gray-400 rounded-lg px-6 py-5 mb-6 shadow-sm">
                 {/* Starting Point */}
-                <div className="mb-5">
+                <div className="mb-3 md:hidden xl:block">
                     <h3 className="text-sm font-medium text-gray-600 mb-1">
                         FROM
                     </h3>
@@ -68,7 +68,7 @@ export default function RouteResult({
                     </div>
                 </div>
                 {/* Travelling Mode */}
-                <div className="pl-5 ml-[0.625rem] border-l-2 border-dashed border-gray-400 py-2">
+                <div className="pl-5 ml-[0.625rem] border-l-2 border-dashed border-gray-400 py-2 md:hidden xl:block">
                     <div className="flex items-center text-gray-600">
                     {mapSectionState.travellingMode === "WALKING"
                         ? <FontAwesomeIcon icon={faWalking} className="mr-2" />
@@ -82,10 +82,10 @@ export default function RouteResult({
                     </div>
                 </div>
                 {/* Destination */}
-                <div className="mt-5">
-                    <h3 className="text-sm font-medium text-gray-600 mb-1">
+                <div className="mt-3 md:mt-0 xl:mt-3">
+                    <h3 className="text-sm font-medium text-gray-600 mb-1 md:hidden xl:block">
                         TO
-                </h3>
+                    </h3>
                 <div className="flex items-center">
                     <div className="w-10 h-10 rounded-full bg-lightgreen flex items-center justify-center mr-3">
                     <FontAwesomeIcon icon={faMapPin} className="text-green-700" />
@@ -100,7 +100,7 @@ export default function RouteResult({
                 </div>
             </div>
             {/* Route Estimation */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 grid-cols-2 md:grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
                 <div className="bg-gray-200/80 rounded-lg p-4 shadow-sm border border-green-200">
                     <h3 className="text-sm font-medium text-darkgreen mb-2">
                       ESTIMATED TIME

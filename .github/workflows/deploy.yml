@@ -82,7 +82,7 @@ jobs:
             --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} \
             --build-arg NEXT_PUBLIC_MAP_ID=${NEXT_PUBLIC_MAP_ID} \
             --build-arg NEXT_PUBLIC_BRANCH_NAME=${{ github.ref_name }} \
-            --build-arg NEXT_PUBLIC_SITE_PASSWORD=${NEXT_PUBLIC_SITE_PASSWORD} \            
+            --build-arg NEXT_PUBLIC_SITE_PASSWORD=${NEXT_PUBLIC_SITE_PASSWORD} \
             -t ${{ env.DOCKER_USERNAME }}/bestbefore-frontend:${{ needs.determine-tag.outputs.tag }} \
             --platform linux/amd64 --push \
             .
@@ -143,6 +143,7 @@ jobs:
           DB_HOST=${{ env.DB_HOST }}
           DB_PORT=${{ env.DB_PORT }}
           CLAUDE_API_KEY=${{ env.CLAUDE_API_KEY }}
+          NEXT_PUBLIC_SITE_PASSWORD=${{ env.NEXT_PUBLIC_SITE_PASSWORD }}
           EOF
           
           # Transfer .env file to EC2

@@ -7,7 +7,6 @@ import { PantrySummary } from "../(components)/Inventory";
 import { MealChoice as MealChoiceType, SignatureDish } from "./interfaces";
 import axios from 'axios';
 import { config } from '@/config';
-
 import Search from "./Search";
 import PopularMeal from "./PopularMeal";
 import MealChoice from "./MealChoice";

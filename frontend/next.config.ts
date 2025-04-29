@@ -9,12 +9,12 @@ const getBasePath = () => {
 };
 
 const nextConfig: NextConfig = {
+  /* config options here */
   images: {
     domains: [
       's3-tp22.s3.ap-southeast-2.amazonaws.com'
     ],
   },
-  basePath: getBasePath(),
 };
 
 export default nextConfig;

@@ -14,6 +14,7 @@ import json
 import re
 import uuid
 from datetime import datetime, timedelta, date
+import os
 
 # Local application imports
 from .db_service import get_storage_recommendations, get_all_food_types
@@ -141,21 +142,20 @@ def get_second_life_items(request):
     search_query = request.GET.get('search', '')
     
     if search_query:
-        items = SecondLife.objects.filter(items__icontains=search_query)
+        items = SecondLife.objects.filter(ingredient__icontains=search_query)
     else:
         items = SecondLife.objects.all()
     
     data = []
     for item in items:
         data.append({
-            'id': item.id,
-            'items': item.items,
-            'type': item.type,
-            'method': item.method,
-            'label': item.label,
+            'method_id': item.method_id,
+            'method_name': item.method_name,
+            'is_combo': item.is_combo,
+            'method_category': item.method_category,
+            'ingredient': item.ingredient,
             'description': item.description,
-            'picture': item.picture,
-            'inside_picture': item.inside_picture
+            'picture': item.picture
         })
     
     return Response(data)
@@ -166,16 +166,15 @@ def get_second_life_item_detail(request, item_id):
     Get details for a specific second life item
     """
     try:
-        item = SecondLife.objects.get(id=item_id)
+        item = SecondLife.objects.get(method_id=item_id)
         data = {
-            'id': item.id,
-            'items': item.items,
-            'type': item.type,
-            'method': item.method,
-            'label': item.label,
+            'method_id': item.method_id,
+            'method_name': item.method_name,
+            'is_combo': item.is_combo,
+            'method_category': item.method_category,
+            'ingredient': item.ingredient,
             'description': item.description,
-            'picture': item.picture,
-            'inside_picture': item.inside_picture
+            'picture': item.picture
         }
         return Response(data)
     except SecondLife.DoesNotExist:
@@ -330,3 +329,36 @@ def get_signature_dishes(request):
         })
     
     return Response(data)
+
+@api_view(['POST'])
+def login(request):
+    try:
+        password = request.data.get('password')
+        
+        if not os.getenv('NEXT_PUBLIC_SITE_PASSWORD'):
+            return Response(
+                {'error': 'Server configuration error'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        if password == os.getenv('NEXT_PUBLIC_SITE_PASSWORD'):
+            response = Response({'success': True})
+            response.set_cookie(
+                'session_token',
+                'authenticated',
+                httponly=True,
+                secure=True,
+                samesite='Strict',
+                max_age=60 * 60 * 24 * 7  # 1 week
+            )
+            return response
+
+        return Response(
+            {'error': 'Invalid password'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+    except Exception as e:
+        return Response(
+            {'error': 'Internal server error'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

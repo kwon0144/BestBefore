@@ -129,7 +129,8 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
 
   return (
     <div>
-        <div className="flex flex-row gap-4 mb-6 items-center justify-between">
+        {/* <div className="flex flex-row gap-4 mb-6 items-center justify-between"> */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           {/* Title */}
           <h1 className="text-2xl font-semibold text-darkgreen">Food Network List in City of Melbourne </h1>
           <div className="flex flex-row gap-4">
@@ -149,7 +150,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
               variant="bordered"
               startContent={<FontAwesomeIcon icon={faSearch} />}
               classNames={{
-                inputWrapper: "bg-white border-1 min-h-[48px] min-w-[400px]",
+                inputWrapper: "bg-white border-1 min-h-[48px]",
               }}
             />
             {/* Type Filter */}
