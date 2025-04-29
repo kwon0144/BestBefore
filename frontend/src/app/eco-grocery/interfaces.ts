@@ -1,4 +1,12 @@
-// Interface for meal choices
+/**
+ * This file contains all interfaces used in the Eco Grocery feature, which helps users create
+ * efficient shopping lists based on meal choices and pantry availability to reduce food waste.
+ */
+
+/**
+ * Interface for meal choices displayed to users for selection
+ * @interface
+ */
 export interface MealChoice {
   id: number;
   name: string;
@@ -7,7 +15,10 @@ export interface MealChoice {
   cuisine?: string;
 }
 
-// Interface for signature dishes
+/**
+ * Interface for signature dishes retrieved from the API
+ * @interface
+ */
 export interface SignatureDish {
   id: number;
   name: string;
@@ -16,27 +27,39 @@ export interface SignatureDish {
   cuisine: string;
 }
 
-// Interface for grocery items
+/**
+ * Interface for grocery items in the shopping list
+ * @interface
+ */
 export interface GroceryItem {
   name: string;
   quantity: string;
   category: string;
 }
 
-// Interface for meal
+/**
+ * Interface for selected meals in the planner
+ * @interface
+ */
 export interface Meal {
   id: number;
   name: string;
   quantity: number;
 }
 
-// Interface for Pantry items in the grocery list
+/**
+ * Interface for pantry items available in user's inventory
+ * @interface
+ */
 export interface PantryItem {
   name: string;
   quantity: string;
 }
 
-// Interface for grocery list API response
+/**
+ * Interface for the grocery list API response structure
+ * @interface
+ */
 export interface GroceryListResponse {
   success: boolean;
   dishes?: string[];
@@ -45,19 +68,31 @@ export interface GroceryListResponse {
   error?: string;
 }
 
-// Props interfaces for components
+/**
+ * Props for the SearchBar component
+ * @interface
+ */
 export interface SearchBarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   addSearchResultMeal: () => void;
   handleSearchKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  notification: string | null;
 }
 
+/**
+ * Props for the PopularMeals component
+ * @interface
+ */
 export interface PopularMealsProps {
   popularMeals: string[];
   setSearchQuery: (cuisine: string) => void;
 }
 
+/**
+ * Props for the MealChoices component
+ * @interface
+ */
 export interface MealChoicesProps {
   mealChoices?: MealChoice[];
   filteredMealChoices: MealChoice[];
@@ -66,12 +101,20 @@ export interface MealChoicesProps {
   selectedCuisine?: string | null;
 }
 
+/**
+ * Props for the SelectedMeals component
+ * @interface
+ */
 export interface SelectedMealsProps {
   selectedMeals: Meal[];
   adjustQuantity: (id: number, change: number) => void;
   removeMeal: (id: number) => void;
 }
 
+/**
+ * Props for the GroceryList component
+ * @interface
+ */
 export interface GroceryListProps {
   selectedMeals: Meal[];
   groceryItems: GroceryItem[];

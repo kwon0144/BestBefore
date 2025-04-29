@@ -7,7 +7,8 @@ export default function Search({
   searchQuery,
   setSearchQuery,
   addSearchResultMeal,
-  handleSearchKeyPress
+  handleSearchKeyPress,
+  notification
 }: SearchBarProps) {
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-8">

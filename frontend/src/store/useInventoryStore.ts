@@ -1,6 +1,15 @@
+/**
+ * This module implements a Zustand store for managing user's food inventory.
+ * It handles storing, retrieving, and managing food items with their expiry dates,
+ * providing functionality to track what items are in the refrigerator and pantry.
+ */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+/**
+ * Represents a food item in the inventory
+ * @interface
+ */
 export type FoodItem = {
   id: string;
   name: string;
@@ -10,6 +19,10 @@ export type FoodItem = {
   daysLeft?: number; // Calculated field
 };
 
+/**
+ * Defines the state and actions available in the inventory store
+ * @interface
+ */
 type InventoryState = {
   items: FoodItem[];
   // Actions
@@ -25,12 +38,20 @@ type InventoryState = {
   refreshDaysLeft: () => void;
 };
 
+/**
+ * Custom hook that creates and provides access to the inventory store
+ * Persists data in localStorage for data persistence between sessions
+ * @returns {InventoryState} The inventory store state and actions
+ */
 const useInventoryStore = create<InventoryState>()(
   persist(
     (set, get) => ({
       items: [], // Start with empty inventory instead of sample data
 
-      // Add a new item to the inventory
+      /**
+       * Adds a new item to the inventory
+       * @param {Omit<FoodItem, 'id'>} item - The food item to add (without ID)
+       */
       addItem: (item) => {
         const newItem = {
           ...item,
@@ -43,7 +64,11 @@ const useInventoryStore = create<InventoryState>()(
         }));
       },
 
-      // Update an existing item
+      /**
+       * Updates an existing item in the inventory
+       * @param {string} id - The ID of the item to update
+       * @param {Partial<Omit<FoodItem, 'id'>>} updates - The properties to update
+       */
       updateItem: (id, updates) => {
         set((state) => ({
           items: state.items.map((item) => 
@@ -61,19 +86,30 @@ const useInventoryStore = create<InventoryState>()(
         }));
       },
 
-      // Remove an item
+      /**
+       * Removes an item from the inventory
+       * @param {string} id - The ID of the item to remove
+       */
       removeItem: (id) => {
         set((state) => ({
           items: state.items.filter((item) => item.id !== id),
         }));
       },
 
-      // Get items by location (refrigerator, pantry)
+      /**
+       * Retrieves items from a specific location (refrigerator or pantry)
+       * @param {FoodItem['location']} location - The location to filter by
+       * @returns {FoodItem[]} Array of items in the specified location
+       */
       getItemsByLocation: (location) => {
         return get().items.filter((item) => item.location === location);
       },
 
-      // Calculate days left until expiry
+      /**
+       * Calculates days remaining until an item expires
+       * @param {string} expiryDate - ISO date string of expiration date
+       * @returns {number} Number of days left (0 if already expired)
+       */
       calculateDaysLeft: (expiryDate) => {
         const now = new Date();
         const expiry = new Date(expiryDate);
@@ -82,7 +118,10 @@ const useInventoryStore = create<InventoryState>()(
         return diffDays > 0 ? diffDays : 0;
       },
 
-      // Refresh days left for all items
+      /**
+       * Updates the daysLeft property for all items based on current date
+       * Should be called periodically to ensure freshness information is accurate
+       */
       refreshDaysLeft: () => {
         set((state) => ({
           items: state.items.map((item) => ({
@@ -92,7 +131,13 @@ const useInventoryStore = create<InventoryState>()(
         }));
       },
 
-      // Add an item identified by camera
+      /**
+       * Adds an item identified by camera or other automatic means
+       * Handles duplicate items by updating quantity rather than creating new entries
+       * @param {string} itemName - Name of the identified food item
+       * @param {string} [quantity='1 item'] - Quantity of the item
+       * @param {number} [expiryDays=7] - Default days until expiry
+       */
       addIdentifiedItem: (itemName, quantity = '1 item', expiryDays = 7) => {
         // Check if item with same name already exists
         const existingItem = get().items.find(
@@ -123,12 +168,12 @@ const useInventoryStore = create<InventoryState>()(
         }
       },
 
-      // Clear all items from the inventory
+      /**
+       * Clears all items from the inventory
+       */
       clearAll: () => {
         set({ items: [] });
-      },
-
-    
+      },    
     }),
     {
       name: 'food-inventory-storage', // name for localStorage

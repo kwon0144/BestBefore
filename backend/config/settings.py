@@ -62,17 +62,12 @@ MIDDLEWARE = [
 """
 CORS SETTINGS
 """
-CORS_ALLOWED_ORIGINS = [
-    os.getenv('DJANGO_ALLOWED_ORIGIN')
-    # # "http://localhost:3000",
-    # "http://localhost:3001",
-    # "http://localhost:443"
-]
+CORS_ALLOWED_ORIGINS = []
 
-# # Add additional allowed origins from environment variable
-# allowed_origin = os.getenv('DJANGO_ALLOWED_ORIGIN')
-# if allowed_origin and allowed_origin not in CORS_ALLOWED_ORIGINS:
-#     CORS_ALLOWED_ORIGINS.append(allowed_origin)
+# Add additional allowed origins from environment variable
+allowed_origin = os.getenv('DJANGO_ALLOWED_ORIGIN')
+if allowed_origin:
+    CORS_ALLOWED_ORIGINS.append(allowed_origin)
 
 CORS_ALLOW_METHODS = (
     "GET",

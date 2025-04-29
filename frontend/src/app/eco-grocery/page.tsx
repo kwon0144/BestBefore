@@ -1,3 +1,17 @@
+/**
+ * EcoGrocery Page Component
+ * 
+ * This component provides a comprehensive grocery planning interface that helps users:
+ * - Search for meals by name or cuisine type
+ * - Browse popular cuisine categories
+ * - Select meals for their weekly plan
+ * - Generate optimized grocery lists based on selected meals
+ * - Identify items already available in their pantry/inventory
+ * 
+ * The component intelligently combines meal planning with inventory management
+ * to reduce food waste by preventing duplicate purchases and suggesting recipes
+ * based on available ingredients.
+ */
 "use client"
 
 import { useState, useEffect } from "react";
@@ -13,12 +27,17 @@ import MealChoice from "./MealChoice";
 import SelectedMeal from "./SelectedMeal";
 import GroceryList from "./GroceryList";
 
-
+/**
+ * EcoGrocery page component for meal planning and grocery list generation
+ * 
+ * @returns {JSX.Element} Rendered component with meal planning and grocery list interfaces
+ */
 export default function EcoGrocery() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
     const [signatureDishes, setSignatureDishes] = useState<SignatureDish[]>([]);
     const [isLoadingSignatureDishes, setIsLoadingSignatureDishes] = useState(false);
+    const [notification, setNotification] = useState<string | null>(null);
     
     // Use the grocery planner hook
     const {
@@ -84,7 +103,9 @@ export default function EcoGrocery() {
         }
     ];
     
-    // Fetch signature dishes when a cuisine is selected
+    /**
+     * Fetches signature dishes from the API when a cuisine is selected
+     */
     useEffect(() => {
         if (!selectedCuisine) {
             setSignatureDishes([]);
@@ -112,7 +133,10 @@ export default function EcoGrocery() {
         fetchSignatureDishes();
     }, [selectedCuisine]);
     
-    // Filter meals based on selected cuisine from popular meals or search query
+    /**
+     * Filters meals based on selected cuisine or search query
+     * @returns {Array} Filtered meal choices or signature dishes
+     */
     const getMealsByFilter = () => {
         // If we have signature dishes for the selected cuisine, use those instead
         if (selectedCuisine && signatureDishes.length > 0) {
@@ -141,10 +165,20 @@ export default function EcoGrocery() {
     
     const filteredMealChoices = getMealsByFilter();
     
+    /**
+     * Adds a custom meal based on search query
+     */
     const addSearchResultMeal = () => {
-        if (!searchQuery.trim()) return;
-        addCustomMeal(searchQuery);
-        setSearchQuery('');
+        if (searchQuery.trim()) {
+            addCustomMeal(searchQuery);
+            setNotification(`${searchQuery} added!`);
+            setSearchQuery('');
+            
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                setNotification(null);
+            }, 3000);
+        }
     };
     
     // Check if search query exactly matches a popular meal or meal choice
@@ -154,6 +188,10 @@ export default function EcoGrocery() {
         meal.name.toLowerCase() === searchQuery.toLowerCase()
     );
     
+    /**
+     * Handles keyboard events in the search input
+     * @param {React.KeyboardEvent<HTMLInputElement>} e - Keyboard event
+     */
     const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && searchQuery.trim()) {
             if (exactMatchExists) {
@@ -181,7 +219,10 @@ export default function EcoGrocery() {
         }
     };
     
-    // Handle cuisine selection
+    /**
+     * Handles selection of a cuisine category
+     * @param {string} cuisine - The cuisine category selected
+     */
     const handleCuisineSelect = (cuisine: string) => {
         setSearchQuery(cuisine);
         setSelectedCuisine(cuisine);
@@ -192,12 +233,20 @@ export default function EcoGrocery() {
             {/* Title */}
             <Title heading="Eco Grocery" description="Create a precise shopping list to reduce food waste." />
             
+            {/* Notification Banner */}
+            {notification && (
+                <div className="bg-green-100 border border-green-300 text-green-800 text-base font-medium px-3 py-2 rounded-md mb-4 text-center shadow-sm max-w-lg mx-auto">
+                    {notification}
+                </div>
+            )}
+            
             {/* Search Section */}
             <Search 
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 addSearchResultMeal={addSearchResultMeal}
                 handleSearchKeyPress={handleSearchKeyPress}
+                notification={null}
             />
             
             {/* Popular Meals */}

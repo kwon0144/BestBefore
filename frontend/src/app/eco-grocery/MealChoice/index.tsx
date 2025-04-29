@@ -1,9 +1,26 @@
+/**
+ * MealChoice Component
+ * 
+ * This component displays a grid of meal options that users can select for their meal plan.
+ * It shows either standard meal choices or cuisine-specific signature dishes based on user selection.
+ * Each meal is displayed with an image, name, description, and an add button.
+ */
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faSpinner, faUtensils } from "@fortawesome/free-solid-svg-icons";
 import { MealChoicesProps } from "../interfaces";
 import Image from "next/image";
 
+/**
+ * Renders a grid of meal choices for user selection
+ * 
+ * @param {object} props - Component properties
+ * @param {Array} props.filteredMealChoices - Meals to display, filtered by search or cuisine
+ * @param {Function} props.addMeal - Function to add a meal to the selected meals list
+ * @param {boolean} props.isLoading - Whether signature dishes are being loaded
+ * @param {string|null} props.selectedCuisine - Currently selected cuisine category, if any
+ * @returns {JSX.Element} Rendered meal choices component
+ */
 export default function MealChoice({ 
   filteredMealChoices, 
   addMeal,

@@ -82,66 +82,37 @@ class DishIngredientServiceTestCase(TestCase):
         self.assertTrue(any('ground beef' in name for name in ingredient_names))
         self.assertTrue(any('tomato' in name for name in ingredient_names))
 
-    def test_get_ingredients_mapped_dish(self):
-        # Setup mock for _get_mapped_dish
-        with patch.object(self.service, '_get_mapped_dish', return_value='chicken curry'):
-            # Test mapped dish match
-            result = self.service.get_ingredients('chicken tikka masala')
+    
+    def test_get_ingredients_claude_fallback(self):
+        # Test fallback to Claude when dish not found in cache
+        # Create a test dish name that is not in the cache
+        test_dish = 'broccoli chicken stir fry'
+        
+        # Mock Claude API response
+        claude_ingredients = [
+            {'name': 'broccoli', 'quantity': '300g'},
+            {'name': 'chicken thighs', 'quantity': '400g'}
+        ]
+        
+        with patch.object(self.service, '_get_claude_direct_ingredients', return_value=claude_ingredients):
+            # Test Claude API fallback
+            result = self.service.get_ingredients(test_dish)
             
-            self.assertEqual(result['dish'], 'chicken curry')
-            self.assertEqual(result['match_type'], 'mapped')
+            self.assertEqual(result['dish'], test_dish)
+            self.assertEqual(result['match_type'], 'claude_generated')
             
             # Check ingredients
             ingredients = result['ingredients']
-            self.assertIsInstance(ingredients, list)
-            
-            # Verify specific ingredients are present
-            ingredient_names = [item['name'] for item in ingredients]
-            self.assertTrue(any('chicken' in name for name in ingredient_names))
-    
-    def test_get_ingredients_claude_fallback(self):
-        # Mock both exact match and mapped dish to fail
-        with patch.object(self.service, '_get_mapped_dish', return_value=None):
-            # Mock Claude API response
-            claude_ingredients = [
-                {'name': 'broccoli', 'quantity': '300g'},
-                {'name': 'chicken thighs', 'quantity': '400g'}
-            ]
-            
-            with patch.object(self.service, '_get_claude_direct_ingredients', return_value=claude_ingredients):
-                # Test Claude API fallback
-                result = self.service.get_ingredients('broccoli chicken stir fry')
-                
-                self.assertEqual(result['dish'], 'broccoli chicken stir fry')
-                self.assertEqual(result['match_type'], 'claude_generated')
-                
-                # Check ingredients
-                ingredients = result['ingredients']
-                self.assertEqual(ingredients, claude_ingredients)
+            self.assertEqual(ingredients, claude_ingredients)
     
     def test_get_ingredients_not_found(self):
-        # Mock all methods to return None/fail
-        with patch.object(self.service, '_get_mapped_dish', return_value=None):
-            with patch.object(self.service, '_get_claude_direct_ingredients', return_value=None):
-                # Test no match found
-                result = self.service.get_ingredients('some nonexistent dish')
-                
-                self.assertIn('error', result)
-                self.assertIn('suggestions', result)
-                # Update to match the actual number of items in self.service.dish_cache
-                self.assertEqual(len(result['suggestions']), 3)  # Since we added 3 items in setUp
-        
-    def test_add_dish_mapping(self):
-        # Create a context manager mock for the cursor
-        mock_cursor = MagicMock()
-        mock_connection = MagicMock()
-        mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
-        
-        # Patch django.db.connection with our mock
-        with patch('api.dish_ingre_service.connection', mock_connection):
-            # Test adding a single mapping
-            success = self.service.add_dish_mapping('Spaghetti Bolognese', 'spag bol')
+        # Mock Claude API to return None to simulate complete failure
+        with patch.object(self.service, '_get_claude_direct_ingredients', return_value=None):
+            # Test no match found
+            result = self.service.get_ingredients('some nonexistent dish')
             
-            # Verify success and cursor called with correct SQL
-            self.assertTrue(success)
-            mock_cursor.execute.assert_called_once()
+            self.assertIn('error', result)
+            self.assertIn('suggestions', result)
+            # Update to match the actual number of items in self.service.dish_cache
+            self.assertEqual(len(result['suggestions']), 3)  # Since we added 3 items in setUp
+        

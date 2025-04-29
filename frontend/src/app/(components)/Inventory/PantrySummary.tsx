@@ -1,15 +1,33 @@
+/**
+ * PantrySummary Component
+ * 
+ * This component displays a summary of the user's food inventory, separated by location
+ * (refrigerator and pantry). It shows food items with their quantities and days left until
+ * expiry, highlighting items that are close to expiring. It also provides access to the 
+ * full inventory management modal.
+ */
 import { useState, useEffect } from "react";
 import { Button } from "@heroui/react";
 import useInventoryStore from "@/store/useInventoryStore";
 import InventoryModal from "./InventoryModal";
 
+/**
+ * PantrySummary component renders a summary view of the user's food inventory
+ * 
+ * @returns {JSX.Element} Rendered component showing food items by location with expiry information
+ */
 export default function PantrySummary() {
   const [isInventoryModalOpen, setIsInventoryModalOpen] = useState(false);
   const getItemsByLocation = useInventoryStore((state) => state.getItemsByLocation);
   const items = useInventoryStore((state) => state.items);
   const refreshDaysLeft = useInventoryStore((state) => state.refreshDaysLeft);
 
-  // Helper to display quantity with correct unit
+  /**
+   * Formats quantity string for display with appropriate units
+   * 
+   * @param {string} quantity - The quantity value to format
+   * @returns {string} Formatted quantity string
+   */
   const formatQuantity = (quantity: string) => {
     // If it ends with g, kg, ml, l, L, or contains any letter, show as is
     if (/\d+\s*(g|kg|ml|l|L)$/i.test(quantity) || /[a-zA-Z]/.test(quantity.replace(/\d+/g, ''))) {
@@ -22,7 +40,9 @@ export default function PantrySummary() {
     return quantity;
   };
 
-  // Refresh days left on component mount
+  /**
+   * Effect to refresh days left calculation whenever component mounts
+   */
   useEffect(() => {
     refreshDaysLeft();
   }, [refreshDaysLeft]);
