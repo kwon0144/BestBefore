@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { config } from '@/config';
 import Camera from './Camera';
@@ -96,7 +96,7 @@ const FoodStorageAssistant: React.FC = () => {
   };
 
   // Fetch storage recommendations for detected items
-  const fetchStorageRecommendations = async (produceCounts: { [key: string]: number } = {}) => {
+  const fetchStorageRecommendations = useCallback(async (produceCounts: { [key: string]: number } = {}) => {
     try {
       // Reset the items added flag
       setItemsAddedToInventory(false);
@@ -220,7 +220,7 @@ const FoodStorageAssistant: React.FC = () => {
         pantry: pantryItems,
       });
     }
-  };
+  }, [addIdentifiedItem]);
 
   // Handle storage recommendations update
   const handleStorageRecsUpdate = (newStorageRecs: StorageRecommendation) => {
@@ -285,7 +285,7 @@ const FoodStorageAssistant: React.FC = () => {
         state.stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [fetchStorageRecommendations, state.stream]);
 
   return (
       <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">

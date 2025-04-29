@@ -121,8 +121,8 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
               <div className="mx-auto mb-4 flex items-center justify-center">
                 <FontAwesomeIcon icon={faCamera} className="text-3xl text-gray-400" />
               </div>
-              <p className="text-gray-300 text-lg animate-pulse text-center">
-                Click "Start Camera" to begin
+              <p className="text-gray-300 text-lg animate-pulse text-center px-10">
+                Click &quot;Start Camera&quot; to begin
               </p>
             </div>
           )}

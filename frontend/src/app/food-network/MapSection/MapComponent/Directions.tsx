@@ -70,7 +70,7 @@ export default function Directions({ mapSectionState, setMapSectionState }: Dire
                 }
             });
         });
-    }, [directionsService, directionsRenderer, map]);
+    }, [directionsService, directionsRenderer, map, mapSectionState, setMapSectionState]);
 
     return null;
 }
