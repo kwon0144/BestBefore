@@ -207,11 +207,17 @@ into useful products for your home, garden, and beauty routine." />
                                 className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
                             >
                                 <div className="h-48 overflow-hidden">
-                                    <img
-                                        src={item.picture}
-                                        alt={item.method_name}
-                                        className="w-full h-full object-cover object-top"
-                                    />
+                                    {item.picture ? (
+                                        <img
+                                            src={item.picture}
+                                            alt={item.method_name}
+                                            className="w-full h-full object-cover object-top"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                            <span className="text-gray-400">No image available</span>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="p-4">
                                     <h3 className="text-xl font-semibold text-[#2c5e2e] mb-2">{item.method_name}</h3>
@@ -254,11 +260,17 @@ into useful products for your home, garden, and beauty routine." />
                         {selectedItem && (
                             <>
                                 <div className="mb-6">
-                                    <img
-                                        src={selectedItem.picture}
-                                        alt={`${selectedItem.method_name} process`}
-                                        className="w-full h-64 object-cover rounded-lg"
-                                    />
+                                    {selectedItem?.picture ? (
+                                        <img
+                                            src={selectedItem.picture}
+                                            alt={`${selectedItem.method_name} process`}
+                                            className="w-full h-64 object-cover rounded-lg"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-64 bg-gray-100 flex items-center justify-center rounded-lg">
+                                            <span className="text-gray-400">No image available</span>
+                                        </div>
+                                    )}
                                 </div>
                                 
                                 <div className="space-y-4">

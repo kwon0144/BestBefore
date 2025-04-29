@@ -70,7 +70,7 @@ export default function FoodNetwork() {
             />
           </div>
           <div>
-            <div className="mt-20">
+            <div className="mt-20 mb-20">
               <FoodNetworkList 
                 setMapSectionState={setMapSectionState}
                 selectedType={selectedType}

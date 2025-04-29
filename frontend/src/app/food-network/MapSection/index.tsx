@@ -20,16 +20,16 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
   // Add effect to reset route states when showInformation becomes true
   useEffect(() => {
     if (viewState.showInformation || viewState.showNavigation) {
-      setMapSectionState({
-        ...mapSectionState,
+      setMapSectionState(prevState => ({
+        ...prevState,
         selectedStart: null,
         routeStart: null,
         routeEnd: null,
         routeDetails: {duration: "", distance: ""},
         currentLocationAddress: ""
-      });
+      }));
     }
-  }, [viewState.showInformation, viewState.showNavigation, mapSectionState, setMapSectionState]);
+  }, [viewState.showInformation, viewState.showNavigation, setMapSectionState]);
 
   const handleTypeSelection = (selection: string) => {
     if (selection !== selectedType) {
