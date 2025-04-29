@@ -29,12 +29,15 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col justify-center mb-10 md:flex-row md:justify-between">
           <div className='flex flex-col items-center md:items-start md:justify-start md:pl-16'>
-            <Image 
-              src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo-white.png" 
-              alt="Best Before Logo"
-              width={208}
-              height={208}
-            />
+            <NoScrollLink href="/">
+              <Image 
+                src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo-white.png" 
+                alt="Best Before Logo"
+                width={208}
+                height={208}
+                className="cursor-pointer"
+              />
+            </NoScrollLink>
             <div className="max-w-md mb-10 pl-3 md:mb-0 text-center md:text-left">
               <p>
                 Together for a zero-waste kitchen - save food, money, and our planet with BestBefore
