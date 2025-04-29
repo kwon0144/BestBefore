@@ -251,7 +251,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-[390px]">
+    <div className="flex flex-col md:grid md:grid-cols-2 gap-8">
       {noItemsDetected && (
         <div className="col-span-2 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
           <p className="font-bold">No items detected!</p>
@@ -260,7 +260,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
       )}
       {/* Refrigerator section */}
       <div 
-        className="bg-white/70 rounded-lg p-5"
+        className="bg-white/70 rounded-lg p-5 min-h-[360px] order-1"
         onDragOver={handleDragOver}
         onDrop={(e) => handleDrop(e, 'fridge')}
       >
@@ -323,7 +323,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
       
       {/* Pantry section */}
       <div 
-        className="bg-white/70 rounded-lg p-5"
+        className="bg-white/70 rounded-lg p-5 min-h-[360px] order-2"
         onDragOver={handleDragOver}
         onDrop={(e) => handleDrop(e, 'pantry')}
       >

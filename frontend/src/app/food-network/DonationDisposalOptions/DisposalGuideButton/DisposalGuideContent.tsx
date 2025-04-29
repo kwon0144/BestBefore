@@ -22,11 +22,6 @@ const Item = ({ icon, text, color }: ItemProps) => (
 
 const YesTab = () => (
     <div className="space-y-4">
-        <div className="bg-[#E8F5E9] p-4 rounded-lg">
-            <p className="text-gray-700 italic">
-                All these items can go in your lime green-lid food and garden waste bin!
-            </p>
-        </div>
 
         <div className="grid grid-cols-2 gap-4">
             <Item icon={faAppleAlt} text="Fruit & vegetable scraps" color="#4CAF50" />
@@ -52,12 +47,7 @@ const YesTab = () => (
 
 const NoTab = () => (
     <div className="space-y-4">
-        <div className="bg-[#FFEBEE] p-4 rounded-lg">
-            <p className="text-gray-700 italic">
-                These items should NOT go in your lime green-lid food and garden waste bin!
-            </p>
-        </div>
-
+        
         <div className="grid grid-cols-2 gap-4">
             <Item icon={faMugHot} text="Tea bags" color="#F44336" />
             <Item icon={faCoffee} text="Coffee pods & cups" color="#F44336" />

@@ -30,21 +30,20 @@ class Geospatial(models.Model):
         return self.name
 
 class SecondLife(models.Model):
-    id = models.IntegerField(primary_key=True)
-    items = models.CharField(max_length=255)
-    type = models.CharField(max_length=255)
-    method = models.CharField(max_length=255)
-    label = models.CharField(max_length=255)
-    description = models.TextField()  
-    picture = models.URLField(max_length=255)
-    inside_picture = models.URLField(max_length=255)
+    method_id = models.IntegerField(primary_key=True)
+    method_name = models.CharField(max_length=100)
+    is_combo = models.CharField(max_length=10)
+    method_category = models.CharField(max_length=50)
+    ingredient = models.CharField(max_length=100)
+    description = models.CharField(max_length=1000)
+    picture = models.CharField(max_length=255)
 
     class Meta:
-        db_table = 'diy_projects'  
-        managed = False  
+        db_table = 'diy_products'
+        managed = False 
 
     def __str__(self):
-        return f"{self.items} - {self.method}"
+        return f"{self.method_name} - {self.ingredient}"
     
 class FoodIngredient(models.Model):
     id = models.AutoField(primary_key=True)

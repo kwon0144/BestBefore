@@ -28,8 +28,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = os.getenv('DEBUG', 'False') == 'True'
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+# DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Application definition
@@ -92,8 +92,10 @@ CORS_ALLOW_HEADERS = (
 API_KEY_HEADER = 'X-API-Key'
 API_KEY = os.getenv('DJANGO_API_KEY')
 
-# Require CORS headers
-CORS_REQUIRE_HEADERS = True
+# Set CORS settings based on DEBUG mode
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_REQUIRE_HEADERS = not DEBUG
+
 # Allow credentials for HTTPS requests
 CORS_ALLOW_CREDENTIALS = True
 """
