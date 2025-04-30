@@ -81,7 +81,7 @@ export default function PantrySummary() {
             </p>
           </div>
         ) : (
-          <div className="space-y-6 mb-6">
+          <div className="space-y-6 mb-6 flex-grow">
             <div>
               <h3 className="font-medium text-[#2F5233] mb-3 text-blue-500 border-b-2 border-blue-500">Refrigerator</h3>
               <ul className="space-y-2">

@@ -166,7 +166,9 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
 
   return (
     <div ref={ref} className="bg-white rounded-lg shadow-md p-6">
-      <h3 className="text-xl font-semibold mb-4">Grocery List</h3>
+        <h2 className="text-2xl font-semibold text-darkgreen mb-4">
+          Grocery List
+        </h2>
         {error && <div className="text-red-500 mb-4 p-3 bg-red-50 rounded">
           {error}
         </div>}
@@ -196,15 +198,23 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
         selectedMeals.length === 0 ? (
           <p className="text-gray-500">Select meals to generate a grocery list</p>
         ) : (
-          <div className="grid grid-cols-2 gap-6">
-          {['left', 'right'].map((column) => (
-            <div key={column}>
-              {categories
-                .filter(cat => cat.column === column)
-                .map(category => renderCategory(category.name))}
+          <>
+            <div className="grid grid-cols-2 gap-6">
+              {['left', 'right'].map((column) => (
+                <div key={column}>
+                  {categories
+                    .filter(cat => cat.column === column)
+                    .map(category => renderCategory(category.name))}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+            {/* Display pantry items info */}
+            <div className="mt-6 bg-gray-50 p-3 rounded-md">
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Note:</span> Items crossed out if food item in inventory can be used and don&apos;t need to be purchased.
+            </p>
+          </div>
+        </>
       )
       ) :
       (

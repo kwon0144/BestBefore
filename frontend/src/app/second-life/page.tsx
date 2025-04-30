@@ -321,7 +321,7 @@ export default function SecondLife() {
 
                 {/* Coming up next section */}
                 <ComingUp
-                    message="Step Out of Your Kitchen to the Community!"
+                    message="From Your Kitchen to the Community!"
                     title="Discover how you can support your community"
                     description="Donating surplus food or disposing of waste responsibly — every small action makes a big impact."
                     buttonText="Explore the Food Network"

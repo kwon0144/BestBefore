@@ -29,28 +29,6 @@ import GroceryList from "./GroceryList";
 import { addToast, ToastProvider } from "@heroui/react";
 import ComingUp from "../(components)/ComingUp";
 
-// Debug JSON Display Component
-const JsonDebugDisplay = ({ data, title }: { data: unknown; title: string }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    
-    return (
-        <div className="mt-4 border border-gray-300 rounded-md overflow-hidden">
-            <div 
-                className="bg-gray-100 p-2 flex justify-between items-center cursor-pointer"
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                <h3 className="text-sm font-medium">{title}</h3>
-                <span>{isOpen ? '[-]' : '[+]'}</span>
-            </div>
-            {isOpen && (
-                <pre className="p-4 bg-gray-50 text-xs overflow-auto max-h-96">
-                    {JSON.stringify(data, null, 2)}
-                </pre>
-            )}
-        </div>
-    );
-};
-
 /**
  * EcoGrocery page component for meal planning and grocery list generation
  * 
@@ -270,6 +248,77 @@ export default function EcoGrocery() {
         }, 100); // Small delay to ensure content is rendered
     };
 
+    // Filter meals based on search query
+    const getFilteredSearchResults = () => {
+        if (!searchQuery.trim()) return [];
+        
+        const query = searchQuery.toLowerCase().trim();
+        const allResults = [...allMealChoices, ...signatureDishes];
+        
+        // Split query into words for better matching
+        const queryWords = query.split(/\s+/);
+        
+        return allResults
+            .map(meal => {
+                // Calculate match score
+                let score = 0;
+                const name = meal.name.toLowerCase();
+                const description = meal.description.toLowerCase();
+                const cuisine = meal.cuisine?.toLowerCase() || '';
+                
+                // Exact matches get highest score
+                if (name === query) score += 100;
+                if (description.includes(query)) score += 30;
+                if (cuisine === query) score += 50;
+                
+                // Word matches
+                queryWords.forEach(word => {
+                    if (name.includes(word)) score += 20;
+                    if (description.includes(word)) score += 10;
+                    if (cuisine.includes(word)) score += 15;
+                });
+                
+                // Start of word matches
+                queryWords.forEach(word => {
+                    if (name.startsWith(word)) score += 5;
+                    if (description.startsWith(word)) score += 3;
+                    if (cuisine.startsWith(word)) score += 4;
+                });
+                
+                return { meal, score };
+            })
+            .filter(({ score }) => score > 0) // Only include results with some match
+            .sort((a, b) => b.score - a.score) // Sort by relevance
+            .map(({ meal }) => meal);
+    };
+
+    const filteredSearchResults = getFilteredSearchResults();
+
+    const handleSelectMeal = (meal: MealChoiceType | SignatureDish) => {
+        addMeal(meal);
+        setSearchQuery('');
+        addToast({
+            title: "Meal Added",
+            description: `"${meal.name}" added to your selected meals`,
+            classNames: {
+                base: "bg-background",
+                title: "text-darkgreen font-medium font-semibold",
+                description: "text-darkgreen",
+                icon: "text-darkgreen"
+            },
+            timeout: 3000
+        });
+        
+        // Scroll to selected meal component
+        setTimeout(() => {
+            if (selectedMealRef.current) {
+                const yOffset = -80;
+                const y = selectedMealRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+        }, 100);
+    };
+
     return (
         <div>
             <ToastProvider placement={"top-center"} toastOffset={80}/>
@@ -289,6 +338,8 @@ export default function EcoGrocery() {
                         setSearchQuery={setSearchQuery}
                         addSearchResultMeal={addSearchResultMeal}
                         handleSearchKeyPress={handleSearchKeyPress}
+                        filteredResults={filteredSearchResults}
+                        onSelectMeal={handleSelectMeal}
                     />
                     
                     {/* Popular Meals */}
@@ -298,7 +349,7 @@ export default function EcoGrocery() {
                     />
                     
                     {/* Meal Choices and Selected Meals (side by side) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
                         {/* Meal Choices (takes 2/3 of the width) */}
                         <div className="lg:col-span-2 h-full">
                             <MealChoice 
@@ -322,7 +373,7 @@ export default function EcoGrocery() {
                     </div>
                     
                     {/* Grocery List and Food Inventory Layout */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
                         {/* Left Column - Grocery List */}
                         <div className="lg:col-span-2">
                             {/* Smart Grocery List */}
@@ -343,18 +394,6 @@ export default function EcoGrocery() {
                         </div>
                     </div>
                     
-                    {/* Debug JSON Display Section */}
-                    <div className="mt-12 mb-8 border-t pt-4">
-                        <h2 className="text-xl font-semibold mb-4">Debug Data</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <JsonDebugDisplay data={selectedMeals} title="Selected Meals" />
-                            <JsonDebugDisplay data={groceryItems} title="Grocery Items" />
-                            <JsonDebugDisplay data={pantryItems} title="Pantry Items" />
-                            <JsonDebugDisplay data={groceryList} title="Grocery List Response" />
-                            <JsonDebugDisplay data={signatureDishes} title="Signature Dishes" />
-                            <JsonDebugDisplay data={{ loading, error, selectedCuisine }} title="UI State" />
-                        </div>
-                    </div>
                     {/* Coming up next section */}
                     <ComingUp
                         message="Great Job in Preventing Food Waste!"
