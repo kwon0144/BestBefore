@@ -1,3 +1,22 @@
+"""
+Produce Detection Service
+
+This service handles the detection and processing of produce-related data using computer vision
+and AI models. It provides functionality to identify produce items from images and process
+the results.
+
+Key Features:
+- Detect produce items from images using Claude API
+- Process multiple images in a single request
+- Combine results from multiple images
+- Handle various image formats and encodings
+- Provide structured output of detected items
+
+Example Usage:
+    >>> response = detect_produce(request)
+    >>> # request should contain base64 encoded images
+"""
+
 import base64
 import json
 import requests
@@ -14,7 +33,22 @@ CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 @csrf_exempt
 def detect_produce(request):
     """
-    API endpoint to detect produce from uploaded webcam images using Claude API
+    API endpoint to detect produce from uploaded webcam images using Claude API.
+    
+    This endpoint accepts POST requests with base64 encoded images and returns
+    a JSON response containing detected produce items and their counts.
+    
+    Args:
+        request (HttpRequest): Django HTTP request object containing:
+            - body: JSON containing 'image' or 'images' field with base64 encoded images
+    
+    Returns:
+        JsonResponse: JSON response containing:
+            - success (bool): Whether the detection was successful
+            - detections (list): List of detection results (currently empty as Claude doesn't provide bounding boxes)
+            - produce_counts (dict): Dictionary of produce items and their counts
+            - total_items (int): Total number of items detected
+            - error (str, optional): Error message if something went wrong
     """
     if request.method != 'POST':
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=405)
