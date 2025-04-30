@@ -1,10 +1,27 @@
+/**
+ * Search Component
+ * 
+ * This component provides a search interface for users to find meals or add custom meals.
+ * It includes:
+ * - A search input field with clear functionality
+ * - A button to add custom meals
+ * - Real-time search results with highlighting
+ * - Visual feedback for empty results
+ * - Support for meal images and cuisine tags
+ */
 import { Input, Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faUtensils } from "@fortawesome/free-solid-svg-icons";
 import { SearchBarProps } from "../interfaces";
 import Image from "next/image";
 
-// Helper function to highlight matching text
+/**
+ * Helper function to highlight matching text in search results
+ * 
+ * @param {string} text - The text to search within
+ * @param {string} query - The search query to highlight
+ * @returns {JSX.Element} Text with highlighted matches
+ */
 const highlightMatch = (text: string, query: string) => {
     if (!query) return text;
     
@@ -16,6 +33,18 @@ const highlightMatch = (text: string, query: string) => {
     );
 };
 
+/**
+ * Renders a search interface with real-time results and custom meal addition
+ * 
+ * @param {object} props - Component properties
+ * @param {string} props.searchQuery - Current search query
+ * @param {Function} props.setSearchQuery - Function to update search query
+ * @param {Function} props.addSearchResultMeal - Function to add a custom meal
+ * @param {Function} props.handleSearchKeyPress - Function to handle search key press events
+ * @param {Array} props.filteredResults - Filtered search results
+ * @param {Function} props.onSelectMeal - Function to handle meal selection
+ * @returns {JSX.Element} Rendered search component
+ */
 export default function Search({
   searchQuery,
   setSearchQuery,

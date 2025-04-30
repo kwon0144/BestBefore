@@ -1,3 +1,16 @@
+/**
+ * FoodStorageAssistant Component
+ * 
+ * This component provides a comprehensive interface for managing food storage and expiration tracking.
+ * Features include:
+ * - Camera-based food item detection
+ * - Storage recommendations for detected items
+ * - Automatic inventory management
+ * - Calendar-based expiration reminders
+ * - Step-by-step guided workflow
+ * - Responsive design with error handling
+ */
+
 'use client';
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -25,11 +38,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faBell, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 import useInventoryStore from "@/store/useInventoryStore";
 
+/**
+ * Main component for the Food Storage Assistant feature
+ * 
+ * @returns {JSX.Element} Rendered Food Storage Assistant interface with step-by-step workflow
+ */
 const FoodStorageAssistant: React.FC = () => {
   // State for step navigation
   const [currentStep, setCurrentStep] = useState(0);
   
-  // Helper function to scroll to content section
+  /**
+   * Scrolls to the main content section
+   */
   const scrollToContentSection = () => {
     const contentSection = document.querySelector('.border-green');
     if (contentSection) {
@@ -72,7 +92,11 @@ const FoodStorageAssistant: React.FC = () => {
   // State to track if items were added to inventory
   const [itemsAddedToInventory, setItemsAddedToInventory] = useState(false);
   
-  // Submit photos for analysis
+  /**
+   * Submits captured photos for food item detection and analysis
+   * 
+   * @returns {Promise<void>} Promise that resolves when analysis is complete
+   */
   const submitPhotos = async () => {
     if (state.photos.length === 0) return;
 
@@ -111,7 +135,12 @@ const FoodStorageAssistant: React.FC = () => {
     }
   };
 
-  // Fetch storage recommendations for detected items
+  /**
+   * Fetches storage recommendations for detected food items
+   * 
+   * @param {Object} produceCounts - Object containing detected food items and their counts
+   * @returns {Promise<void>} Promise that resolves when recommendations are fetched
+   */
   const fetchStorageRecommendations = useCallback(async (produceCounts: { [key: string]: number } = {}) => {
     try {
       // Reset the items added flag
@@ -238,12 +267,20 @@ const FoodStorageAssistant: React.FC = () => {
     }
   }, [addIdentifiedItem]);
 
-  // Handle storage recommendations update
+  /**
+   * Updates storage recommendations state
+   * 
+   * @param {StorageRecommendation} newStorageRecs - New storage recommendations
+   */
   const handleStorageRecsUpdate = (newStorageRecs: StorageRecommendation) => {
     setStorageRecs(newStorageRecs);
   };
 
-  // Step navigation - allow users to jump to any step
+  /**
+   * Handles step navigation in the workflow
+   * 
+   * @param {number} step - The step number to navigate to
+   */
   const handleStepClick = (step: number) => {
     setCurrentStep(step);
     setState(prev => ({
@@ -255,6 +292,10 @@ const FoodStorageAssistant: React.FC = () => {
     scrollToContentSection();
   };
 
+  /**
+   * Handles navigation to step 2 (Calendar Export)
+   * Shows error toast if no items are in inventory
+   */
   const handleStep2Click = () => {
     if (storageRecs.fridge.length === 0 && storageRecs.pantry.length === 0) {
       addToast({
@@ -274,7 +315,11 @@ const FoodStorageAssistant: React.FC = () => {
     scrollToContentSection();
   };
 
-  // Generate calendar link
+  /**
+   * Generates calendar link for expiration reminders
+   * 
+   * @returns {Promise<void>} Promise that resolves when calendar is generated
+   */
   const generateCalendarLink = async () => {
     if (calendarSelection.selectedItems.length === 0) {
       addToast({
@@ -319,7 +364,9 @@ const FoodStorageAssistant: React.FC = () => {
     }
   };
 
-  // Reset functionality
+  /**
+   * Resets the component state
+   */
   const handleReset = () => {
     setState(prev => ({
       ...prev,

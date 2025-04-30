@@ -1,16 +1,51 @@
+/**
+ * ComingUp Component
+ * 
+ * This component displays a promotional or informational banner with:
+ * - A main message
+ * - Title and description
+ * - Call-to-action button
+ * - Optional image
+ * 
+ * It's designed to be responsive and works well on both mobile and desktop views.
+ */
 import Image from "next/image";
 import NoScrollLink from "../NoScrollLink";
 
+/**
+ * Props interface for the ComingUp component
+ * @interface
+ */
 interface ComingUpProps {
+  /** Main message displayed at the top */
   message: string;
+  /** Title of the feature or announcement */
   title: string;
+  /** Detailed description of the feature or announcement */
   description: string;
+  /** Text for the call-to-action button */
   buttonText: string;
+  /** URL for the button link */
   buttonLink: string;
+  /** Source URL for the promotional image */
   imageSrc: string;
+  /** Alt text for the promotional image */
   imageAlt: string;
 }
 
+/**
+ * Renders a promotional banner with message, description, and call-to-action
+ * 
+ * @param {object} props - Component properties
+ * @param {string} props.message - Main message to display
+ * @param {string} props.title - Title of the feature
+ * @param {string} props.description - Detailed description
+ * @param {string} props.buttonText - Text for the call-to-action button
+ * @param {string} props.buttonLink - URL for the button
+ * @param {string} props.imageSrc - Source URL for the image
+ * @param {string} props.imageAlt - Alt text for the image
+ * @returns {JSX.Element} Rendered promotional banner
+ */
 const ComingUp: React.FC<ComingUpProps> = ({
   message,
   title,

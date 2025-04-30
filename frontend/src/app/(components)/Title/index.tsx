@@ -1,11 +1,36 @@
+/**
+ * Title Component
+ * 
+ * This component renders a page title section with:
+ * - Animated entrance using Framer Motion
+ * - Optional background image with overlay
+ * - Heading and description text
+ * - Responsive design with centered content
+ */
 import { motion } from 'framer-motion';
 
+/**
+ * Props interface for the Title component
+ * @interface
+ */
 interface TitleProps {
+    /** Main heading text */
     heading: string;
+    /** Description text displayed below the heading */
     description: string;
+    /** Optional background image URL */
     background?: string;
 }
 
+/**
+ * Renders an animated page title section with optional background
+ * 
+ * @param {object} props - Component properties
+ * @param {string} props.heading - Main heading text
+ * @param {string} props.description - Description text
+ * @param {string} [props.background] - Optional background image URL
+ * @returns {JSX.Element} Rendered title section with animation
+ */
 export default function Title({heading, description, background}: TitleProps) {
     return <motion.div
     initial={{ y: -50, opacity: 0 }}

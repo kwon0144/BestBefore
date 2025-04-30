@@ -1,13 +1,42 @@
+/**
+ * GradientText Component
+ * 
+ * This component provides animated gradient text with:
+ * - Customizable gradient colors
+ * - Adjustable animation speed
+ * - Optional border effect
+ * - Smooth transitions
+ * - Responsive design
+ */
 import React, { ReactNode } from 'react';
 
+/**
+ * Props interface for the GradientText component
+ */
 interface GradientTextProps {
+    /** Text content to display with gradient effect */
     children: ReactNode;
+    /** Additional CSS classes to apply */
     className?: string;
+    /** Array of colors for the gradient */
     colors?: string[];
+    /** Animation speed in seconds */
     animationSpeed?: number;
+    /** Whether to show a gradient border */
     showBorder?: boolean;
 }
 
+/**
+ * Component that renders text with an animated gradient effect
+ * 
+ * @param {GradientTextProps} props - Component properties
+ * @param {ReactNode} props.children - Text content
+ * @param {string} [props.className] - Additional CSS classes
+ * @param {string[]} [props.colors] - Gradient colors
+ * @param {number} [props.animationSpeed] - Animation speed in seconds
+ * @param {boolean} [props.showBorder] - Whether to show gradient border
+ * @returns {JSX.Element} Rendered gradient text with animation
+ */
 export default function GradientText({
     children,
     className = "",

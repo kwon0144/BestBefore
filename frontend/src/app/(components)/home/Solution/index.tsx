@@ -1,3 +1,13 @@
+/**
+ * Solution Component
+ * 
+ * This component displays a roadmap of features with:
+ * - Responsive grid layout
+ * - Animated entrance effects
+ * - Interactive solution cards
+ * - Connected icon timeline
+ * - Mobile and desktop views
+ */
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -13,8 +23,14 @@ import SolutionCard from './SolutionCard';
 import { motion } from 'framer-motion';
 import NoScrollLink from '../../NoScrollLink';
 
+/**
+ * Type definition for icon names used in the solution steps
+ */
 type IconName = 'faBoxArchive' | 'faUsers' | 'faRecycle' | 'faGamepad' | 'faChartLine' | 'faShoppingBasket';
 
+/**
+ * Map of icon names to their corresponding FontAwesome icon definitions
+ */
 const iconMap: Record<IconName, IconDefinition> = {
     faBoxArchive,
     faUsers,
@@ -24,13 +40,27 @@ const iconMap: Record<IconName, IconDefinition> = {
     faShoppingBasket
 };
 
+/**
+ * Main component that displays the solution roadmap
+ * 
+ * @returns {JSX.Element} Rendered solution roadmap with animated cards and timeline
+ */
 export default function Solution() {
+    /**
+     * Array of solution steps with their properties
+     */
     const steps: Array<{
+        /** Icon name for the step */
         icon: IconName;
+        /** Title of the solution */
         title: string;
+        /** Description of the solution */
         description: string;
+        /** Text for the call-to-action button */
         buttonText: string;
+        /** URL for the background image */
         image: string;
+        /** Navigation link for the solution */
         link: string;
     }> = [
         {
