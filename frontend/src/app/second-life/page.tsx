@@ -234,6 +234,10 @@ into useful products for your home, garden, and beauty routine." />
                 onClose={closeModal}
                 size="2xl"
                 hideCloseButton
+                classNames={{
+                    base: "max-w-3xl mx-auto",
+                    body: "min-h-[70vh] max-h-[70vh] overflow-y-auto"
+                }}
             >
                 <ModalContent>
                     <ModalHeader className="flex flex-col gap-1 border-b">
