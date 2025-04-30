@@ -17,17 +17,26 @@ from datetime import datetime, timedelta, date
 import os
 
 # Local application imports
-from .db_service import get_storage_recommendations, get_all_food_types
-from .dish_ingre_service import DishIngredientService
-from .hours_parser_service import parse_operating_hours
+from .service.db_service import get_storage_recommendations, get_all_food_types
+from .service.dish_ingre_service import DishIngredientService
+from .service.hours_parser_service import parse_operating_hours
 from .models import Geospatial, SecondLife, Dish
 from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
 
+#-----------------------------------------------------------------------
+# Food Storage & Information APIs
+#-----------------------------------------------------------------------
 
 @api_view(['POST'])
 def get_storage_advice(request):
     """
-    Get food storage advice
+    Get food storage advice based on food type.
+    
+    Request body:
+    - food_type: String (required) - The type of food to get storage advice for
+    
+    Returns:
+    - Storage recommendations for the specified food type
     """
     try:
         data = request.data
@@ -49,7 +58,10 @@ def get_storage_advice(request):
 @api_view(['GET'])
 def get_food_types(request):
     """
-    Get all food types
+    Get all available food types for storage recommendations.
+    
+    Returns:
+    - List of all food types in the system
     """
     try:
         food_types = get_all_food_types()
@@ -57,10 +69,22 @@ def get_food_types(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+#-----------------------------------------------------------------------
+# Calendar & Reminder APIs
+#-----------------------------------------------------------------------
+
 @api_view(['POST'])
 def generate_calendar(request):
     """
-    Generate calendar
+    Generate calendar with food expiration reminders.
+    
+    Request body:
+    - items: Array (required) - List of food items with expiration dates
+    - reminder_days: Integer (optional, default=2) - Days before expiration to send reminder
+    - reminder_time: String (optional, default='20:00') - Time for reminder in 24h format
+    
+    Returns:
+    - Calendar URL and configuration details
     """
     try:
         data = request.data
@@ -88,11 +112,17 @@ def generate_calendar(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+#-----------------------------------------------------------------------
+# Food Bank & Location APIs
+#-----------------------------------------------------------------------
 
 @api_view(['GET'])
 def get_foodbanks(request):
     """
-    Get foodbanks with parsed operating hours
+    Get all food banks with location data and parsed operating hours.
+    
+    Returns:
+    - List of food banks with their details and structured operation schedules
     """
     try:
         # Use raw SQL query to get foodbank data including hours_of_operation
@@ -134,10 +164,21 @@ def get_foodbanks(request):
             'message': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+#-----------------------------------------------------------------------
+# Second Life Food Repurposing APIs
+#-----------------------------------------------------------------------
+
 @api_view(['GET'])
 def get_second_life_items(request):
     """
-    Get all second life items or filter by search query
+    Get all second life items or filter by search query.
+    Second life items are recipes or methods to repurpose food waste.
+    
+    Query parameters:
+    - search: String (optional) - Filter items by ingredient name
+    
+    Returns:
+    - List of second life methods/recipes
     """
     search_query = request.GET.get('search', '')
     
@@ -163,7 +204,13 @@ def get_second_life_items(request):
 @api_view(['GET'])
 def get_second_life_item_detail(request, item_id):
     """
-    Get details for a specific second life item
+    Get details for a specific second life item.
+    
+    Path parameters:
+    - item_id: Integer - The ID of the second life method/recipe
+    
+    Returns:
+    - Detailed information about the specified second life method
     """
     try:
         item = SecondLife.objects.get(method_id=item_id)
@@ -180,15 +227,25 @@ def get_second_life_item_detail(request, item_id):
     except SecondLife.DoesNotExist:
         return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
     
+#-----------------------------------------------------------------------
+# Meal Planning & Grocery List APIs
+#-----------------------------------------------------------------------
 
-# Initialize service
+# Initialize dish ingredient service
 dish_service = DishIngredientService()
 
 @csrf_exempt
 @api_view(['POST'])
 def search_dishes(request):
     """
-    API endpoint to generate grocery lists based on selected meals
+    API endpoint to generate grocery lists based on selected meals.
+    
+    Request body:
+    - selected_meals: Array (required) - List of meal names to include in grocery list
+    
+    Returns:
+    - Combined grocery list organized by food category
+    - Pantry items separated from regular shopping items
     """
     try:
         data = request.data
@@ -199,7 +256,7 @@ def search_dishes(request):
                           status=status.HTTP_400_BAD_REQUEST)
         
         # Use the new function to handle ingredient combining
-        from .ingredient_combiner_service import combine_dish_ingredients
+        from .service.ingredient_combiner_service import combine_dish_ingredients
         
         result = combine_dish_ingredients(selected_meals)
         
@@ -234,7 +291,15 @@ def search_dishes(request):
                       status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def categorize_ingredient(ingredient):
-
+    """
+    Helper function to categorize ingredients into food groups.
+    
+    Parameters:
+    - ingredient: String - Name of the ingredient to categorize
+    
+    Returns:
+    - Category name as string
+    """
     ingredient = ingredient.lower()
     
     # Meat
@@ -274,7 +339,15 @@ def categorize_ingredient(ingredient):
     return 'Other'
 
 def is_pantry_item(ingredient):
-
+    """
+    Helper function to determine if an ingredient is a pantry staple.
+    
+    Parameters:
+    - ingredient: String - Name of the ingredient to check
+    
+    Returns:
+    - Boolean indicating whether the item is a pantry staple
+    """
     ingredient = ingredient.lower()
     pantry_keywords = ['salt', 'pepper', 'sugar', 'flour', 'oil', 'vinegar', 'spice', 'herb', 'seasoning', 
                      'stock', 'pasta', 'rice', 'grain', 'canned', 'dried', 'baking', 'sauce']
@@ -284,7 +357,15 @@ def is_pantry_item(ingredient):
 @csrf_exempt
 @api_view(['POST'])
 def get_dish_ingredients(request):
-
+    """
+    Get all ingredients needed for a specific dish.
+    
+    Request body:
+    - dish_name: String (required) - Name of the dish to get ingredients for
+    
+    Returns:
+    - List of ingredients required for the specified dish
+    """
     try:
         data = request.data
         dish_name = data.get('dish_name')
@@ -306,7 +387,13 @@ def get_dish_ingredients(request):
 @api_view(['GET'])
 def get_signature_dishes(request):
     """
-    Get dishes, optionally filtered by cuisine
+    Get signature dishes, optionally filtered by cuisine.
+    
+    Query parameters:
+    - cuisine: String (optional) - Filter dishes by cuisine type
+    
+    Returns:
+    - List of dishes with their details and images
     """
     cuisine_filter = request.GET.get('cuisine', '')
     
@@ -330,8 +417,22 @@ def get_signature_dishes(request):
     
     return Response(data)
 
+#-----------------------------------------------------------------------
+# Authentication APIs (Login)
+#-----------------------------------------------------------------------
+
 @api_view(['POST'])
 def login(request):
+    """
+    Simple password-based authentication endpoint.
+    
+    Request body:
+    - password: String (required) - Site password for authentication
+    
+    Returns:
+    - Success response with session cookie if authenticated
+    - Error message if authentication fails
+    """
     try:
         password = request.data.get('password')
         

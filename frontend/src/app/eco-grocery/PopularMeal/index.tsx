@@ -1,13 +1,31 @@
+/**
+ * PopularMeal Component
+ * 
+ * This component displays a scrollable list of popular cuisine categories or food types
+ * that users can click to quickly filter meal options. It implements a "show more/less"
+ * feature to manage screen space while providing access to all available categories.
+ */
 import { PopularMealsProps } from "../interfaces";
 import { useState } from "react";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 
+/**
+ * Renders a horizontal scrollable list of cuisine categories
+ * 
+ * @param {object} props - Component properties
+ * @param {string[]} props.popularMeals - Array of cuisine/meal categories to display
+ * @param {Function} props.setSearchQuery - Function to update search query when a category is selected
+ * @returns {JSX.Element} Rendered popular meal categories component
+ */
 export default function PopularMeal({ popularMeals, setSearchQuery }: PopularMealsProps) {
   const [showAll, setShowAll] = useState(false);
   
-  // Show only first few categories initially
+  /**
+   * Limit the number of initially visible categories to prevent overwhelming the UI
+   * Additional categories can be revealed by clicking "See More"
+   */
   const initialDisplayCount = 6;
   const displayedCategories = showAll 
     ? popularMeals 

@@ -1,3 +1,17 @@
+/**
+ * EcoGrocery Page Component
+ * 
+ * This component provides a comprehensive grocery planning interface that helps users:
+ * - Search for meals by name or cuisine type
+ * - Browse popular cuisine categories
+ * - Select meals for their weekly plan
+ * - Generate optimized grocery lists based on selected meals
+ * - Identify items already available in their pantry/inventory
+ * 
+ * The component intelligently combines meal planning with inventory management
+ * to reduce food waste by preventing duplicate purchases and suggesting recipes
+ * based on available ingredients.
+ */
 "use client"
 
 import { useState, useEffect, useRef } from "react";
@@ -37,6 +51,11 @@ const JsonDebugDisplay = ({ data, title }: { data: unknown; title: string }) => 
     );
 };
 
+/**
+ * EcoGrocery page component for meal planning and grocery list generation
+ * 
+ * @returns {JSX.Element} Rendered component with meal planning and grocery list interfaces
+ */
 export default function EcoGrocery() {
     const groceryListRef = useRef<HTMLDivElement>(null);
     const selectedMealRef = useRef<HTMLDivElement>(null);
@@ -44,6 +63,7 @@ export default function EcoGrocery() {
     const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
     const [signatureDishes, setSignatureDishes] = useState<SignatureDish[]>([]);
     const [isLoadingSignatureDishes, setIsLoadingSignatureDishes] = useState(false);
+    const [notification, setNotification] = useState<string | null>(null);
     
     // Use the grocery planner hook
     const {
@@ -83,7 +103,7 @@ export default function EcoGrocery() {
             id: 1,
             name: 'Vegetarian Buddha Bowl',
             description: 'Colorful bowl with quinoa, roasted vegetables, and tahini dressing.',
-            imageUrl: 'https://readdy.ai/api/search-image?query=A%20vibrant%20buddha%20bowl%20filled%20with%20colorful%20roasted%20vegetables%2C%20quinoa%2C%20avocado%2C%20and%20drizzled%20with%20tahini%20sauce%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20natural%20lighting&width=300&height=200&seq=1&orientation=landscape',
+            imageUrl: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/meal-img/49_Vegetarian+Buddha+Bowl.jpg',
             cuisine: 'Vegetarian'
         },
         {
@@ -97,19 +117,21 @@ export default function EcoGrocery() {
             id: 3,
             name: 'Fettuccine Alfredo',
             description: 'Creamy Italian pasta with parmesan cheese.',
-            imageUrl: 'https://readdy.ai/api/search-image?query=A%20luxurious%20plate%20of%20fettuccine%20alfredo%20pasta%20in%20creamy%20white%20sauce%2C%20garnished%20with%20fresh%20parsley%20and%20black%20pepper%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20soft%20natural%20lighting&width=300&height=200&seq=3&orientation=landscape',
+            imageUrl: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/meal-img/50_Fettuccine+Alfredo.jpg',
             cuisine: 'Italian Cuisine'
         },
         {
             id: 4,
             name: 'Mediterranean Salad',
             description: 'Fresh salad with feta, olives, and grilled vegetables.',
-            imageUrl: 'https://readdy.ai/api/search-image?query=A%20fresh%20Mediterranean%20salad%20with%20mixed%20greens%2C%20cherry%20tomatoes%2C%20cucumber%2C%20red%20onions%2C%20kalamata%20olives%2C%20and%20crumbled%20feta%20cheese%2C%20served%20on%20a%20white%20plate%20against%20a%20minimal%20light%20background%2C%20professional%20food%20photography%20with%20natural%20lighting&width=300&height=200&seq=4&orientation=landscape',
+            imageUrl: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/meal-img/51_Mediterranean+Salad.jpg',
             cuisine: 'Mediterranean'
         }
     ];
     
-    // Fetch signature dishes when a cuisine is selected
+    /**
+     * Fetches signature dishes from the API when a cuisine is selected
+     */
     useEffect(() => {
         if (!selectedCuisine) {
             setSignatureDishes([]);
@@ -120,15 +142,10 @@ export default function EcoGrocery() {
             setIsLoadingSignatureDishes(true);
             try {
                 const apiUrl = `${config.apiUrl}/api/signature-dishes/`;
-                console.log('Fetching from URL:', apiUrl);
-                console.log('With params:', { cuisine: selectedCuisine });
                 
                 const response = await axios.get<SignatureDish[]>(apiUrl, {
                     params: { cuisine: selectedCuisine }
                 });
-                
-                console.log('API response status:', response.status);
-                console.log('API response data:', response.data);
                 
                 setSignatureDishes(response.data);
             } catch (error) {
@@ -142,7 +159,10 @@ export default function EcoGrocery() {
         fetchSignatureDishes();
     }, [selectedCuisine]);
     
-    // Filter meals based on selected cuisine from popular meals or search query
+    /**
+     * Filters meals based on selected cuisine
+     * @returns {Array} Filtered meal choices or signature dishes
+     */
     const getMealsByFilter = () => {
         // If we have signature dishes for the selected cuisine, use those instead
         if (selectedCuisine && signatureDishes.length > 0) {
@@ -151,18 +171,11 @@ export default function EcoGrocery() {
         
         // If search query matches a cuisine category, show meals for that cuisine
         const cuisineMatch = popularMeals.find(cuisine => 
-            cuisine.toLowerCase() === searchQuery.toLowerCase()
+            cuisine.toLowerCase() === selectedCuisine?.toLowerCase()
         );
         
         if (cuisineMatch) {
             return allMealChoices.filter(meal => meal.cuisine === cuisineMatch);
-        }
-        
-        // For search by name
-        if (searchQuery) {
-            return allMealChoices.filter(meal => 
-                meal.name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
         }
         
         // Default view
@@ -171,6 +184,9 @@ export default function EcoGrocery() {
     
     const filteredMealChoices = getMealsByFilter();
     
+    /**
+     * Adds a custom meal based on search query
+     */
     const addSearchResultMeal = () => {
         if (!searchQuery.trim()) return;
         addCustomMeal(searchQuery);
@@ -203,6 +219,10 @@ export default function EcoGrocery() {
         meal.name.toLowerCase() === searchQuery.toLowerCase()
     );
     
+    /**
+     * Handles keyboard events in the search input
+     * @param {React.KeyboardEvent<HTMLInputElement>} e - Keyboard event
+     */
     const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter' && searchQuery.trim()) {
             if (exactMatchExists) {
@@ -213,6 +233,7 @@ export default function EcoGrocery() {
                 
                 if (matchedChoice) {
                     addMeal(matchedChoice);
+                    setSearchQuery('');
                 } else {
                     // Add from popular meals
                     const matchedPopular = popularMeals.find(meal => 
@@ -230,10 +251,21 @@ export default function EcoGrocery() {
         }
     };
     
-    // Handle cuisine selection
+    /**
+     * Handles selection of a cuisine category
+     * @param {string} cuisine - The cuisine category selected
+     */
     const handleCuisineSelect = (cuisine: string) => {
-        setSearchQuery(cuisine);
         setSelectedCuisine(cuisine);
+    };
+
+    /**
+     * Updates search query without affecting meal choices
+     * This function only updates the search query without changing filtered meals
+     */
+    const handleSearchQueryChange = (query: string) => {
+        setSearchQuery(query);
+        // Do not change selectedCuisine or filter logic when searching
     };
     
     const handleGenerateAndScroll = () => {

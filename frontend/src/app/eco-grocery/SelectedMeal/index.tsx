@@ -1,13 +1,41 @@
+/**
+ * SelectedMeal Component
+ * 
+ * This component displays the list of meals the user has selected for their meal plan.
+ * It allows users to:
+ * - Adjust the quantity of each meal
+ * - Remove meals from the selection
+ * - Generate a grocery list based on selected meals
+ * 
+ * The component shows a loading state when the grocery list is being generated
+ * and provides clear feedback when no meals are selected.
+ */
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus, faXmark, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { SelectedMealsProps } from "../interfaces";
 
+/**
+ * Extended props interface for SelectedMeal component with additional properties
+ * @interface
+ */
 export interface SelectedMealWithButtonProps extends SelectedMealsProps {
   onGenerate: () => void;
   loading: boolean;
 }
 
+/**
+ * Renders the list of selected meals with controls for adjusting quantities
+ * and a button to generate the grocery list
+ * 
+ * @param {object} props - Component properties
+ * @param {Array} props.selectedMeals - Meals selected by the user
+ * @param {Function} props.adjustQuantity - Function to adjust meal quantities
+ * @param {Function} props.removeMeal - Function to remove a meal from selection
+ * @param {Function} props.generateGroceryList - Function to generate the grocery list
+ * @param {boolean} props.loading - Whether the grocery list is being generated
+ * @returns {JSX.Element} Rendered selected meals component
+ */
 export default function SelectedMeal({ 
   selectedMeals, 
   adjustQuantity, 
@@ -20,10 +48,10 @@ export default function SelectedMeal({
       <h2 className="text-2xl font-semibold text-darkgreen mb-3">
         Your Selected Meals
       </h2>
-      {selectedMeals.length === 0 ? (
-        <p className="text-gray-500 italic text-sm mb-4">No meals selected yet. Add meals from the choices above or search for your own.</p>
-      ) : (
-        <div className="overflow-y-auto max-h-[350px] pr-1 -mr-1 mb-4">
+      <div className="overflow-y-auto flex-grow min-h-[350px] max-h-[350px] pr-1 -mr-1 mb-4">
+        {selectedMeals.length === 0 ? (
+          <p className="text-gray-500 italic text-sm">No meals selected yet. Add meals from the choices above or search for your own.</p>
+        ) : (
           <ul className="divide-y divide-gray-200">
             {selectedMeals.map((meal) => (
               <li key={meal.id} className="py-2 flex justify-between items-center text-sm">
@@ -59,8 +87,8 @@ export default function SelectedMeal({
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </div>
       
       {/* Generate Grocery List Button */}
       <Button
