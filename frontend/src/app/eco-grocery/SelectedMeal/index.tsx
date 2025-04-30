@@ -46,10 +46,10 @@ export default function SelectedMeal({
   return (
     <div className="bg-white rounded-lg shadow-md p-4 h-full flex flex-col">
       <h2 className="text-xl font-semibold text-gray-800 mb-3">Your Selected Meals</h2>
-      {selectedMeals.length === 0 ? (
-        <p className="text-gray-500 italic text-sm">No meals selected yet. Add meals from the choices above or search for your own.</p>
-      ) : (
-        <div className="overflow-y-auto max-h-[350px] pr-1 -mr-1 mb-4">
+      <div className="overflow-y-auto flex-grow min-h-[350px] max-h-[350px] pr-1 -mr-1 mb-4">
+        {selectedMeals.length === 0 ? (
+          <p className="text-gray-500 italic text-sm">No meals selected yet. Add meals from the choices above or search for your own.</p>
+        ) : (
           <ul className="divide-y divide-gray-200">
             {selectedMeals.map((meal) => (
               <li key={meal.id} className="py-2 flex justify-between items-center text-sm">
@@ -85,8 +85,8 @@ export default function SelectedMeal({
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </div>
       
       {/* Generate Grocery List Button */}
       <Button

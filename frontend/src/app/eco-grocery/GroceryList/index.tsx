@@ -30,15 +30,68 @@ export default function GroceryList({
   const rightColumnCategories = ['Meat', 'Grains', 'Condiments', 'Other'];
   
   /**
-   * Checks if a grocery item is already available in the pantry
+   * Checks if a grocery item is already available in the pantry and returns quantity info
    * 
    * @param {string} itemName - Name of the grocery item to check
-   * @returns {boolean} True if the item is in the pantry
+   * @param {string} groceryQuantity - Quantity needed from grocery list
+   * @returns {object} Status of item availability and adjusted quantity if partial
    */
-  const isInPantry = (itemName: string) => {
-    return pantryItems.some(pantryItem => 
+  const checkPantryAvailability = (itemName: string, groceryQuantity: string) => {
+    const matchingPantryItem = pantryItems.find(pantryItem => 
       pantryItem.name.toLowerCase() === itemName.toLowerCase()
     );
+    
+    if (!matchingPantryItem) {
+      return { inPantry: false, adjustedQuantity: groceryQuantity };
+    }
+    
+    // Extract numerical values from quantities for comparison
+    const groceryNumValue = extractNumericValue(groceryQuantity);
+    const pantryNumValue = extractNumericValue(matchingPantryItem.quantity);
+    const groceryUnit = extractUnit(groceryQuantity);
+    const pantryUnit = extractUnit(matchingPantryItem.quantity);
+    
+    // If units don't match or we can't extract values, treat as complete match
+    if (!groceryNumValue || !pantryNumValue || groceryUnit !== pantryUnit) {
+      return { inPantry: true, adjustedQuantity: groceryQuantity };
+    }
+    
+    // Check if pantry has enough
+    if (pantryNumValue >= groceryNumValue) {
+      return { inPantry: true, adjustedQuantity: groceryQuantity };
+    }
+    
+    // Calculate remaining quantity needed
+    const remainingValue = groceryNumValue - pantryNumValue;
+    return { 
+      inPantry: false, 
+      isPartial: true,
+      originalQuantity: groceryQuantity,
+      pantryQuantity: `${pantryNumValue}${groceryUnit}`,
+      adjustedQuantity: `${remainingValue}${groceryUnit}` 
+    };
+  };
+  
+  /**
+   * Extracts numeric value from a quantity string
+   * 
+   * @param {string} quantity - Quantity string (e.g., "500g", "2 L")
+   * @returns {number|null} Extracted numeric value or null if not found
+   */
+  const extractNumericValue = (quantity: string): number | null => {
+    const match = quantity.match(/(\d+(\.\d+)?)/);
+    return match ? parseFloat(match[0]) : null;
+  };
+  
+  /**
+   * Extracts unit from a quantity string
+   * 
+   * @param {string} quantity - Quantity string (e.g., "500g", "2 L")
+   * @returns {string} Extracted unit or empty string if not found
+   */
+  const extractUnit = (quantity: string): string => {
+    const match = quantity.match(/[a-zA-Z]+$/);
+    return match ? match[0].toLowerCase() : '';
   };
   
   /**
@@ -55,13 +108,26 @@ export default function GroceryList({
         <h4 className="font-medium text-gray-700 mb-2">{category}</h4>
         <ul className="space-y-2">
           {getGroceryItemsByCategory(category).map((item, index) => {
-            const inPantry = isInPantry(item.name);
+            const { inPantry, isPartial, adjustedQuantity, originalQuantity, pantryQuantity } = checkPantryAvailability(item.name, item.quantity);
+            
             return (
               <li key={index} className="flex justify-between items-center">
                 <span className={inPantry ? 'line-through text-gray-400' : ''}>
                   {item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()}
                 </span>
-                <span className={`text-gray-600 ${inPantry ? 'text-gray-400' : ''}`}>{item.quantity}</span>
+                <div className="flex items-center">
+                  {isPartial ? (
+                    <div className="flex items-center">
+                      <span className="text-gray-400 line-through mr-1">{originalQuantity}</span>
+                      <span className="text-gray-400 mx-1">-&gt;</span>
+                      <span className="text-gray-600">{adjustedQuantity}</span>
+                    </div>
+                  ) : (
+                    <span className={`text-gray-600 ${inPantry ? 'text-gray-400' : ''}`}>
+                      {item.quantity}
+                    </span>
+                  )}
+                </div>
               </li>
             );
           })}
@@ -106,7 +172,7 @@ export default function GroceryList({
               {pantryItems.length > 0 && (
                 <div className="mt-6 bg-gray-50 p-3 rounded-md">
                   <p className="text-sm text-gray-600">
-                    <span className="font-medium">Note:</span> Items crossed out are already in your food inventory and don&apos;t need to be purchased.
+                    <span className="font-medium">Note:</span> Items crossed out are already in your food inventory and don&apos;t need to be purchased. Items with reduced quantities show what you still need to buy based on what you already have.
                   </p>
                 </div>
               )}

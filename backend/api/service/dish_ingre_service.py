@@ -177,8 +177,8 @@ class DishIngredientService:
         
     def _standardize_measurement(self, name, quantity):
         """Convert common measurements to grams, liters, or count"""
+        # estimate a standard quantity
         if quantity == 'as needed':
-            # Try to estimate a standard quantity
             if any(word in name for word in ['meat', 'chicken', 'beef', 'pork', 'steak']):
                 return '250g'
             elif any(word in name for word in ['fish', 'salmon', 'tuna']):
@@ -188,11 +188,11 @@ class DishIngredientService:
             else:
                 return quantity
         
-        # Try to convert cup, tbsp, tsp to metric
+        # convert cup, tbsp, tsp to metric
         cup_match = re.search(r'(\d+(?:\.\d+)?)\s*cups?', quantity)
         if cup_match:
             amount = float(cup_match.group(1))
-            # Rough conversion: 1 cup ≈ 240ml for liquids, ≈ 150g for solids
+            # Rough conversion: 1 cup = 240ml for liquids, = 150g for solids
             if any(word in name for word in ['milk', 'water', 'juice', 'broth', 'stock']):
                 return f'{int(amount * 240)}ml'
             else:
@@ -201,26 +201,26 @@ class DishIngredientService:
         tbsp_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:tbsp|tablespoons?)', quantity)
         if tbsp_match:
             amount = float(tbsp_match.group(1))
-            # 1 tbsp ≈ 15ml
+            # 1 tbsp = 15ml
             return f'{int(amount * 15)}ml'
             
         tsp_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:tsp|teaspoons?)', quantity)
         if tsp_match:
             amount = float(tsp_match.group(1))
-            # 1 tsp ≈ 5ml
+            # 1 tsp = 5ml
             return f'{int(amount * 5)}ml'
             
         # Handle ounces and pounds
         oz_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:oz|ounces?)', quantity)
         if oz_match:
             amount = float(oz_match.group(1))
-            # 1 oz ≈ 28g
+            # 1 oz = 28g
             return f'{int(amount * 28)}g'
             
         lb_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:lb|pounds?)', quantity)
         if lb_match:
             amount = float(lb_match.group(1))
-            # 1 lb ≈ 454g
+            # 1 lb = 454g
             return f'{int(amount * 454)}g'
             
         # If no conversion was possible, return the original

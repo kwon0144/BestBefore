@@ -1,5 +1,5 @@
 from django.test import TestCase
-from api.hours_parser_service import parse_operating_hours
+from backend.api.service.hours_parser_service import parse_operating_hours
 
 class HoursParserTestCase(TestCase):
     def test_parse_24_hours(self):

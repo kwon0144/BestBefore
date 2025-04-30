@@ -1,4 +1,4 @@
-from .models import FoodStorage
+from ..models import FoodStorage
 from django.db import connection
 
 def get_storage_recommendations(food_type):

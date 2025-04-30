@@ -134,7 +134,7 @@ export default function EcoGrocery() {
     }, [selectedCuisine]);
     
     /**
-     * Filters meals based on selected cuisine or search query
+     * Filters meals based on selected cuisine
      * @returns {Array} Filtered meal choices or signature dishes
      */
     const getMealsByFilter = () => {
@@ -145,18 +145,11 @@ export default function EcoGrocery() {
         
         // If search query matches a cuisine category, show meals for that cuisine
         const cuisineMatch = popularMeals.find(cuisine => 
-            cuisine.toLowerCase() === searchQuery.toLowerCase()
+            cuisine.toLowerCase() === selectedCuisine?.toLowerCase()
         );
         
         if (cuisineMatch) {
             return allMealChoices.filter(meal => meal.cuisine === cuisineMatch);
-        }
-        
-        // For search by name
-        if (searchQuery) {
-            return allMealChoices.filter(meal => 
-                meal.name.toLowerCase().includes(searchQuery.toLowerCase())
-            );
         }
         
         // Default view
@@ -202,6 +195,7 @@ export default function EcoGrocery() {
                 
                 if (matchedChoice) {
                     addMeal(matchedChoice);
+                    setSearchQuery('');
                 } else {
                     // Add from popular meals
                     const matchedPopular = popularMeals.find(meal => 
@@ -224,8 +218,16 @@ export default function EcoGrocery() {
      * @param {string} cuisine - The cuisine category selected
      */
     const handleCuisineSelect = (cuisine: string) => {
-        setSearchQuery(cuisine);
         setSelectedCuisine(cuisine);
+    };
+
+    /**
+     * Updates search query without affecting meal choices
+     * This function only updates the search query without changing filtered meals
+     */
+    const handleSearchQueryChange = (query: string) => {
+        setSearchQuery(query);
+        // Do not change selectedCuisine or filter logic when searching
     };
     
     return (
@@ -243,7 +245,7 @@ export default function EcoGrocery() {
             {/* Search Section */}
             <Search 
                 searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
+                setSearchQuery={handleSearchQueryChange}
                 addSearchResultMeal={addSearchResultMeal}
                 handleSearchKeyPress={handleSearchKeyPress}
             />
@@ -257,7 +259,7 @@ export default function EcoGrocery() {
             {/* Meal Choices and Selected Meals (side by side) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                 {/* Meal Choices (takes 2/3 of the width) */}
-                <div className="lg:col-span-2 h-full">
+                <div className="lg:col-span-2 h-full flex flex-col">
                     <MealChoice 
                         filteredMealChoices={filteredMealChoices}
                         addMeal={addMeal}
@@ -267,7 +269,7 @@ export default function EcoGrocery() {
                 </div>
                 
                 {/* Selected Meals (takes 1/3 of the width) */}
-                <div className="h-full">
+                <div className="h-full flex flex-col">
                     <SelectedMeal 
                         selectedMeals={selectedMeals}
                         adjustQuantity={adjustQuantity}

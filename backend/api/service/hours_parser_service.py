@@ -1,7 +1,7 @@
 import re
 from rest_framework import viewsets
 from api.models import Geospatial
-from .serializer import FoodBankDetailSerializer, FoodBankListSerializer
+from ..serializer import FoodBankDetailSerializer, FoodBankListSerializer
 
 class FoodBankViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Geospatial.objects.all()
