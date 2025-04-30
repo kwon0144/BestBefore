@@ -5,7 +5,9 @@
  * organized by food categories. It intelligently identifies items already in the
  * user's pantry and marks them accordingly to prevent unnecessary purchases.
  */
+import { forwardRef } from "react";
 import { GroceryListProps } from "../interfaces";
+import { Skeleton } from "@heroui/react";
 
 /**
  * Renders a categorized list of grocery items needed for selected meals
@@ -18,13 +20,14 @@ import { GroceryListProps } from "../interfaces";
  * @param {Function} props.getGroceryItemsByCategory - Function to filter items by category
  * @returns {JSX.Element} Rendered grocery list component
  */
-export default function GroceryList({
+const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateGroceryList'>>(({
   selectedMeals,
   groceryItems,
   pantryItems,
   error,
-  getGroceryItemsByCategory
-}: Omit<GroceryListProps, 'generateGroceryList'>) {
+  getGroceryItemsByCategory,
+  loading
+}, ref) => {
   // List of all categories
   const leftColumnCategories = ['Fish', 'Produce', 'Dairy'];
   const rightColumnCategories = ['Meat', 'Grains', 'Condiments', 'Other'];
@@ -93,6 +96,26 @@ export default function GroceryList({
     const match = quantity.match(/[a-zA-Z]+$/);
     return match ? match[0].toLowerCase() : '';
   };
+
+  // Helper function to get category color
+  const getCategoryColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'fish':
+        return 'text-blue-600 border-b-2 border-blue-600';
+      case 'produce':
+        return 'text-green border-b-2 border-green';
+      case 'dairy':
+        return 'text-yellow-600 border-b-2 border-yellow-600';
+      case 'meat':
+        return 'text-red-600 border-b-2 border-red-600';
+      case 'grains':
+        return 'text-amber-800 border-b-2 border-amber-800';
+      case 'condiments':
+        return 'text-orange-600 border-b-2 border-orange-600';
+      default:
+        return 'text-gray-500 border-b-2 border-gray-500';
+    }
+  };
   
   /**
    * Renders a category section with its items
@@ -105,7 +128,7 @@ export default function GroceryList({
     
     return (
       <div key={category} className="mb-6">
-        <h4 className="font-medium text-gray-700 mb-2">{category}</h4>
+        <h4 className={`font-medium ${getCategoryColor(category)} mb-2`}>{category}</h4>
         <ul className="space-y-2">
           {getGroceryItemsByCategory(category).map((item, index) => {
             const { inPantry, isPartial, adjustedQuantity, originalQuantity, pantryQuantity } = checkPantryAvailability(item.name, item.quantity);
@@ -137,49 +160,36 @@ export default function GroceryList({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Your Smart Grocery List</h2>
-      {error && (
-        <div className="text-red-500 mb-4 p-3 bg-red-50 rounded">
-          Error: {error}
+    <div ref={ref} className="bg-white rounded-lg shadow-md p-6">
+      <h3 className="text-xl font-semibold mb-4">Grocery List</h3>
+      {error ? (
+        <div className="text-red-500">{error}</div>
+      ) : loading ? (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          ))}
         </div>
-      )}
-      
-      {selectedMeals.length === 0 ? (
-        <p className="text-gray-500 italic mb-4">Select meals to generate your grocery list.</p>
+      ) : selectedMeals.length === 0 ? (
+        <p className="text-gray-500">Select meals to generate a grocery list</p>
       ) : (
-        <div>
-          {/* Items to Buy */}
-          <h3 className="font-medium text-lg mb-4 text-[#2F5233]">Items to Buy</h3>
-          {groceryItems.length === 0 ? (
-            <p className="text-gray-500 italic">Generate a grocery list to see items you need to buy.</p>
-          ) : (
-            <>
-              {/* Two-column grid for categories */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                {/* Left Column */}
-                <div>
-                  {leftColumnCategories.map(category => renderCategory(category))}
-                </div>
-                
-                {/* Right Column */}
-                <div>
-                  {rightColumnCategories.map(category => renderCategory(category))}
-                </div>
-              </div>
-              
-              {/* Display pantry items info */}
-              {pantryItems.length > 0 && (
-                <div className="mt-6 bg-gray-50 p-3 rounded-md">
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">Note:</span> Items crossed out are already in your food inventory and don&apos;t need to be purchased. Items with reduced quantities show what you still need to buy based on what you already have.
-                  </p>
-                </div>
-              )}
-            </>
-          )}
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            {leftColumnCategories.map(category => renderCategory(category))}
+          </div>
+          <div>
+            {rightColumnCategories.map(category => renderCategory(category))}
+          </div>
         </div>
       )}
     </div>
   );
-} 
+});
+
+GroceryList.displayName = 'GroceryList';
+
+export default GroceryList; 

@@ -63,7 +63,8 @@ export default function Hero() {
                         showBorder={false}
                         className="text-4xl md:text-5xl font-bold text-darkgreen mb-6"
                     >
-                        Together for a zero-waste kitchen
+                        Together for<br />
+                        a zero-waste kitchen
                     </GradientText>
                     <p className="text-xl md:text-2xl text-darkgreen mb-8 font-semibold">
                         Save food, money, and our planet with BestBefore

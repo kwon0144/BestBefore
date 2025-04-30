@@ -6,11 +6,10 @@ import { SearchBarProps } from "../interfaces";
 export default function Search({
   searchQuery,
   setSearchQuery,
-  addSearchResultMeal,
-  handleSearchKeyPress
+  addSearchResultMeal
 }: SearchBarProps) {
   return (
-    <div className="flex flex-col md:flex-row gap-4 mb-8">
+    <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-4 mb-8">
       <div className="flex-grow">
         <div className="relative">
           <Input
@@ -21,7 +20,6 @@ export default function Search({
             }}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={handleSearchKeyPress}
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3">
             <FontAwesomeIcon icon={faSearch} />
@@ -31,7 +29,7 @@ export default function Search({
       <Button
         className="bg-[#2F5233] text-white px-6 py-3 rounded-lg shadow-sm hover:bg-[#1B371F] transition cursor-pointer !rounded-button whitespace-nowrap"
         onPress={addSearchResultMeal}
-        disabled={!searchQuery.trim()}
+        isDisabled={!searchQuery.trim()}
       >
         Add Custom Meal
       </Button>

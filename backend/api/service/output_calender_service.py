@@ -56,12 +56,16 @@ def generate_calendar(request):
             print(f"Error processing item: {str(e)}")
             continue
     
-    # 将日历数据存储到缓存中
+    # Store calendar data in cache
     calendar_cache[str(calendar_id)] = saved_items
+    
+    # Generate the calendar URL
+    calendar_url = f"/api/calendar/{calendar_id}"
     
     return JsonResponse({
         "status": "success",
         "calendar_id": str(calendar_id),
+        "calendar_url": calendar_url,
         "items": saved_items
     })
 

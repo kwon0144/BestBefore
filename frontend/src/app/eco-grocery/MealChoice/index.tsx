@@ -32,7 +32,9 @@ export default function MealChoice({
 
   return (
     <div className="flex flex-col h-full">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">{title}</h2>
+      <h2 className="text-2xl font-semibold text-darkgreen mb-4">
+        {title}
+      </h2>
       
       <div className="overflow-y-auto flex-grow min-h-[400px]">
         {isLoading ? (
