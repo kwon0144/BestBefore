@@ -11,14 +11,14 @@ interface StorageAssistantStepperProps {
 
 export default function StorageAssistantStepper({ currentStep, onStepClick }: StorageAssistantStepperProps) {
     const handleStepClick = (step: number) => {
-        // Only allow navigation to previous steps
-        if (step < currentStep && onStepClick) {
+        if (onStepClick) {
             onStepClick(step);
         }
     };
 
     return <div>
         <Stepper 
+            nonLinear
             activeStep={currentStep} 
             alternativeLabel
             sx={{
@@ -37,7 +37,7 @@ export default function StorageAssistantStepper({ currentStep, onStepClick }: St
             <Step key={label} completed={index < currentStep}>
                 <StepButton 
                     onClick={() => handleStepClick(index)}
-                    disabled={index > currentStep}
+                    disabled={false}
                 >
                     {label}
                 </StepButton>

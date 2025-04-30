@@ -28,8 +28,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = os.getenv('DEBUG', 'False') == 'True'
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+# DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Application definition
@@ -62,15 +62,11 @@ MIDDLEWARE = [
 """
 CORS SETTINGS
 """
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:443"
-]
+CORS_ALLOWED_ORIGINS = []
 
 # Add additional allowed origins from environment variable
 allowed_origin = os.getenv('DJANGO_ALLOWED_ORIGIN')
-if allowed_origin and allowed_origin not in CORS_ALLOWED_ORIGINS:
+if allowed_origin:
     CORS_ALLOWED_ORIGINS.append(allowed_origin)
 
 CORS_ALLOW_METHODS = (
@@ -91,8 +87,10 @@ CORS_ALLOW_HEADERS = (
 API_KEY_HEADER = 'X-API-Key'
 API_KEY = os.getenv('DJANGO_API_KEY')
 
-# Require CORS headers
-CORS_REQUIRE_HEADERS = True
+# Set CORS settings based on DEBUG mode
+CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_REQUIRE_HEADERS = not DEBUG
+
 # Allow credentials for HTTPS requests
 CORS_ALLOW_CREDENTIALS = True
 """
@@ -194,4 +192,15 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # CLAUDE_API_KEY
 CLAUDE_API_KEY = os.environ.get('CLAUDE_API_KEY')
+
+# REST_FRAMEWORK THROTTLE SETTINGS (API RATE LIMITING for Security)
+REST_FRAMEWORK = {
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '30/minute',
+        'produce_detection': '10/minute',
+    }
+}
 

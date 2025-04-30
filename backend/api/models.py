@@ -45,3 +45,28 @@ class SecondLife(models.Model):
     def __str__(self):
         return f"{self.method_name} - {self.ingredient}"
     
+class FoodIngredient(models.Model):
+    id = models.AutoField(primary_key=True)
+    dish = models.CharField(max_length=255)
+    ingredient = models.TextField()
+    
+    class Meta:
+        db_table = 'food_ingredients'
+        managed = True
+    
+    def __str__(self):
+        return f"{self.dish}"
+
+class Dish(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=128)
+    cuisine = models.CharField(max_length=50)
+    URL = models.CharField(max_length=128)
+
+    class Meta:
+        db_table = 'meal_data'  
+        managed = False  
+
+    def __str__(self):
+        return self.name
