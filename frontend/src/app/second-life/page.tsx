@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faArrowRight, faSpa, faTimes, faPaintBrush, faUtensils, faHome, faBowlFood, faKitMedical } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { config } from "@/config";
+import ComingUp from "../(components)/ComingUp";
 
 // Interface for items from the diy_projects database
 interface SecondLifeItem {
@@ -301,6 +302,16 @@ export default function SecondLife() {
                         </ModalBody>
                     </ModalContent>
                 </Modal>
+                {/* Coming up next section */}
+                <ComingUp
+                    message="Step Out of Your Kitchen to the Community!"
+                    title="Discover how you can support your community"
+                    description="Donating surplus food or disposing of waste responsibly — every small action makes a big impact."
+                    buttonText="Explore the Food Network"
+                    buttonLink="/food-network"
+                    imageSrc="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/second-life-next.png"
+                    imageAlt="Food Network"
+                />
             </div>
         </div>
     );
