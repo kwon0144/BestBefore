@@ -288,105 +288,113 @@ const FoodStorageAssistant: React.FC = () => {
   }, [fetchStorageRecommendations, state.stream]);
 
   return (
-      <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
+      <div>
           {/* Title section */}
-          <Title heading="Food Storage Assistant" description="Capture your groceries and get personalised storage recommendations and expiration reminders" />
-          {/* Stepper for navigation */}
           <div className="py-12">
-            <StorageAssistantStepper currentStep={currentStep} onStepClick={handleStepClick}/>
+            <Title heading="Food Storage Assistant" 
+            description="Capture your groceries and get personalised storage recommendations and expiration reminders" 
+            background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/storageassistant-titlebg.jpeg"
+            />
           </div>
-          {/* Error message display */}
-          {state.error && (
-            <div className="bg-red-100 text-red-800 p-4 rounded-md mb-5 border-l-4 border-red-500">
-              {state.error.split('\n').map((line, i) => (
-                <p key={i}>{line}</p>
-              ))}
+
+          <div className="min-h-screen max-w-7xl mx-auto px-10">
+          {/* Stepper for navigation */}
+            <div className="py-12">
+              <StorageAssistantStepper currentStep={currentStep} onStepClick={handleStepClick}/>
             </div>
-          )}
-          {/* Step 1: Camera and Photo Capture */}
-          {currentStep === 0 ? (
-            <div className="border-green border-2 rounded-lg p-10 mb-8">
-              <h2 className="text-2xl font-semibold text-darkgreen mb-2">
-                Step 1: Scan your Groceries
-              </h2>
-              <p className="text-md text-gray-700 mb-10">
-                Take photos of your groceries to get personalised storage recommendations.
-              </p>
-              <Camera state={state} setState={setState} submitPhotos={submitPhotos} handleReset={handleReset} />
-            </div>
-          ) : (
-            <>
-            {currentStep === 1 ? (
-              <>
-              {/* Step 2: Storage Recommendations */}
-              <div className="border-green border-2 rounded-lg p-10 mb-8">
-                  <Button
-                    onPress={() => setCurrentStep(0)}
-                    className="text-amber-600 flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
-                  >
-                    <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
-                    Back to Camera
-                  </Button>
-                  <h2 className="text-2xl font-semibold text-darkgreen mb-2">
-                    Step 2: Storage Recommendations
-                  </h2>
-                  <p className="text-md text-gray-700 mb-10">
-                    Review your grocery items with the storage recommendations and estimated expiration time.
-                  </p>
-                  
-                  {/* Add the notification for items added to inventory */}
-                  {itemsAddedToInventory && (
-                    <div className="bg-green-100 text-green-800 p-4 rounded-md mb-5 border-l-4 border-green-500">
-                      <p className="font-medium">Items have been added to your food inventory!</p>
-                      <p>All detected items have been automatically added to your inventory and will be available in the Eco Grocery page.</p>
-                    </div>
-                  )}
-                  
-                  <StorageRecommendations 
-                    storageRecs={storageRecs} 
-                    onUpdateStorageRecs={handleStorageRecsUpdate} 
-                  />
-                  <div className="flex justify-center md:justify-end mt-8">
-                    <Button
-                      onPress={() => setCurrentStep(2)}
-                      className="bg-darkgreen text-white py-2 px-8 rounded-lg"
-                    >
-                      <FontAwesomeIcon icon={faBell} className="text-white"/> 
-                      <p className="font-semibold text-white">Set Up Expiry Reminders</p>
-                    </Button>
-                  </div>
-                </div>
-              </>
-              ) : (
-                <>
-              {/* Calendar Export Section */}
-              <div className="border-green border-2 rounded-lg p-10 mb-8">
-              <Button
-                    onPress={() => setCurrentStep(1)}
-                    className="text-amber-600 flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
-                  >
-                    <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
-                    Back to Storage Recommendations
-                  </Button>
-                  <h2 className="text-2xl font-semibold text-darkgreen mb-2">
-                    Step 3: Calendar Export
-                  </h2>
-                  <p className="text-md text-gray-700 mb-10">
-                    Export expiration dates reminders for your grocery items.
-                  </p>
-                <CalendarExport
-                  calendarSelection={calendarSelection}
-                  setCalendarSelection={setCalendarSelection}
-                  detections={state.detections}
-                  generateCalendarLink={generateCalendarLink}
-                  storageRecs={storageRecs}
-                />
+            {/* Error message display */}
+            {state.error && (
+              <div className="bg-red-100 text-red-800 p-4 rounded-md mb-5 border-l-4 border-red-500">
+                {state.error.split('\n').map((line, i) => (
+                  <p key={i}>{line}</p>
+                ))}
               </div>
-              </>
             )}
-          </>
-        )}
-      </div> 
+            {/* Step 1: Camera and Photo Capture */}
+            {currentStep === 0 ? (
+              <div className="border-green border-2 rounded-lg p-10 mb-8">
+                <h2 className="text-2xl font-semibold text-darkgreen mb-2">
+                  Step 1: Scan your Groceries
+                </h2>
+                <p className="text-md text-gray-700 mb-10">
+                  Take photos of your groceries to get personalised storage recommendations.
+                </p>
+                <Camera state={state} setState={setState} submitPhotos={submitPhotos} handleReset={handleReset} />
+              </div>
+            ) : (
+              <>
+              {currentStep === 1 ? (
+                <>
+                {/* Step 2: Storage Recommendations */}
+                <div className="border-green border-2 rounded-lg p-10 mb-8">
+                    <Button
+                      onPress={() => setCurrentStep(0)}
+                      className="text-amber-600 flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
+                    >
+                      <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
+                      Back to Camera
+                    </Button>
+                    <h2 className="text-2xl font-semibold text-darkgreen mb-2">
+                      Step 2: Storage Recommendations
+                    </h2>
+                    <p className="text-md text-gray-700 mb-10">
+                      Review your grocery items with the storage recommendations and estimated expiration time.
+                    </p>
+                    
+                    {/* Add the notification for items added to inventory */}
+                    {itemsAddedToInventory && (
+                      <div className="bg-green-100 text-green-800 p-4 rounded-md mb-5 border-l-4 border-green-500">
+                        <p className="font-medium">Items have been added to your food inventory!</p>
+                        <p>All detected items have been automatically added to your inventory and will be available in the Eco Grocery page.</p>
+                      </div>
+                    )}
+                    
+                    <StorageRecommendations 
+                      storageRecs={storageRecs} 
+                      onUpdateStorageRecs={handleStorageRecsUpdate} 
+                    />
+                    <div className="flex justify-center md:justify-end mt-8">
+                      <Button
+                        onPress={() => setCurrentStep(2)}
+                        className="bg-darkgreen text-white py-2 px-8 rounded-lg"
+                      >
+                        <FontAwesomeIcon icon={faBell} className="text-white"/> 
+                        <p className="font-semibold text-white">Set Up Expiry Reminders</p>
+                      </Button>
+                    </div>
+                  </div>
+                </>
+                ) : (
+                  <>
+                {/* Calendar Export Section */}
+                <div className="border-green border-2 rounded-lg p-10 mb-8">
+                <Button
+                      onPress={() => setCurrentStep(1)}
+                      className="text-amber-600 flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
+                    >
+                      <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
+                      Back to Storage Recommendations
+                    </Button>
+                    <h2 className="text-2xl font-semibold text-darkgreen mb-2">
+                      Step 3: Calendar Export
+                    </h2>
+                    <p className="text-md text-gray-700 mb-10">
+                      Export expiration dates reminders for your grocery items.
+                    </p>
+                  <CalendarExport
+                    calendarSelection={calendarSelection}
+                    setCalendarSelection={setCalendarSelection}
+                    detections={state.detections}
+                    generateCalendarLink={generateCalendarLink}
+                    storageRecs={storageRecs}
+                  />
+                </div>
+                </>
+              )}
+            </>
+          )}
+        </div> 
+      </div>
   );
 };
 
