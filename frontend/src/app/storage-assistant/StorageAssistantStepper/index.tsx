@@ -2,7 +2,7 @@ import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepButton from '@mui/material/StepButton';
 
-const steps = ['Grocery Scanner', 'Storage Recommendations', 'Calendar Export'];
+const steps = ['Grocery Scanner', 'Storage Recommendations', 'Reminder Setup', 'Calendar Import'];
 
 interface StorageAssistantStepperProps {
     currentStep: number;

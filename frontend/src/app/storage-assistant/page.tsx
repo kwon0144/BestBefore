@@ -6,6 +6,8 @@ import { config } from '@/config';
 import Camera from './Camera';
 import StorageRecommendations from './StorageRecommendation';
 import CalendarExport from './CalendarExport';
+import CalendarImport from './CalendarImport';
+
 import { 
   CameraState, 
   ProduceDetections, 
@@ -17,14 +19,27 @@ import {
 } from './interfaces';
 import Title from "../(components)/Title";
 import StorageAssistantStepper from "./StorageAssistantStepper";
-import { Button } from "@heroui/react";
+import { addToast, Button, ToastProvider } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faBell } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faBell, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
 import useInventoryStore from "@/store/useInventoryStore";
 
 const FoodStorageAssistant: React.FC = () => {
   // State for step navigation
   const [currentStep, setCurrentStep] = useState(0);
+  
+  // Helper function to scroll to content section
+  const scrollToContentSection = () => {
+    const contentSection = document.querySelector('.border-green');
+    if (contentSection) {
+      const elementPosition = contentSection.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - 80;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
   
   // Calendar selection state
   const [calendarSelection, setCalendarSelection] = useState<CalendarSelection>({
@@ -227,9 +242,54 @@ const FoodStorageAssistant: React.FC = () => {
     setStorageRecs(newStorageRecs);
   };
 
+  // Step navigation - allow users to jump to any step
+  const handleStepClick = (step: number) => {
+    setCurrentStep(step);
+    setState(prev => ({
+      ...prev,
+      stream: null,
+      error: null
+    }));
+    
+    scrollToContentSection();
+  };
+
+  const handleStep2Click = () => {
+    if (storageRecs.fridge.length === 0 && storageRecs.pantry.length === 0) {
+      addToast({
+        title: "No Items in Inventory",
+        description: "Please add items to your inventory to set up expiry reminders",
+        classNames: {
+          base: "bg-amber-100/70",
+          title: "text-amber-700 font-medium font-semibold",
+          description: "text-amber-700",
+          icon: "text-amber-700"
+        },
+        timeout: 3000
+      });
+      return;
+    }
+    setCurrentStep(2);
+    scrollToContentSection();
+  };
+
   // Generate calendar link
   const generateCalendarLink = async () => {
-    if (calendarSelection.selectedItems.length === 0) return;
+
+    if (calendarSelection.selectedItems.length === 0) {
+      addToast({
+        title: "Calendar Generation Failed",
+        description: "Please select at least one item",
+        classNames: {
+          base: "bg-amber-100/70",
+          title: "text-amber-700 font-medium font-semibold",
+          description: "text-amber-700",
+          icon: "text-amber-700"
+        },
+        timeout: 3000
+      });
+      return;
+    }
   
     try {
       const response = await axios.post<CalendarResponse>(`${config.apiUrl}/api/generate_calendar/`, {
@@ -247,46 +307,15 @@ const FoodStorageAssistant: React.FC = () => {
         ...prev,
         calendarLink: response.data.calendar_url
       }));
+      
+      // Move to step 4
+      setCurrentStep(3);
+      scrollToContentSection();
     } catch (err) {
       setState(prev => ({
         ...prev,
         error: `Calendar generation failed: ${err instanceof Error ? err.message : String(err)}`
       }));
-    }
-  };
-
-  // Step navigation - allow users to jump to any step
-  const handleStepClick = (step: number) => {
-    setCurrentStep(step);
-    setState(prev => ({
-      ...prev,
-      stream: null,
-      error: null
-    }));
-    
-    // Scroll to the content section with -80px offset
-    const contentSection = document.querySelector('.border-green');
-    if (contentSection) {
-      const elementPosition = contentSection.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - 80;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const handleStep2Click = () => {
-    setCurrentStep(2);
-    // Scroll to the content section with -80px offset
-    const contentSection = document.querySelector('.border-green');
-    if (contentSection) {
-      const elementPosition = contentSection.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - 80;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
     }
   };
 
@@ -314,6 +343,7 @@ const FoodStorageAssistant: React.FC = () => {
 
   return (
       <div>
+          <ToastProvider placement="top-center" toastOffset={80} />
           {/* Title section */}
           <div className="py-12">
             <Title heading="Food Storage Assistant" 
@@ -391,34 +421,68 @@ const FoodStorageAssistant: React.FC = () => {
                 </>
                 ) : (
                   <>
-                {/* Calendar Export Section */}
-                <div className="border-green border-2 rounded-lg p-10 mb-8">
-                <Button
-                      onPress={() => setCurrentStep(1)}
-                      className="text-amber-600 flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
-                    >
-                      <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
-                      Back to Storage Recommendations
-                    </Button>
-                    <h2 className="text-2xl font-semibold text-darkgreen mb-2">
-                      Step 3: Calendar Export
-                    </h2>
-                    <p className="text-md text-gray-700 mb-10">
-                      Export expiration dates reminders for your grocery items.
-                    </p>
-                  <CalendarExport
-                    calendarSelection={calendarSelection}
-                    setCalendarSelection={setCalendarSelection}
-                    detections={state.detections}
-                    generateCalendarLink={generateCalendarLink}
-                    storageRecs={storageRecs}
-                  />
-                </div>
-                </>
-              )}
-            </>
-          )}
-        </div> 
+                    {currentStep === 2 ? (
+                      <>
+                        {/* Step 3: Calendar Export Section */}
+                        <div className="border-green border-2 rounded-lg p-10 mb-8">
+                          <Button
+                            onPress={() => setCurrentStep(1)}
+                            className="text-amber-600 flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
+                          >
+                            <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
+                            Back to Storage Recommendations
+                          </Button>
+                          <h2 className="text-2xl font-semibold text-darkgreen mb-2">
+                            Step 3: Reminder Setup
+                          </h2>
+                          <p className="text-md text-gray-700 mb-10">
+                            Export expiration dates reminders for your grocery items.
+                          </p>
+                          <CalendarExport
+                            calendarSelection={calendarSelection}
+                            setCalendarSelection={setCalendarSelection}
+                            detections={state.detections}
+                            storageRecs={storageRecs}
+                          />
+                          <div className="flex justify-center md:justify-end mt-8">
+                            <Button
+                              onPress={generateCalendarLink}
+                              className="bg-darkgreen text-white py-2 px-8 rounded-lg"
+                            >
+                              <FontAwesomeIcon icon={faCalendarAlt} className="text-white"/> 
+                              <p className="font-semibold text-white">Generate Calendar Reminder</p>
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Step 4: Calendar Import Section */}
+                        <div className="border-green border-2 rounded-lg p-10 mb-8">
+                          <Button
+                            onPress={() => setCurrentStep(2)}
+                            className="text-amber-600 flex items-center cursor-pointer whitespace-nowrap bg-transparent p-0"
+                          >
+                            <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
+                            Back to Reminder Setup
+                          </Button>
+                          <h2 className="text-2xl font-semibold text-darkgreen mb-2">
+                            Step 4: Calendar Import
+                          </h2>
+                          <p className="text-md text-gray-700 mb-10">
+                            Import your calendar file to sync your grocery items with your digital calendar.
+                          </p>
+                          <CalendarImport 
+                            calendarLink={calendarSelection.calendarLink || ''}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+        </div>
       </div>
   );
 };

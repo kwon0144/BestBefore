@@ -233,16 +233,19 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
                 handleDrop(e, section, index);
               }}
             >
-              <Tooltip title={`Expires in approximately ${days} days`}>
-                <span className="flex-grow">{itemName}</span>
-              </Tooltip>
-              <span className="text-black mr-4">Qty: {item.quantity}</span>
-              <button onClick={() => handleEdit(index, section)} className="text-blue-500 mr-2">
-                <FontAwesomeIcon icon={faEdit} />
-              </button>
-              <button onClick={() => handleDelete(index, section)} className="text-red-500">
-                <FontAwesomeIcon icon={faTrash} />
-              </button>
+              <div className="grid grid-cols-3 w-full items-center">
+                <div className="text-left">{itemName}</div>
+                <div className="text-center text-gray-600">Qty: {item.quantity}</div>
+                <div className="text-right text-gray-600">Storage: {days} days</div>
+              </div>
+              <div className="flex gap-2 ml-4">
+                <button onClick={() => handleEdit(index, section)} className="text-blue-500">
+                  <FontAwesomeIcon icon={faEdit} />
+                </button>
+                <button onClick={() => handleDelete(index, section)} className="text-red-500">
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+              </div>
             </li>
           );
         })}
@@ -253,9 +256,9 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   return (
     <div className="flex flex-col md:grid md:grid-cols-2 gap-8">
       {noItemsDetected && (
-        <div className="col-span-2 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded">
-          <p className="font-bold">No items detected!</p>
-          <p>Please scan your groceries again.</p>
+        <div className="col-span-2 bg-amber-100/50 border-l-4 border-amber-500 text-amber-700 p-4 mb-4 rounded">
+          <p className="font-bold">No Items in Inventory!</p>
+          <p>Please scan your groceries again or input items manually.</p>
         </div>
       )}
       {/* Refrigerator section */}
