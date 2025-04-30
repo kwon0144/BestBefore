@@ -22,7 +22,7 @@ export default function GradientText({
 
     return (
         <div
-            className={`relative mx-auto flex max-w-fit flex-row items-center justify-center transition-shadow duration-500 overflow-hidden ${className}`}
+            className={`relative flex flex-row items-center transition-shadow duration-500 overflow-hidden ${className}`}
         >
             {showBorder && (
                 <div
