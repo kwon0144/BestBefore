@@ -1,10 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Button, Select, SelectItem } from "@heroui/react";
 import { CalendarSelection, ProduceDetections, StorageAdviceResponse, StorageRecommendation } from '../interfaces';
 import axios from 'axios';
 import { config } from '@/config';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSnowflake, faBoxOpen } from '@fortawesome/free-solid-svg-icons';
 
 interface CalendarExportProps {
   calendarSelection: CalendarSelection;

@@ -486,7 +486,7 @@ const FoodStorageAssistant: React.FC = () => {
             {/* Coming up next section */}
             {currentStep === 3 && (
               <ComingUp
-                message="Your're now a food storage pro!"
+                message="Your're now a Food Storage Pro!"
                 title="What's Next:"
                 description="Generate smart grocery lists that skip what you already have in storage."
                 buttonText="Continue to Eco Grocery"

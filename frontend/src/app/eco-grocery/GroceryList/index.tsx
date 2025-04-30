@@ -22,7 +22,6 @@ import { Skeleton } from "@heroui/react";
  */
 const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateGroceryList'>>(({
   selectedMeals,
-  groceryItems,
   pantryItems,
   error,
   getGroceryItemsByCategory,
@@ -70,7 +69,6 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
       inPantry: false, 
       isPartial: true,
       originalQuantity: groceryQuantity,
-      pantryQuantity: `${pantryNumValue}${groceryUnit}`,
       adjustedQuantity: `${remainingValue}${groceryUnit}` 
     };
   };
@@ -131,7 +129,7 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
         <h4 className={`font-medium ${getCategoryColor(category)} mb-2`}>{category}</h4>
         <ul className="space-y-2">
           {getGroceryItemsByCategory(category).map((item, index) => {
-            const { inPantry, isPartial, adjustedQuantity, originalQuantity, pantryQuantity } = checkPantryAvailability(item.name, item.quantity);
+            const { inPantry, isPartial, adjustedQuantity, originalQuantity } = checkPantryAvailability(item.name, item.quantity);
             
             return (
               <li key={index} className="flex justify-between items-center">

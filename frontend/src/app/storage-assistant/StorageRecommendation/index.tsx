@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { StorageRecommendation } from '../interfaces';
 import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Tooltip } from '@mui/material';
 import axios from 'axios';
 import { config } from '@/config';
 

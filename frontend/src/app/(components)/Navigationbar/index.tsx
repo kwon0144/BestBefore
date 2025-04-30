@@ -21,8 +21,8 @@ const menuItems = [
   { path: "/", label: "Home" },
   { path: "/storage-assistant", label: "Storage Assistant" },
   { path: "/eco-grocery", label: "Eco Grocery" },
-  { path: "/food-network", label: "Food Network" },
   { path: "/second-life", label: "Second Life" },
+  { path: "/food-network", label: "Food Network" },
 ];
 
 const Navigationbar = () => {

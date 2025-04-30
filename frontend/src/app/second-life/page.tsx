@@ -8,6 +8,7 @@ import { faMagnifyingGlass, faArrowRight, faSpa, faTimes, faPaintBrush, faUtensi
 import axios from "axios";
 import { config } from "@/config";
 import ComingUp from "../(components)/ComingUp";
+import Image from "next/image";
 
 // Interface for items from the diy_projects database
 interface SecondLifeItem {
@@ -193,46 +194,54 @@ export default function SecondLife() {
                         ))}
                     </div>
                 </div>
-            {/* Detail Modal */}
-            <Modal
-                isOpen={isModalOpen}
-                onClose={closeModal}
-                size="2xl"
-                hideCloseButton
-                classNames={{
-                    base: "max-w-3xl mx-auto",
-                    body: "min-h-[70vh] max-h-[70vh] overflow-y-auto"
-                }}
-            >
-                <ModalContent>
-                    <ModalHeader className="flex flex-col gap-1 border-b">
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-2xl font-semibold text-[#2c5e2e]">
-                                {selectedItem?.method_name}
-                            </h2>
-                            <Button
-                                isIconOnly
-                                onPress={closeModal}
-                                className="bg-transparent hover:bg-gray-100 rounded-full p-2"
-                            >
-                                <FontAwesomeIcon icon={faTimes} className="text-gray-500" />
-                            </Button>
+
+                {/* Items Grid */}
+                <div className="mt-8">
+                    {loading ? (
+                        <div className="text-center py-8">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2c5e2e] mx-auto"></div>
+                            <p className="mt-4 text-gray-600">Loading items...</p>
                         </div>
-                    </ModalHeader>
-                    <ModalBody>
-                        {selectedItem && (
-                            <>
-                                <div className="mb-6">
-                                    {selectedItem?.picture ? (
-                                        <img
-                                            src={selectedItem.picture}
-                                            alt={`${selectedItem.method_name} process`}
-                                            className="w-full h-64 object-cover rounded-lg"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-64 bg-gray-100 flex items-center justify-center rounded-lg">
-                                            <span className="text-gray-400">No image available</span>
-                                        </div>
+                    ) : error ? (
+                        <div className="text-center py-8 text-red-500">
+                            <p>{error}</p>
+                        </div>
+                    ) : filteredItems.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                            <p>No items found matching your criteria.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredItems.map((item) => (
+                                <div
+                                    key={item.method_id}
+                                    onClick={() => handleCardClick(item)}
+                                    className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                                >
+                                    <div className="relative h-48">
+                                        {item.picture ? (
+                                            <Image
+                                                src={item.picture}
+                                                alt={item.method_name}
+                                                fill
+                                                className="object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                                <span className="text-gray-400">No image available</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-4">
+                                        <h3 className="text-lg font-semibold text-[#2c5e2e] mb-2">
+                                            {item.method_name}
+                                        </h3>
+                                        <p className="text-gray-600 text-sm mb-2">
+                                            {item.ingredient}
+                                        </p>
+                                        <span className="inline-block px-3 py-1 bg-[#f0f7f0] text-[#2c5e2e] rounded-full text-sm">
+                                            {item.method_category}
+                                        </span>
                                     </div>
                                 </div>
                             ))}
@@ -246,6 +255,10 @@ export default function SecondLife() {
                     onClose={closeModal}
                     size="2xl"
                     hideCloseButton
+                    classNames={{
+                        base: "max-w-3xl mx-auto",
+                        body: "min-h-[70vh] max-h-[70vh] overflow-y-auto"
+                    }}
                 >
                     <ModalContent>
                         <ModalHeader className="flex flex-col gap-1 border-b">
@@ -267,9 +280,11 @@ export default function SecondLife() {
                                 <>
                                     <div className="mb-6">
                                         {selectedItem?.picture ? (
-                                            <img
+                                            <Image
                                                 src={selectedItem.picture}
                                                 alt={`${selectedItem.method_name} process`}
+                                                width={800}
+                                                height={400}
                                                 className="w-full h-64 object-cover rounded-lg"
                                             />
                                         ) : (
@@ -303,6 +318,7 @@ export default function SecondLife() {
                         </ModalBody>
                     </ModalContent>
                 </Modal>
+
                 {/* Coming up next section */}
                 <ComingUp
                     message="Step Out of Your Kitchen to the Community!"

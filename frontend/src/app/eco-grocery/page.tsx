@@ -63,7 +63,6 @@ export default function EcoGrocery() {
     const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
     const [signatureDishes, setSignatureDishes] = useState<SignatureDish[]>([]);
     const [isLoadingSignatureDishes, setIsLoadingSignatureDishes] = useState(false);
-    const [notification, setNotification] = useState<string | null>(null);
     
     // Use the grocery planner hook
     const {
@@ -192,15 +191,16 @@ export default function EcoGrocery() {
         addCustomMeal(searchQuery);
         setSearchQuery('');
         addToast({
-            title: "Meal Added",
-            description: `"${searchQuery}" added as your selected meal`,
-            classNames: {
-              base: "bg-darkgreen",
-              title: "text-white font-medium font-semibold",
-              description: "text-white",
-              icon: "text-white"
-            }
-          });
+        title: "Meal Added",
+        description: `"${searchQuery}" added as your selected meal`,
+        classNames: {
+            base: "bg-background",
+            title: "text-darkgreen font-medium font-semibold",
+            description: "text-darkgreen",
+            icon: "text-darkgreen"
+        },
+        timeout: 3000
+        });
         
         // Scroll to selected meal component
         setTimeout(() => {
@@ -257,15 +257,6 @@ export default function EcoGrocery() {
      */
     const handleCuisineSelect = (cuisine: string) => {
         setSelectedCuisine(cuisine);
-    };
-
-    /**
-     * Updates search query without affecting meal choices
-     * This function only updates the search query without changing filtered meals
-     */
-    const handleSearchQueryChange = (query: string) => {
-        setSearchQuery(query);
-        // Do not change selectedCuisine or filter logic when searching
     };
     
     const handleGenerateAndScroll = () => {
@@ -366,8 +357,8 @@ export default function EcoGrocery() {
                     </div>
                     {/* Coming up next section */}
                     <ComingUp
-                        message="Great Job in preventing food waste!"
-                        title="Even with best practices, unwanted food could still pile up at home:"
+                        message="Great Job in Preventing Food Waste!"
+                        title="Even with best practices, unwanted food could still pile up"
                         description="Expore creative DIY ideas to reuse leftovers, revive produce, and reduce waste in fun and practical ways."
                         buttonText="Give Food a Second Life"
                         buttonLink="/second-life"

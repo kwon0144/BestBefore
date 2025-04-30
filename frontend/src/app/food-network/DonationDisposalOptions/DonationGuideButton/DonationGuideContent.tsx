@@ -2,6 +2,7 @@ import { Button } from "@heroui/react";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight, faXmark, faAppleAlt, faBreadSlice, faUtensils, faWineBottle, faCoffee, faShower, faInfoCircle, faArrowLeft, faCheck } from "@fortawesome/free-solid-svg-icons";
+import Image from "next/image";
 
 interface DonationGuideContentProps {
     onClose: () => void;
@@ -66,9 +67,11 @@ export default function DonationGuideContent({ onClose }: DonationGuideContentPr
 
                         {/* Image */}
                         <div className="mb-6">
-                            <img
+                            <Image
                                 src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/donationguide.jpg"
                                 alt="Food donation items"
+                                width={800}
+                                height={192}
                                 className="w-full h-48 object-cover rounded-lg"
                             />
                         </div>

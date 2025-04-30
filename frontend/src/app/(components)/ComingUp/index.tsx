@@ -34,7 +34,7 @@ const ComingUp: React.FC<ComingUpProps> = ({
             {description}
           </p>
           <NoScrollLink href={buttonLink}>
-            <div className="bg-amber-700 text-white py-2 px-6 md:px-8 rounded-lg cursor-pointer hover:bg-amber-700 transition-colors duration-300">
+            <div className="bg-amber-700 text-white py-2 px-6 md:px-8 rounded-lg cursor-pointer hover:bg-amber-700/50 transition-colors duration-300">
               <p className="font-semibold text-white text-sm md:text-sm lg:text-base">{buttonText}</p>
             </div>
           </NoScrollLink>

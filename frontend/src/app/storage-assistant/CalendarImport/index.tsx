@@ -74,7 +74,7 @@ const CalendarImport: React.FC<CalendarImportProps> = ({
                     <li>
                     Open your preferred calendar app
                     </li>
-                    <li>Look for an "Import" or "Add Calendar" option</li>
+                    <li>Look for an &quot;Import&quot; or &quot;Add Calendar&quot; option</li>
                     <li>Select the downloaded file and confirm the import</li>
                 </ol>
             </div>

@@ -47,7 +47,6 @@ type FoodTypesResponse = {
  */
 export default function InventoryModal({ isOpen, onClose }: InventoryModalProps) {
   const { items, addItem, updateItem, removeItem, getItemsByLocation, clearAll } = useInventoryStore();
-  const [selectedTab, setSelectedTab] = useState<string>("refrigerator");
   const [isEditing, setIsEditing] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<FoodItem | null>(null);
   const [isFetchingRecommendation, setIsFetchingRecommendation] = useState(false);
@@ -192,7 +191,8 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
           title: "text-amber-700 font-medium font-semibold",
           description: "text-amber-700",
           icon: "text-amber-700"
-        }
+        },
+        timeout: 3000
       });
       return;
     }
@@ -201,7 +201,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       const newItem = {
         ...formState,
         id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
-        location: formState.location || selectedTab as "refrigerator" | "pantry",
+        location: formState.location || "refrigerator",
         expiryDate: formState.expiryDate || new Date().toISOString(),
         daysLeft: 0,
       };
@@ -216,7 +216,8 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
             title: "text-darkgreen font-medium font-semibold",
             description: "text-darkgreen",
             icon: "text-darkgreen"
-          }
+          },
+          timeout: 3000
         });
       } else {
         // For new items, get storage time using the simplified approach
@@ -260,7 +261,8 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
               title: "text-darkgreen font-medium font-semibold",
               description: "text-darkgreen",
               icon: "text-darkgreen"
-            }
+            },
+            timeout: 3000
           });
         }
       }
@@ -369,6 +371,11 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         </ModalHeader>
         <ModalBody>
           <div className="mb-6">
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
+                {error}
+              </div>
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="md:col-span-2 relative">

@@ -2,6 +2,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import Image from 'next/image';
 
 export default function Articles() {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -66,11 +67,12 @@ export default function Articles() {
                                 }
                             }}
                         >
-                            <div className="h-48 overflow-hidden">
-                                <img
+                            <div className="h-48 overflow-hidden relative">
+                                <Image
                                     src={article.image}
                                     alt={article.alt}
-                                    className="w-full h-full object-cover object-top"
+                                    fill
+                                    className="object-cover object-top"
                                 />
                             </div>
                             <div className="p-6">
