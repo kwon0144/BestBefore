@@ -38,6 +38,7 @@ const JsonDebugDisplay = ({ data, title }: { data: unknown; title: string }) => 
 
 export default function EcoGrocery() {
     const groceryListRef = useRef<HTMLDivElement>(null);
+    const selectedMealRef = useRef<HTMLDivElement>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
     const [signatureDishes, setSignatureDishes] = useState<SignatureDish[]>([]);
@@ -183,6 +184,15 @@ export default function EcoGrocery() {
               icon: "text-white"
             }
           });
+        
+        // Scroll to selected meal component
+        setTimeout(() => {
+            if (selectedMealRef.current) {
+                const yOffset = -80;
+                const y = selectedMealRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+        }, 100);
     };
     
     // Check if search query exactly matches a popular meal or meal choice
@@ -276,7 +286,7 @@ export default function EcoGrocery() {
                         </div>
                         
                         {/* Selected Meals (takes 1/3 of the width) */}
-                        <div className="h-full">
+                        <div className="h-full" ref={selectedMealRef}>
                             <SelectedMeal 
                                 selectedMeals={selectedMeals}
                                 adjustQuantity={adjustQuantity}

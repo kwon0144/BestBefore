@@ -263,6 +263,31 @@ const FoodStorageAssistant: React.FC = () => {
       stream: null,
       error: null
     }));
+    
+    // Scroll to the content section with -80px offset
+    const contentSection = document.querySelector('.border-green');
+    if (contentSection) {
+      const elementPosition = contentSection.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - 80;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleStep2Click = () => {
+    setCurrentStep(2);
+    // Scroll to the content section with -80px offset
+    const contentSection = document.querySelector('.border-green');
+    if (contentSection) {
+      const elementPosition = contentSection.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - 80;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
   };
 
   // Reset functionality
@@ -297,9 +322,9 @@ const FoodStorageAssistant: React.FC = () => {
             />
           </div>
 
-          <div className="min-h-screen max-w-7xl mx-auto px-10">
+          <div className="min-h-screen max-w-7xl mx-auto px-10 mb-12">
           {/* Stepper for navigation */}
-            <div className="py-12">
+            <div className="mt-8 mb-12">
               <StorageAssistantStepper currentStep={currentStep} onStepClick={handleStepClick}/>
             </div>
             {/* Error message display */}
@@ -355,7 +380,7 @@ const FoodStorageAssistant: React.FC = () => {
                     />
                     <div className="flex justify-center md:justify-end mt-8">
                       <Button
-                        onPress={() => setCurrentStep(2)}
+                        onPress={handleStep2Click}
                         className="bg-darkgreen text-white py-2 px-8 rounded-lg"
                       >
                         <FontAwesomeIcon icon={faBell} className="text-white"/> 
