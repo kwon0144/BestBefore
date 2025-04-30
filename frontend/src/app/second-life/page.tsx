@@ -193,44 +193,45 @@ export default function SecondLife() {
                         ))}
                     </div>
                 </div>
-
-                {/* Results Grid */}
-                <div className="mt-8">
-                    <h3 className="text-lg font-medium text-gray-700 mb-4">
-                        {filteredItems.length} items found
-                    </h3>
-                    {loading ? (
-                        <div className="text-center">Loading...</div>
-                    ) : error ? (
-                        <div className="text-center text-red-500">{error}</div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredItems.map((item) => (
-                                <div
-                                    key={item.method_id}
-                                    onClick={() => handleCardClick(item)}
-                                    className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-                                >
-                                    <div className="h-48 overflow-hidden">
-                                        {item.picture ? (
-                                            <img
-                                                src={item.picture}
-                                                alt={item.method_name}
-                                                className="w-full h-full object-cover object-top"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                                <span className="text-gray-400">No image available</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="p-4">
-                                        <h3 className="text-xl font-semibold text-[#2c5e2e] mb-2">{item.method_name}</h3>
-                                        <p className="text-gray-600 mb-4">{item.ingredient}</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            <span className="text-xs py-1 px-3 bg-[#f0f7f0] text-[#2c5e2e] rounded-full">
-                                                {item.method_category}
-                                            </span>
+            {/* Detail Modal */}
+            <Modal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                size="2xl"
+                hideCloseButton
+                classNames={{
+                    base: "max-w-3xl mx-auto",
+                    body: "min-h-[70vh] max-h-[70vh] overflow-y-auto"
+                }}
+            >
+                <ModalContent>
+                    <ModalHeader className="flex flex-col gap-1 border-b">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-semibold text-[#2c5e2e]">
+                                {selectedItem?.method_name}
+                            </h2>
+                            <Button
+                                isIconOnly
+                                onPress={closeModal}
+                                className="bg-transparent hover:bg-gray-100 rounded-full p-2"
+                            >
+                                <FontAwesomeIcon icon={faTimes} className="text-gray-500" />
+                            </Button>
+                        </div>
+                    </ModalHeader>
+                    <ModalBody>
+                        {selectedItem && (
+                            <>
+                                <div className="mb-6">
+                                    {selectedItem?.picture ? (
+                                        <img
+                                            src={selectedItem.picture}
+                                            alt={`${selectedItem.method_name} process`}
+                                            className="w-full h-64 object-cover rounded-lg"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-64 bg-gray-100 flex items-center justify-center rounded-lg">
+                                            <span className="text-gray-400">No image available</span>
                                         </div>
                                     </div>
                                 </div>
