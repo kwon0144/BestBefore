@@ -15,7 +15,9 @@ export default function MealChoice({
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">{title}</h2>
+      <h2 className="text-2xl font-semibold text-darkgreen mb-4">
+        {title}
+      </h2>
       
       {isLoading ? (
         <div className="flex justify-center items-center h-40">

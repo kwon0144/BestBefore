@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Title from "../(components)/Title"
 import { useGroceryPlanner } from "@/hooks/useGroceryPlanner";
 import { PantrySummary } from "../(components)/Inventory";
@@ -12,6 +12,7 @@ import PopularMeal from "./PopularMeal";
 import MealChoice from "./MealChoice";
 import SelectedMeal from "./SelectedMeal";
 import GroceryList from "./GroceryList";
+import { addToast, ToastProvider } from "@heroui/react";
 
 // Debug JSON Display Component
 const JsonDebugDisplay = ({ data, title }: { data: unknown; title: string }) => {
@@ -36,6 +37,7 @@ const JsonDebugDisplay = ({ data, title }: { data: unknown; title: string }) => 
 };
 
 export default function EcoGrocery() {
+    const groceryListRef = useRef<HTMLDivElement>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
     const [signatureDishes, setSignatureDishes] = useState<SignatureDish[]>([]);
@@ -171,6 +173,16 @@ export default function EcoGrocery() {
         if (!searchQuery.trim()) return;
         addCustomMeal(searchQuery);
         setSearchQuery('');
+        addToast({
+            title: "Meal Added",
+            description: `"${searchQuery}" added as your selected meal`,
+            classNames: {
+              base: "bg-darkgreen",
+              title: "text-white font-medium font-semibold",
+              description: "text-white",
+              icon: "text-white"
+            }
+          });
     };
     
     // Check if search query exactly matches a popular meal or meal choice
@@ -213,87 +225,101 @@ export default function EcoGrocery() {
         setSelectedCuisine(cuisine);
     };
     
+    const handleGenerateAndScroll = () => {
+        generateGroceryList();
+        setTimeout(() => {
+            if (groceryListRef.current) {
+                const yOffset = -100; // Adjust this value to offset the scroll position
+                const y = groceryListRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+        }, 100); // Small delay to ensure content is rendered
+    };
+
     return (
         <div>
-            {/* Title */}
-            <div className="py-12">
-            <Title heading="Eco Grocery" 
-            description="Create a precise shopping list to reduce food waste."
-            background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/ecogrocery-titlebg.jpeg"
-            />
-            </div>
-            
-            <div className="min-h-screen max-w-7xl mx-auto px-10">
-                {/* Search Section */}  
-                <Search 
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    addSearchResultMeal={addSearchResultMeal}
-                    handleSearchKeyPress={handleSearchKeyPress}
+            <ToastProvider placement={"top-center"} toastOffset={80}/>
+            <div>
+                {/* Title */}
+                <div className="py-12">
+                <Title heading="Eco Grocery" 
+                description="Create a precise shopping list to reduce food waste."
+                background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/ecogrocery-titlebg.jpeg"
                 />
-                
-                {/* Popular Meals */}
-                <PopularMeal 
-                    popularMeals={popularMeals}
-                    setSearchQuery={handleCuisineSelect}
-                />
-                
-                {/* Meal Choices and Selected Meals (side by side) */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                    {/* Meal Choices (takes 2/3 of the width) */}
-                    <div className="lg:col-span-2 h-full">
-                        <MealChoice 
-                            filteredMealChoices={filteredMealChoices}
-                            addMeal={addMeal}
-                            isLoading={isLoadingSignatureDishes && selectedCuisine !== null}
-                            selectedCuisine={selectedCuisine}
-                        />
-                    </div>
-                    
-                    {/* Selected Meals (takes 1/3 of the width) */}
-                    <div className="h-full">
-                        <SelectedMeal 
-                            selectedMeals={selectedMeals}
-                            adjustQuantity={adjustQuantity}
-                            removeMeal={removeMeal}
-                            generateGroceryList={generateGroceryList}
-                            loading={loading}
-                        />
-                    </div>
                 </div>
                 
-                {/* Grocery List and Food Inventory Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column - Grocery List */}
-                    <div className="lg:col-span-2">
-                        {/* Smart Grocery List */}
-                        <GroceryList 
-                            selectedMeals={selectedMeals}
-                            groceryItems={groceryItems}
-                            pantryItems={pantryItems}
-                            loading={loading}
-                            error={error}
-                            groceryList={groceryList}
-                            getGroceryItemsByCategory={getGroceryItemsByCategory}
-                        />
+                <div className="min-h-screen max-w-7xl mx-auto px-10 mt-8">
+                    {/* Search Section */}  
+                    <Search 
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        addSearchResultMeal={addSearchResultMeal}
+                        handleSearchKeyPress={handleSearchKeyPress}
+                    />
+                    
+                    {/* Popular Meals */}
+                    <PopularMeal 
+                        popularMeals={popularMeals}
+                        setSearchQuery={handleCuisineSelect}
+                    />
+                    
+                    {/* Meal Choices and Selected Meals (side by side) */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                        {/* Meal Choices (takes 2/3 of the width) */}
+                        <div className="lg:col-span-2 h-full">
+                            <MealChoice 
+                                filteredMealChoices={filteredMealChoices}
+                                addMeal={addMeal}
+                                isLoading={isLoadingSignatureDishes && selectedCuisine !== null}
+                                selectedCuisine={selectedCuisine}
+                            />
+                        </div>
+                        
+                        {/* Selected Meals (takes 1/3 of the width) */}
+                        <div className="h-full">
+                            <SelectedMeal 
+                                selectedMeals={selectedMeals}
+                                adjustQuantity={adjustQuantity}
+                                removeMeal={removeMeal}
+                                onGenerate={handleGenerateAndScroll}
+                                loading={loading}
+                            />
+                        </div>
                     </div>
                     
-                    {/* Right Column - Food Inventory */}
-                    <div className="h-full">
-                        <PantrySummary />
+                    {/* Grocery List and Food Inventory Layout */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Left Column - Grocery List */}
+                        <div className="lg:col-span-2">
+                            {/* Smart Grocery List */}
+                            <GroceryList 
+                                ref={groceryListRef}
+                                selectedMeals={selectedMeals}
+                                groceryItems={groceryItems}
+                                pantryItems={pantryItems}
+                                loading={loading}
+                                error={error}
+                                getGroceryItemsByCategory={getGroceryItemsByCategory}
+                            />
+                        </div>
+                        
+                        {/* Right Column - Food Inventory */}
+                        <div className="h-full">
+                            <PantrySummary />
+                        </div>
                     </div>
-                </div>
-                
-                {/* Debug JSON Display Section */}
-                <div className="mt-12 mb-8 border-t pt-4">
-                    <h2 className="text-xl font-semibold mb-4">Debug Data</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <JsonDebugDisplay data={selectedMeals} title="Selected Meals" />
-                        <JsonDebugDisplay data={groceryItems} title="Grocery Items" />
-                        <JsonDebugDisplay data={pantryItems} title="Pantry Items" />
-                        <JsonDebugDisplay data={groceryList} title="Grocery List Response" />
-                        <JsonDebugDisplay data={signatureDishes} title="Signature Dishes" />
-                        <JsonDebugDisplay data={{ loading, error, selectedCuisine }} title="UI State" />
+                    
+                    {/* Debug JSON Display Section */}
+                    <div className="mt-12 mb-8 border-t pt-4">
+                        <h2 className="text-xl font-semibold mb-4">Debug Data</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <JsonDebugDisplay data={selectedMeals} title="Selected Meals" />
+                            <JsonDebugDisplay data={groceryItems} title="Grocery Items" />
+                            <JsonDebugDisplay data={pantryItems} title="Pantry Items" />
+                            <JsonDebugDisplay data={groceryList} title="Grocery List Response" />
+                            <JsonDebugDisplay data={signatureDishes} title="Signature Dishes" />
+                            <JsonDebugDisplay data={{ loading, error, selectedCuisine }} title="UI State" />
+                        </div>
                     </div>
                 </div>
             </div>

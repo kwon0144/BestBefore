@@ -20,7 +20,9 @@ export default function PantrySummary() {
   return (
     <>
       <div className="bg-white rounded-lg shadow-md p-4 h-full flex flex-col w-full">
-        <h2 className="text-xl font-semibold text-gray-800 mb-3">Your Food Inventory</h2>
+      <h2 className="text-2xl font-semibold text-darkgreen mb-4">
+        Your Food Inventory
+      </h2>
         
         {isInventoryEmpty ? (
           <div className="bg-blue-50 p-4 rounded-md mb-6">
@@ -33,7 +35,7 @@ export default function PantrySummary() {
         ) : (
           <div className="space-y-6">
             <div>
-              <h3 className="font-medium text-[#2F5233] mb-3">Refrigerator</h3>
+              <h3 className="font-medium text-[#2F5233] mb-3 text-blue-500 border-b-2 border-blue-500">Refrigerator</h3>
               <ul className="space-y-2">
                 {getItemsByLocation('refrigerator').map(item => (
                   <li key={item.id} className="flex justify-between items-center">
@@ -55,7 +57,7 @@ export default function PantrySummary() {
               </ul>
             </div>
             <div>
-              <h3 className="font-medium text-[#2F5233] mb-3">Pantry</h3>
+              <h3 className="font-medium text-[#2F5233] mb-3 text-amber-700 border-b-2 border-amber-700">Pantry</h3>
               <ul className="space-y-2">
                 {getItemsByLocation('pantry').map(item => (
                   <li key={item.id} className="flex justify-between items-center">

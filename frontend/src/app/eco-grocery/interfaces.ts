@@ -78,7 +78,6 @@ export interface GroceryListProps {
   pantryItems: PantryItem[];
   loading: boolean;
   error: string | null;
-  groceryList: GroceryListResponse | null;
-  generateGroceryList: () => void;
   getGroceryItemsByCategory: (category: string) => GroceryItem[];
+  generateGroceryList: () => void;
 } 
