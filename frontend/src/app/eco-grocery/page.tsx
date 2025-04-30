@@ -49,7 +49,6 @@ export default function EcoGrocery() {
         pantryItems,
         loading,
         error,
-        groceryList,
         addMeal,
         addCustomMeal,
         removeMeal,

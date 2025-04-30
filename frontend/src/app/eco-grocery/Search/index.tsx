@@ -1,7 +1,8 @@
 import { Input, Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faUtensils } from "@fortawesome/free-solid-svg-icons";
-import { SearchBarProps, MealChoice, SignatureDish } from "../interfaces";
+import { SearchBarProps } from "../interfaces";
+import Image from "next/image";
 
 // Helper function to highlight matching text
 const highlightMatch = (text: string, query: string) => {
@@ -66,10 +67,12 @@ export default function Search({
                 >
                   <div className="flex-shrink-0">
                     {result.imageUrl ? (
-                      <img
+                      <Image
                         src={result.imageUrl}
                         alt={result.name}
-                        className="w-12 h-12 object-cover rounded-lg"
+                        width={48}
+                        height={48}
+                        className="object-cover rounded-lg"
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -98,8 +101,8 @@ export default function Search({
           ) : (
             <div className="text-center py-8">
               <FontAwesomeIcon icon={faSearch} className="text-gray-400 text-4xl mb-4" />
-              <p className="text-gray-500">No preset meals matching "{searchQuery}"</p>
-              <p className="text-sm text-gray-500 mt-2">No worries -- you can still add it as custom meal, and we'll use it to build your grocery list.</p>
+              <p className="text-gray-500">No preset meals matching &quot;{searchQuery}&quot;</p>
+              <p className="text-sm text-gray-500 mt-2">No worries -- you can still add it as custom meal, and we&apos;ll use it to build your grocery list.</p>
             </div>
           )}
         </div>
