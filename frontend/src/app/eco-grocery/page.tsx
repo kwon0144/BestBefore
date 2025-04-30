@@ -13,6 +13,7 @@ import MealChoice from "./MealChoice";
 import SelectedMeal from "./SelectedMeal";
 import GroceryList from "./GroceryList";
 import { addToast, ToastProvider } from "@heroui/react";
+import ComingUp from "../(components)/ComingUp";
 
 // Debug JSON Display Component
 const JsonDebugDisplay = ({ data, title }: { data: unknown; title: string }) => {
@@ -258,7 +259,7 @@ export default function EcoGrocery() {
                 />
                 </div>
                 
-                <div className="min-h-screen max-w-7xl mx-auto px-10 mt-8">
+                <div className="min-h-screen max-w-7xl mx-auto px-10 mt-8 mb-20">
                     {/* Search Section */}  
                     <Search 
                         searchQuery={searchQuery}
@@ -331,6 +332,16 @@ export default function EcoGrocery() {
                             <JsonDebugDisplay data={{ loading, error, selectedCuisine }} title="UI State" />
                         </div>
                     </div>
+                    {/* Coming up next section */}
+                    <ComingUp
+                        message="Great Job in preventing food waste!"
+                        title="Even with best practices, unwanted food could still pile up at home:"
+                        description="Expore creative DIY ideas to reuse leftovers, revive produce, and reduce waste in fun and practical ways."
+                        buttonText="Give Food a Second Life"
+                        buttonLink="/second-life"
+                        imageSrc="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/eco-grocery-next.png"
+                        imageAlt="Seond Life"
+                    />
                 </div>
             </div>
         </div>

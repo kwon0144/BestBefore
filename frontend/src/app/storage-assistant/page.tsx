@@ -7,6 +7,7 @@ import Camera from './Camera';
 import StorageRecommendations from './StorageRecommendation';
 import CalendarExport from './CalendarExport';
 import CalendarImport from './CalendarImport';
+import ComingUp from "../(components)/ComingUp";
 
 import { 
   CameraState, 
@@ -482,8 +483,18 @@ const FoodStorageAssistant: React.FC = () => {
                 )}
               </>
             )}
-        </div>
-      </div>
+            {/* Coming up next section */}
+            <ComingUp
+              message="Your're now a food storage pro!"
+              title="What's Next:"
+              description="Generate smart grocery lists that skip what you already have in storage."
+              buttonText="Continue to Eco Grocery"
+              buttonLink="/eco-grocery"
+              imageSrc="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/storage-assistant-next.png"
+              imageAlt="Eco Grocery"
+            />
+          </div>
+      </div>  
   );
 };
 
