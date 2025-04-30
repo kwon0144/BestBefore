@@ -15,7 +15,7 @@ const CalendarImport: React.FC<CalendarImportProps> = ({
   const downloadCalendar = async () => {
     if (calendarLink) {
       try {
-        const response = await fetch(`${config.apiUrl}${calendarLink}.ics`);
+        const response = await fetch(`${config.apiUrl}${calendarLink}`);
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');

@@ -28,8 +28,15 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
   loading
 }, ref) => {
   // List of all categories
-  const leftColumnCategories = ['Fish', 'Produce', 'Dairy'];
-  const rightColumnCategories = ['Meat', 'Grains', 'Condiments', 'Other'];
+  const categories = [
+    { name: 'Fish', column: 'left' },
+    { name: 'Produce', column: 'left' },
+    { name: 'Dairy', column: 'left' },
+    { name: 'Meat', column: 'right' },
+    { name: 'Grains', column: 'right' },
+    { name: 'Condiments', column: 'right' },
+    { name: 'Other', column: 'right' }
+  ];
   
   /**
    * Checks if a grocery item is already available in the pantry and returns quantity info
@@ -160,30 +167,50 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
   return (
     <div ref={ref} className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-xl font-semibold mb-4">Grocery List</h3>
-      {error ? (
-        <div className="text-red-500">{error}</div>
-      ) : loading ? (
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
+        {error && <div className="text-red-500 mb-4 p-3 bg-red-50 rounded">
+          {error}
+        </div>}
+       {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+          {['left', 'right'].map((column) => (
+            <div key={column} className="space-y-6">
+              {categories
+                .filter(cat => cat.column === column)
+                .map((category) => (
+                  <div key={category.name} className="space-y-3">
+                    <Skeleton className="h-6 w-24 rounded-lg" />
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex justify-between items-center">
+                          <Skeleton className="h-4 w-3/5 rounded-lg" />
+                          <Skeleton className="h-4 w-12 rounded-lg" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
             </div>
           ))}
         </div>
-      ) : selectedMeals.length === 0 ? (
-        <p className="text-gray-500">Select meals to generate a grocery list</p>
-      ) : (
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            {leftColumnCategories.map(category => renderCategory(category))}
-          </div>
-          <div>
-            {rightColumnCategories.map(category => renderCategory(category))}
-          </div>
+      ) : !error ? (
+        selectedMeals.length === 0 ? (
+          <p className="text-gray-500">Select meals to generate a grocery list</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-6">
+          {['left', 'right'].map((column) => (
+            <div key={column}>
+              {categories
+                .filter(cat => cat.column === column)
+                .map(category => renderCategory(category.name))}
+            </div>
+          ))}
         </div>
-      )}
+      )
+      ) :
+      (
+        <></>
+      )
+    }
     </div>
   );
 });

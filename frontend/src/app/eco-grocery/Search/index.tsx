@@ -20,10 +20,11 @@ export default function Search({
             }}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            startContent={<FontAwesomeIcon icon={faSearch} />}
+            onClear={() => {
+              setSearchQuery("");
+            }}
           />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-            <FontAwesomeIcon icon={faSearch} />
-          </div>
         </div>
       </div>
       <Button

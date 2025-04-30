@@ -4,6 +4,7 @@ import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } fro
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { config } from '@/config';
+import useInventoryStore from '@/store/useInventoryStore';
 
 // Define the response type for storage advice API
 interface StorageAdviceResponse {
@@ -25,10 +26,31 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   const [localStorageRecs, setLocalStorageRecs] = useState<StorageRecommendation>(storageRecs);
   const [draggedItem, setDraggedItem] = useState<{ index: number; section: 'fridge' | 'pantry' } | null>(null);
 
+  // Get inventory store functions
+  const { items, addItem, updateItem, removeItem, getItemsByLocation } = useInventoryStore();
+
   // Update local state when props change
   useEffect(() => {
     setLocalStorageRecs(storageRecs);
   }, [storageRecs]);
+
+  // Sync with inventory store when items change
+  useEffect(() => {
+    const fridgeItems = getItemsByLocation('refrigerator').map(item => ({
+      name: `${item.name} (${item.daysLeft} days)`,
+      quantity: parseInt(item.quantity.split(' ')[0]) || 1
+    }));
+    
+    const pantryItems = getItemsByLocation('pantry').map(item => ({
+      name: `${item.name} (${item.daysLeft} days)`,
+      quantity: parseInt(item.quantity.split(' ')[0]) || 1
+    }));
+
+    setLocalStorageRecs({
+      fridge: fridgeItems,
+      pantry: pantryItems
+    });
+  }, [items, getItemsByLocation]);
 
   // Check if both sections are empty
   const noItemsDetected = localStorageRecs.fridge.length === 0 && localStorageRecs.pantry.length === 0;
@@ -56,6 +78,21 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           name: `${editValues.name} (${storageTime} days)`,
           quantity: editValues.quantity
         };
+
+        // Update in inventory store
+        const location = section === 'fridge' ? 'refrigerator' : 'pantry';
+        const existingItem = items.find(item => 
+          item.name.toLowerCase() === originalName.toLowerCase() && 
+          item.location === location
+        );
+
+        if (existingItem) {
+          updateItem(existingItem.id, {
+            name: editValues.name,
+            quantity: `${editValues.quantity} item${editValues.quantity > 1 ? 's' : ''}`,
+            expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
+          });
+        }
       } catch {
         // If API call fails, keep the original storage time
         const originalStorageTime = item.name.match(/\((\d+) days\)/)?.[1] || '7';
@@ -63,12 +100,40 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           name: `${editValues.name} (${originalStorageTime} days)`,
           quantity: editValues.quantity
         };
+
+        // Update in inventory store
+        const location = section === 'fridge' ? 'refrigerator' : 'pantry';
+        const existingItem = items.find(item => 
+          item.name.toLowerCase() === originalName.toLowerCase() && 
+          item.location === location
+        );
+
+        if (existingItem) {
+          updateItem(existingItem.id, {
+            name: editValues.name,
+            quantity: `${editValues.quantity} item${editValues.quantity > 1 ? 's' : ''}`,
+            expiryDate: new Date(Date.now() + parseInt(originalStorageTime) * 24 * 60 * 60 * 1000).toISOString()
+          });
+        }
       }
     } else {
       newStorageRecs[section][index] = {
         name: item.name,
         quantity: editValues.quantity
       };
+
+      // Update quantity in inventory store
+      const location = section === 'fridge' ? 'refrigerator' : 'pantry';
+      const existingItem = items.find(item => 
+        item.name.toLowerCase() === originalName.toLowerCase() && 
+        item.location === location
+      );
+
+      if (existingItem) {
+        updateItem(existingItem.id, {
+          quantity: `${editValues.quantity} item${editValues.quantity > 1 ? 's' : ''}`
+        });
+      }
     }
 
     setLocalStorageRecs(newStorageRecs);
@@ -78,6 +143,20 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
 
   const handleDelete = (index: number, section: 'fridge' | 'pantry') => {
     const newStorageRecs = { ...localStorageRecs };
+    const item = newStorageRecs[section][index];
+    const itemName = item.name.split(' (')[0];
+    
+    // Remove from inventory store
+    const location = section === 'fridge' ? 'refrigerator' : 'pantry';
+    const existingItem = items.find(item => 
+      item.name.toLowerCase() === itemName.toLowerCase() && 
+      item.location === location
+    );
+
+    if (existingItem) {
+      removeItem(existingItem.id);
+    }
+
     newStorageRecs[section].splice(index, 1);
     setLocalStorageRecs(newStorageRecs);
     onUpdateStorageRecs(newStorageRecs);
@@ -93,21 +172,20 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
       const storageTime = response.data.storage_time;
       const newStorageRecs = { ...localStorageRecs };
       
-      // Check if item already exists in the section
-      const existingItem = newStorageRecs[section].find(item => 
-        item.name.split(' (')[0].toLowerCase() === newItem.name.toLowerCase()
-      );
+      // Add to inventory store
+      const location = section === 'fridge' ? 'refrigerator' : 'pantry';
+      addItem({
+        name: newItem.name,
+        quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
+        location: location,
+        expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
+      });
       
-      if (existingItem) {
-        // If item exists, update its quantity
-        existingItem.quantity += newItem.quantity;
-      } else {
-        // If item doesn't exist, add it
-        newStorageRecs[section].push({
-          name: `${newItem.name} (${storageTime} days)`,
-          quantity: newItem.quantity
-        });
-      }
+      // Add to local state
+      newStorageRecs[section].push({
+        name: `${newItem.name} (${storageTime} days)`,
+        quantity: newItem.quantity
+      });
       
       setLocalStorageRecs(newStorageRecs);
       onUpdateStorageRecs(newStorageRecs);
@@ -115,21 +193,20 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
       // If API call fails, use default storage time
       const newStorageRecs = { ...localStorageRecs };
       
-      // Check if item already exists in the section
-      const existingItem = newStorageRecs[section].find(item => 
-        item.name.split(' (')[0].toLowerCase() === newItem.name.toLowerCase()
-      );
+      // Add to inventory store with default storage time
+      const location = section === 'fridge' ? 'refrigerator' : 'pantry';
+      addItem({
+        name: newItem.name,
+        quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
+        location: location,
+        expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      });
       
-      if (existingItem) {
-        // If item exists, update its quantity
-        existingItem.quantity += newItem.quantity;
-      } else {
-        // If item doesn't exist, add it
-        newStorageRecs[section].push({
-          name: `${newItem.name} (7 days)`,
-          quantity: newItem.quantity
-        });
-      }
+      // Add to local state
+      newStorageRecs[section].push({
+        name: `${newItem.name} (7 days)`,
+        quantity: newItem.quantity
+      });
       
       setLocalStorageRecs(newStorageRecs);
       onUpdateStorageRecs(newStorageRecs);

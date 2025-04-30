@@ -276,7 +276,6 @@ const FoodStorageAssistant: React.FC = () => {
 
   // Generate calendar link
   const generateCalendarLink = async () => {
-
     if (calendarSelection.selectedItems.length === 0) {
       addToast({
         title: "Calendar Generation Failed",

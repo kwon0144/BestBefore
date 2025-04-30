@@ -384,6 +384,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
                   placeholder="e.g., Chicken Breast"
                   value={formState.name}
                   onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                  onClear={() => setFormState({ ...formState, name: "" })}
                 />
               </div>
               <div>

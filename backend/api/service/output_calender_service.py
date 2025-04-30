@@ -60,7 +60,7 @@ def generate_calendar(request):
     calendar_cache[str(calendar_id)] = saved_items
     
     # Generate the calendar URL
-    calendar_url = f"/api/calendar/{calendar_id}"
+    calendar_url = f"/api/calendar/{calendar_id}.ics"
     
     return JsonResponse({
         "status": "success",

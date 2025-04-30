@@ -191,15 +191,15 @@ export default function EcoGrocery() {
         addCustomMeal(searchQuery);
         setSearchQuery('');
         addToast({
-        title: "Meal Added",
-        description: `"${searchQuery}" added as your selected meal`,
-        classNames: {
-            base: "bg-background",
-            title: "text-darkgreen font-medium font-semibold",
-            description: "text-darkgreen",
-            icon: "text-darkgreen"
-        },
-        timeout: 3000
+            title: "Meal Added",
+            description: `"${searchQuery}" added as your selected meal`,
+            classNames: {
+                base: "bg-background",
+                title: "text-darkgreen font-medium font-semibold",
+                description: "text-darkgreen",
+                icon: "text-darkgreen"
+            },
+            timeout: 3000
         });
         
         // Scroll to selected meal component
