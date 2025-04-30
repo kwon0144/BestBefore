@@ -1,6 +1,6 @@
 from django.test import TestCase
 from unittest.mock import patch, MagicMock
-from api.db_service import get_storage_recommendations, get_all_food_types
+from backend.api.service.db_service import get_storage_recommendations, get_all_food_types
 
 class DBServiceTestCase(TestCase):
     @patch('api.models.FoodStorage.objects.filter')

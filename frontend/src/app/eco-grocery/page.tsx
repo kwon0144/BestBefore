@@ -257,7 +257,7 @@ export default function EcoGrocery() {
             {/* Meal Choices and Selected Meals (side by side) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                 {/* Meal Choices (takes 2/3 of the width) */}
-                <div className="lg:col-span-2 h-full">
+                <div className="lg:col-span-2 h-full flex flex-col">
                     <MealChoice 
                         filteredMealChoices={filteredMealChoices}
                         addMeal={addMeal}
@@ -267,7 +267,7 @@ export default function EcoGrocery() {
                 </div>
                 
                 {/* Selected Meals (takes 1/3 of the width) */}
-                <div className="h-full">
+                <div className="h-full flex flex-col">
                     <SelectedMeal 
                         selectedMeals={selectedMeals}
                         adjustQuantity={adjustQuantity}
