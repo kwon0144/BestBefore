@@ -1,3 +1,21 @@
+"""
+Dish Ingredient Service
+
+This service manages the relationship between dishes and their ingredients.
+It provides functionality to retrieve, process, and manage dish-ingredient relationships.
+
+Key Features:
+- Retrieve ingredients for specific dishes
+- Cache dish-ingredient mappings
+- Process and standardize ingredient data
+- Filter out common household items
+- Handle ingredient quantity standardization
+
+Example Usage:
+    >>> service = DishIngredientService()
+    >>> result = service.get_ingredients("Spaghetti Bolognese")
+"""
+
 from django.db import connection
 import re
 import json
@@ -8,9 +26,19 @@ from collections import Counter
 
 
 class DishIngredientService:
+    """
+    Service class for managing dish-ingredient relationships.
+    
+    This service provides methods to:
+    - Retrieve ingredients for dishes
+    - Cache dish-ingredient mappings
+    - Process and standardize ingredient data
+    - Filter out common household items
+    """
 
     
     def __init__(self):
+        """Initialize the service with API keys and cache"""
         self.claude_api_key = settings.CLAUDE_API_KEY or os.environ.get('CLAUDE_API_KEY')
         self.claude_api_url = "https://api.anthropic.com/v1/messages"
         self.dish_cache = {}  # Cache for dish-ingredient mappings
@@ -28,7 +56,12 @@ class DishIngredientService:
         }
     
     def _load_dish_cache(self):
-        """Load dish-ingredient mappings from database into cache"""
+        """
+        Load dish-ingredient mappings from database into cache.
+        
+        This method populates the dish_cache dictionary with data from the database.
+        It handles errors gracefully and logs any issues encountered.
+        """
         try:
             with connection.cursor() as cursor:
                 cursor.execute("SELECT dish_name, ingredients FROM food_ingredients")
@@ -45,7 +78,20 @@ class DishIngredientService:
     
     
     def get_ingredients(self, user_dish_input):
-
+        """
+        Get ingredients for a specific dish.
+        
+        Args:
+            user_dish_input (str): Name of the dish to get ingredients for
+        
+        Returns:
+            dict: Dictionary containing:
+                - dish (str): Name of the dish
+                - ingredients (list): List of ingredients
+                - match_type (str): Type of match found ('exact' or 'claude_generated')
+                - error (str, optional): Error message if no match found
+                - suggestions (list, optional): List of popular dishes as suggestions
+        """
         user_input = user_dish_input.lower().strip()
         
         # Step 1: Exact match
@@ -79,7 +125,15 @@ class DishIngredientService:
         }
     
     def _combine_duplicate_ingredients(self, ingredients_list):
-        """Combine duplicate ingredients by name, adding their quantities together"""
+        """
+        Combine duplicate ingredients by name, adding their quantities together.
+        
+        Args:
+            ingredients_list (list): List of ingredient dictionaries
+        
+        Returns:
+            list: List of combined ingredients with no duplicates
+        """
         if not ingredients_list:
             return []
             
@@ -104,7 +158,16 @@ class DishIngredientService:
         return list(combined.values())
         
     def _add_quantities(self, q1, q2):
-        """Combine quantities, handling different units and formats"""
+        """
+        Combine quantities, handling different units and formats.
+        
+        Args:
+            q1 (str): First quantity string
+            q2 (str): Second quantity string
+        
+        Returns:
+            str: Combined quantity string
+        """
         # Extract numeric values and units
         q1_num = self._extract_numeric_value(q1)
         q2_num = self._extract_numeric_value(q2)
@@ -130,14 +193,30 @@ class DishIngredientService:
         return f"{q1} + {q2}"
     
     def _extract_numeric_value(self, quantity_str):
-        """Extract numeric value from quantity string"""
+        """
+        Extract numeric value from quantity string.
+        
+        Args:
+            quantity_str (str): Quantity string to parse
+        
+        Returns:
+            float or None: Extracted numeric value or None if not found
+        """
         match = re.match(r'^(\d+(?:\.\d+)?)', quantity_str)
         if match:
             return float(match.group(1))
         return None
     
     def _extract_unit(self, quantity_str):
-        """Extract unit from quantity string"""
+        """
+        Extract unit from quantity string.
+        
+        Args:
+            quantity_str (str): Quantity string to parse
+        
+        Returns:
+            str: Extracted unit or empty string if not found
+        """
         match = re.match(r'^\d+(?:\.\d+)?\s*([a-zA-Z]+|large|pieces?)', quantity_str)
         if match:
             unit = match.group(1).lower()
@@ -154,7 +233,15 @@ class DishIngredientService:
         return ""
     
     def _filter_fresh_ingredients(self, ingredients_list):
-        """Filter out common household items and standardize measurements"""
+        """
+        Filter out common household items and standardize measurements.
+        
+        Args:
+            ingredients_list (list): List of ingredient dictionaries
+        
+        Returns:
+            list: Filtered list of ingredients
+        """
         fresh_ingredients = []
         
         for ingredient in ingredients_list:
@@ -176,7 +263,16 @@ class DishIngredientService:
         return fresh_ingredients
         
     def _standardize_measurement(self, name, quantity):
-        """Convert common measurements to grams, liters, or count"""
+        """
+        Convert common measurements to grams, liters, or count.
+        
+        Args:
+            name (str): Name of the ingredient
+            quantity (str): Original quantity string
+        
+        Returns:
+            str: Standardized quantity string
+        """
         # estimate a standard quantity
         if quantity == 'as needed':
             if any(word in name for word in ['meat', 'chicken', 'beef', 'pork', 'steak']):

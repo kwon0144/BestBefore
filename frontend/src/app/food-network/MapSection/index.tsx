@@ -1,18 +1,49 @@
+/**
+ * MapSection Component
+ * 
+ * This component provides an interactive map interface for food donation and waste disposal points.
+ * It includes:
+ * - Tab selection between Food Donation Points and Waste Disposal Points
+ * - Interactive map display
+ * - Route planning and navigation features
+ * - Location selection and information display
+ */
 import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import MapComponent from "./MapComponent";
 import Interaction from "./Interaction";
 import { MapSectionState, ViewState } from "@/app/food-network/interfaces";
 
-
+/**
+ * Props interface for the MapSection component
+ * @interface
+ */
 interface MapSectionProps {
+    /** Current state of the map section */
     mapSectionState: MapSectionState;
+    /** Function to update map section state */
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
+    /** Currently selected point type */
     selectedType: string;
+    /** Function to update selected point type */
     setSelectedType: Dispatch<SetStateAction<string>>;
+    /** Current view state */
     viewState: ViewState;
+    /** Function to update view state */
     setViewState: Dispatch<SetStateAction<ViewState>>;
 }
 
+/**
+ * Renders the main map section with interactive features
+ * 
+ * @param {object} props - Component properties
+ * @param {MapSectionState} props.mapSectionState - Current state of the map section
+ * @param {Dispatch<SetStateAction<MapSectionState>>} props.setMapSectionState - Function to update map section state
+ * @param {string} props.selectedType - Currently selected point type
+ * @param {Dispatch<SetStateAction<string>>} props.setSelectedType - Function to update selected point type
+ * @param {ViewState} props.viewState - Current view state
+ * @param {Dispatch<SetStateAction<ViewState>>} props.setViewState - Function to update view state
+ * @returns {JSX.Element} Rendered map section with interactive features
+ */
 export default function MapSection({mapSectionState, setMapSectionState, selectedType, setSelectedType, viewState, setViewState}: MapSectionProps) {
   // For submission to fetch route
   const [map, setMap] = useState<google.maps.Map | null>(null);

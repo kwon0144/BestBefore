@@ -4,7 +4,7 @@
  * with intelligent recommendations for storage locations and expiry dates based on food types.
  */
 import { useState, useEffect } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem } from "@heroui/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, ToastProvider, addToast } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
 import useInventoryStore from "@/store/useInventoryStore";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -47,12 +47,10 @@ type FoodTypesResponse = {
  */
 export default function InventoryModal({ isOpen, onClose }: InventoryModalProps) {
   const { items, addItem, updateItem, removeItem, getItemsByLocation, clearAll } = useInventoryStore();
-  const [selectedTab, setSelectedTab] = useState<string>("refrigerator");
   const [isEditing, setIsEditing] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<FoodItem | null>(null);
   const [isFetchingRecommendation, setIsFetchingRecommendation] = useState(false);
   const [foodTypeOptions, setFoodTypeOptions] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   // Form state
@@ -82,7 +80,17 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         setFoodTypeOptions(response.data.food_types);
       }
     } catch {
-      setError("Failed to load food types from the database.");
+      addToast({
+        title: "Error",
+        description: "Failed to load food types from the database.",
+        classNames: {
+          base: "bg-red-50",
+          title: "text-amber-700 font-medium font-semibold",
+          description: "text-amber-700",
+          icon: "text-amber-700"
+        },
+        timeout: 3000
+      });
     }
   };
 
@@ -183,24 +191,44 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
    * Gets storage recommendations for new items
    */
   const handleAddItem = async () => {
-    if (validateForm()) {
-      try {
-        const newItem = {
-          ...formState,
-          id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
-          // Use current tab as location when not specified
-          location: formState.location || selectedTab as "refrigerator" | "pantry",
-          // Use current date if no expiry date
-          expiryDate: formState.expiryDate || new Date().toISOString(),
-          daysLeft: 0, // Will be calculated by the server
-        };
+    if (!validateForm()) {
+      addToast({
+        title: "Input Error",
+        description: "Food item name and quantity are required.",
+        classNames: {
+          base: "bg-red-50",
+          title: "text-amber-700 font-medium font-semibold",
+          description: "text-amber-700",
+          icon: "text-amber-700"
+        },
+        timeout: 3000
+      });
+      return;
+    }
 
-        if (isEditing && itemToEdit) {
-          updateItem(itemToEdit.id, newItem);
-          resetForm();
-          return;
-        }
+    try {
+      const newItem = {
+        ...formState,
+        id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
+        location: formState.location || "refrigerator",
+        expiryDate: formState.expiryDate || new Date().toISOString(),
+        daysLeft: 0,
+      };
 
+      if (isEditing && itemToEdit) {
+        updateItem(itemToEdit.id, newItem);
+        addToast({
+          title: "Item Updated",
+          description: `"${formState.name}" updated`,
+          classNames: {
+            base: "bg-background",
+            title: "text-darkgreen font-medium font-semibold",
+            description: "text-darkgreen",
+            icon: "text-darkgreen"
+          },
+          timeout: 3000
+        });
+      } else {
         // For new items, get storage time using the simplified approach
         const { storage_time, method } = await getStorageTime(newItem.name);
         
@@ -224,29 +252,56 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
             quantity: newQuantity
           });
           
-          // Let the user know that quantities were combined
-          setError(`Added to existing "${newItem.name}" with similar expiry date.`);
+          // Show toast for combined quantities
+          addToast({
+            title: "Item Updated",
+            description: `Added to existing "${newItem.name}" with similar expiry date.`,
+            classNames: {
+              base: "bg-background",
+              title: "text-darkgreen font-medium font-semibold",
+              description: "text-darkgreen",
+              icon: "text-darkgreen"
+            },
+            timeout: 3000
+          });
         } else {
           // Add as new item with recommended values
           const recommendedItem = {
             ...newItem,
-            location: formState.location || storageMethod, // Use selected location or recommendation
-            expiryDate: formState.expiryDate || expiryDateString // Use selected date or recommendation
+            location: storageMethod as "refrigerator" | "pantry",
+            expiryDate: expiryDateString
           };
           addItem(recommendedItem);
+          addToast({
+            title: "Item Added",
+            description: `"${formState.name}" added to your inventory`,
+            classNames: {
+              base: "bg-background",
+              title: "text-darkgreen font-medium font-semibold",
+              description: "text-darkgreen",
+              icon: "text-darkgreen"
+            },
+            timeout: 3000
+          });
         }
-        
-        // Switch to the appropriate tab if location wasn't manually specified
-        if (!formState.location) {
-          setSelectedTab(storageMethod);
-        }
-        
-        resetForm();
-      } catch {
-        setError("Failed to add item to the inventory.");
-      } finally {
-        setIsFetchingRecommendation(false);
       }
+      
+      resetForm();
+      setIsEditing(false);
+      setItemToEdit(null);
+    } catch (error) {
+      console.error("Error adding/updating item:", error);
+      addToast({
+        title: "Error",
+        description: "Failed to add/update item. Please try again.",
+        classNames: {
+          base: "bg-red-50",
+          title: "text-amber-700 font-medium font-semibold",
+          description: "text-amber-700",
+          icon: "text-amber-700"
+        },
+        timeout: 3000
+      });
     }
   };
 
@@ -294,16 +349,13 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     });
     setIsEditing(false);
     setItemToEdit(null);
-    setError(null);
   };
 
   // Validate form fields before submission
   const validateForm = () => {
-    if (!formState.name || !formState.quantity) {
-      setError("Food item name and quantity are required.");
+    if (formState.name == "" || formState.quantity == "") {
       return false;
     }
-    setError(null);
     return true;
   };
 
@@ -336,23 +388,17 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   return (
+  <div>
+    <ToastProvider placement={"top-center"} toastOffset={80}/>
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalContent>
-        <ModalHeader>Manage Food Inventory</ModalHeader>
+        <ModalHeader>
+          <h2 className="text-xl font-semibold text-darkgreen">
+            Manage Food Inventory
+          </h2>
+        </ModalHeader>
         <ModalBody>
           <div className="mb-6">
-            {error && (
-              <div className={`mb-4 p-3 text-sm rounded-md ${
-                error.includes("No matching food type") 
-                  ? "bg-yellow-50 text-yellow-700" 
-                  : error.includes("Added to existing")
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-500"
-              }`}>
-                {error}
-              </div>
-            )}
-            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="md:col-span-2 relative">
                 <Input
@@ -360,6 +406,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
                   placeholder="e.g., Chicken Breast"
                   value={formState.name}
                   onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                  onClear={() => setFormState({ ...formState, name: "" })}
                 />
               </div>
               <div>
@@ -405,7 +452,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
               </div>
             )}
 
-            <div className="flex gap-4 mb-6">
+            <div className="flex gap-4">
               <Button
                 color="primary"
                 className="flex-1 bg-[#2F5233] text-white hover:bg-[#1B371F]"
@@ -428,14 +475,16 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
           {/* Replace tabs with side-by-side layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Refrigerator Section */}
-            <div className="border border-gray-200 p-4 rounded-lg">
-              <div className="mb-4">
-                <h3 className="text-lg font-medium">Refrigerator</h3>
+            <div className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200">
+              <div className="mb-2 border-b-2 border-blue-500">
+                <h3 className="text-lg font-medium font-semibold text-blue-600">Refrigerator</h3>
               </div>
               
-              <div className="mt-4">
+              <div className="mt-2">
                 {getItemsByLocation("refrigerator").length === 0 ? (
-                  <p className="text-gray-500">No items in refrigerator</p>
+                  <div className="mt-4">
+                    <p className="text-gray-500">No items in refrigerator</p>
+                  </div>
                 ) : (
                   <ul className="divide-y divide-gray-200">
                     {getItemsByLocation("refrigerator").map((item) => (
@@ -473,14 +522,16 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
             </div>
 
             {/* Pantry Section */}
-            <div className="border border-gray-200 p-4 rounded-lg">
-              <div className="mb-4">
-                <h3 className="text-lg font-medium">Pantry</h3>
+            <div className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200">
+              <div className="mb-4 border-b-2 border-amber-700">
+                <h3 className="text-lg font-medium font-semibold text-amber-700">Pantry</h3>
               </div>
 
-              <div className="mt-4">
+              <div className="mt-2">
                 {getItemsByLocation("pantry").length === 0 ? (
-                  <p className="text-gray-500">No items in pantry</p>
+                  <div className="mt-4">
+                    <p className="text-gray-500">No items in pantry</p>
+                  </div>
                 ) : (
                   <ul className="divide-y divide-gray-200">
                     {getItemsByLocation("pantry").map((item) => (
@@ -538,5 +589,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         </ModalFooter>
       </ModalContent>
     </Modal>
+  </div>
   );
 } 

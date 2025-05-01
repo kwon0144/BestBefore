@@ -1,3 +1,14 @@
+/**
+ * Navigationbar Component
+ * 
+ * This component provides a responsive navigation bar with:
+ * - Logo display
+ * - Responsive menu (mobile and desktop views)
+ * - Dynamic background based on scroll position
+ * - Active link highlighting
+ * - Smooth animations and transitions
+ * - Blur effect on home page
+ */
 "use client";
 
 import * as React from 'react';
@@ -17,14 +28,25 @@ import { useState, useEffect } from "react";
 import { motion } from 'framer-motion';
 import NoScrollLink from '../NoScrollLink';
 
+/**
+ * Array of navigation menu items
+ * Each item contains:
+ * - path: The route path
+ * - label: The display text for the menu item
+ */
 const menuItems = [
   { path: "/", label: "Home" },
   { path: "/storage-assistant", label: "Storage Assistant" },
   { path: "/eco-grocery", label: "Eco Grocery" },
-  { path: "/food-network", label: "Food Network" },
   { path: "/second-life", label: "Second Life" },
+  { path: "/food-network", label: "Food Network" },
 ];
 
+/**
+ * Main navigation component that handles routing and responsive design
+ * 
+ * @returns {JSX.Element} Rendered navigation bar with responsive menu
+ */
 const Navigationbar = () => {
   const pathname = usePathname();
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);

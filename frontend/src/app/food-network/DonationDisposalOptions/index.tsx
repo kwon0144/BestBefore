@@ -1,6 +1,26 @@
+/**
+ * DonationDisposalOptions Component
+ * 
+ * This component displays two interactive cards for:
+ * - Food donation options with food bank information
+ * - Green waste disposal options with recycling information
+ * 
+ * Each card features:
+ * - Background image
+ * - Descriptive text
+ * - Icon image
+ * - Call-to-action button
+ * - Hover animation effects
+ */
 import DonationGuideButton from "./DonationGuideButton";
 import DisposalGuideButton from "./DisposalGuideButton";
 import Image from "next/image";
+
+/**
+ * Renders two interactive cards for food donation and waste disposal options
+ * 
+ * @returns {JSX.Element} Rendered component with donation and disposal option cards
+ */
 export default function DonationDisposalOptions() {
     return (
       <div>

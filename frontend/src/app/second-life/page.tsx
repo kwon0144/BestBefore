@@ -7,6 +7,8 @@ import { faPaintBrush, faUtensils, faSpa, faHome, faBowlFood, faKitMedical } fro
 import axios from "axios";
 import { config } from "@/config";
 import { SecondLifeItem } from "./interfaces";
+import ComingUp from "../(components)/ComingUp";
+import Image from "next/image";
 
 // Component imports
 import Search from "./Search";
@@ -161,7 +163,7 @@ export default function SecondLife() {
     };
 
     return (
-        <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
+        <div>
             {/* Title */}
             <Title heading="Second Life" description="Give your food scraps a new purpose. Discover creative ways to repurpose food waste
 into useful products for your home, garden, and beauty routine." />
@@ -200,6 +202,17 @@ into useful products for your home, garden, and beauty routine." />
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 item={selectedItem}
+            />
+
+            {/* Coming up next section */}
+            <ComingUp
+                message="From Your Kitchen to the Community!"
+                title="Discover how you can support your community"
+                description="Donating surplus food or disposing of waste responsibly — every small action makes a big impact."
+                buttonText="Explore the Food Network"
+                buttonLink="/food-network"
+                imageSrc="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/second-life-next.png"
+                imageAlt="Food Network"
             />
         </div>
     );

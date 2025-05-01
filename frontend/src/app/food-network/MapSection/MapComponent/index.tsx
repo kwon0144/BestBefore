@@ -1,3 +1,13 @@
+/**
+ * MapComponent Component
+ * 
+ * This component renders an interactive Google Map with:
+ * - Location markers for food banks and waste disposal points
+ * - Route directions between selected points
+ * - Start and end markers for navigation
+ * - "Where am I" button for current location
+ * - Automatic focus on selected locations
+ */
 "use client";
 
 import { Map, useMap } from "@vis.gl/react-google-maps";
@@ -5,23 +15,59 @@ import Markers from "./Markers";
 import Directions from "./Directions";
 import StartMarker from "./StartMarker";
 import { Dispatch, SetStateAction, useEffect, forwardRef, useImperativeHandle, useState } from "react";
-import type { Foodbank } from "@/app/api/foodbanks/route";
+import type { Foodbank, OperationSchedule } from "@/app/api/foodbanks/route";
 import WhereAmIButton from "./WhereAmIButton";
 import { MapSectionState } from "@/app/food-network/interfaces";
 
-type Point = google.maps.LatLngLiteral & { key: string };
+/**
+ * Point interface for map markers
+ * @interface
+ */
+type Point = google.maps.LatLngLiteral & { 
+  key: string;
+  id: number;
+  name: string;
+  type: string;
+  address: string;
+  hours_of_operation: string;
+  operation_schedule: OperationSchedule;
+};
 
+/**
+ * Props interface for the MapComponent
+ * @interface
+ */
 interface MapComponentProps {
+    /** Current state of the map section */
     mapSectionState: MapSectionState;
+    /** Function to update map section state */
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
+    /** Currently selected point type */
     selectedType: string;
+    /** Function to update map reference */
     setMap: Dispatch<SetStateAction<google.maps.Map | null>>;
 }
 
+/**
+ * Reference interface for MapComponent
+ * @interface
+ */
 interface MapComponentRef {
+  /** Function to focus the map on a specific location */
   focusOnLocation: (location: {lat: number, lng: number}) => void;
 }
 
+/**
+ * Renders an interactive Google Map with location markers and navigation features
+ * 
+ * @param {object} props - Component properties
+ * @param {MapSectionState} props.mapSectionState - Current state of the map section
+ * @param {Dispatch<SetStateAction<MapSectionState>>} props.setMapSectionState - Function to update map section state
+ * @param {string} props.selectedType - Currently selected point type
+ * @param {Dispatch<SetStateAction<google.maps.Map | null>>} props.setMap - Function to update map reference
+ * @param {React.Ref<MapComponentRef>} ref - Forwarded ref for map control
+ * @returns {JSX.Element} Rendered interactive map component
+ */
 const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
     mapSectionState,
     setMapSectionState,

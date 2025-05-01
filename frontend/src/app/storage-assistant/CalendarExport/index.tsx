@@ -1,101 +1,81 @@
-import React, { useState, useCallback } from 'react';
+/* CalendarExport Component
+ * 
+ * This component manages the export of food items to calendar reminders.
+ * It allows users to set reminder preferences and select items from fridge and pantry
+ * for tracking expiry dates and receiving notifications.
+ */
+import React from 'react';
 import { Button, Select, SelectItem } from "@heroui/react";
-import { CalendarSelection, ProduceDetections, StorageAdviceResponse, StorageRecommendation } from '../interfaces';
-import axios from 'axios';
-import { config } from '@/config';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { CalendarSelection } from '../interfaces';
+import useInventoryStore from '@/store/useInventoryStore';
 
+/**
+ * Props interface for the CalendarExport component
+ * @interface CalendarExportProps
+ * @property {CalendarSelection} calendarSelection - Current calendar selection state
+ * @property {React.Dispatch<React.SetStateAction<CalendarSelection>>} setCalendarSelection - Function to update calendar selection
+ */
 interface CalendarExportProps {
   calendarSelection: CalendarSelection;
   setCalendarSelection: React.Dispatch<React.SetStateAction<CalendarSelection>>;
-  detections: ProduceDetections | null;
-  generateCalendarLink: (calendarItems: { name: string; quantity: number; expiry_date: number; reminder_days: number; reminder_time: string }[]) => Promise<void>;
-  storageRecs: StorageRecommendation;
 }
 
+/**
+ * CalendarExport Component
+ *
+ * @param {CalendarExportProps} props - Component props containing the calendar selection state, update function, and detections
+ * @returns {JSX.Element} A React component for setting reminder preferences and selecting items for calendar reminders
+ */
 const CalendarExport: React.FC<CalendarExportProps> = ({
   calendarSelection,
   setCalendarSelection,
-  detections,
-  generateCalendarLink,
-  storageRecs
 }) => {
-  const [isTemporarilyDisabled, setIsTemporarilyDisabled] = useState(false);
-  // const steps = ['Select Items', 'Set Reminders', 'Download Calendar'];
-  // const [activeStep, setActiveStep] = useState(0);
+  // Get items from Zustand store
+  const { getItemsByLocation } = useInventoryStore();
 
-  // Get all items from storage recommendations
-  const getAllItems = () => {
-    const items: { [key: string]: number } = {};
-    [...storageRecs.fridge, ...storageRecs.pantry].forEach(item => {
-      items[item.name] = item.quantity;
+  /**
+   * Maps inventory items to calendar items format
+   * @param {Array<{name: string; quantity: string; daysLeft?: number}>} items - Array of inventory items
+   * @returns {CalendarItem[]} Array of calendar items with proper formatting
+   */
+  const mapInventoryToCalendarItems = (items: Array<{name: string; quantity: string; daysLeft?: number}>) => {
+    return items.map(item => {
+      const quantity = parseInt(item.quantity.split(' ')[0]) || 1;
+      return {
+        name: item.name,
+        quantity: quantity,
+        expiry_date: item.daysLeft || 7, // Default to 7 days if undefined
+        reminder_days: calendarSelection.reminderDays,
+        reminder_time: calendarSelection.reminderTime
+      };
     });
-    return items;
   };
 
-  // Get storage time for a food type
-  const getStorageTime = async (foodType: string) => {
-    try {
-      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-        food_type: foodType
-      });
-      return response.data.storage_time;
-    } catch (error) {
-      console.error(`Error getting storage time for ${foodType}:`, error);
-      return 7; // Default to 7 days if there's an error
-    }
+  /**
+   * Retrieves fridge items from inventory store
+   * @returns {Array<{name: string; quantity: string; daysLeft: number}>} Array of fridge items
+   */
+  const getFridgeItems = () => {
+    return getItemsByLocation('refrigerator');
   };
 
-  // Get storage times for all detected items
-  const fetchStorageTimes = useCallback(async () => {
-    if (!detections?.produce_counts) return;
-
-    for (const [item] of Object.entries(detections.produce_counts)) {
-      await getStorageTime(item);
-    }
-  }, [detections?.produce_counts]);
-
-  // Fetch storage times when detections change
-  React.useEffect(() => {
-    if (detections?.produce_counts) {
-      fetchStorageTimes();
-    }
-  }, [detections?.produce_counts, fetchStorageTimes]);
-
-  // Copy calendar link to clipboard
-  const downloadCalendar = () => {
-    if (calendarSelection.selectedItems.length === 0) {
-      alert("Please select at least one item!");
-      return;
-    }
-    
-    if (calendarSelection.calendarLink) {
-      // Create an anchor element
-      const link = document.createElement('a');
-      link.href = calendarSelection.calendarLink;
-      link.download = 'best-before-reminders.ics';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Disable button temporarily
-      setIsTemporarilyDisabled(true);
-      setTimeout(() => {
-        setIsTemporarilyDisabled(false);
-      }, 3000); // 3 seconds
-    }
+  /**
+   * Retrieves pantry items from inventory store
+   * @returns {Array<{name: string; quantity: string; daysLeft: number}>} Array of pantry items
+   */
+  const getPantryItems = () => {
+    return getItemsByLocation('pantry');
   };
 
-  // Update the item selection handler
-  const handleItemSelection = (item: string, count: number) => {
-    // Extract storage time from the item name if it exists
-    const storageTimeMatch = item.match(/\((\d+) days\)/);
-    const storageTime = storageTimeMatch ? parseInt(storageTimeMatch[1]) : 7;
-    const cleanItemName = item.split(' (')[0]; // Remove the storage time part if it exists
-
+  /**
+   * Handles item selection/deselection for calendar reminders
+   * @param {string} itemName - The item name
+   * @param {number} quantity - The quantity of the item
+   * @param {number} daysLeft - Days until expiry
+   */
+  const handleItemSelection = (itemName: string, quantity: number, daysLeft: number | undefined) => {
     setCalendarSelection(prev => {
-      const existingIndex = prev.selectedItems.findIndex(i => i.name === cleanItemName);
+      const existingIndex = prev.selectedItems.findIndex(i => i.name === itemName);
       
       if (existingIndex >= 0) {
         const newSelectedItems = [...prev.selectedItems];
@@ -103,40 +83,15 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
         return { ...prev, selectedItems: newSelectedItems };
       } else {
         const newItem = {
-          name: cleanItemName,
-          quantity: count,
-          expiry_date: storageTime,
+          name: itemName,
+          quantity: quantity,
+          expiry_date: daysLeft || 7, // Default to 7 days if undefined
           reminder_days: prev.reminderDays,
           reminder_time: prev.reminderTime
         };
         return { ...prev, selectedItems: [...prev.selectedItems, newItem] };
       }
     });
-  };
-
-  const onSelectAll = () => {
-    const allItems = getAllItems();
-    
-    const items = Object.entries(allItems).map(([item, count]) => {
-      // Extract storage time from the item name if it exists in the format "name (X days)"
-      const storageTimeMatch = item.match(/\((\d+) days\)/);
-      const storageTime = storageTimeMatch ? parseInt(storageTimeMatch[1]) : 7;
-      
-      return {
-        name: item.split(' (')[0], // Remove the storage time part if it exists
-        quantity: count,
-        expiry_date: storageTime,
-        reminder_days: calendarSelection.reminderDays,
-        reminder_time: calendarSelection.reminderTime
-      };
-    });
-
-    setCalendarSelection(prev => ({
-      ...prev,
-      selectedItems: prev.selectedItems.length === Object.keys(allItems).length 
-        ? [] // If all items are selected, deselect all
-        : items // Otherwise, select all items
-    }));
   };
 
   // Days before expiry
@@ -149,30 +104,6 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
     {key: "6", label: "6 days before"},
     {key: "7", label: "7 days before"}
   ];
-
-  // const handleNext = () => {
-  //   if (activeStep === steps.length - 1) {
-  //     // Generate calendar items from selected items
-  //     const calendarItems = calendarSelection.selectedItems.map(item => {
-  //       // Extract storage time from the item name (format: "name (X days)")
-  //       const storageTimeMatch = item.name.match(/\((\d+) days\)/);
-  //       const storageTime = storageTimeMatch ? parseInt(storageTimeMatch[1]) : 7;
-        
-  //       return {
-  //         name: item.name.split(' (')[0], // Remove the storage time part
-  //         quantity: item.quantity,
-  //         expiry_date: storageTime,
-  //         reminder_days: 2,
-  //         reminder_time: "09:00"
-  //       };
-  //     });
-
-  //     // Generate calendar
-  //     generateCalendarLink(calendarItems);
-  //   } else {
-  //     setActiveStep((prevActiveStep) => prevActiveStep + 1);
-  //   }
-  // };
 
   return (
     <>
@@ -227,82 +158,149 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
         </div>
       </div>
     </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      {/* Item Selection */}
-      <div>
-        <div className="flex justify-between items-center">
-            <h3 className="text-xl font-medium text-darkgreen mb-4">
-              Select Items for Reminders
+    <div className="mt-10">    
+      <h3 className="text-xl font-medium text-darkgreen mb-4">
+        Select Items for Reminders
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Fridge Items */}
+        <div className="bg-white/70 rounded-lg p-5 min-h-[360px]">
+          <div className="flex justify-between items-center border-b-2 border-blue-500 pb-2">
+            <h3 className="text-xl font-semibold text-blue-600">
+              Refrigerator
             </h3>
             <Button
-              onPress={onSelectAll}
-              className="mb-4 py-2 px-4 bg-amber-500 rounded-lg text-white font-medium"
+              onPress={() => {
+                const fridgeItems = getFridgeItems();
+                const items = mapInventoryToCalendarItems(fridgeItems);
+
+                const fridgeItemNames = fridgeItems.map(item => item.name);
+                const nonFridgeItems = calendarSelection.selectedItems.filter(
+                  item => !fridgeItemNames.includes(item.name)
+                );
+
+                setCalendarSelection(prev => ({
+                  ...prev,
+                  selectedItems: fridgeItems.every(item => 
+                    prev.selectedItems.some(i => i.name === item.name)
+                  )
+                    ? nonFridgeItems
+                    : [...nonFridgeItems, ...items]
+                }));
+              }}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg"
             >
-              {calendarSelection.selectedItems.length === Object.keys(getAllItems()).length 
+              {/* Check if all fridge items are selected */}
+              {calendarSelection.selectedItems.length > 0 && getFridgeItems().every(item => 
+                calendarSelection.selectedItems.some(i => i.name === item.name)
+              )
                 ? "Deselect All" 
                 : "Select All"}
             </Button>
-        </div>
-        {/* Item List */}
-        <div>
-        {Object.keys(getAllItems()).length > 0 ? (
-          <div className="bg-white/70 rounded-lg p-4 h-[240px] overflow-y-auto">
-            <ul className="space-y-2">
-              {Object.entries(getAllItems()).map(([item, count]) => (
-                <li key={item} className="py-2 border-b border-gray-100 last:border-0">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={calendarSelection.selectedItems.some(i => i.name === item.split(' (')[0])}
-                      onChange={() => handleItemSelection(item, count)}
-                      className="mr-2"
-                    />
-                    <div className="flex w-full items-center p-3 rounded-lg bg-lightgreen/20">
-                      <span className="flex-grow">{item}</span>
-                      <span className="text-gray-600">Qty: {count}</span>
-                      <span className="text-gray-600 ml-2">Storage: {item.match(/\((\d+) days\)/)?.[1] || '...'} days</span>
-                    </div>
-                  </label>
-                </li>
-              ))}
-            </ul>
           </div>
-        ) : (
-          <div className="bg-gray-50 rounded-lg p-4 min-h-40 flex items-center justify-center">
-            <p className="text-gray-500 italic">
-              No items available
-            </p>
-          </div>
-        )}
+          {/* Fridge Item List */}
+          <div>
+          {getFridgeItems().length > 0 ? (
+            <div className="p-4 h-[240px] overflow-y-auto">
+              <ul className="space-y-2">
+                {getFridgeItems().map((item) => {
+                  const quantity = parseInt(item.quantity.split(' ')[0]) || 1;
+                  return (
+                    <li key={item.name} className="py-2 border-b last:border-0">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={calendarSelection.selectedItems.some(i => i.name === item.name)}
+                          onChange={() => handleItemSelection(item.name, quantity, item.daysLeft)}
+                          className="mr-2"
+                        />
+                        <div className="grid grid-cols-3 w-full items-center p-3 rounded-lg bg-blue-50">
+                          <div className="text-left">{item.name}</div>
+                          <div className="text-center text-gray-600">Qty: {quantity}</div>
+                          <div className="text-right text-gray-600">Storage: {item.daysLeft || 7} days</div>
+                        </div>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-[240px]">
+              <p className="text-gray-500 text-center">No Refrigerator item <br/> Please add items in the previous step</p>
+            </div>
+          )}
+          </div>    
         </div>
-      </div>
-      
-      {/* Calendar Link */}
-      <div>
-        <h3 className="text-xl font-medium text-darkgreen mb-4">
-            Generate Calendar
-        </h3>
-        <p className="text-black text-sm">
-          Click the button to download a personalized calendar file (.ics) that you can import into your digital calendar like <span className="text-green">Google Calendar, Apple Calendar, or Outlook</span>.
-        </p>
-        <div className="mt-6 flex justify-center md:justify-start">
-          <Button
-            onPress={async () => {
-              if (calendarSelection.selectedItems.length === 0) {
-                alert("Please select at least one item!");
-                return;
-              }
-              await generateCalendarLink(calendarSelection.selectedItems);
-              downloadCalendar();
-            }}
-            className={`bg-darkgreen text-white py-2 px-8 rounded-lg ${
-              isTemporarilyDisabled ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-            isDisabled={isTemporarilyDisabled}
-          >
-            <FontAwesomeIcon icon={faDownload} className="text-white mr-2" />
-            <p className="font-semibold text-white">Download Calendar File</p>
-          </Button>
+
+        {/* Pantry Items */}
+        <div className="bg-white/70 rounded-lg p-5 min-h-[360px]">
+          <div className="flex justify-between items-center border-b-2 border-amber-700 pb-2">
+            <h3 className="text-xl font-semibold text-amber-700">
+              Pantry
+            </h3>
+            <Button
+              onPress={() => {
+                const pantryItems = getPantryItems();
+                const items = mapInventoryToCalendarItems(pantryItems);
+
+                const pantryItemNames = pantryItems.map(item => item.name);
+                const nonPantryItems = calendarSelection.selectedItems.filter(
+                  item => !pantryItemNames.includes(item.name)
+                );
+
+                setCalendarSelection(prev => ({
+                  ...prev,
+                  selectedItems: pantryItems.every(item => 
+                    prev.selectedItems.some(i => i.name === item.name)
+                  )
+                    ? nonPantryItems
+                    : [...nonPantryItems, ...items]
+                }));
+              }}
+              className="bg-amber-700 text-white px-4 py-2 rounded-lg"
+            >
+              {/* Check if all pantry items are selected */}
+              {calendarSelection.selectedItems.length > 0 && getPantryItems().every(item => 
+                calendarSelection.selectedItems.some(i => i.name === item.name)
+              )
+                ? "Deselect All" 
+                : "Select All"}
+            </Button>
+          </div>
+          {/* Pantry Item List */}
+          <div>
+          {getPantryItems().length > 0 ? (
+            <div className="bg-white rounded-lg p-4 h-[240px] overflow-y-auto">
+              <ul className="space-y-2">
+                {getPantryItems().map((item) => {
+                  const quantity = parseInt(item.quantity.split(' ')[0]) || 1;
+                  return (
+                    <li key={item.name} className="py-2 border-b border-gray-100 last:border-0">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={calendarSelection.selectedItems.some(i => i.name === item.name)}
+                          onChange={() => handleItemSelection(item.name, quantity, item.daysLeft)}
+                          className="mr-2"
+                        />
+                        <div className="grid grid-cols-3 w-full items-center p-3 rounded-lg bg-amber-50">
+                          <div className="text-left">{item.name}</div>
+                          <div className="text-center text-gray-600">Qty: {quantity}</div>
+                          <div className="text-right text-gray-600">Storage: {item.daysLeft || 7} days</div>
+                        </div>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-[240px]">
+              <p className="text-gray-500 text-center">No Pantry item <br/> Please add items in the previous step</p>
+            </div>
+          )}
+          </div>    
         </div>
       </div>
     </div>

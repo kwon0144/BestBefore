@@ -10,9 +10,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@heroui/react";
 import useInventoryStore from "@/store/useInventoryStore";
 import InventoryModal from "./InventoryModal";
-import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen, faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import NoScrollLink from "../NoScrollLink";
 
 /**
  * PantrySummary component renders a summary view of the user's food inventory
@@ -25,18 +25,6 @@ export default function PantrySummary() {
   const getItemsByLocation = useInventoryStore((state) => state.getItemsByLocation);
   const items = useInventoryStore((state) => state.items);
   const refreshDaysLeft = useInventoryStore((state) => state.refreshDaysLeft);
-  const router = useRouter();
-
-  /**
-   * Handles smooth transition to Storage Assistant
-   */
-  const handleNavigateToStorageAssistant = () => {
-    setIsNavigating(true);
-    // Short delay for transition effect
-    setTimeout(() => {
-      router.push('/storage-assistant');
-    }, 200);
-  };
 
   /**
    * Formats quantity string for display with appropriate units
@@ -70,7 +58,9 @@ export default function PantrySummary() {
     <>
       <div className={`bg-white rounded-lg shadow-md p-4 h-full flex flex-col w-full transition-opacity duration-200 ${isNavigating ? 'opacity-70' : 'opacity-100'}`}>
         <div className="flex justify-between items-center mb-3">
-          <h2 className="text-xl font-semibold text-gray-800">Your Food Inventory</h2>
+          <h2 className="text-2xl font-semibold text-darkgreen">
+            Your Food Inventory
+          </h2>
           <Button
             size="md"
             variant="light"
@@ -83,17 +73,17 @@ export default function PantrySummary() {
         </div>
         
         {isInventoryEmpty ? (
-          <div className="bg-blue-50 p-4 rounded-md mb-6">
-            <p className="font-medium text-blue-700 mb-2">No items in your inventory yet!</p>
-            <p className="text-blue-600">
+          <div className="bg-amber-50 p-4 rounded-md mb-6">
+            <p className="font-medium text-amber-700 mb-2">No items in your inventory yet!</p>
+            <p className="text-amber-600">
               Use the &quot;Storage Assistant&quot; feature to quickly add items by taking photos of your groceries, 
               or add items manually by clicking the &quot;Edit&quot; button above.
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 mb-6 flex-grow">
             <div>
-              <h3 className="font-medium text-[#2F5233] mb-3">Refrigerator</h3>
+              <h3 className="font-medium text-[#2F5233] mb-3 text-blue-500 border-b-2 border-blue-500">Refrigerator</h3>
               <ul className="space-y-2">
                 {getItemsByLocation('refrigerator').map(item => (
                   <li key={item.id} className="flex justify-between items-center">
@@ -115,7 +105,7 @@ export default function PantrySummary() {
               </ul>
             </div>
             <div>
-              <h3 className="font-medium text-[#2F5233] mb-3">Pantry</h3>
+              <h3 className="font-medium text-[#2F5233] mb-3 text-amber-700 border-b-2 border-amber-700">Pantry</h3>
               <ul className="space-y-2">
                 {getItemsByLocation('pantry').map(item => (
                   <li key={item.id} className="flex justify-between items-center">
@@ -139,14 +129,16 @@ export default function PantrySummary() {
           </div>
         )}
         
-        <Button 
-          className="mt-auto w-full bg-[#2F5233] text-white py-3 rounded-lg shadow-sm hover:bg-[#1B371F] transition-all duration-200 cursor-pointer !rounded-button whitespace-nowrap flex items-center justify-center gap-2"
-          onPress={handleNavigateToStorageAssistant}
-          disabled={isNavigating}
-        >
-          <span>Go to Storage Assistant to add items</span>
-          <FontAwesomeIcon icon={faArrowRight} />
-        </Button>
+        <NoScrollLink href="/storage-assistant">
+          <div 
+            className="mt-auto w-full bg-[#2F5233] text-white text-sm py-3 rounded-lg shadow-sm hover:bg-[#2F5233]/80 transition-all duration-200 cursor-pointer !rounded-button whitespace-nowrap flex items-center justify-center gap-2"
+            style={{ pointerEvents: isNavigating ? 'none' : 'auto', opacity: isNavigating ? 0.7 : 1 }}
+            onClick={() => setIsNavigating(true)}
+          >
+            <span>Go to Storage Assistant to add items</span>
+            <FontAwesomeIcon icon={faArrowRight} />
+          </div>
+        </NoScrollLink>
       </div>
       
       <InventoryModal 
