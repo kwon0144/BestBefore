@@ -7,6 +7,7 @@
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { CategoriesProps } from "../interfaces";
+import { forwardRef } from "react";
 
 /**
  * Renders category filter buttons
@@ -17,30 +18,36 @@ import { CategoriesProps } from "../interfaces";
  * @param {Function} props.handleCategorySelect - Function to handle category selection
  * @returns {JSX.Element} Rendered categories component
  */
-export default function Categories({ 
+const Categories = forwardRef<HTMLDivElement, CategoriesProps>(({ 
   categories, 
   selectedCategory, 
   handleCategorySelect 
-}: CategoriesProps) {
+}, ref) => {
   return (
-    <div className="mt-8">
-      <h3 className="text-lg font-medium text-gray-700 mb-4">Filter by category:</h3>
+    <div ref={ref} className="mt-8 mb-16">
+      <h2 className="text-2xl font-semibold text-darkgreen mb-4 border-b border-darkgreen pb-4">
+        Filter by category:
+      </h2>
       <div className="flex flex-wrap gap-3">
         {categories.map((category) => (
           <Button
             key={category.name}
+            variant="light"
+            size="sm"
             onPress={() => handleCategorySelect(category.name)}
-            className={`flex items-center py-2 px-4 rounded-lg !rounded-button whitespace-nowrap cursor-pointer ${
+            className={`${
               selectedCategory === category.name
-                ? 'bg-[#2c5e2e] text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            } shadow-sm transition-colors`}
+                ? 'bg-[#2F5233] text-white hover:bg-[#1B371F]'
+                : 'bg-white hover:bg-gray-100'
+            } px-6 py-5 text-md rounded-lg shadow-sm transition cursor-pointer !rounded-button whitespace-nowrap`}
           >
             <FontAwesomeIcon icon={category.icon} className="mr-2" />
-            <span>{category.name}</span>
+            <div>{category.name}</div>
           </Button>
         ))}
       </div>
     </div>
   );
-} 
+});
+
+export default Categories; 

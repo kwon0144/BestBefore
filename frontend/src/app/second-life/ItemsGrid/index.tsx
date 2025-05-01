@@ -3,7 +3,8 @@
  * 
  * This component displays a grid of repurposing ideas with pagination.
  */
-import { Pagination } from "@heroui/react";
+import { forwardRef } from "react";
+import { Pagination, Skeleton } from "@heroui/react";
 import { ItemsGridProps } from "../interfaces";
 import Image from 'next/image';
 
@@ -21,23 +22,35 @@ import Image from 'next/image';
  * @param {Function} props.handlePageChange - Function to handle page change
  * @returns {JSX.Element} Rendered items grid component
  */
-export default function ItemsGrid({
+const ItemsGrid = forwardRef<HTMLDivElement, ItemsGridProps>(({
   items,
   allItems,
+  filteredItemsCount,
   loading,
   error,
   currentPage,
   totalPages,
   handleCardClick,
   handlePageChange
-}: ItemsGridProps) {
+}, ref) => {
   return (
-    <div className="mt-8">
+    <div ref={ref} className="mt-8 mb-20">
       <h3 className="text-lg font-medium text-gray-700 mb-4">
-        {allItems.length} items found
+        {filteredItemsCount} DIY idea{filteredItemsCount !== 1 ? 's' : ''} available
       </h3>
       {loading ? (
-        <div className="text-center">Loading...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="bg-white rounded-lg overflow-hidden shadow-md">
+              <Skeleton className="h-48 w-full" />
+              <div className="p-4 bg-[#f0f7f0] min-h-[160px]">
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-full mb-4" />
+                <Skeleton className="h-6 w-1/3" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : error ? (
         <div className="text-center text-red-500">{error}</div>
       ) : (
@@ -64,11 +77,11 @@ export default function ItemsGrid({
                     </div>
                   )}
                 </div>
-                <div className="p-4">
-                  <h3 className="text-xl font-semibold text-[#2c5e2e] mb-2">{item.method_name}</h3>
-                  <p className="text-gray-600 mb-4">{item.ingredient}</p>
+                <div className="p-4 bg-[#f0f7f0] min-h-[160px]">
+                  <h3 className="text-xl font-semibold text-darkgreen mb-2">{item.method_name}</h3>
+                  <p className="text-gray-700 mb-4">{item.ingredient}</p>
                   <div className="flex flex-wrap gap-2">
-                    <span className="text-xs py-1 px-3 bg-[#f0f7f0] text-[#2c5e2e] rounded-full">
+                    <span className="text-xs py-1 px-3 bg-amber-50 text-amber-700 rounded-full">
                       {item.method_category}
                     </span>
                   </div>
@@ -96,4 +109,6 @@ export default function ItemsGrid({
       )}
     </div>
   );
-} 
+});
+
+export default ItemsGrid; 

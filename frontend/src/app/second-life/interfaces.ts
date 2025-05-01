@@ -55,6 +55,7 @@ export interface CategoriesProps {
 export interface ItemsGridProps {
     items: SecondLifeItem[];
     allItems: SecondLifeItem[];
+    filteredItemsCount: number;
     loading: boolean;
     error: string | null;
     currentPage: number;

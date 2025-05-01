@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Title from "../(components)/Title"
 import { faPaintBrush, faUtensils, faSpa, faHome, faBowlFood, faKitMedical } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
@@ -22,6 +22,7 @@ export default function SecondLife() {
     const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
     const [items, setItems] = useState<SecondLifeItem[]>([]);
     const [allItems, setAllItems] = useState<SecondLifeItem[]>([]);
+    const [filteredItemsCount, setFilteredItemsCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,6 +34,7 @@ export default function SecondLife() {
 
     // Featured items for first page
     const featuredItemIds = useMemo(() => [33, 17, 29, 30, 20, 31], []);
+    const itemsGridRef = useRef<HTMLDivElement>(null);
 
     // Predefined ingredients for quick search
     const ingredients = [
@@ -98,22 +100,36 @@ export default function SecondLife() {
                     featured.find(item => item.method_id === id)
                 ).filter(item => item !== undefined) as SecondLifeItem[];
                 setItems(sortedFeatured);
+                // Set the total count to allItems.length instead of featured.length
+                setFilteredItemsCount(allItems.length);
                 return;
             }
         }
 
-        // Filter by category first
+        // Apply all filters
         let filteredItems = allItems;
+        
+        // Filter by category if selected
         if (selectedCategory) {
             filteredItems = filteredItems.filter(item => item.method_category === selectedCategory);
         }
+        
+        // Filter by ingredient if selected
+        if (selectedIngredient) {
+            filteredItems = filteredItems.filter(item => 
+                item.ingredient.toLowerCase().includes(selectedIngredient.toLowerCase())
+            );
+        }
+
+        // Update filtered items count
+        setFilteredItemsCount(filteredItems.length);
 
         // Calculate pagination
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         setItems(filteredItems.slice(startIndex, endIndex));
         setTotalPages(Math.ceil(filteredItems.length / itemsPerPage));
-    }, [currentPage, allItems, selectedCategory, searchQuery, selectedIngredient, featuredItemIds]);
+    }, [currentPage, allItems, selectedCategory, selectedIngredient, featuredItemIds]);
 
     // Fetch items when search query changes
     useEffect(() => {
@@ -129,6 +145,16 @@ export default function SecondLife() {
         );
         // Reset to first page when changing category
         setCurrentPage(1);
+        // Scroll to items grid
+        if (itemsGridRef.current) {
+            const offset = 80;
+            const elementPosition = itemsGridRef.current.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
     };
 
     const handleIngredientSelect = (ingredient: string) => {
@@ -156,62 +182,79 @@ export default function SecondLife() {
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
-        // Scroll to top when changing page
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Scroll to items grid section with offset
+        if (itemsGridRef.current) {
+            const offset = 80;
+            const elementPosition = itemsGridRef.current.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
     };
 
     return (
         <div>
             {/* Title */}
-            <Title heading="Second Life" description="Give your food scraps a new purpose. Discover creative ways to repurpose food waste
-into useful products for your home, garden, and beauty routine." />
+            <div className="py-12">
+                <Title heading="Second Life" 
+                description="Give your food scraps a new purpose. Discover creative ways to repurpose food waste into useful products for your home, garden, and beauty routine." 
+                background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/secondlife-titlebg.jpeg"
+                />
+            </div>
             
             {/* Search Component */}
-            <Search searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+            <div className="min-h-screen max-w-7xl mx-auto px-10 mt-8 mb-20">
+                {/* Search Component */}
+                <Search searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
-            {/* Ingredients Component */}
-            <Ingredients 
-                ingredients={ingredients}
-                selectedIngredient={selectedIngredient}
-                handleIngredientSelect={handleIngredientSelect}
-            />
+                {/* Ingredients Component */}
+                <Ingredients 
+                    ingredients={ingredients}
+                    selectedIngredient={selectedIngredient}
+                    handleIngredientSelect={handleIngredientSelect}
+                />
 
-            {/* Categories Component */}
-            <Categories 
-                categories={categories}
-                selectedCategory={selectedCategory}
-                handleCategorySelect={handleCategorySelect}
-            />
+                {/* Categories Component */}
+                <Categories 
+                    categories={categories}
+                    selectedCategory={selectedCategory}
+                    handleCategorySelect={handleCategorySelect}
+                />
 
-            {/* ItemsGrid Component */}
-            <ItemsGrid 
-                items={items}
-                allItems={allItems}
-                loading={loading}
-                error={error}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                handleCardClick={handleCardClick}
-                handlePageChange={handlePageChange}
-            />
+                {/* ItemsGrid Component */}
+                <ItemsGrid 
+                    ref={itemsGridRef}
+                    items={items}
+                    allItems={allItems}
+                    filteredItemsCount={filteredItemsCount}
+                    loading={loading}
+                    error={error}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    handleCardClick={handleCardClick}
+                    handlePageChange={handlePageChange}
+                />
 
-            {/* ItemDetail Component */}
-            <ItemDetail 
-                isOpen={isModalOpen}
-                onClose={closeModal}
-                item={selectedItem}
-            />
-
-            {/* Coming up next section */}
-            <ComingUp
-                message="From Your Kitchen to the Community!"
-                title="Discover how you can support your community"
-                description="Donating surplus food or disposing of waste responsibly — every small action makes a big impact."
-                buttonText="Explore the Food Network"
-                buttonLink="/food-network"
-                imageSrc="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/second-life-next.png"
-                imageAlt="Food Network"
-            />
+                {/* ItemDetail Component */}
+                <ItemDetail 
+                    isOpen={isModalOpen}
+                    onClose={closeModal}
+                    item={selectedItem}
+                />
+                
+                {/* Coming up next section */}
+                <ComingUp
+                    message="From Your Kitchen to the Community!"
+                    title="Discover how you can support your community"
+                    description="Donating surplus food or disposing of waste responsibly — every small action makes a big impact."
+                    buttonText="Explore the Food Network"
+                    buttonLink="/food-network"
+                    imageSrc="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/second-life-next.png"
+                    imageAlt="Food Network"
+                />
+            </div>
         </div>
     );
 }

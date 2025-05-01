@@ -22,7 +22,7 @@ export default function Search({ searchQuery, setSearchQuery }: SearchProps) {
   };
 
   return (
-    <div className="mt-8 max-w-xl mx-auto">
+    <div className="mb-8 max-w-xl mx-auto">
       <div className="relative">
         <Input
           type="text"
@@ -32,10 +32,9 @@ export default function Search({ searchQuery, setSearchQuery }: SearchProps) {
           }}
           value={searchQuery}
           onChange={handleSearch}
+          startContent={<FontAwesomeIcon icon={faMagnifyingGlass} />}
+          onClear={() => setSearchQuery("")}
         />
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-          <FontAwesomeIcon icon={faMagnifyingGlass} />
-        </div>
       </div>
     </div>
   );
