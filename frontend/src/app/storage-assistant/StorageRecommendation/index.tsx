@@ -217,15 +217,13 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   const handleAdd = async (section: 'fridge' | 'pantry') => {
     if (!newItem.name) return;
 
+    // First, try to add the item with fallback storage time
+    const storageTime = 21; // Default storage time
+    const newStorageRecs = { ...localStorageRecs };
+    const location = section === 'fridge' ? 'refrigerator' : 'pantry';
+
     try {
-      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-        food_type: newItem.name
-      });
-      const storageTime = response.data.storage_time;
-      const newStorageRecs = { ...localStorageRecs };
-      
-      // Add to inventory store
-      const location = section === 'fridge' ? 'refrigerator' : 'pantry';
+      // Add to inventory store first
       addItem({
         name: newItem.name,
         quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
@@ -241,29 +239,49 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
       
       setLocalStorageRecs(newStorageRecs);
       onUpdateStorageRecs(newStorageRecs);
+
+      // Then try to get storage advice from API
+      try {
+        const response = await axios.post<StorageAdviceResponse>(
+          `${config.apiUrl}/api/storage-advice/`,
+          {
+            food_type: newItem.name
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            timeout: 1000 // 1 second timeout
+          }
+        );
+
+        if (response.data) {
+          const apiStorageTime = response.data.storage_time;
+          
+          // Update the item with API storage time
+          const updatedStorageRecs = { ...newStorageRecs };
+          const itemIndex = updatedStorageRecs[section].length - 1;
+          updatedStorageRecs[section][itemIndex] = {
+            name: `${newItem.name} (${apiStorageTime} days)`,
+            quantity: newItem.quantity
+          };
+          
+          setLocalStorageRecs(updatedStorageRecs);
+          onUpdateStorageRecs(updatedStorageRecs);
+        }
+      } catch (apiError: unknown) {
+        if (apiError && typeof apiError === 'object' && 'code' in apiError && apiError.code === 'ECONNABORTED') {
+          // Silently handle timeout errors
+        } else {
+          // Silently handle other API errors
+        }
+      }
     } catch {
-      // If API call fails, use default storage time
-      const newStorageRecs = { ...localStorageRecs };
-      
-      // Add to inventory store with default storage time
-      const location = section === 'fridge' ? 'refrigerator' : 'pantry';
-      addItem({
-        name: newItem.name,
-        quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
-        location: location,
-        expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-      });
-      
-      // Add to local state
-      newStorageRecs[section].push({
-        name: `${newItem.name} (7 days)`,
-        quantity: newItem.quantity
-      });
-      
-      setLocalStorageRecs(newStorageRecs);
-      onUpdateStorageRecs(newStorageRecs);
+      // Handle any other errors silently
     }
 
+    // Reset form state and close the form
     setNewItem({ name: '', quantity: 1 });
     setShowAddForm(null);
   };

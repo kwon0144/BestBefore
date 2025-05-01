@@ -51,7 +51,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   const [itemToEdit, setItemToEdit] = useState<FoodItem | null>(null);
   const [isFetchingRecommendation, setIsFetchingRecommendation] = useState(false);
   const [foodTypeOptions, setFoodTypeOptions] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   // Form state
@@ -81,7 +80,17 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         setFoodTypeOptions(response.data.food_types);
       }
     } catch {
-      setError("Failed to load food types from the database.");
+      addToast({
+        title: "Error",
+        description: "Failed to load food types from the database.",
+        classNames: {
+          base: "bg-red-50",
+          title: "text-amber-700 font-medium font-semibold",
+          description: "text-amber-700",
+          icon: "text-amber-700"
+        },
+        timeout: 3000
+      });
     }
   };
 
@@ -243,8 +252,18 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
             quantity: newQuantity
           });
           
-          // Let the user know that quantities were combined
-          setError(`Added to existing "${newItem.name}" with similar expiry date.`);
+          // Show toast for combined quantities
+          addToast({
+            title: "Item Updated",
+            description: `Added to existing "${newItem.name}" with similar expiry date.`,
+            classNames: {
+              base: "bg-background",
+              title: "text-darkgreen font-medium font-semibold",
+              description: "text-darkgreen",
+              icon: "text-darkgreen"
+            },
+            timeout: 3000
+          });
         } else {
           // Add as new item with recommended values
           const recommendedItem = {
@@ -272,7 +291,17 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       setItemToEdit(null);
     } catch (error) {
       console.error("Error adding/updating item:", error);
-      setError("Failed to add/update item. Please try again.");
+      addToast({
+        title: "Error",
+        description: "Failed to add/update item. Please try again.",
+        classNames: {
+          base: "bg-red-50",
+          title: "text-amber-700 font-medium font-semibold",
+          description: "text-amber-700",
+          icon: "text-amber-700"
+        },
+        timeout: 3000
+      });
     }
   };
 
@@ -327,7 +356,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     if (formState.name == "" || formState.quantity == "") {
       return false;
     }
-    setError(null);
     return true;
   };
 
@@ -371,12 +399,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         </ModalHeader>
         <ModalBody>
           <div className="mb-6">
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md">
-                {error}
-              </div>
-            )}
-            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="md:col-span-2 relative">
                 <Input

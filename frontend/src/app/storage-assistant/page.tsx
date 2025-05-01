@@ -297,7 +297,8 @@ const FoodStorageAssistant: React.FC = () => {
    * Shows error toast if no items are in inventory
    */
   const handleStep2Click = () => {
-    if (storageRecs.fridge.length === 0 && storageRecs.pantry.length === 0) {
+    const items = useInventoryStore.getState().items;
+    if (items.length === 0) {
       addToast({
         title: "No Items in Inventory",
         description: "Please add items to your inventory to set up expiry reminders",
@@ -488,8 +489,6 @@ const FoodStorageAssistant: React.FC = () => {
                           <CalendarExport
                             calendarSelection={calendarSelection}
                             setCalendarSelection={setCalendarSelection}
-                            detections={state.detections}
-                            storageRecs={storageRecs}
                           />
                           <div className="flex justify-center md:justify-end mt-8">
                             <Button

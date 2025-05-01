@@ -11,6 +11,7 @@ import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import { config } from '@/config';
+import { addToast } from "@heroui/react";
 
 /**
  * Props interface for the CalendarImport component
@@ -40,36 +41,49 @@ const CalendarImport: React.FC<CalendarImportProps> = ({
    * - Temporarily disables the download button to prevent multiple downloads
    */
   const downloadCalendar = async () => {
-    if (calendarLink) {
-      try {
-        // Fetch the calendar file from the API
-        const response = await fetch(`${config.apiUrl}${calendarLink}`);
-        const blob = await response.blob();
-        
-        // Create a temporary URL for the blob
-        const url = window.URL.createObjectURL(blob);
-        
-        // Create and configure the download link
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'best-before-reminders.ics';
-        
-        // Trigger the download
-        document.body.appendChild(link);
-        link.click();
-        
-        // Clean up
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(link);
-        
-        // Disable button temporarily to prevent multiple downloads
-        setIsTemporarilyDisabled(true);
-        setTimeout(() => {
-          setIsTemporarilyDisabled(false);
-        }, 10000); // 10 seconds cooldown
-      } catch (error) {
-        console.error('Error downloading calendar:', error);
-      }
+    if (!calendarLink) {
+      addToast({
+        title: "Calendar Not Ready",
+        description: "Please complete the reminder setup process to generate your calendar file",
+        classNames: {
+          base: "bg-amber-100/70",
+          title: "text-amber-700 font-medium font-semibold",
+          description: "text-amber-700",
+          icon: "text-amber-700"
+        },
+        timeout: 3000
+      });
+      return;
+    }
+
+    try {
+      // Fetch the calendar file from the API
+      const response = await fetch(`${config.apiUrl}${calendarLink}`);
+      const blob = await response.blob();
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create and configure the download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'best-before-reminders.ics';
+      
+      // Trigger the download
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+      
+      // Disable button temporarily to prevent multiple downloads
+      setIsTemporarilyDisabled(true);
+      setTimeout(() => {
+        setIsTemporarilyDisabled(false);
+      }, 10000); // 10 seconds cooldown
+    } catch (error) {
+      console.error('Error downloading calendar:', error);
     }
   };
 
