@@ -1,23 +1,47 @@
+/* CalendarExport Component
+ * 
+ * This component manages the export of food items to calendar reminders.
+ * It allows users to set reminder preferences and select items from fridge and pantry
+ * for tracking expiry dates and receiving notifications.
+ */
 import React, { useCallback } from 'react';
 import { Button, Select, SelectItem } from "@heroui/react";
 import { CalendarSelection, ProduceDetections, StorageAdviceResponse, StorageRecommendation } from '../interfaces';
 import axios from 'axios';
 import { config } from '@/config';
 
+/**
+ * Props interface for the CalendarExport component
+ * @interface CalendarExportProps
+ * @property {CalendarSelection} calendarSelection - Current calendar selection state
+ * @property {React.Dispatch<React.SetStateAction<CalendarSelection>>} setCalendarSelection - Function to update calendar selection
+ * @property {ProduceDetections | null} detections - Detected produce items or null if none
+ * @property {StorageRecommendation} storageRecs - Storage recommendations for items
+ */
 interface CalendarExportProps {
   calendarSelection: CalendarSelection;
   setCalendarSelection: React.Dispatch<React.SetStateAction<CalendarSelection>>;
   detections: ProduceDetections | null;
-  storageRecs: StorageRecommendation  ;
+  storageRecs: StorageRecommendation;
 }
 
+/**
+ * CalendarExport Component
+ *
+ * @param {CalendarExportProps} props - Component props containing the calendar selection state, update function, detections, and storage recommendations
+ * @returns {JSX.Element} A React component for setting reminder preferences and selecting items for calendar reminders
+ */
 const CalendarExport: React.FC<CalendarExportProps> = ({
   calendarSelection,
   setCalendarSelection,
   detections,
   storageRecs,
 }) => {
-  // Helper function to map storage items to calendar items
+  /**
+   * Maps storage items to calendar items format
+   * @param {Object.<string, number>} items - Object containing item names and their quantities
+   * @returns {CalendarItem[]} Array of calendar items with proper formatting
+   */
   const mapStorageToCalendarItems = (items: { [key: string]: number }) => {
     return Object.entries(items).map(([item, count]: [string, number]) => {
       const storageTimeMatch = item.match(/\((\d+) days\)/);
@@ -33,7 +57,10 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
     });
   };
 
-  // Get fridge items from storage recommendations
+  /**
+   * Retrieves fridge items from storage recommendations
+   * @returns {Object.<string, number>} Object containing fridge item names and their quantities
+   */
   const getFridgeItems = () => {
     const items: { [key: string]: number } = {};
     storageRecs.fridge.forEach(item => {
@@ -42,7 +69,10 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
     return items;
   };
 
-  // Get pantry items from storage recommendations
+  /**
+   * Retrieves pantry items from storage recommendations
+   * @returns {Object.<string, number>} Object containing pantry item names and their quantities
+   */
   const getPantryItems = () => {
     const items: { [key: string]: number } = {};
     storageRecs.pantry.forEach(item => {
@@ -51,7 +81,11 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
     return items;
   };
 
-  // Get storage time for a food type
+  /**
+   * Fetches storage time for a specific food type from the API
+   * @param {string} foodType - The type of food to get storage time for
+   * @returns {Promise<number>} Promise resolving to the storage time in days
+   */
   const getStorageTime = async (foodType: string) => {
     try {
       const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
@@ -64,7 +98,10 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
     }
   };
 
-  // Get storage times for all detected items
+  /**
+   * Fetches storage times for all detected items
+   * @returns {Promise<void>} Promise that resolves when all storage times are fetched
+   */
   const fetchStorageTimes = useCallback(async () => {
     if (!detections?.produce_counts) return;
 
@@ -80,7 +117,11 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
     }
   }, [detections?.produce_counts, fetchStorageTimes]);
 
-  // Update the item selection handler
+  /**
+   * Handles item selection/deselection for calendar reminders
+   * @param {string} item - The item name with storage time
+   * @param {number} count - The quantity of the item
+   */
   const handleItemSelection = (item: string, count: number) => {
     // Extract storage time from the item name if it exists
     const storageTimeMatch = item.match(/\((\d+) days\)/);

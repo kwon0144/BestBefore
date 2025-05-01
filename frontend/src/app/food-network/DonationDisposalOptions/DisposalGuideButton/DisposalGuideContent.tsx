@@ -1,19 +1,34 @@
+/**
+ * DisposalGuideContent.tsx
+ * 
+ * This component displays a modal guide for proper food waste disposal in green waste bins.
+ * It provides information about what items can and cannot be disposed of in green waste bins,
+ * helping users make environmentally conscious decisions about food waste disposal.
+ */
+
 import { useState } from "react";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { faXmark, faRecycle, faTimesCircle, faCheckCircle, faAppleAlt, faBreadSlice, faDrumstickBite, faCheese, faEgg, faCoffee, faFish, faUtensils, faLightbulb, faMugHot, faWineBottle, faWater, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 
+// Props interface for the main DisposalGuideContent component
 interface DisposalGuideContentProps {
-    onClose: () => void;
+    onClose: () => void; // Callback function to close the modal
 }
 
+// Props interface for the Item component
 interface ItemProps {
-    icon: IconProp;
-    text: string;
-    color: string;
+    icon: IconProp;      // FontAwesome icon to display
+    text: string;        // Text description of the item
+    color: string;       // Color for the item's border and icon
 }
 
+/**
+ * Item Component
+ * A reusable component that displays an item with an icon and text
+ * Used to show both acceptable and non-acceptable items for green waste disposal
+ */
 const Item = ({ icon, text, color }: ItemProps) => (
     <div className={`bg-white border border-[${color}] rounded-lg p-3 flex items-center gap-3`}>
         <FontAwesomeIcon icon={icon} className={`text-[${color}] text-xl`} />
@@ -21,6 +36,11 @@ const Item = ({ icon, text, color }: ItemProps) => (
     </div>
 );
 
+/**
+ * YesTab Component
+ * Displays items that CAN be disposed of in green waste bins
+ * Includes a fun fact about food waste and methane emissions
+ */
 const YesTab = () => (
     <div className="space-y-4">
 
@@ -46,6 +66,11 @@ const YesTab = () => (
     </div>
 );
 
+/**
+ * NoTab Component
+ * Displays items that CANNOT be disposed of in green waste bins
+ * Includes a warning about prohibited items
+ */
 const NoTab = () => (
     <div className="space-y-4">
         
@@ -65,6 +90,11 @@ const NoTab = () => (
     </div>
 );
 
+/**
+ * DisposalGuideContent Component
+ * Main component that renders a modal with tabs for acceptable and non-acceptable items
+ * Includes a header with title, image, and interactive tabs
+ */
 export default function DisposalGuideContent({ onClose }: DisposalGuideContentProps) {
     const [activeTab, setActiveTab] = useState<string>("yes");
 

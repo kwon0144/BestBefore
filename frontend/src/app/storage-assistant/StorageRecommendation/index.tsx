@@ -1,3 +1,17 @@
+/**
+ * StorageRecommendations Component
+ * 
+ * A React component that displays and manages storage recommendations for food items.
+ * It provides functionality to:
+ * - Display items recommended for refrigerator and pantry storage
+ * - Add new items to either storage location
+ * - Edit existing items (name and quantity)
+ * - Delete items
+ * - Drag and drop items between storage locations
+ * - Sync with the inventory store
+ * 
+ */
+
 import React, { useState, useEffect } from 'react';
 import { StorageRecommendation } from '../interfaces';
 import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
@@ -6,18 +20,37 @@ import axios from 'axios';
 import { config } from '@/config';
 import useInventoryStore from '@/store/useInventoryStore';
 
-// Define the response type for storage advice API
+/**
+ * Interface representing the response from the storage advice API
+ * @interface StorageAdviceResponse
+ * @property {string} type - The type of food item
+ * @property {number} storage_time - The recommended storage time in days
+ * @property {number} method - The storage method code
+ */
 interface StorageAdviceResponse {
   type: string;
   storage_time: number;
   method: number;
 }
 
+/**
+ * Props interface for the StorageRecommendations component
+ * @interface StorageRecommendationsProps
+ * @property {StorageRecommendation} storageRecs - Current storage recommendations
+ * @property {(newStorageRecs: StorageRecommendation) => void} onUpdateStorageRecs - Callback to update storage recommendations
+ */
 interface StorageRecommendationsProps {
   storageRecs: StorageRecommendation;
   onUpdateStorageRecs: (newStorageRecs: StorageRecommendation) => void;
 }
 
+/**
+ * StorageRecommendations Component
+ * 
+ * @component
+ * @param {StorageRecommendationsProps} props - Component props
+ * @returns {JSX.Element} The rendered component
+ */
 const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storageRecs, onUpdateStorageRecs }) => {
   const [editingItem, setEditingItem] = useState<{ index: number; section: 'fridge' | 'pantry' } | null>(null);
   const [newItem, setNewItem] = useState<{ name: string; quantity: number }>({ name: '', quantity: 1 });
@@ -55,6 +88,11 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   // Check if both sections are empty
   const noItemsDetected = localStorageRecs.fridge.length === 0 && localStorageRecs.pantry.length === 0;
 
+  /**
+   * Handles the edit operation for an item
+   * @param {number} index - Index of the item to edit
+   * @param {'fridge' | 'pantry'} section - Storage section containing the item
+   */
   const handleEdit = (index: number, section: 'fridge' | 'pantry') => {
     const item = localStorageRecs[section][index];
     const itemName = item.name.split(' (')[0];
@@ -62,6 +100,11 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     setEditingItem({ index, section });
   };
 
+  /**
+   * Saves the edited item and updates both local state and inventory store
+   * @param {number} index - Index of the item being saved
+   * @param {'fridge' | 'pantry'} section - Storage section containing the item
+   */
   const handleSave = async (index: number, section: 'fridge' | 'pantry') => {
     const newStorageRecs = { ...localStorageRecs };
     const item = newStorageRecs[section][index];
@@ -141,6 +184,11 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     setEditingItem(null);
   };
 
+  /**
+   * Deletes an item from storage recommendations and inventory store
+   * @param {number} index - Index of the item to delete
+   * @param {'fridge' | 'pantry'} section - Storage section containing the item
+   */
   const handleDelete = (index: number, section: 'fridge' | 'pantry') => {
     const newStorageRecs = { ...localStorageRecs };
     const item = newStorageRecs[section][index];
@@ -162,6 +210,10 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     onUpdateStorageRecs(newStorageRecs);
   };
 
+  /**
+   * Adds a new item to storage recommendations and inventory store
+   * @param {'fridge' | 'pantry'} section - Storage section to add the item to
+   */
   const handleAdd = async (section: 'fridge' | 'pantry') => {
     if (!newItem.name) return;
 
@@ -216,18 +268,33 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     setShowAddForm(null);
   };
 
-  // Native HTML5 drag and drop handlers
+  /**
+   * Handles the start of a drag operation
+   * @param {React.DragEvent} e - The drag event
+   * @param {number} index - Index of the item being dragged
+   * @param {'fridge' | 'pantry'} section - Storage section containing the item
+   */
   const handleDragStart = (e: React.DragEvent, index: number, section: 'fridge' | 'pantry') => {
     setDraggedItem({ index, section });
     e.dataTransfer.setData('text/plain', ''); // Required for Firefox
     e.dataTransfer.effectAllowed = 'move';
   };
 
+  /**
+   * Handles the drag over event to allow dropping
+   * @param {React.DragEvent} e - The drag event
+   */
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
   };
 
+  /**
+   * Handles the drop operation for drag and drop functionality
+   * @param {React.DragEvent} e - The drag event
+   * @param {'fridge' | 'pantry'} targetSection - Target storage section
+   * @param {number} [targetIndex] - Optional target index for insertion
+   */
   const handleDrop = (e: React.DragEvent, targetSection: 'fridge' | 'pantry', targetIndex?: number) => {
     e.preventDefault();
     
@@ -260,6 +327,12 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     setDraggedItem(null);
   };
 
+  /**
+   * Renders the list of items for a given storage section
+   * @param {Array<{name: string; quantity: number}>} items - Array of items to render
+   * @param {'fridge' | 'pantry'} section - Storage section to render items for
+   * @returns {JSX.Element} The rendered item list
+   */
   const renderItemList = (items: Array<{ name: string; quantity: number }>, section: 'fridge' | 'pantry') => {
     return (
       <ul 

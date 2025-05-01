@@ -1,13 +1,33 @@
+/**
+ * Directions Component
+ * 
+ * This component handles the rendering of route directions between two points on the map.
+ * It uses Google Maps Directions Service to calculate routes and displays them on the map.
+ */
+"use client";
+
 import { useMap } from "@vis.gl/react-google-maps";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Dispatch, SetStateAction, useEffect, useState, useRef } from "react";
 import { MapSectionState } from "@/app/food-network/interfaces";
 
+/**
+ * Props interface for the Directions component
+ * @interface
+ */
 interface DirectionsProps {
+    /** Current state of the map section */
     mapSectionState: MapSectionState
+    /** Function to update map section state */
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>
 }
 
+/**
+ * Renders and manages route directions between two points on the map
+ * 
+ * @param {DirectionsProps} props - Component properties
+ * @returns {null} This component doesn't render any visible elements
+ */
 export default function Directions({ mapSectionState, setMapSectionState }: DirectionsProps) {
     const map = useMap();
     const routesLibrary = useMapsLibrary("routes")
@@ -15,7 +35,7 @@ export default function Directions({ mapSectionState, setMapSectionState }: Dire
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
     const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
 
-    // Initialize directions service and renderer
+    // Initialize directions service and renderer when map and routes library are available
     useEffect(() => {
         if (!routesLibrary || !map) return;
         
@@ -31,6 +51,7 @@ export default function Directions({ mapSectionState, setMapSectionState }: Dire
         setDirectionsRenderer(renderer);
         directionsRendererRef.current = renderer;
 
+        // Cleanup function to remove renderer from map when component unmounts
         return () => {
             if (directionsRendererRef.current) {
                 directionsRendererRef.current.setMap(null);
@@ -38,12 +59,12 @@ export default function Directions({ mapSectionState, setMapSectionState }: Dire
         };
     }, [routesLibrary, map]);
 
-    // Handle route changes
+    // Handle route changes when start/end points or travel mode changes
     useEffect(() => {
         if (!directionsService || !directionsRenderer || !map) return;
 
         if (!mapSectionState.routeStart || !mapSectionState.routeEnd) {
-            // Remove route from map
+            // Remove route from map if start or end points are not set
             directionsRenderer.setMap(null);
             return;
         }
@@ -62,6 +83,7 @@ export default function Directions({ mapSectionState, setMapSectionState }: Dire
                 directionsRenderer.setDirections(result);
             }
         }).then((result) => {
+            // Update route details in the state
             setMapSectionState({
                 ...mapSectionState,
                 routeDetails: {

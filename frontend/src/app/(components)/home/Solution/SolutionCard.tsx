@@ -1,6 +1,22 @@
+/**
+ * A card component that displays a solution step with a flip animation.
+ * The front of the card shows an image and title, while the back shows a description.
+ * The card can be clicked to trigger an optional callback function.
+ */
 import { FlipCard } from "../../FlipCard";
 import Image from 'next/image';
 
+/**
+ * Props interface for the SolutionCard component
+ * @interface SolutionCardProps
+ * @property {Object} step - The step information to display
+ * @property {React.ReactNode} step.icon - Icon component for the step
+ * @property {string} step.title - Title of the step
+ * @property {string} step.description - Description of the step
+ * @property {string} step.buttonText - Text for the button (if any)
+ * @property {string} step.image - URL or path to the step's image
+ * @property {Function} [onClick] - Optional callback function when the card is clicked
+ */
 interface SolutionCardProps {
     step: {
         icon: React.ReactNode;
@@ -12,6 +28,11 @@ interface SolutionCardProps {
     onClick?: () => void;
 }
 
+/**
+ * SolutionCard component that renders a flip card with step information
+ * @param {SolutionCardProps} props - The props for the SolutionCard component
+ * @returns {JSX.Element} A flip card component with front and back content
+ */
 export default function SolutionCard({ step, onClick }: SolutionCardProps) {
     return (
         <div className="col-span-1 cursor-pointer w-[200px]" onClick={onClick}>
