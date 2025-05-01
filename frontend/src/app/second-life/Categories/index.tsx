@@ -50,4 +50,6 @@ const Categories = forwardRef<HTMLDivElement, CategoriesProps>(({
   );
 });
 
+Categories.displayName = 'Categories';
+
 export default Categories; 

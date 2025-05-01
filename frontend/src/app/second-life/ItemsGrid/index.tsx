@@ -24,7 +24,6 @@ import Image from 'next/image';
  */
 const ItemsGrid = forwardRef<HTMLDivElement, ItemsGridProps>(({
   items,
-  allItems,
   filteredItemsCount,
   loading,
   error,
@@ -55,34 +54,57 @@ const ItemsGrid = forwardRef<HTMLDivElement, ItemsGridProps>(({
         <div className="text-center text-red-500">{error}</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {items.map((item) => (
               <div
                 key={item.method_id}
                 onClick={() => handleCardClick(item)}
-                className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border border-gray-100"
               >
-                <div className="h-48 overflow-hidden">
+                <div className="relative h-56 overflow-hidden">
                   {item.picture ? (
-                    <Image
-                      src={item.picture}
-                      alt={item.method_name}
-                      width={300}
-                      height={192}
-                      className="w-full h-full object-cover object-top"
-                    />
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent z-10" />
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={item.picture}
+                          alt={item.method_name}
+                          fill
+                          quality={75}
+                          loading="lazy"
+                          className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                          style={{ position: 'absolute' }}
+                        />
+                      </div>
+                    </>
                   ) : (
-                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                      <span className="text-gray-400">No image available</span>
+                    <div className="w-full h-full bg-gray-50 flex items-center justify-center">
+                      <span className="text-gray-400 text-sm">No image available</span>
                     </div>
                   )}
-                </div>
-                <div className="p-4 bg-[#f0f7f0] min-h-[160px]">
-                  <h3 className="text-xl font-semibold text-darkgreen mb-2">{item.method_name}</h3>
-                  <p className="text-gray-700 mb-4">{item.ingredient}</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs py-1 px-3 bg-amber-50 text-amber-700 rounded-full">
+                  <div className="absolute top-3 right-3 z-20">
+                    <span className="text-xs font-medium py-1.5 px-3 bg-white/90 backdrop-blur-sm text-amber-700 rounded-full shadow-sm">
                       {item.method_category}
+                    </span>
+                  </div>
+                </div>
+                <div className="p-5 bg-gradient-to-b from-[#f8faf8] to-white">
+                  <h3 className="text-xl font-semibold text-[#2c5e2e] mb-2 line-clamp-1 group-hover:text-[#1f4521]">
+                    {item.method_name}
+                  </h3>
+                  <div className="flex gap-2 flex-wrap mb-3">
+                    {item.ingredient.split(',').map((ing, idx) => (
+                      <span 
+                        key={idx} 
+                        className="text-xs py-1 px-2 bg-[#f0f7f0] text-[#2c5e2e] rounded-md"
+                      >
+                        {ing.trim()}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center text-[#2c5e2e] text-sm">
+                    <span className="group-hover:translate-x-1 transition-transform duration-300">
+                      View details →
                     </span>
                   </div>
                 </div>
@@ -92,7 +114,7 @@ const ItemsGrid = forwardRef<HTMLDivElement, ItemsGridProps>(({
           
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center mt-10">
+            <div className="flex justify-center mt-12">
               <Pagination
                 total={totalPages}
                 initialPage={currentPage}
@@ -100,7 +122,8 @@ const ItemsGrid = forwardRef<HTMLDivElement, ItemsGridProps>(({
                 variant="light"
                 classNames={{
                   cursor: "bg-[#2c5e2e]",
-                  item: "text-[#2c5e2e]",
+                  item: "text-[#2c5e2e] hover:bg-[#f0f7f0]",
+                  wrapper: "gap-2"
                 }}
               />
             </div>
@@ -110,5 +133,7 @@ const ItemsGrid = forwardRef<HTMLDivElement, ItemsGridProps>(({
     </div>
   );
 });
+
+ItemsGrid.displayName = 'ItemsGrid';
 
 export default ItemsGrid; 

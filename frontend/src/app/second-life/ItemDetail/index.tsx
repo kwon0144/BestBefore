@@ -79,9 +79,7 @@ export default function ItemDetail({ isOpen, onClose, item }: ItemDetailProps) {
             </div>
             
             {/* Scrollable content */}
-            <div className="px-6 overflow-y-auto" style={{ maxHeight: "calc(70vh - 350px)" }}>
-              <h2 className="text-2xl font-semibold text-[#2c5e2e] mb-6">Description</h2>
-              
+            <div className="px-6 overflow-y-auto" style={{ maxHeight: "calc(70vh - 350px)" }}>              
               {/* Handle case with explicit Requires section */}
               {item.description.includes('Requires:') && (
                 <div className="mb-6">

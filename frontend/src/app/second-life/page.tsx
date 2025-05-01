@@ -129,14 +129,14 @@ export default function SecondLife() {
         const endIndex = startIndex + itemsPerPage;
         setItems(filteredItems.slice(startIndex, endIndex));
         setTotalPages(Math.ceil(filteredItems.length / itemsPerPage));
-    }, [currentPage, allItems, selectedCategory, selectedIngredient, featuredItemIds]);
+    }, [currentPage, allItems, selectedCategory, selectedIngredient, featuredItemIds, searchQuery]);
 
     // Fetch items when search query changes
     useEffect(() => {
         fetchItems();
         // Reset to first page when search or filters change
         setCurrentPage(1);
-    }, [fetchItems]);
+    }, [fetchItems, searchQuery]);
 
     // Event handlers
     const handleCategorySelect = (category: string) => {
