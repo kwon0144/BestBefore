@@ -1,3 +1,14 @@
+/**
+ * RotatingTextRef Component
+ * 
+ * This component provides an animated text rotation system with:
+ * - Character-by-character animation
+ * - Customizable animation properties
+ * - Automatic and manual rotation control
+ * - Staggered animations
+ * - Accessibility support
+ * - Multiple text splitting options
+ */
 import React, {
     forwardRef,
     useCallback,
@@ -16,42 +27,83 @@ import React, {
     type TargetAndTransition,
   } from "framer-motion";
   
-  function cn(...classes: (string | undefined | null | boolean)[]): string {
+/**
+ * Utility function to combine class names
+ * 
+ * @param {...(string | undefined | null | boolean)} classes - Class names to combine
+ * @returns {string} Combined class names string
+ */
+function cn(...classes: (string | undefined | null | boolean)[]): string {
     return classes.filter(Boolean).join(" ");
-  }
+}
   
-  export interface RotatingTextRef {
+/**
+ * Interface for the rotating text component's ref methods
+ */
+export interface RotatingTextRef {
+    /** Move to the next text in the sequence */
     next: () => void;
+    /** Move to the previous text in the sequence */
     previous: () => void;
+    /** Jump to a specific text index */
     jumpTo: (index: number) => void;
+    /** Reset to the first text */
     reset: () => void;
-  }
+}
   
-  export interface RotatingTextProps
+/**
+ * Props interface for the RotatingText component
+ * Extends motion.span props with additional configuration options
+ */
+export interface RotatingTextProps
     extends Omit<
       React.ComponentPropsWithoutRef<typeof motion.span>,
       "children" | "transition" | "initial" | "animate" | "exit"
     > {
+    /** Array of texts to rotate through */
     texts: string[];
+    /** Animation transition configuration */
     transition?: Transition;
+    /** Initial animation state */
     initial?: boolean | Target | VariantLabels;
+    /** Animation state */
     animate?: boolean | VariantLabels | AnimationControls | TargetAndTransition;
+    /** Exit animation state */
     exit?: Target | VariantLabels;
+    /** AnimatePresence mode */
     animatePresenceMode?: "sync" | "wait";
+    /** Whether to show initial animation */
     animatePresenceInitial?: boolean;
+    /** Interval between rotations in milliseconds */
     rotationInterval?: number;
+    /** Duration of stagger effect */
     staggerDuration?: number;
+    /** Direction of stagger effect */
     staggerFrom?: "first" | "last" | "center" | "random" | number;
+    /** Whether to loop through texts */
     loop?: boolean;
+    /** Whether to auto-rotate */
     auto?: boolean;
+    /** How to split the text for animation */
     splitBy?: string;
+    /** Callback when text changes */
     onNext?: (index: number) => void;
+    /** Main container class name */
     mainClassName?: string;
+    /** Split level class name */
     splitLevelClassName?: string;
+    /** Element level class name */
     elementLevelClassName?: string;
-  }
-  
-  const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>(
+}
+
+/**
+ * Component that renders animated rotating text with various effects
+ * 
+ * @param {RotatingTextProps} props - Component properties
+ * @param {React.Ref<RotatingTextRef>} ref - Forwarded ref for controlling the component
+ * @returns {JSX.Element} Rendered animated text component
+ */
+const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>(
     (
       {
         texts,

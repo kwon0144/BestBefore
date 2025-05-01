@@ -33,7 +33,9 @@ export default function PopularMeal({ popularMeals, setSearchQuery }: PopularMea
   
   return (
     <div className="mb-8">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Food Categories</h2>
+      <h2 className="text-2xl font-semibold text-darkgreen mb-4">
+        Search by Food Categories
+      </h2>
       <div className="flex flex-wrap gap-3">
         {displayedCategories.map((category, index) => (
           <div

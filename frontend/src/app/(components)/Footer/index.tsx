@@ -1,29 +1,51 @@
+/**
+ * Footer Component
+ * 
+ * This component provides a responsive footer with:
+ * - Logo and tagline
+ * - Navigation links with subsections
+ * - Copyright information
+ * - Responsive grid layout
+ * - Hover effects and transitions
+ */
 import React from 'react';
 import Image from 'next/image';
 import NoScrollLink from '../NoScrollLink';
 
-const Footer = () => {
-  const menuItems = [
-    {name: "Storage Assistant", link: "/storage-assistant", section: [
-        {name: "Food Product Scanner"},
-        {name: "Storage Management"},
-        {name: "Expiration Reminder"},
-    ]},
-    {name: "Eco Grocery", link: "/eco-grocery", section: [
-        {name: "Choices of Meals"},
-        {name: "Food Inventory"},
-        {name: "Smart Grocery List"},
-    ]},
-    {name: "Second Life", link: "/second-life", section: [
-      {name: "Search for DIY ideas"},
-      {name: "DIY procedures"},
-    ]},
-    {name: "Food Network", link: "/food-network", section: [
-        {name: "Food Bank Network"},
-        {name: "Green Waste Bin Network"},
-    ]},
-  ];
+/**
+ * Array of footer menu items with their subsections
+ * Each item contains:
+ * - name: Display name of the section
+ * - link: Navigation path
+ * - section: Array of subsection items
+ */
+const menuItems = [
+  {name: "Storage Assistant", link: "/storage-assistant", section: [
+      {name: "Food Product Scanner"},
+      {name: "Storage Management"},
+      {name: "Expiration Reminder"},
+  ]},
+  {name: "Eco Grocery", link: "/eco-grocery", section: [
+      {name: "Choices of Meals"},
+      {name: "Food Inventory"},
+      {name: "Smart Grocery List"},
+  ]},
+  {name: "Second Life", link: "/second-life", section: [
+    {name: "Search for DIY ideas"},
+    {name: "DIY procedures"},
+  ]},
+  {name: "Food Network", link: "/food-network", section: [
+      {name: "Food Bank Network"},
+      {name: "Green Waste Bin Network"},
+  ]},
+];
 
+/**
+ * Main footer component that displays navigation links and copyright information
+ * 
+ * @returns {JSX.Element} Rendered footer with navigation and branding
+ */
+const Footer = () => {
   return (
     <footer className="bg-darkgreen text-white py-12">
       <div className="max-w-7xl mx-auto">

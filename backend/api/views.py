@@ -17,9 +17,9 @@ from datetime import datetime, timedelta, date
 import os
 
 # Local application imports
-from .db_service import get_storage_recommendations, get_all_food_types
-from .dish_ingre_service import DishIngredientService
-from .hours_parser_service import parse_operating_hours
+from .service.db_service import get_storage_recommendations, get_all_food_types
+from .service.dish_ingre_service import DishIngredientService
+from .service.hours_parser_service import parse_operating_hours
 from .models import Geospatial, SecondLife, Dish
 from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
 
@@ -256,7 +256,7 @@ def search_dishes(request):
                           status=status.HTTP_400_BAD_REQUEST)
         
         # Use the new function to handle ingredient combining
-        from .ingredient_combiner_service import combine_dish_ingredients
+        from .service.ingredient_combiner_service import combine_dish_ingredients
         
         result = combine_dish_ingredients(selected_meals)
         

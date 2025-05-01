@@ -10,8 +10,8 @@ from .views import (
     get_signature_dishes,
     login,
 )
-from . import produce_detection_service
-from .output_calender_service import generate_calendar, generate_ical
+from .service import produce_detection_service
+from .service.output_calender_service import generate_calendar, generate_ical
 from rest_framework.routers import DefaultRouter
 
 

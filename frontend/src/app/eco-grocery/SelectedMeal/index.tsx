@@ -20,7 +20,7 @@ import { SelectedMealsProps } from "../interfaces";
  * @interface
  */
 export interface SelectedMealWithButtonProps extends SelectedMealsProps {
-  generateGroceryList: () => void;
+  onGenerate: () => void;
   loading: boolean;
 }
 
@@ -40,16 +40,18 @@ export default function SelectedMeal({
   selectedMeals, 
   adjustQuantity, 
   removeMeal, 
-  generateGroceryList, 
+  onGenerate, 
   loading 
 }: SelectedMealWithButtonProps) {
   return (
     <div className="bg-white rounded-lg shadow-md p-4 h-full flex flex-col">
-      <h2 className="text-xl font-semibold text-gray-800 mb-3">Your Selected Meals</h2>
-      {selectedMeals.length === 0 ? (
-        <p className="text-gray-500 italic text-sm">No meals selected yet. Add meals from the choices above or search for your own.</p>
-      ) : (
-        <div className="overflow-y-auto max-h-[350px] pr-1 -mr-1 mb-4">
+      <h2 className="text-2xl font-semibold text-darkgreen mb-3">
+        Your Selected Meals
+      </h2>
+      <div className="overflow-y-auto flex-grow min-h-[350px] max-h-[350px] pr-1 -mr-1 mb-4">
+        {selectedMeals.length === 0 ? (
+          <p className="text-gray-500 italic text-sm">No meals selected yet. Add meals from the choices above or search for your own.</p>
+        ) : (
           <ul className="divide-y divide-gray-200">
             {selectedMeals.map((meal) => (
               <li key={meal.id} className="py-2 flex justify-between items-center text-sm">
@@ -85,14 +87,14 @@ export default function SelectedMeal({
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </div>
       
       {/* Generate Grocery List Button */}
       <Button
         className={`mt-auto w-full ${loading ? 'bg-gray-400' : 'bg-[#2F5233]'} text-white py-3 rounded-lg shadow-sm hover:bg-[#1B371F] transition ${selectedMeals.length === 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} !rounded-button whitespace-nowrap`}
         disabled={selectedMeals.length === 0 || loading}
-        onPress={generateGroceryList}
+        onPress={onGenerate}
       >
         {loading ? (
           <span className="flex items-center justify-center">

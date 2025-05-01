@@ -12,8 +12,11 @@ const nextConfig: NextConfig = {
   /* config options here */
   basePath: getBasePath(),
   images: {
-    domains: [
-      's3-tp22.s3.ap-southeast-2.amazonaws.com'
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 's3-tp22.s3.ap-southeast-2.amazonaws.com',
+      }
     ],
   },
   allowedDevOrigins: ['local-origin.dev', '*.local-origin.dev'],

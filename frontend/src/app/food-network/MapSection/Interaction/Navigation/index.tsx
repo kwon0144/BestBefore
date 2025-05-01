@@ -1,3 +1,15 @@
+/**
+ * Navigation Component
+ * 
+ * This component handles the navigation interface for getting directions to a food bank.
+ * It provides functionality for:
+ * - Entering a starting location
+ * - Using current location
+ * - Selecting travel mode
+ * - Submitting navigation request
+ * - Displaying target food bank information
+ */
+
 import LocationInput from "./LocationInput";
 import SubmitButton from "./SubmitButton";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -10,6 +22,12 @@ import { faArrowLeft, faMapPin } from '@fortawesome/free-solid-svg-icons';
 import { useMap } from "@vis.gl/react-google-maps";
 import { MapSectionState } from "../../../interfaces";
 
+/**
+ * Props for the Navigation component
+ * @property mapSectionState - Current state of the map section including selected locations
+ * @property setMapSectionState - Function to update the map section state
+ * @property setViewState - Function to control the visibility of different sections (info, navigation, route)
+ */
 interface NavigationProps {
     mapSectionState: MapSectionState;
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
@@ -19,11 +37,20 @@ interface NavigationProps {
 export default function Navigation({
     mapSectionState, setMapSectionState, setViewState
 }: NavigationProps) {
+    // Get food bank data for the selected destination
     const { foodbank } = useFoodBank(mapSectionState.selectedEnd);
+    // State for handling error messages
     const [error, setError] = useState<string>("");
 
+    // Get the Google Maps instance
     const map = useMap();
 
+    /**
+     * Handles navigation back to the information view
+     * - Resets the view state to show information
+     * - Clears the selected starting point
+     * - Adjusts map zoom level if a starting point was selected
+     */
     const handleBackToInfo = () => {
         setViewState(prev => ({...prev, showInformation: true, showNavigation: false, showRouteResult:false }))
         setMapSectionState(prev => ({
@@ -37,7 +64,7 @@ export default function Navigation({
 
     return (
         <div className="flex flex-col md:pl-1 lg:pl-10 w-full">
-            {/* Navigation Back Button */}
+            {/* Back button to return to food bank information */}
             <div className="mb-3">
                 <Button
                     onPress={handleBackToInfo}
@@ -47,7 +74,7 @@ export default function Navigation({
                     Back to Information
                 </Button>
             </div>
-            {/* Navigation Target Food Bank */}
+            {/* Display target food bank information */}
             <div className="bg-gray-200/80 rounded-lg p-6 mb-6 shadow-sm mb-10 min-h-[110px]">   
                 <div className="flex items-center h-full">      
                     <div className="w-10 h-10 rounded-full bg-lightgreen flex items-center justify-center mr-3">
@@ -61,7 +88,7 @@ export default function Navigation({
                     </div>
                 </div>
             </div>
-            {/* Location Input */}
+            {/* Starting location input section */}
             <div className="mb-5">
                 <label
                     htmlFor="starting-point"
@@ -80,14 +107,14 @@ export default function Navigation({
                 </div>
                 {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </div>
-            {/* Travel Mode Selection */}
+            {/* Travel mode selection (e.g., driving, walking, transit) */}
             <div className="mb-8">
                 <TravelModeSelection
                     mapSectionState={mapSectionState}
                     setMapSectionState={setMapSectionState}
                 />
             </div>
-            {/* Submit Button */}
+            {/* Submit button to get directions */}
             <div className="mb-3">
                 <SubmitButton
                     setViewState={setViewState}

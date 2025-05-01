@@ -1,11 +1,22 @@
+/**
+ * Articles Component
+ * 
+ * This component displays a grid of food waste-related articles with hover animations and clickable links.
+ * Each article card includes an image, title, description, and a "Read More" link.
+ * The component uses Framer Motion for smooth animations and transitions.
+ */
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import Image from 'next/image';
 
 export default function Articles() {
+    // State to track which article card is currently being hovered
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     
+    // Array of article data including images, titles, descriptions, and external links
     const articles = [
         {
             image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/article1.jpeg",
@@ -31,8 +42,10 @@ export default function Articles() {
     ];
 
     return (
+        // Main container with background and padding
         <div className="py-24 bg-background">
             <div className="max-w-7xl mx-auto px-6">
+                {/* Animated heading section */}
                 <motion.h2 
                     className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12"
                     initial={{ opacity: 0, y: 20 }}
@@ -42,12 +55,15 @@ export default function Articles() {
                 >
                     Food Waste Insights
                 </motion.h2>
+
+                {/* Grid of article cards */}
                 <div className="grid md:grid-cols-3 gap-8">
                     {articles.map((article, index) => (
                         <motion.div 
                             key={index} 
                             onClick={() => window.open(article.link, '_blank')}
                             className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer"
+                            // Initial animation state
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
@@ -56,8 +72,10 @@ export default function Articles() {
                                 ease: "easeOut",
                                 delay: 0.5 + (index * 0.2)
                             }}
+                            // Hover state management
                             onHoverStart={() => setHoveredIndex(index)}
                             onHoverEnd={() => setHoveredIndex(null)}
+                            // Scale animation on hover
                             animate={{ 
                                 scale: hoveredIndex === index ? 1.1 : 1,
                                 transition: { 
@@ -66,13 +84,16 @@ export default function Articles() {
                                 }
                             }}
                         >
-                            <div className="h-48 overflow-hidden">
-                                <img
+                            {/* Article image container */}
+                            <div className="h-48 overflow-hidden relative">
+                                <Image
                                     src={article.image}
                                     alt={article.alt}
-                                    className="w-full h-full object-cover object-top"
+                                    fill
+                                    className="object-cover object-top"
                                 />
                             </div>
+                            {/* Article content */}
                             <div className="p-6">
                                 <h3 className="text-xl font-semibold text-darkgreen mb-2">
                                     {article.title}

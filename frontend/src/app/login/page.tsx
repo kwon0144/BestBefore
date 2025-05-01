@@ -1,3 +1,14 @@
+/**
+ * LoginPage Component
+ * 
+ * This component provides a secure and animated login interface.
+ * Features include:
+ * - Password-based authentication
+ * - Animated transitions and effects
+ * - Error handling and display
+ * - Rotating text animation on successful login
+ * - Responsive design with background image
+ */
 'use client';
 
 import { useState } from 'react';
@@ -7,14 +18,30 @@ import { motion, AnimatePresence } from 'framer-motion';
 import RotatingText from '../(components)/RotatingTextRef';
 import { config } from '@/config';
 
+/**
+ * Main component for the login page
+ * 
+ * @returns {JSX.Element} Rendered login interface with animations and authentication
+ */
 export default function LoginPage() {
+  /** Password input state */
   const [password, setPassword] = useState('');
+  /** Error message state */
   const [error, setError] = useState('');
+  /** State for form exit animation */
   const [isExiting, setIsExiting] = useState(false);
+  /** State for rotating text display */
   const [showText, setShowText] = useState(false);
+  /** State for final exit animation */
   const [finalExit, setFinalExit] = useState(false);
   const router = useRouter();
 
+  /**
+   * Handles form submission and authentication
+   * 
+   * @param {React.FormEvent} e - The form submission event
+   * @returns {Promise<void>} Promise that resolves when authentication is complete
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {

@@ -77,6 +77,8 @@ export interface SearchBarProps {
   setSearchQuery: (query: string) => void;
   addSearchResultMeal: () => void;
   handleSearchKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  filteredResults: (MealChoice | SignatureDish)[];
+  onSelectMeal: (meal: MealChoice | SignatureDish) => void;
 }
 
 /**
@@ -120,7 +122,6 @@ export interface GroceryListProps {
   pantryItems: PantryItem[];
   loading: boolean;
   error: string | null;
-  groceryList: GroceryListResponse | null;
-  generateGroceryList: () => void;
   getGroceryItemsByCategory: (category: string) => GroceryItem[];
+  generateGroceryList: () => void;
 } 

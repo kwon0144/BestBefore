@@ -1,4 +1,26 @@
-# api/ingredient_combiner.py
+"""
+Ingredient Combiner Service
+
+This service is responsible for combining and managing ingredients from multiple dishes.
+It provides functionality to combine ingredients, scale quantities, categorize ingredients,
+and handle unit conversions.
+
+Key Features:
+- Combine ingredients from multiple dishes
+- Scale ingredient quantities based on servings
+- Categorize ingredients by type (Meat, Fish, Produce, etc.)
+- Handle unit conversions and quantity additions
+- Filter out common household items
+- Standardize measurements
+
+Example Usage:
+    >>> service = IngredientCombinerService()
+    >>> result = service.combine_dish_ingredients([
+    ...     {'name': 'Spaghetti Bolognese', 'quantity': 2},
+    ...     {'name': 'Caesar Salad', 'quantity': 1}
+    ... ])
+"""
+
 import re
 from django.conf import settings
 from .dish_ingre_service import DishIngredientService
@@ -8,12 +30,16 @@ def combine_dish_ingredients(selected_dishes):
     Combine ingredients from multiple dishes, adding quantities of duplicate ingredients.
     
     Args:
-        selected_dishes: A list of dish objects, where each contains:
-                        - name: The name of the dish
-                        - quantity: How many servings (optional, defaults to 1)
+        selected_dishes (list): A list of dish objects, where each contains:
+            - name (str): The name of the dish
+            - quantity (int): How many servings (optional, defaults to 1)
     
     Returns:
-        A dictionary with combined ingredients grouped by category and properly summed quantities
+        dict: A dictionary containing:
+            - success (bool): Whether any dishes were found
+            - dishes (list): List of found dishes
+            - missing_dishes (list): List of dishes not found
+            - items_by_category (dict): Combined ingredients grouped by category
     """
     # Initialize the service
     dish_service = DishIngredientService()
@@ -67,11 +93,11 @@ def scale_ingredients(ingredients, quantity):
     Scale ingredient quantities based on the number of servings requested.
     
     Args:
-        ingredients: List of ingredient objects with name and quantity
-        quantity: Number of servings
+        ingredients (list): List of ingredient objects with name and quantity
+        quantity (int): Number of servings
     
     Returns:
-        List of ingredients with adjusted quantities
+        list: List of ingredients with adjusted quantities
     """
     if quantity <= 1:
         return ingredients
@@ -137,10 +163,10 @@ def combine_ingredients(ingredients_list):
     Combine duplicate ingredients by adding their quantities.
     
     Args:
-        ingredients_list: List of ingredient objects with name and quantity
+        ingredients_list (list): List of ingredient objects with name and quantity
     
     Returns:
-        List of ingredients with duplicates combined
+        list: List of ingredients with duplicates combined
     """
     if not ingredients_list:
         return []
@@ -173,11 +199,11 @@ def add_quantities(q1, q2):
     Add two quantity strings together, handling different units.
     
     Args:
-        q1: First quantity string (e.g., "100g")
-        q2: Second quantity string (e.g., "200g")
+        q1 (str): First quantity string (e.g., "100g")
+        q2 (str): Second quantity string (e.g., "200g")
     
     Returns:
-        Combined quantity string (e.g., "300g")
+        str: Combined quantity string (e.g., "300g")
     """
     # Handle "as needed" case
     if q1 == 'as needed':
@@ -296,10 +322,10 @@ def categorize_ingredients(ingredients):
     Categorize ingredients by type (Meat, Fish, Produce, etc.)
     
     Args:
-        ingredients: List of ingredient objects
+        ingredients (list): List of ingredient objects
     
     Returns:
-        Dictionary with categories as keys and ingredient lists as values
+        dict: Dictionary with categories as keys and ingredient lists as values
     """
     # Initialize categories
     categories = {
@@ -361,7 +387,12 @@ def determine_category(ingredient_name):
 def is_pantry_item(ingredient):
     """
     Determine if an ingredient is typically a pantry item
-    This would be more sophisticated in a real system
+    
+    Args:
+        ingredient (str): Name of the ingredient
+    
+    Returns:
+        bool: True if the ingredient is typically a pantry item
     """
     ingredient = ingredient.lower()
     pantry_keywords = ['salt', 'pepper', 'sugar', 'flour', 'oil', 'vinegar', 'spice', 'herb', 'seasoning', 

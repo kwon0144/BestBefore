@@ -1,19 +1,65 @@
+"""
+Hours Parser Service
+
+This service handles the parsing and processing of operating hours for food banks and other locations.
+It provides functionality to parse various time formats and convert them into a standardized structure.
+
+Key Features:
+- Parse various time formats (24-hour, 12-hour, text-based)
+- Handle special cases (24/7, closed on weekends, etc.)
+- Convert to standardized daily schedule format
+- Support multiple languages and formats
+- Handle edge cases and invalid inputs
+
+Example Usage:
+    >>> hours = parse_operating_hours("Monday-Friday: 9:00-17:00, Closed on weekends")
+    >>> print(hours['daily_schedule']['monday']['hours'])
+    '09:00-17:00'
+"""
+
 import re
 from rest_framework import viewsets
 from api.models import Geospatial
-from .serializer import FoodBankDetailSerializer, FoodBankListSerializer
+from ..serializer import FoodBankDetailSerializer, FoodBankListSerializer
 
 class FoodBankViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for handling food bank data.
+    
+    This ViewSet provides read-only access to food bank data through the API.
+    It uses different serializers for list and detail views.
+    """
     queryset = Geospatial.objects.all()
     
     def get_serializer_class(self):
+        """
+        Determine which serializer to use based on the action.
+        
+        Returns:
+            Serializer: The appropriate serializer class
+        """
         if self.action == 'retrieve':
             return FoodBankDetailSerializer
         return FoodBankListSerializer
 
 def parse_operating_hours(hours_text):
     """
-    Parse operating hours text into structured data with frontend-ready daily schedules
+    Parse operating hours text into structured data with frontend-ready daily schedules.
+    
+    This function takes a string containing operating hours information and converts it
+    into a structured format that can be easily used by the frontend. It handles various
+    formats and special cases.
+    
+    Args:
+        hours_text (str): Text containing operating hours information
+    
+    Returns:
+        dict: Structured operating hours data containing:
+            - is_24_hours (bool): Whether the location is open 24/7
+            - days (list): List of days the location is open
+            - hours (str): Standardized hours format
+            - raw_text (str): Original input text
+            - daily_schedule (dict): Schedule for each day of the week
     """
     if not hours_text or not isinstance(hours_text, str):
         return {
