@@ -56,7 +56,11 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   const [newItem, setNewItem] = useState<{ name: string; quantity: number }>({ name: '', quantity: 1 });
   const [showAddForm, setShowAddForm] = useState<{ section: 'fridge' | 'pantry' } | null>(null);
   const [editValues, setEditValues] = useState<{ name: string; quantity: number }>({ name: '', quantity: 1 });
-  const [draggedItem, setDraggedItem] = useState<{ index: number; section: 'fridge' | 'pantry' } | null>(null);
+  const [draggedItem, setDraggedItem] = useState<{ 
+    index: number; 
+    section: 'fridge' | 'pantry'; 
+    item: { name: string; quantity: number } 
+  } | null>(null);
 
   // Get inventory store functions
   const { items, addItem, updateItem, removeItem, getItemsByLocation } = useInventoryStore();
@@ -257,7 +261,15 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
    * @param {'fridge' | 'pantry'} section - Storage section containing the item
    */
   const handleDragStart = (e: React.DragEvent, index: number, section: 'fridge' | 'pantry') => {
-    setDraggedItem({ index, section });
+    // Get the item from the correct source based on the section
+    const items = section === 'fridge' ? fridgeItems : pantryItems;
+    const item = items[index];
+    
+    setDraggedItem({ 
+      index, 
+      section,
+      item // Store the actual item data
+    });
     e.dataTransfer.setData('text/plain', ''); // Required for Firefox
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -282,7 +294,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     
     if (!draggedItem) return;
     
-    const { index: sourceIndex, section: sourceSection } = draggedItem;
+    const { index: sourceIndex, section: sourceSection, item: movedItem } = draggedItem;
     
     // If dropped in the same position
     if (sourceSection === targetSection && targetIndex !== undefined && sourceIndex === targetIndex) return;
@@ -290,8 +302,8 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     // Create a deep copy of the current storage recommendations
     const newStorageRecs = JSON.parse(JSON.stringify(storageRecs));
     
-    // Get the item being moved
-    const [movedItem] = newStorageRecs[sourceSection].splice(sourceIndex, 1);
+    // Remove the item from source section
+    newStorageRecs[sourceSection].splice(sourceIndex, 1);
     
     // If targetIndex is undefined, append to the end of the target section
     const insertIndex = targetIndex !== undefined ? targetIndex : newStorageRecs[targetSection].length;
@@ -301,6 +313,26 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     
     // Update the local state first
     onUpdateStorageRecs(newStorageRecs);
+
+    // Update the Zustand store
+    const itemName = movedItem.name?.split(' (')[0] || '';
+    const daysMatch = movedItem.name?.match(/\((\d+) days\)/);
+    const days = daysMatch ? parseInt(daysMatch[1]) : 7;
+    const location = targetSection === 'fridge' ? 'refrigerator' : 'pantry';
+    
+    // Find the item in the inventory store
+    const existingItem = items.find(item => 
+      item.name.toLowerCase() === itemName.toLowerCase() && 
+      item.location === (sourceSection === 'fridge' ? 'refrigerator' : 'pantry')
+    );
+
+    if (existingItem) {
+      // Update the item's location and expiry date
+      updateItem(existingItem.id, {
+        location: location,
+        expiryDate: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+      });
+    }
     
     // Reset dragged item
     setDraggedItem(null);

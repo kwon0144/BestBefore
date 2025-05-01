@@ -24,8 +24,10 @@ export interface SecondLifeItem {
  * @interface
  */
 export interface SearchProps {
-    searchQuery: string;
     setSearchQuery: (query: string) => void;
+    setSelectedIngredient: (ingredient: string | null) => void;
+    inputValue: string;
+    setInputValue: (value: string) => void;
 }
 
 /**
