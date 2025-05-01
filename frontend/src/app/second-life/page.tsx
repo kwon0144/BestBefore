@@ -27,6 +27,7 @@ export default function SecondLife() {
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<SecondLifeItem | null>(null);
+    const [inputValue, setInputValue] = useState('');
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
@@ -65,7 +66,7 @@ export default function SecondLife() {
         { name: 'first aid', icon: faKitMedical }
     ];
 
-    // Fetch items from the backend API
+    // Fetch items from the backend API when searching
     const fetchItems = useCallback(async () => {
         try {
             setLoading(true);
@@ -77,15 +78,38 @@ export default function SecondLife() {
             setAllItems(response.data);
             setTotalPages(Math.ceil(response.data.length / itemsPerPage));
             setError(null);
-        } catch (err) {
-            setError('Failed to fetch items');
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                const axiosError = err as { response?: { status: number } };
+                if (axiosError.response?.status) {
+                    const status = axiosError.response.status;
+                    if (status === 429) {
+                        setError('Too many requests. Please wait a moment and try again.');
+                    } else if (status === 404) {
+                        setError('No items found matching your search.');
+                    } else if (status >= 500) {
+                        setError('Server error. Please try again later.');
+                    } else {
+                        setError('Failed to fetch items. Please try again.');
+                    }
+                } else {
+                    setError('An unexpected error occurred. Please try again.');
+                }
+            } else {
+                setError('An unexpected error occurred. Please try again.');
+            }
             console.error('Error fetching items:', err);
         } finally {
             setLoading(false);
         }
     }, [searchQuery, selectedIngredient]);
 
-    // Update displayed items when page changes or filter changes
+    // Fetch all items when component mounts
+    useEffect(() => {
+        fetchItems();
+    }, [fetchItems]);
+
+    // Update displayed items after fetch
     useEffect(() => {
         if (allItems.length === 0) return;
 
@@ -129,14 +153,7 @@ export default function SecondLife() {
         const endIndex = startIndex + itemsPerPage;
         setItems(filteredItems.slice(startIndex, endIndex));
         setTotalPages(Math.ceil(filteredItems.length / itemsPerPage));
-    }, [currentPage, allItems, selectedCategory, selectedIngredient, featuredItemIds, searchQuery]);
-
-    // Fetch items when search query changes
-    useEffect(() => {
-        fetchItems();
-        // Reset to first page when search or filters change
-        setCurrentPage(1);
-    }, [fetchItems, searchQuery]);
+    }, [currentPage, allItems, featuredItemIds, searchQuery, selectedCategory, selectedIngredient]);
 
     // Event handlers
     const handleCategorySelect = (category: string) => {
@@ -157,18 +174,22 @@ export default function SecondLife() {
         }
     };
 
-    const handleIngredientSelect = (ingredient: string) => {
-        setSelectedIngredient(prevIngredient =>
-            prevIngredient === ingredient ? null : ingredient
-        );
-        // Instead of setting searchQuery, we use selectedIngredient in the fetchItems function
+    const handleIngredientSelect = (ingredient: string | null) => {
+        setSelectedIngredient(prev => prev === ingredient ? null : ingredient);
         setSearchQuery('');
-        // Reset to first page when selecting an ingredient
+        setInputValue('');
         setCurrentPage(1);
-        
-        // Trigger search immediately
-        fetchItems();
     };
+
+    // Add this useEffect to handle fetching when searchQuery changes
+    useEffect(() => {
+        fetchItems();
+    }, [searchQuery, fetchItems]);
+
+    // Add this useEffect to handle fetching when selectedIngredient changes
+    useEffect(() => {
+        fetchItems();
+    }, [selectedIngredient, fetchItems]);
 
     const handleCardClick = (item: SecondLifeItem) => {
         setSelectedItem(item);
@@ -207,7 +228,12 @@ export default function SecondLife() {
             {/* Search Component */}
             <div className="min-h-screen max-w-7xl mx-auto px-10 mt-8 mb-20">
                 {/* Search Component */}
-                <Search searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+                <Search 
+                    setSearchQuery={setSearchQuery} 
+                    setSelectedIngredient={setSelectedIngredient}
+                    inputValue={inputValue}
+                    setInputValue={setInputValue}
+                />
 
                 {/* Ingredients Component */}
                 <Ingredients 
