@@ -8,6 +8,7 @@ import { Modal, ModalContent, ModalHeader, ModalBody, Button } from "@heroui/rea
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { ItemDetailProps } from "../interfaces";
+import Image from 'next/image';
 
 /**
  * Renders a modal with detailed information about a repurposing idea
@@ -53,11 +54,14 @@ export default function ItemDetail({ isOpen, onClose, item }: ItemDetailProps) {
             <div className="px-6">
               <div className="mb-6">
                 {item.picture ? (
-                  <img
-                    src={item.picture}
-                    alt={`${item.method_name} process`}
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
+                  <div className="relative w-full h-64">
+                    <Image
+                      src={item.picture}
+                      alt={`${item.method_name} process`}
+                      fill
+                      className="object-cover rounded-lg"
+                    />
+                  </div>
                 ) : (
                   <div className="w-full h-64 bg-gray-100 flex items-center justify-center rounded-lg">
                     <span className="text-gray-400">No image available</span>

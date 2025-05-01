@@ -1,14 +1,12 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Title from "../(components)/Title"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaintBrush, faUtensils, faSpa, faHome, faBowlFood, faKitMedical } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { config } from "@/config";
 import { SecondLifeItem } from "./interfaces";
 import ComingUp from "../(components)/ComingUp";
-import Image from "next/image";
 
 // Component imports
 import Search from "./Search";
@@ -34,7 +32,7 @@ export default function SecondLife() {
     const [totalPages, setTotalPages] = useState(1);
 
     // Featured items for first page
-    const featuredItemIds = [33, 17, 29, 30, 20, 31];
+    const featuredItemIds = useMemo(() => [33, 17, 29, 30, 20, 31], []);
 
     // Predefined ingredients for quick search
     const ingredients = [
@@ -115,7 +113,7 @@ export default function SecondLife() {
         const endIndex = startIndex + itemsPerPage;
         setItems(filteredItems.slice(startIndex, endIndex));
         setTotalPages(Math.ceil(filteredItems.length / itemsPerPage));
-    }, [currentPage, allItems, selectedCategory, searchQuery, selectedIngredient]);
+    }, [currentPage, allItems, selectedCategory, searchQuery, selectedIngredient, featuredItemIds]);
 
     // Fetch items when search query changes
     useEffect(() => {

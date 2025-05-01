@@ -5,6 +5,7 @@
  */
 import { Pagination } from "@heroui/react";
 import { ItemsGridProps } from "../interfaces";
+import Image from 'next/image';
 
 /**
  * Renders a grid of repurposing items with pagination
@@ -50,9 +51,11 @@ export default function ItemsGrid({
               >
                 <div className="h-48 overflow-hidden">
                   {item.picture ? (
-                    <img
+                    <Image
                       src={item.picture}
                       alt={item.method_name}
+                      width={300}
+                      height={192}
                       className="w-full h-full object-cover object-top"
                     />
                   ) : (

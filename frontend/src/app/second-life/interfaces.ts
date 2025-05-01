@@ -3,6 +3,8 @@
  * how to repurpose food waste into useful products.
  */
 
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+
 /**
  * Interface for items from the diy_projects database
  * @interface
@@ -41,7 +43,7 @@ export interface IngredientsProps {
  * @interface
  */
 export interface CategoriesProps {
-    categories: Array<{ name: string; icon: any }>;
+    categories: Array<{ name: string; icon: IconDefinition }>;
     selectedCategory: string | null;
     handleCategorySelect: (category: string) => void;
 }

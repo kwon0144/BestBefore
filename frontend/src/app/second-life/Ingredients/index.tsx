@@ -40,7 +40,9 @@ export default function Ingredients({
           <div
             key={ingredient}
             onClick={() => handleIngredientSelect(ingredient)}
-            className="bg-white px-4 py-2 rounded-lg cursor-pointer shadow-sm hover:shadow-md transition"
+            className={`bg-white px-4 py-2 rounded-lg cursor-pointer shadow-sm hover:shadow-md transition ${
+              selectedIngredient === ingredient ? 'ring-2 ring-[#2c5e2e]' : ''
+            }`}
           >
             {ingredient}
           </div>
