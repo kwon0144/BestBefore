@@ -18,7 +18,7 @@ import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } fro
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { config } from '@/config';
-import useInventoryStore from '@/store/useInventoryStore';
+import useInventoryStore, { FoodItem } from '@/store/useInventoryStore';
 
 /**
  * Interface representing the response from the storage advice API
@@ -56,37 +56,24 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   const [newItem, setNewItem] = useState<{ name: string; quantity: number }>({ name: '', quantity: 1 });
   const [showAddForm, setShowAddForm] = useState<{ section: 'fridge' | 'pantry' } | null>(null);
   const [editValues, setEditValues] = useState<{ name: string; quantity: number }>({ name: '', quantity: 1 });
-  const [localStorageRecs, setLocalStorageRecs] = useState<StorageRecommendation>(storageRecs);
   const [draggedItem, setDraggedItem] = useState<{ index: number; section: 'fridge' | 'pantry' } | null>(null);
 
   // Get inventory store functions
   const { items, addItem, updateItem, removeItem, getItemsByLocation } = useInventoryStore();
 
-  // Update local state when props change
-  useEffect(() => {
-    setLocalStorageRecs(storageRecs);
-  }, [storageRecs]);
-
-  // Sync with inventory store when items change
-  useEffect(() => {
-    const fridgeItems = getItemsByLocation('refrigerator').map(item => ({
-      name: `${item.name} (${item.daysLeft} days)`,
-      quantity: parseInt(item.quantity.split(' ')[0]) || 1
-    }));
-    
-    const pantryItems = getItemsByLocation('pantry').map(item => ({
-      name: `${item.name} (${item.daysLeft} days)`,
-      quantity: parseInt(item.quantity.split(' ')[0]) || 1
-    }));
-
-    setLocalStorageRecs({
-      fridge: fridgeItems,
-      pantry: pantryItems
-    });
-  }, [items, getItemsByLocation]);
+  // Get items for display
+  const fridgeItems = getItemsByLocation('refrigerator').map(item => ({
+    name: `${item.name} (${item.daysLeft} days)`,
+    quantity: parseInt(item.quantity.split(' ')[0]) || 1
+  }));
+  
+  const pantryItems = getItemsByLocation('pantry').map(item => ({
+    name: `${item.name} (${item.daysLeft} days)`,
+    quantity: parseInt(item.quantity.split(' ')[0]) || 1
+  }));
 
   // Check if both sections are empty
-  const noItemsDetected = localStorageRecs.fridge.length === 0 && localStorageRecs.pantry.length === 0;
+  const noItemsDetected = fridgeItems.length === 0 && pantryItems.length === 0;
 
   /**
    * Handles the edit operation for an item
@@ -94,7 +81,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
    * @param {'fridge' | 'pantry'} section - Storage section containing the item
    */
   const handleEdit = (index: number, section: 'fridge' | 'pantry') => {
-    const item = localStorageRecs[section][index];
+    const item = storageRecs[section][index];
     const itemName = item.name.split(' (')[0];
     setEditValues({ name: itemName, quantity: item.quantity });
     setEditingItem({ index, section });
@@ -106,7 +93,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
    * @param {'fridge' | 'pantry'} section - Storage section containing the item
    */
   const handleSave = async (index: number, section: 'fridge' | 'pantry') => {
-    const newStorageRecs = { ...localStorageRecs };
+    const newStorageRecs = { ...storageRecs };
     const item = newStorageRecs[section][index];
     const originalName = item.name.split(' (')[0];
     
@@ -179,7 +166,6 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
       }
     }
 
-    setLocalStorageRecs(newStorageRecs);
     onUpdateStorageRecs(newStorageRecs);
     setEditingItem(null);
   };
@@ -190,7 +176,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
    * @param {'fridge' | 'pantry'} section - Storage section containing the item
    */
   const handleDelete = (index: number, section: 'fridge' | 'pantry') => {
-    const newStorageRecs = { ...localStorageRecs };
+    const newStorageRecs = { ...storageRecs };
     const item = newStorageRecs[section][index];
     const itemName = item.name.split(' (')[0];
     
@@ -206,7 +192,6 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     }
 
     newStorageRecs[section].splice(index, 1);
-    setLocalStorageRecs(newStorageRecs);
     onUpdateStorageRecs(newStorageRecs);
   };
 
@@ -217,30 +202,11 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   const handleAdd = async (section: 'fridge' | 'pantry') => {
     if (!newItem.name) return;
 
-    // First, try to add the item with fallback storage time
-    const storageTime = 21; // Default storage time
-    const newStorageRecs = { ...localStorageRecs };
     const location = section === 'fridge' ? 'refrigerator' : 'pantry';
+    let storageTime = 21; // Default storage time
 
     try {
-      // Add to inventory store first
-      addItem({
-        name: newItem.name,
-        quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
-        location: location,
-        expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
-      });
-      
-      // Add to local state
-      newStorageRecs[section].push({
-        name: `${newItem.name} (${storageTime} days)`,
-        quantity: newItem.quantity
-      });
-      
-      setLocalStorageRecs(newStorageRecs);
-      onUpdateStorageRecs(newStorageRecs);
-
-      // Then try to get storage advice from API
+      // First try to get storage advice from API
       try {
         const response = await axios.post<StorageAdviceResponse>(
           `${config.apiUrl}/api/storage-advice/`,
@@ -257,18 +223,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         );
 
         if (response.data) {
-          const apiStorageTime = response.data.storage_time;
-          
-          // Update the item with API storage time
-          const updatedStorageRecs = { ...newStorageRecs };
-          const itemIndex = updatedStorageRecs[section].length - 1;
-          updatedStorageRecs[section][itemIndex] = {
-            name: `${newItem.name} (${apiStorageTime} days)`,
-            quantity: newItem.quantity
-          };
-          
-          setLocalStorageRecs(updatedStorageRecs);
-          onUpdateStorageRecs(updatedStorageRecs);
+          storageTime = response.data.storage_time;
         }
       } catch (apiError: unknown) {
         if (apiError && typeof apiError === 'object' && 'code' in apiError && apiError.code === 'ECONNABORTED') {
@@ -277,7 +232,16 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           // Silently handle other API errors
         }
       }
-    } catch {
+
+      // Add to inventory store with the correct storage time
+      const addedItem: Omit<FoodItem, 'id'> = {
+        name: newItem.name,
+        quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
+        location: location as 'refrigerator' | 'pantry',
+        expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
+      };
+      addItem(addedItem);
+    } catch (error) {
       // Handle any other errors silently
     }
 
@@ -324,7 +288,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     if (sourceSection === targetSection && targetIndex !== undefined && sourceIndex === targetIndex) return;
     
     // Create a deep copy of the current storage recommendations
-    const newStorageRecs = JSON.parse(JSON.stringify(localStorageRecs));
+    const newStorageRecs = JSON.parse(JSON.stringify(storageRecs));
     
     // Get the item being moved
     const [movedItem] = newStorageRecs[sourceSection].splice(sourceIndex, 1);
@@ -336,9 +300,6 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     newStorageRecs[targetSection].splice(insertIndex, 0, movedItem);
     
     // Update the local state first
-    setLocalStorageRecs(newStorageRecs);
-    
-    // Then update the parent component
     onUpdateStorageRecs(newStorageRecs);
     
     // Reset dragged item
@@ -437,8 +398,8 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         <h3 className="text-xl font-medium text-gray-700 mb-4 pb-2 border-b-2 border-blue-500">
           <p className="font-semibold text-blue-600">Refrigerator</p>
         </h3>
-        {localStorageRecs.fridge.length > 0 ? (
-          renderItemList(localStorageRecs.fridge, 'fridge')
+        {fridgeItems.length > 0 ? (
+          renderItemList(fridgeItems, 'fridge')
         ) : (
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <div className="w-24 h-24 mb-4 flex items-center justify-center rounded-full bg-gray-100">
@@ -500,8 +461,8 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         <h3 className="text-xl font-medium text-gray-700 mb-4 pb-2 border-b-2 border-amber-700">
           <p className="font-semibold text-amber-700">Pantry</p>
         </h3>
-        {localStorageRecs.pantry.length > 0 ? (
-          renderItemList(localStorageRecs.pantry, 'pantry')
+        {pantryItems.length > 0 ? (
+          renderItemList(pantryItems, 'pantry')
         ) : (
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <div className="w-24 h-24 mb-4 flex items-center justify-center rounded-full bg-gray-100">
