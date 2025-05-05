@@ -9,6 +9,13 @@ from .views import (
     search_dishes,
     get_signature_dishes,
     login,
+    start_game,
+    update_game,
+    end_game,
+    get_leaderboard,
+    get_food_items,
+    pickup_food,
+    perform_action
 )
 from .service import produce_detection_service
 from .service.output_calender_service import generate_calendar, generate_ical
@@ -22,6 +29,13 @@ urlpatterns = [
     path('storage-advice/', get_storage_advice, name='get_storage_advice'),
     path('food-types/', get_food_types, name='get_food_types'),
     path('foodbanks/', get_foodbanks, name='get_foodbanks'),
+    path('game/start/', start_game, name='start_game'),
+    path('game/update/', update_game, name='update_game'),
+    path('game/end/', end_game, name='end_game'),
+    path('game/leaderboard/', get_leaderboard, name='get_leaderboard'),
+    path('game/food-items/', get_food_items, name='get_food_items'),
+    path('game/pickup/', pickup_food, name='pickup_food'),
+    path('game/action/', perform_action, name='perform_action'),
     path('second-life/', get_second_life_items, name='get_second_life_items'),
     path('second-life/<int:item_id>/', get_second_life_item_detail, name='get_second_life_item_detail'),
     path('dish-ingredients/', get_dish_ingredients, name='get_dish_ingredients'),

@@ -29,6 +29,31 @@ class Geospatial(models.Model):
     def __str__(self):
         return self.name
 
+class Game(models.Model):
+    player_id = models.CharField(max_length=100)
+    score = models.IntegerField(default=0)
+    time_remaining = models.IntegerField(default=60)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-score', '-created_at']
+
+class GameFoodResources(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=255)
+    type = models.CharField(max_length=255)
+    image = models.URLField(max_length=255)
+    description = models.TextField()
+
+    class Meta:
+        db_table = 'game_foodresources'  # Specify the actual table name
+        managed = False  # Since the table already exists
+
+    def __str__(self):
+        return f"{self.name} - {self.type}"
+
 class SecondLife(models.Model):
     method_id = models.IntegerField(primary_key=True)
     method_name = models.CharField(max_length=100)
