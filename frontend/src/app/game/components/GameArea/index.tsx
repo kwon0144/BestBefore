@@ -78,8 +78,8 @@ export default function GameArea({
   const moveSpeed = 10;
   const diyCooldownTime = 5; // 5 seconds cooldown
 
-  // Define the conveyor segments
-  const conveyorSegments = [
+  // Define the conveyor segments with useMemo to prevent recreating on each render
+  const conveyorSegments = React.useMemo(() => [
     { 
       id: 'top', 
       start: { x: 50, y: 150 }, // Starting from left side of top segment with offset
@@ -99,7 +99,7 @@ export default function GameArea({
       direction: 'left' as const
     }
     // No left vertical segment - food resets to start after bottom segment
-  ];
+  ], []);
 
   // Add a state for prepared game food items
   const [gameFoodItems, setGameFoodItems] = useState<FoodItem[]>([]);
@@ -205,13 +205,12 @@ export default function GameArea({
     if (!gameId) return;
     
     const moveInterval = setInterval(() => {
-      const gameAreaWidth = gameAreaRef.current?.getBoundingClientRect().width ?? 800;
-      const gameAreaHeight = gameAreaRef.current?.getBoundingClientRect().height ?? 600;
+      // Remove unused variables
       const currentSpeed = getConveyorSpeed(difficulty);
       
       setFoods(prevFoods => {
         // Create a new array to store foods that haven't fallen off
-        const newFoods = [];
+        const newFoods: FoodType[] = [];
         
         for (const food of prevFoods) {
           // Get current segment
@@ -315,9 +314,7 @@ export default function GameArea({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const gameAreaWidth = gameAreaRef.current?.clientWidth ?? 800;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const gameAreaHeight = gameAreaRef.current?.clientHeight ?? 600;
       
     
