@@ -3,7 +3,7 @@
  * Handles keyboard input and character movement
  */
 import { useState, useEffect, useCallback } from 'react';
-import { Position, Food } from '../interfaces';
+import { Position } from '../interfaces';
 
 interface UseGameControlsProps {
   gameStarted: boolean;
