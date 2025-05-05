@@ -26,7 +26,7 @@ from .service.dish_ingre_service import DishIngredientService
 from .service.hours_parser_service import parse_operating_hours
 from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources
 from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
-from .game_core import start_new_game, update_game_state, end_game_session
+from .game_core import start_new_game, update_game_state, end_game_session, prepare_game_food_items
 from .game_validators import get_top_scores, validate_pickup, validate_action
 from .game_state import games
 
@@ -281,23 +281,28 @@ def get_leaderboard(request):
 @api_view(['GET'])
 def get_food_items(request):
     """
-    Get a list of food items for the game from the database.
-    Optional query parameter: type (trash, foodbank, greenbin, both)
+    Get a balanced list of food items for the game from the database.
+    Returns a consistent set of 12 items: 5 food bank, 5 green waste bin, and 2 trash.
+    
+    Optional query parameter: type (trash, food bank, green waste bin)
     """
     try:
         food_type = request.GET.get('type', None)
+        
+        # Get base queryset of all food items
         query = GameFoodResources.objects.all()
         
-        # Filter by type if specified
+        # If a specific food type is requested, filter by that type
         if food_type:
             query = query.filter(type=food_type)
-        
-        # Get all items if no type specified or filtered items if type specified
-        food_items = list(query.values('id', 'name', 'type', 'image', 'description'))
-        
-        # If we need exactly 5 items and have more, randomly select 5
-        if len(food_items) > 5:
-            food_items = random.sample(food_items, 5)
+            food_items = list(query.values('id', 'name', 'type', 'image', 'description'))
+            
+            # If we need exactly 5 items of a specific type and have more, randomly select 5
+            if len(food_items) > 5:
+                food_items = random.sample(food_items, 5)
+        else:
+            # Use our balanced food item generator to get 12 items (5-5-2 distribution)
+            food_items = prepare_game_food_items(query)
         
         return Response({
             'food_items': food_items,

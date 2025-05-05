@@ -26,7 +26,7 @@ export default function GameOver({ score, handleStartGame }: GameOverProps) {
         onClick={handleStartGame}
         className="bg-black hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 !rounded-button whitespace-nowrap cursor-pointer"
       >
-        Play Again
+        Return to Menu
       </button>
     </div>
   );

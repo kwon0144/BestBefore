@@ -1,6 +1,6 @@
 /**
  * Character Component
- * Renders the player's character and any food being held
+ * Renders the player character and held food
  */
 import React from 'react';
 import { Position, Food } from '../../interfaces';
@@ -12,29 +12,40 @@ interface CharacterProps {
 }
 
 /**
- * Renders the player character with any held food items
+ * Renders the player character and the food they're holding
  */
 export default function Character({ position, characterSize, holdingFood }: CharacterProps) {
   return (
-    <div
-      className="absolute transition-all duration-100 ease-linear"
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        width: `${characterSize}px`,
-        height: `${characterSize}px`
+    <div 
+      className="absolute" 
+      style={{ 
+        left: position.x, 
+        top: position.y, 
+        width: characterSize, 
+        height: characterSize,
+        zIndex: 20
       }}
     >
-      <div className="w-full h-full bg-purple-500 rounded-full flex items-center justify-center relative">
-        <i className="fas fa-user text-white text-2xl"></i>
-        {/* Food being held */}
+      {/* Character sprite */}
+      <div className="relative w-full h-full">
+        <div className="absolute inset-0 bg-gray-600 rounded-full flex items-center justify-center">
+          <span className="text-white text-2xl">🧑‍🌾</span>
+        </div>
+        
+        {/* Holding food indicator */}
         {holdingFood && (
-          <div className="absolute -top-[30px] -right-[10px] w-[30px] h-[30px]">
-            <img
-              src={holdingFood.image}
-              alt={holdingFood.name}
-              className="w-full h-full object-contain"
-            />
+          <div 
+            className="absolute -top-10 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full bg-white p-0.5 border border-gray-300"
+            style={{ 
+              backgroundImage: `url(${holdingFood.image})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }}
+          >
+            {/* DIY indicator if food can be DIYed */}
+            {holdingFood.diy_option && (
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-yellow-600" />
+            )}
           </div>
         )}
       </div>

@@ -9,10 +9,11 @@ import { SoundType } from '../interfaces';
  */
 const soundUrls: Record<SoundType, string> = {
   donate: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/donate.wav',
-  eatFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/eatFood.wav',
+  diyFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/donate.wav', // Reuse donate sound for DIY
   gameStart: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/gameStart.wav',
   wasteFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/wasteFodd.wav',
-  wrongAction: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/wrongAction.wav'
+  wrongAction: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/wrongAction.wav',
+  pickup: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/pickup.wav'
 };
 
 /**
@@ -24,20 +25,13 @@ export const playSound = (type: SoundType): void => {
   
   try {
     const audio = new Audio(soundUrls[type]);
-    audio.volume = 0.5;
-    
-    // Add event listeners for debugging
-    audio.addEventListener('play', () => console.log(`Sound ${type} started playing`));
-    audio.addEventListener('error', (e) => console.error(`Sound ${type} error:`, e));
-    
-    // Play the sound
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(err => {
-        console.error(`Audio play failed for ${type}:`, err);
-      });
-    }
-  } catch (err) {
-    console.error('Sound playback error:', err);
+    audio.volume = 0.3; // Set to 30% volume
+    audio.play().catch(err => {
+      // Silently fail on autoplay restrictions
+      console.warn('Sound playback failed:', err.message);
+    });
+  } catch (error) {
+    // Gracefully handle any errors with sound playback
+    console.warn('Error playing sound:', error);
   }
 }; 

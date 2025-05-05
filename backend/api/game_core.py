@@ -4,6 +4,7 @@ This module contains the main game state management and core game functions.
 """
 
 import uuid
+import random
 from datetime import datetime
 from .game_validators import validate_pickup, validate_action
 from .game_state import games
@@ -162,4 +163,55 @@ def end_game_session(game_id):
     return {
         'score': game['score'],
         'time_played': time_played
-    } 
+    }
+
+def prepare_game_food_items(food_items_query):
+    """
+    Prepare a balanced set of food items for the game.
+    Creates a set of 12 items: 5 food bank, 5 green waste bin, and 2 trash
+    
+    Args:
+        food_items_query: Django QuerySet of GameFoodResources objects
+        
+    Returns:
+        list: A list of 12 food items with balanced types
+    """
+    if not food_items_query or food_items_query.count() == 0:
+        return []
+    
+    # Filter items by type
+    food_bank_items = list(food_items_query.filter(type='food bank').values())
+    green_waste_bin_items = list(food_items_query.filter(type='green waste bin').values())
+    trash_items = list(food_items_query.filter(type='trash').values())
+    
+    # Function to get random items from a list
+    def get_random_items(items, count):
+        """Get a specified number of random items from a list, with repetition if needed"""
+        result = []
+        items_copy = items.copy()  # Work with a copy to avoid modifying the original
+        
+        # If we don't have enough items of this type, we'll need to repeat some
+        while len(result) < count:
+            if not items_copy:
+                # Reset the available items if we've used them all
+                items_copy = items.copy()
+            
+            # Select a random item
+            if items_copy:
+                random_index = random.randint(0, len(items_copy) - 1)
+                result.append(items_copy.pop(random_index))
+        
+        return result
+    
+    # Get 5 food bank items, 5 green waste bin items, and 2 trash items
+    selected_food_bank = get_random_items(food_bank_items, 5)
+    selected_green_waste = get_random_items(green_waste_bin_items, 5)
+    selected_trash = get_random_items(trash_items, 2)
+    
+    # Combine all selected items
+    game_items = selected_food_bank + selected_green_waste + selected_trash
+    
+    # Shuffle the combined array to randomize the order
+    random.shuffle(game_items)
+    
+    return game_items 

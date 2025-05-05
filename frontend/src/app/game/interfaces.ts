@@ -6,11 +6,13 @@
 // Food object in the game
 export interface Food {
   id: number;
-  type: 'donate' | 'compost' | 'eat' | 'trash' | 'foodbank' | 'greenbin' | 'both';
+  type: 'food bank' | 'green waste bin' | 'trash';
   x: number;
   y: number;
   name: string;
   image: string;
+  segment?: number; // Track which segment of the conveyor belt the food is on
+  diy_option?: boolean; // Whether the food can be DIYed
 }
 
 // Food item from API
@@ -20,6 +22,7 @@ export interface FoodItem {
   type: string;
   image: string;
   description: string;
+  diy_option?: boolean; // Whether the food can be DIYed
 }
 
 // API response structure
@@ -49,4 +52,4 @@ export interface GameData {
 }
 
 // Sound types
-export type SoundType = 'donate' | 'eatFood' | 'gameStart' | 'wasteFood' | 'wrongAction'; 
+export type SoundType = 'donate' | 'diyFood' | 'gameStart' | 'wasteFood' | 'wrongAction' | 'pickup'; 
