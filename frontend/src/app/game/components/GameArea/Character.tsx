@@ -77,7 +77,7 @@ export default function Character({
     backgroundSize: `${frameWidth * frameCount * scaleFactor}px ${frameHeight * scaleFactor}px`, // Enlarged background size
     backgroundPosition: `-${currentFrame * frameWidth * scaleFactor}px 0px`, // Adjust position accordingly
     backgroundRepeat: 'no-repeat',
-    imageRendering: 'pixelated' as 'pixelated'
+    imageRendering: 'pixelated' as const // Keep pixel art style
   } : {};
   
   return (
