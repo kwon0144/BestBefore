@@ -16,7 +16,7 @@ import ItemsGrid from "./ItemsGrid";
 import ItemDetail from "./ItemDetail";
 
 // Debounce function to prevent excessive API calls
-const debounce = <T extends (...args: any[]) => void>(func: T, wait: number): ((...args: Parameters<T>) => void) => {
+const debounce = <T extends (...args: unknown[]) => void>(func: T, wait: number): ((...args: Parameters<T>) => void) => {
     let timeout: NodeJS.Timeout;
     return (...args: Parameters<T>) => {
         clearTimeout(timeout);
