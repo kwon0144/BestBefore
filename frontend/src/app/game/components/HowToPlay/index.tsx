@@ -65,7 +65,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
               <span className="w-4 h-4 bg-red-500 rounded-full mr-2"></span>
               Trash Items
             </h4>
-            <p className="text-sm text-red-700">Items that can't be composted, donated or DIYed</p>
+            <p className="text-sm text-red-700">Items that can&apos;t be composted, donated or DIYed</p>
             <p className="text-xs text-red-600 mt-1">Examples: Contaminated packaging, inedible waste</p>
             <p className="text-xs text-red-600 mt-1">These items should be thrown away (let them fall off)</p>
           </div>
@@ -89,7 +89,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
           <li>Act quickly! Food items move along the conveyor belt and will fall off if not handled</li>
           <li>Prioritize DIY with eligible items when you can (but watch the 5-second cooldown)</li>
           <li>Sort items correctly between the Food Bank and Green Bin</li>
-          <li>Let trash items fall off the conveyor - don't pick them up!</li>
+          <li>Let trash items fall off the conveyor - don&apos;t pick them up!</li>
         </ul>
       </div>
       

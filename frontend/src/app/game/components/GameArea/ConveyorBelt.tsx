@@ -13,8 +13,7 @@ interface ConveyorBeltProps {
  * Renders the U-shaped conveyor belt with animated segments
  */
 export default function ConveyorBelt({ resources }: ConveyorBeltProps) {
-  // Get conveyor image from resources if available
-  const conveyorImage = resources?.specificResources?.conveyor?.image;
+  // Removed unused conveyorImage variable
   
   return (
     <>

@@ -32,7 +32,10 @@ export default function Game() {
   // Get game state from custom hook
   const { 
     score, setScore, time, setTime, gameId, setGameId,
-    playerId, setPlayerId, foodItems, loading, error, soundsLoaded
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    playerId, setPlayerId, foodItems, loading, 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    error, soundsLoaded
   } = useGameState();
 
   /**
