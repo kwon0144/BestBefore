@@ -688,3 +688,43 @@ def login(request):
             {'error': 'Internal server error'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+@api_view(['GET'])
+def get_game_resources(request):
+    """
+    Get game resources (maps, background, icons) from the database.
+    This endpoint retrieves resources used in the game UI.
+    """
+    try:
+        # Get resources from the database
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT 
+                    id, 
+                    name, 
+                    type, 
+                    description,
+                    image
+                FROM 
+                    game_resources
+                """
+            )
+            # Convert to list of dictionaries
+            columns = [col[0] for col in cursor.description]
+            resources_data = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+            
+        return Response({
+            'status': 'success',
+            'count': len(resources_data),
+            'resources': resources_data
+        })
+    except Exception as e:
+        logger.error(f"Error fetching game resources: {str(e)}")
+        return Response(
+            {'error': 'Failed to fetch game resources'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

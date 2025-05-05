@@ -18,11 +18,15 @@ export default function MessageDisplay({ message, messageType }: MessageDisplayP
   
   return (
     <div
-      className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg font-bold ${
+      className={`absolute top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg font-bold shadow-md ${
         messageType === 'success' 
-          ? 'bg-green-200 text-green-900' 
-          : 'bg-red-200 text-red-900'
+          ? 'bg-green-300 text-green-900 border-2 border-green-600' 
+          : 'bg-red-300 text-red-900 border-2 border-red-600'
       }`}
+      style={{
+        opacity: 1,
+        backgroundColor: messageType === 'success' ? 'rgba(167, 243, 208, 1)' : 'rgba(254, 202, 202, 1)'
+      }}
     >
       {message}
     </div>

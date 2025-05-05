@@ -15,7 +15,8 @@ from .views import (
     get_leaderboard,
     get_food_items,
     pickup_food,
-    perform_action
+    perform_action,
+    get_game_resources
 )
 from .service import produce_detection_service
 from .service.output_calender_service import generate_calendar, generate_ical
@@ -36,6 +37,7 @@ urlpatterns = [
     path('game/food-items/', get_food_items, name='get_food_items'),
     path('game/pickup/', pickup_food, name='pickup_food'),
     path('game/action/', perform_action, name='perform_action'),
+    path('game/resources/', get_game_resources, name='get_game_resources'),
     path('second-life/', get_second_life_items, name='get_second_life_items'),
     path('second-life/<int:item_id>/', get_second_life_item_detail, name='get_second_life_item_detail'),
     path('dish-ingredients/', get_dish_ingredients, name='get_dish_ingredients'),

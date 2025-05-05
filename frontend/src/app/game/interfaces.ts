@@ -25,10 +25,37 @@ export interface FoodItem {
   diy_option?: boolean; // Whether the food can be DIYed
 }
 
+// Game resource from API
+export interface GameResource {
+  id: number;
+  name: string;
+  type: string;
+  description: string;
+  image: string;
+}
+
+// Specific resources for game areas
+export interface SpecificResources {
+  background?: GameResource;
+  foodbank?: GameResource;
+  greenbin?: GameResource;
+  diy?: GameResource;
+  conveyor?: GameResource;
+  [key: string]: GameResource | undefined;
+}
+
 // API response structure
 export interface ApiResponse {
   food_items: FoodItem[];
   count: number;
+}
+
+// API response for game resources
+export interface ResourcesApiResponse {
+  status: string;
+  count: number;
+  resources: GameResource[];
+  specificResources?: SpecificResources;
 }
 
 // Game difficulty levels

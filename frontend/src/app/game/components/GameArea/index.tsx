@@ -3,8 +3,8 @@
  * Main gameplay area that renders the game interface and manages game logic
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { updateGame } from '@/services/gameService';
-import { Food as FoodType, FoodItem, Difficulty } from '../../interfaces';
+import { updateGame, getGameResources } from '@/services/gameService';
+import { Food as FoodType, FoodItem, Difficulty, GameResource, ResourcesApiResponse } from '../../interfaces';
 import { playSound } from '../../utils/soundEffects';
 import { getConveyorSpeed, getFoodGenerationInterval, isInZone } from '../../utils/gameLogic';
 
@@ -58,6 +58,15 @@ export default function GameArea({
   const [isActionInProgress, setIsActionInProgress] = useState<boolean>(false);
   const [lastActionTime, setLastActionTime] = useState<number>(0);
   
+  // Character animation state
+  const [characterDirection, setCharacterDirection] = useState<'front' | 'back' | 'left' | 'right'>('front');
+  const [isCharacterMoving, setIsCharacterMoving] = useState<boolean>(false);
+  const [lastMoveTime, setLastMoveTime] = useState<number>(0);
+  
+  // Game resources state
+  const [gameResources, setGameResources] = useState<ResourcesApiResponse>({ status: '', count: 0, resources: [] });
+  const [isLoadingResources, setIsLoadingResources] = useState<boolean>(true);
+  
   // Refs
   const gameAreaRef = useRef<HTMLDivElement>(null);
   
@@ -71,8 +80,8 @@ export default function GameArea({
   const conveyorSegments = [
     { 
       id: 'top', 
-      start: { x: 50, y: 125 }, // Starting from left side of top segment with offset
-      end: { x: 1000, y: 125 },  // End at right side of top segment
+      start: { x: 50, y: 150 }, // Starting from left side of top segment with offset
+      end: { x: 1000, y: 150 },  // End at right side of top segment
       direction: 'right' as const
     },
     { 
@@ -83,8 +92,8 @@ export default function GameArea({
     },
     { 
       id: 'bottom', 
-      start: { x: 1000, y: 450 }, // Bottom right to bottom left
-      end: { x: 50, y: 450 },    // End at bottom left
+      start: { x: 1000, y: 480 }, // Bottom right to bottom left
+      end: { x: 50, y: 480 },    // End at bottom left
       direction: 'left' as const
     }
     // No left vertical segment - food resets to start after bottom segment
@@ -92,6 +101,24 @@ export default function GameArea({
 
   // Add a state for prepared game food items
   const [gameFoodItems, setGameFoodItems] = useState<FoodItem[]>([]);
+  
+  // Load game resources when component mounts
+  useEffect(() => {
+    async function loadGameResources() {
+      try {
+        setIsLoadingResources(true);
+        const resourcesData = await getGameResources();
+        setGameResources(resourcesData);
+        console.log('Loaded game resources:', resourcesData);
+      } catch (error) {
+        console.error('Failed to load game resources:', error);
+      } finally {
+        setIsLoadingResources(false);
+      }
+    }
+    
+    loadGameResources();
+  }, []);
   
   // Prepare balanced food items when component mounts
   useEffect(() => {
@@ -289,6 +316,10 @@ export default function GameArea({
       const gameAreaWidth = gameAreaRef.current?.clientWidth ?? 800;
       const gameAreaHeight = gameAreaRef.current?.clientHeight ?? 600;
       
+    
+      setIsCharacterMoving(true);
+      setLastMoveTime(Date.now());
+      
       // Movement controls (WASD)
       setPosition(prev => {
         let newX = prev.x;
@@ -297,15 +328,19 @@ export default function GameArea({
         // Horizontal movement
         if (key === 'a' || key === 'arrowleft') {
           newX = Math.max(0, prev.x - moveSpeed);
+          setCharacterDirection('left');
         } else if (key === 'd' || key === 'arrowright') {
           newX = Math.min(gameAreaWidth - characterSize, prev.x + moveSpeed);
+          setCharacterDirection('right');
         }
         
         // Vertical movement
         if (key === 'w' || key === 'arrowup') {
           newY = Math.max(0, prev.y - moveSpeed);
+          setCharacterDirection('front');
         } else if (key === 's' || key === 'arrowdown') {
           newY = Math.min(gameAreaHeight - characterSize, prev.y + moveSpeed);
+          setCharacterDirection('back');
         }
         
         return { x: newX, y: newY };
@@ -319,9 +354,31 @@ export default function GameArea({
       }
     };
     
+    const handleKeyUp = () => {
+
+      setIsCharacterMoving(false);
+    };
+    
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [foods, holdingFood, position, diyCooldown]);
+
+
+  useEffect(() => {
+    const autoStopMoving = () => {
+      if (isCharacterMoving && Date.now() - lastMoveTime > 150) {
+        setIsCharacterMoving(false);
+      }
+    };
+    
+    const interval = setInterval(autoStopMoving, 200);
+    return () => clearInterval(interval);
+  }, [isCharacterMoving, lastMoveTime]);
 
   // Handle pickup/drop food
   const handlePickup = useCallback(() => {
@@ -471,6 +528,43 @@ export default function GameArea({
     }
   }, [holdingFood, gameId, diyCooldown]);
 
+  // Add a useEffect to debug resource values
+  useEffect(() => {
+    if (Object.keys(gameResources).length > 0 && gameResources.resources) {
+      // Find the resources by name directly from the resources array
+      const findResourceByName = (name: string) => {
+        const lowerName = name.toLowerCase();
+        return gameResources.resources.find(
+          r => r.name.toLowerCase() === lowerName || 
+               r.name.toLowerCase().includes(lowerName)
+        );
+      };
+      
+      const foodBankResource = findResourceByName('food bank');
+      const greenBinResource = findResourceByName('green waste bin') || 
+                               findResourceByName('green bin') || 
+                               findResourceByName('compost bin');
+      const diyResource = findResourceByName('diy') || findResourceByName('diy place');
+      
+      const frontPlayerResource = findResourceByName('front_player');
+      const backPlayerResource = findResourceByName('back_player');
+      const leftPlayerResource = findResourceByName('left_player');
+      const rightPlayerResource = findResourceByName('right_player');
+      
+      console.log('Found food bank resource:', foodBankResource);
+      console.log('Found green bin resource:', greenBinResource);
+      console.log('Found DIY resource:', diyResource);
+      console.log('Found character sprite resources:', {
+        front: frontPlayerResource,
+        back: backPlayerResource,
+        left: leftPlayerResource,
+        right: rightPlayerResource
+      });
+      
+      console.log('Specific resources:', gameResources.specificResources);
+    }
+  }, [gameResources]);
+
   return (
     <div className="bg-white rounded-lg shadow-xl overflow-hidden">
       {/* Score Display */}
@@ -479,13 +573,26 @@ export default function GameArea({
       {/* Game Area */}
       <div
         ref={gameAreaRef}
-        className="relative w-full h-[600px] bg-gray-100 overflow-hidden"
+        className="relative w-full h-[600px] overflow-hidden"
+        style={{
+          backgroundImage: gameResources.specificResources?.background?.image 
+            ? `url(${gameResources.specificResources.background.image})` 
+            : 'linear-gradient(to bottom, #e0f7fa, #b2ebf2)',
+          backgroundSize: 'contain',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
       >
         {/* Conveyor belt */}
-        <ConveyorBelt />
+        <ConveyorBelt resources={gameResources} />
         
         {/* Drop zones */}
-        <DropZones diyCooldown={diyCooldown} />
+        <DropZones 
+          diyCooldown={diyCooldown} 
+          foodBankImage={gameResources.specificResources?.foodbank?.image}
+          greenBinImage={gameResources.specificResources?.greenbin?.image}
+          diyImage={gameResources.specificResources?.diy?.image}
+        />
         
         {/* Foods on conveyor belt */}
         <Food foods={foods} foodSize={foodSize} />
@@ -494,7 +601,15 @@ export default function GameArea({
         <Character 
           position={position} 
           characterSize={characterSize} 
-          holdingFood={holdingFood} 
+          holdingFood={holdingFood}
+          direction={characterDirection}
+          isMoving={isCharacterMoving}
+          spriteResources={{
+            front_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'front_player')?.image,
+            back_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'back_player')?.image,
+            left_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'left_player')?.image,
+            right_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'right_player')?.image
+          }}
         />
         
         {/* Message display */}

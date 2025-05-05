@@ -48,26 +48,26 @@ export default function Game() {
     }
 
     // Second click: Start the game without confirmation
-    try {
-      const demoPlayerId = 'demo-player-1';
-      setPlayerId(demoPlayerId);
-      const gameData = await startGame(demoPlayerId);
-      setGameId(gameData.game_id);
-      setGameStarted(true);
-      setGameOver(false);
-      setScore(gameData.score);
-      setTime(gameData.time_remaining);
-      
-      // Play game start sound
-      if (soundsLoaded) {
-        console.log('Playing game start sound');
-        playSound('gameStart');
-      } else {
-        console.log('Sounds not loaded yet, skipping game start sound');
-      }
-    } catch (error) {
-      console.error('Failed to start game:', error);
-      alert('Failed to start game. Please try again.');
+      try {
+        const demoPlayerId = 'demo-player-1';
+        setPlayerId(demoPlayerId);
+        const gameData = await startGame(demoPlayerId);
+        setGameId(gameData.game_id);
+        setGameStarted(true);
+        setGameOver(false);
+        setScore(gameData.score);
+        setTime(gameData.time_remaining);
+        
+        // Play game start sound
+        if (soundsLoaded) {
+          console.log('Playing game start sound');
+          playSound('gameStart');
+        } else {
+          console.log('Sounds not loaded yet, skipping game start sound');
+        }
+      } catch (error) {
+        console.error('Failed to start game:', error);
+        alert('Failed to start game. Please try again.');
     }
   };
 
@@ -84,7 +84,7 @@ export default function Game() {
     setTime(60);
     
     // Optionally play a sound if needed
-    if (soundsLoaded) {
+          if (soundsLoaded) {
       playSound('gameStart');
     }
   };
@@ -95,7 +95,7 @@ export default function Game() {
    */
   const handleGameOver = async () => {
     if (!gameId) return;
-    
+
     try {
       const response = await endGame(gameId);
       setGameOver(true);

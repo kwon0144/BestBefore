@@ -67,4 +67,54 @@ export const getFoodItems = async () => {
     } catch (error) {
         throw new Error(error.response?.data?.error || 'Failed to fetch food items');
     }
+};
+
+export const getGameResources = async () => {
+    try {
+        const response = await api.get('/api/game/resources/');
+        console.log('Game resources fetched:', response.data);
+        
+        // Process resources for easy access
+        const processedResources = response.data;
+        
+        // Verify resources structure
+        if (!processedResources.resources || !Array.isArray(processedResources.resources)) {
+            console.warn('Invalid resources format from API:', processedResources);
+            processedResources.resources = [];
+        }
+        
+        // Add detailed logging of resource names
+        console.log('All resource names:');
+        processedResources.resources.forEach(resource => {
+            console.log(`Resource: ${resource.name} (id: ${resource.id}, type: ${resource.type})`);
+        });
+        
+        // Create processed map with normalized resource names
+        const resourcesMap = {};
+        processedResources.resources.forEach(resource => {
+            resourcesMap[resource.name] = resource;
+            
+            resourcesMap[resource.name.toLowerCase()] = resource;
+        });
+        const specificResources = {
+            background: resourcesMap["map1"],
+            
+            foodbank: resourcesMap["Food Bank"],
+
+            greenbin: resourcesMap["Green waste bin"],
+            
+            diy: resourcesMap["DIY"] || resourcesMap["DIY Place"],
+        };
+        
+        // Log resolved resources for debugging
+        console.log('Resolved specific resources:', specificResources);
+        
+        // Add the specific resources to the processed data
+        processedResources.specificResources = specificResources;
+        
+        return processedResources;
+    } catch (error) {
+        console.error('Failed to fetch game resources:', error);
+        throw new Error(error.response?.data?.error || 'Failed to fetch game resources');
+    }
 }; 
