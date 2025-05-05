@@ -1,18 +1,34 @@
+/**
+ * DisposalGuideContent.tsx
+ * 
+ * This component displays a modal guide for proper food waste disposal in green waste bins.
+ * It provides information about what items can and cannot be disposed of in green waste bins,
+ * helping users make environmentally conscious decisions about food waste disposal.
+ */
+
 import { useState } from "react";
+import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { faXmark, faRecycle, faTimesCircle, faCheckCircle, faAppleAlt, faBreadSlice, faDrumstickBite, faCheese, faEgg, faCoffee, faFish, faUtensils, faLightbulb, faMugHot, faWineBottle, faWater, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 
+// Props interface for the main DisposalGuideContent component
 interface DisposalGuideContentProps {
-    onClose: () => void;
+    onClose: () => void; // Callback function to close the modal
 }
 
+// Props interface for the Item component
 interface ItemProps {
-    icon: IconProp;
-    text: string;
-    color: string;
+    icon: IconProp;      // FontAwesome icon to display
+    text: string;        // Text description of the item
+    color: string;       // Color for the item's border and icon
 }
 
+/**
+ * Item Component
+ * A reusable component that displays an item with an icon and text
+ * Used to show both acceptable and non-acceptable items for green waste disposal
+ */
 const Item = ({ icon, text, color }: ItemProps) => (
     <div className={`bg-white border border-[${color}] rounded-lg p-3 flex items-center gap-3`}>
         <FontAwesomeIcon icon={icon} className={`text-[${color}] text-xl`} />
@@ -20,13 +36,13 @@ const Item = ({ icon, text, color }: ItemProps) => (
     </div>
 );
 
+/**
+ * YesTab Component
+ * Displays items that CAN be disposed of in green waste bins
+ * Includes a fun fact about food waste and methane emissions
+ */
 const YesTab = () => (
     <div className="space-y-4">
-        <div className="bg-[#E8F5E9] p-4 rounded-lg">
-            <p className="text-gray-700 italic">
-                All these items can go in your lime green-lid food and garden waste bin!
-            </p>
-        </div>
 
         <div className="grid grid-cols-2 gap-4">
             <Item icon={faAppleAlt} text="Fruit & vegetable scraps" color="#4CAF50" />
@@ -50,14 +66,14 @@ const YesTab = () => (
     </div>
 );
 
+/**
+ * NoTab Component
+ * Displays items that CANNOT be disposed of in green waste bins
+ * Includes a warning about prohibited items
+ */
 const NoTab = () => (
     <div className="space-y-4">
-        <div className="bg-[#FFEBEE] p-4 rounded-lg">
-            <p className="text-gray-700 italic">
-                These items should NOT go in your lime green-lid food and garden waste bin!
-            </p>
-        </div>
-
+        
         <div className="grid grid-cols-2 gap-4">
             <Item icon={faMugHot} text="Tea bags" color="#F44336" />
             <Item icon={faCoffee} text="Coffee pods & cups" color="#F44336" />
@@ -74,12 +90,17 @@ const NoTab = () => (
     </div>
 );
 
+/**
+ * DisposalGuideContent Component
+ * Main component that renders a modal with tabs for acceptable and non-acceptable items
+ * Includes a header with title, image, and interactive tabs
+ */
 export default function DisposalGuideContent({ onClose }: DisposalGuideContentProps) {
     const [activeTab, setActiveTab] = useState<string>("yes");
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="relative bg-white rounded-xl shadow-2xl max-w-2xl w-full">
+            <div className="relative bg-white rounded-xl shadow-2xl max-w-2xl w-full mt-20">
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 cursor-pointer"
@@ -96,12 +117,13 @@ export default function DisposalGuideContent({ onClose }: DisposalGuideContentPr
                     </div>
 
                     <div className="mb-6">
-                        <img
+                        <Image
                             src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/disposalguide.jpg"
                             alt="Green waste bin"
                             width={800}
                             height={400}
                             className="w-full h-48 object-cover rounded-lg"
+                            priority
                         />
                     </div>
 

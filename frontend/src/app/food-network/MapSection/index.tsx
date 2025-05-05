@@ -1,18 +1,49 @@
+/**
+ * MapSection Component
+ * 
+ * This component provides an interactive map interface for food donation and waste disposal points.
+ * It includes:
+ * - Tab selection between Food Donation Points and Waste Disposal Points
+ * - Interactive map display
+ * - Route planning and navigation features
+ * - Location selection and information display
+ */
 import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import MapComponent from "./MapComponent";
 import Interaction from "./Interaction";
 import { MapSectionState, ViewState } from "@/app/food-network/interfaces";
 
-
+/**
+ * Props interface for the MapSection component
+ * @interface
+ */
 interface MapSectionProps {
+    /** Current state of the map section */
     mapSectionState: MapSectionState;
+    /** Function to update map section state */
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
+    /** Currently selected point type */
     selectedType: string;
+    /** Function to update selected point type */
     setSelectedType: Dispatch<SetStateAction<string>>;
+    /** Current view state */
     viewState: ViewState;
+    /** Function to update view state */
     setViewState: Dispatch<SetStateAction<ViewState>>;
 }
 
+/**
+ * Renders the main map section with interactive features
+ * 
+ * @param {object} props - Component properties
+ * @param {MapSectionState} props.mapSectionState - Current state of the map section
+ * @param {Dispatch<SetStateAction<MapSectionState>>} props.setMapSectionState - Function to update map section state
+ * @param {string} props.selectedType - Currently selected point type
+ * @param {Dispatch<SetStateAction<string>>} props.setSelectedType - Function to update selected point type
+ * @param {ViewState} props.viewState - Current view state
+ * @param {Dispatch<SetStateAction<ViewState>>} props.setViewState - Function to update view state
+ * @returns {JSX.Element} Rendered map section with interactive features
+ */
 export default function MapSection({mapSectionState, setMapSectionState, selectedType, setSelectedType, viewState, setViewState}: MapSectionProps) {
   // For submission to fetch route
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -20,16 +51,16 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
   // Add effect to reset route states when showInformation becomes true
   useEffect(() => {
     if (viewState.showInformation || viewState.showNavigation) {
-      setMapSectionState({
-        ...mapSectionState,
+      setMapSectionState(prevState => ({
+        ...prevState,
         selectedStart: null,
         routeStart: null,
         routeEnd: null,
         routeDetails: {duration: "", distance: ""},
         currentLocationAddress: ""
-      });
+      }));
     }
-  }, [viewState.showInformation, viewState.showNavigation]);
+  }, [viewState.showInformation, viewState.showNavigation, setMapSectionState]);
 
   const handleTypeSelection = (selection: string) => {
     if (selection !== selectedType) {
@@ -58,7 +89,7 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
   };
 
   return (
-    <div className="mt-10">
+    <div>
         {/* tab selection */}
         <div className="flex flex-row w-full ">
             <div className={`flex flex-row w-1/2 py-2 px-10 rounded-t-full ${selectedType === "Food Donation Points" ? "bg-green/30" : "bg-transparent"}`}></div>
@@ -79,8 +110,8 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
             </div>
         </div>
         {/* map and interaction */}
-        <div className={`flex flex-row w-full h-[600px] pt-10 pb-10 px-10 rounded-b-2xl ${selectedType=="Food Donation Points" ? "bg-green/30 rounded-tr-2xl" : "bg-[#b0ebc4]/50 rounded-tl-2xl"}`}>
-            <div className="w-3/5">
+        <div className={`flex flex-col md:flex-row w-full h-auto md:h-[600px] pt-10 pb-10 px-10 rounded-b-2xl gap-10 md:gap-0 ${selectedType=="Food Donation Points" ? "bg-green/30 rounded-tr-2xl" : "bg-[#b0ebc4]/50 rounded-tl-2xl"}`}>
+            <div className="w-full md:w-3/5 h-[400px] md:h-full">
                 <MapComponent 
                     mapSectionState={mapSectionState}
                     setMapSectionState={setMapSectionState}
@@ -88,7 +119,7 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
                     setMap={setMap}
                 />
             </div>
-            <div className="w-2/5">
+            <div className="w-full md:w-2/5 md:pl-5">
                 <Interaction 
                     mapSectionState={mapSectionState}
                     setMapSectionState={setMapSectionState}

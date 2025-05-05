@@ -1,204 +1,286 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Title from "../(components)/Title"
-import { Button, Input } from "@heroui/react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMagnifyingGlass, faArrowRight, faSpa, faBroom, faSeedling, faPalette, faPaw } from "@fortawesome/free-solid-svg-icons";
+import { faPaintBrush, faUtensils, faSpa, faHome, faBowlFood, faKitMedical } from "@fortawesome/free-solid-svg-icons";
+import axios from "axios";
+import { config } from "@/config";
+import { SecondLifeItem } from "./interfaces";
+import ComingUp from "../(components)/ComingUp";
+
+// Component imports
+import Search from "./Search";
+import Ingredients from "./Ingredients";
+import Categories from "./Categories";
+import ItemsGrid from "./ItemsGrid";
+import ItemDetail from "./ItemDetail";
 
 export default function SecondLife() {
+    // State management for search, filters, and data
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-    const [selectedFoodType, setSelectedFoodType] = useState<string | null>(null);
-    const foodTypes = [
-    'Coffee Grounds',
-    'Fruit Peels',
-    'Vegetable Scraps',
-    'Eggshells',
-    'Bread Crusts',
-    'Avocado Pits',
-    'Citrus Rinds',
-    'Banana Peels'
-    ];
-    const categories = [
-    { name: 'Beauty & Personal Care', icon: faSpa },
-    { name: 'Home Cleaning', icon: faBroom },
-    { name: 'Garden & Compost', icon: faSeedling },
-    { name: 'Natural Dyes', icon: faPalette },
-    { name: 'Pet Care', icon: faPaw }
-    ];
-    const foodItems = [
-    {
-    id: 1,
-    name: 'Coffee Grounds',
-    possibleUses: 8,
-    categories: ['Beauty & Personal Care', 'Garden & Compost'],
-    image: 'https://readdy.ai/api/search-image?query=Close%20up%20of%20used%20coffee%20grounds%20in%20a%20wooden%20bowl%20with%20a%20wooden%20spoon%2C%20on%20a%20neutral%20background%20with%20some%20coffee%20beans%20scattered%20around%2C%20soft%20natural%20lighting%2C%20minimalist%20aesthetic%2C%20high%20quality%20food%20photography&width=400&height=300&seq=1&orientation=landscape'
-    },
-    {
-    id: 2,
-    name: 'Citrus Peels',
-    possibleUses: 6,
-    categories: ['Home Cleaning', 'Natural Dyes'],
-    image: 'https://readdy.ai/api/search-image?query=Sliced%20orange%20halves%20on%20a%20white%20marble%20surface%2C%20bright%20and%20vibrant%20orange%20color%2C%20clean%20minimalist%20food%20photography%2C%20soft%20natural%20lighting%2C%20high%20resolution%2C%20no%20props%2C%20simple%20elegant%20composition&width=400&height=300&seq=2&orientation=landscape'
-    },
-    {
-    id: 3,
-    name: 'Avocado Pits',
-    possibleUses: 4,
-    categories: ['Natural Dyes', 'Beauty & Personal Care'],
-    image: 'https://readdy.ai/api/search-image?query=Fresh%20cut%20avocados%20on%20a%20wooden%20cutting%20board%2C%20showing%20the%20pits%20and%20flesh%2C%20natural%20lighting%2C%20top-down%20view%2C%20clean%20minimal%20composition%2C%20high%20quality%20food%20photography%2C%20neutral%20background%2C%20professional%20styling&width=400&height=300&seq=3&orientation=landscape'
-    },
-    {
-    id: 4,
-    name: 'Eggshells',
-    possibleUses: 5,
-    categories: ['Garden & Compost', 'Home Cleaning'],
-    image: 'https://readdy.ai/api/search-image?query=A%20bowl%20of%20clean%20white%20eggshells%20on%20a%20neutral%20background%2C%20soft%20natural%20lighting%2C%20minimalist%20composition%2C%20high%20quality%20food%20photography%2C%20simple%20elegant%20styling%2C%20no%20props%2C%20focus%20on%20texture%20and%20detail&width=400&height=300&seq=4&orientation=landscape'
-    },
-    {
-    id: 5,
-    name: 'Banana Peels',
-    possibleUses: 7,
-    categories: ['Garden & Compost', 'Beauty & Personal Care'],
-    image: 'https://readdy.ai/api/search-image?query=Fresh%20yellow%20banana%20peels%20arranged%20on%20a%20neutral%20stone%20background%2C%20clean%20minimalist%20food%20photography%2C%20soft%20natural%20lighting%2C%20high%20resolution%2C%20simple%20elegant%20composition%2C%20focus%20on%20texture%20and%20curves&width=400&height=300&seq=5&orientation=landscape'
-    },
-    {
-    id: 6,
-    name: 'Vegetable Scraps',
-    possibleUses: 3,
-    categories: ['Garden & Compost', 'Home Cleaning'],
-    image: 'https://readdy.ai/api/search-image?query=Colorful%20vegetable%20scraps%20and%20peels%20neatly%20arranged%20on%20a%20wooden%20cutting%20board%2C%20including%20carrots%2C%20onions%2C%20and%20leafy%20greens%2C%20natural%20lighting%2C%20top-down%20view%2C%20clean%20minimal%20composition%2C%20high%20quality%20food%20photography&width=400&height=300&seq=6&orientation=landscape'
-    }
-    ];
-    const filteredItems = foodItems.filter(item => {
-    // Filter by search query
-    const matchesSearch = searchQuery === '' ||
-    item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    // Filter by selected food type
-    const matchesFoodType = selectedFoodType === null ||
-    item.name === selectedFoodType;
-    // Filter by selected category
-    const matchesCategory = selectedCategory === null ||
-    item.categories.includes(selectedCategory);
-    return matchesSearch && matchesFoodType && matchesCategory;
-    });
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    };
-    const handleCategorySelect = (category: string) => {
-    setSelectedCategory(prevCategory =>
-    prevCategory === category ? null : category
-    );
-    };
-    const handleFoodTypeSelect = (foodType: string) => {
-    setSelectedFoodType(prevType =>
-    prevType === foodType ? null : foodType
-    );
-    };
-    return (
+    const [selectedIngredient, setSelectedIngredient] = useState<string | null>(null);
+    const [items, setItems] = useState<SecondLifeItem[]>([]);
+    const [allItems, setAllItems] = useState<SecondLifeItem[]>([]);
+    const [filteredItemsCount, setFilteredItemsCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<SecondLifeItem | null>(null);
+    const [inputValue, setInputValue] = useState('');
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
+    const [totalPages, setTotalPages] = useState(1);
 
-        <div className="min-h-screen max-w-7xl mx-auto py-20 px-10">
+    // Featured items for first page
+    const featuredItemIds = useMemo(() => [33, 17, 29, 30, 20, 31], []);
+    const itemsGridRef = useRef<HTMLDivElement>(null);
+
+    // Predefined ingredients for quick search
+    const ingredients = [
+        'apple',
+        'potato',
+        'banana',
+        'lemon',
+        'orange',
+        'grapefruit',
+        'onion',
+        'celery',
+        'carrot',
+        'mushroom',
+        'tomato',
+        'avocado',
+        'cucumber',
+        'citrus',
+        'sour milk'
+    ];
+
+    // Category options with icons
+    const categories = [
+        { name: 'craft', icon: faPaintBrush },
+        { name: 'food', icon: faUtensils },
+        { name: 'beauty', icon: faSpa },
+        { name: 'household', icon: faHome },
+        { name: 'cooking', icon: faBowlFood },
+        { name: 'first aid', icon: faKitMedical }
+    ];
+
+    // Fetch items from the backend API when searching
+    const fetchItems = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get<SecondLifeItem[]>(`${config.apiUrl}/api/second-life/`, {
+                params: {
+                    search: searchQuery || selectedIngredient
+                }
+            });
+            setAllItems(response.data);
+            setTotalPages(Math.ceil(response.data.length / itemsPerPage));
+            setError(null);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                const axiosError = err as { response?: { status: number } };
+                if (axiosError.response?.status) {
+                    const status = axiosError.response.status;
+                    if (status === 429) {
+                        setError('Too many requests. Please wait a moment and try again.');
+                    } else if (status === 404) {
+                        setError('No items found matching your search.');
+                    } else if (status >= 500) {
+                        setError('Server error. Please try again later.');
+                    } else {
+                        setError('Failed to fetch items. Please try again.');
+                    }
+                } else {
+                    setError('An unexpected error occurred. Please try again.');
+                }
+            } else {
+                setError('An unexpected error occurred. Please try again.');
+            }
+            console.error('Error fetching items:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, [searchQuery, selectedIngredient]);
+
+    // Fetch all items when component mounts
+    useEffect(() => {
+        fetchItems();
+    }, [fetchItems]);
+
+    // Update displayed items after fetch
+    useEffect(() => {
+        if (allItems.length === 0) return;
+
+        // For the first page with no search/filter, show featured items
+        if (currentPage === 1 && !searchQuery && !selectedIngredient && !selectedCategory) {
+            // Get featured items if they exist
+            const featured = allItems.filter(item => featuredItemIds.includes(item.method_id));
+            // If we have all featured items, display them
+            if (featured.length === featuredItemIds.length) {
+                // Sort them according to the order in featuredItemIds
+                const sortedFeatured = featuredItemIds.map(id => 
+                    featured.find(item => item.method_id === id)
+                ).filter(item => item !== undefined) as SecondLifeItem[];
+                setItems(sortedFeatured);
+                // Set the total count to allItems.length instead of featured.length
+                setFilteredItemsCount(allItems.length);
+                return;
+            }
+        }
+
+        // Apply all filters
+        let filteredItems = allItems;
+        
+        // Filter by category if selected
+        if (selectedCategory) {
+            filteredItems = filteredItems.filter(item => item.method_category === selectedCategory);
+        }
+        
+        // Filter by ingredient if selected
+        if (selectedIngredient) {
+            filteredItems = filteredItems.filter(item => 
+                item.ingredient.toLowerCase().includes(selectedIngredient.toLowerCase())
+            );
+        }
+
+        // Update filtered items count
+        setFilteredItemsCount(filteredItems.length);
+
+        // Calculate pagination
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        setItems(filteredItems.slice(startIndex, endIndex));
+        setTotalPages(Math.ceil(filteredItems.length / itemsPerPage));
+    }, [currentPage, allItems, featuredItemIds, searchQuery, selectedCategory, selectedIngredient]);
+
+    // Event handlers
+    const handleCategorySelect = (category: string) => {
+        setSelectedCategory(prevCategory =>
+            prevCategory === category ? null : category
+        );
+        // Reset to first page when changing category
+        setCurrentPage(1);
+        // Scroll to items grid
+        if (itemsGridRef.current) {
+            const offset = 80;
+            const elementPosition = itemsGridRef.current.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    const handleIngredientSelect = (ingredient: string | null) => {
+        setSelectedIngredient(prev => prev === ingredient ? null : ingredient);
+        setSearchQuery('');
+        setInputValue('');
+        setCurrentPage(1);
+    };
+
+    // Add this useEffect to handle fetching when searchQuery changes
+    useEffect(() => {
+        fetchItems();
+    }, [searchQuery, fetchItems]);
+
+    // Add this useEffect to handle fetching when selectedIngredient changes
+    useEffect(() => {
+        fetchItems();
+    }, [selectedIngredient, fetchItems]);
+
+    const handleCardClick = (item: SecondLifeItem) => {
+        setSelectedItem(item);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedItem(null);
+    };
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        // Scroll to items grid section with offset
+        if (itemsGridRef.current) {
+            const offset = 80;
+            const elementPosition = itemsGridRef.current.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    return (
+        <div>
             {/* Title */}
-            <Title heading="Second Life" description="Give your food scraps a new purpose. Discover creative ways to repurpose food waste
-into useful products for your home, garden, and beauty routine." />
-            {/* Search Bar */}
-            <div className="mt-8 max-w-xl mx-auto">
-                <div className="relative">
-                    <Input
-                        type="text"
-                        placeholder="Search food items to repurpose..."
-                        classNames={{
-                            inputWrapper: "w-full py-3 px-4 pr-10 border-none bg-white border-1 shadow-md"
-                        }}
-                        value={searchQuery}
-                        onChange={handleSearch}
-                    />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                        <FontAwesomeIcon icon={faMagnifyingGlass} />
-                    </div>
-                </div>
+            <div className="py-12">
+                <Title heading="Second Life" 
+                description="Give your food scraps a new purpose. Discover creative ways to repurpose food waste into useful products for your home, garden, and beauty routine." 
+                background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/secondlife-titlebg.jpeg"
+                />
             </div>
-            {/* Quick Access Food Categories */}
-            <div className="mt-8 overflow-x-auto pb-2">
-                <div className="flex space-x-3 min-w-max px-2">
-                    {[...foodTypes].map((foodType) => (
-                        <Button
-                            key={foodType}
-                            onPress={() => handleFoodTypeSelect(foodType)}
-                            className={`py-2 px-4 rounded-full whitespace-nowrap !rounded-button cursor-pointer ${
-                            selectedFoodType === foodType
-                            ? 'bg-[#2c5e2e] text-white'
-                            : 'bg-white text-[#2c5e2e] hover:bg-gray-100'
-                            } shadow-sm transition-colors`}
-                            >
-                            {foodType}
-                        </Button>
-                    ))}
-                    <Button
-                        className="py-2 px-4 rounded-full whitespace-nowrap !rounded-button cursor-pointer bg-[#f0f7f0] text-[#2c5e2e] hover:bg-[#e1efe1] border border-[#2c5e2e] shadow-sm transition-colors flex items-center"
-                        >
-                        See more
-                        <FontAwesomeIcon icon={faArrowRight} />
-                    </Button>
-                </div>
+            
+            {/* Search Component */}
+            <div className="min-h-screen max-w-7xl mx-auto px-10 mt-8 mb-20">
+                {/* Search Component */}
+                <Search 
+                    setSearchQuery={setSearchQuery} 
+                    setSelectedIngredient={setSelectedIngredient}
+                    inputValue={inputValue}
+                    setInputValue={setInputValue}
+                />
+
+                {/* Ingredients Component */}
+                <Ingredients 
+                    ingredients={ingredients}
+                    selectedIngredient={selectedIngredient}
+                    handleIngredientSelect={handleIngredientSelect}
+                />
+
+                {/* Categories Component */}
+                <Categories 
+                    categories={categories}
+                    selectedCategory={selectedCategory}
+                    handleCategorySelect={handleCategorySelect}
+                />
+
+                {/* ItemsGrid Component */}
+                <ItemsGrid 
+                    ref={itemsGridRef}
+                    items={items}
+                    allItems={allItems}
+                    filteredItemsCount={filteredItemsCount}
+                    loading={loading}
+                    error={error}
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    handleCardClick={handleCardClick}
+                    handlePageChange={handlePageChange}
+                />
+
+                {/* ItemDetail Component */}
+                <ItemDetail 
+                    isOpen={isModalOpen}
+                    onClose={closeModal}
+                    item={selectedItem}
+                />
+                
+                {/* Coming up next section */}
+                <ComingUp
+                    message="From Your Kitchen to the Community!"
+                    title="Discover how you can support your community"
+                    description="Donating surplus food or disposing of waste responsibly — every small action makes a big impact."
+                    buttonText="Explore the Food Network"
+                    buttonLink="/food-network"
+                    imageSrc="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/second-life-next.png"
+                    imageAlt="Food Network"
+                />
             </div>
-            {/* Filter Section */}
-            <div className="mt-10">
-                <h3 className="text-lg font-medium text-gray-700 mb-4">Filter by category:</h3>
-                <div className="flex flex-wrap gap-3">
-                    {categories.map((category) => (
-                    <Button
-                        key={category.name}
-                        onPress={() => handleCategorySelect(category.name)}
-                        className={`flex items-center py-2 px-4 rounded-lg !rounded-button whitespace-nowrap cursor-pointer ${
-                        selectedCategory === category.name
-                            ? 'bg-[#2c5e2e] text-white'
-                            : 'bg-white text-gray-700 hover:bg-gray-100'
-                        } shadow-sm transition-colors`}
-                        >
-                        <FontAwesomeIcon icon={category.icon} />
-                        <span>{category.name}</span>
-                    </Button>
-                    ))}
-                </div>
-            </div>
-            {/* Results Grid */}
-            <div className="mt-10">
-                <h3 className="text-lg font-medium text-gray-700 mb-4">
-                    {filteredItems.length} items found
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredItems.map((item) => (
-                        <div
-                            key={item.id}
-                            className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-                        >
-                            <div className="h-48 overflow-hidden">
-                                <img
-                                src={item.image}
-                                alt={item.name}
-                                className="w-full h-full object-cover object-top"
-                                />
-                            </div>
-                            <div className="p-5">
-                                <h3 className="text-xl font-semibold text-[#2c5e2e] mb-2">{item.name}</h3>
-                                <p className="text-gray-600 mb-4">{item.possibleUses} possible uses</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {item.categories.map((category) => (
-                                    <span
-                                        key={`${item.id}-${category}`}
-                                        className="text-xs py-1 px-3 bg-[#f0f7f0] text-[#2c5e2e] rounded-full"
-                                        >
-                                        {category}
-                                    </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div> 
-    )
+        </div>
+    );
 }

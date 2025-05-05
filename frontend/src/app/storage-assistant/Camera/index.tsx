@@ -1,9 +1,26 @@
+/**
+ * Camera component for capturing and managing photos of food items.
+ * This component provides a camera interface with the following features:
+ * - Live camera preview with back camera support
+ * - Photo capture functionality
+ * - Photo gallery management
+ * - iOS security restriction handling
+ * - Error handling for camera access
+ */
 import React, { useRef } from 'react';
 import { CameraState } from '../interfaces';
 import { Button } from '@heroui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCamera, faImage, faTrash, faTimes, faStop } from '@fortawesome/free-solid-svg-icons';
 
+/**
+ * Props interface for the Camera component
+ * @interface CameraProps
+ * @property {CameraState} state - Current state of the camera component
+ * @property {React.Dispatch<React.SetStateAction<CameraState>>} setState - Function to update camera state
+ * @property {() => void} submitPhotos - Function to submit captured photos for analysis
+ * @property {() => void} handleReset - Function to reset the camera state
+ */
 interface CameraProps {
   state: CameraState;
   setState: React.Dispatch<React.SetStateAction<CameraState>>;
@@ -11,11 +28,20 @@ interface CameraProps {
   handleReset: () => void;
 }
 
+/**
+ * Camera component that provides a user interface for capturing and managing photos
+ * @component
+ * @param {CameraProps} props - Component props
+ * @returns {JSX.Element} Rendered camera component
+ */
 const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleReset }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Check iOS security restrictions
+  /**
+   * Checks for iOS security restrictions that might prevent camera access
+   * @returns {boolean} True if iOS restrictions are detected, false otherwise
+   */
   const checkIOSRestriction = (): boolean => {
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isSecure = window.isSecureContext;
@@ -31,7 +57,12 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
     return false;
   };
 
-  // Initialize camera stream
+  /**
+   * Initializes the camera stream with optimal settings for food photography
+   * Sets up the video element and handles any errors during initialization
+   * @async
+   * @returns {Promise<void>}
+   */
   const startCamera = async () => {
     if (checkIOSRestriction()) return;
     
@@ -61,7 +92,11 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
     }
   };
 
-  // Capture photo from video stream
+  /**
+   * Captures a photo from the current video stream
+   * Converts the video frame to a JPEG image and adds it to the photos array
+   * @returns {void}
+   */
   const takePhoto = () => {
     if (!videoRef.current || !canvasRef.current || !state.stream) return;
 
@@ -84,7 +119,10 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
     }
   };
 
-  // Stop camera stream
+  /**
+   * Stops the camera stream and cleans up resources
+   * @returns {void}
+   */
   const stopCamera = () => {
     if (state.stream) {
       state.stream.getTracks().forEach(track => track.stop());
@@ -95,7 +133,11 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
     }
   };
 
-  // Delete a specific photo
+  /**
+   * Removes a specific photo from the photos array
+   * @param {number} indexToDelete - Index of the photo to delete
+   * @returns {void}
+   */
   const deletePhoto = (indexToDelete: number) => {
     setState(prev => ({
       ...prev,
@@ -118,11 +160,11 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
           />
           {!state.stream && (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#2A5F5E]/10 flex items-center justify-center">
-                <FontAwesomeIcon icon={faCamera} className="text-2xl text-gray-400" />
+              <div className="mx-auto mb-4 flex items-center justify-center">
+                <FontAwesomeIcon icon={faCamera} className="text-3xl text-gray-400" />
               </div>
-              <p className="text-gray-300 text-lg animate-pulse">
-                Camera inactive
+              <p className="text-gray-300 text-lg animate-pulse text-center px-10">
+                Click &quot;Start Camera&quot; to begin
               </p>
             </div>
           )}

@@ -1,3 +1,14 @@
+/**
+ * FoodNetworkList Component
+ * 
+ * This component displays a searchable and filterable list of food banks and waste disposal points.
+ * Features include:
+ * - Search by name, address, or location
+ * - Filter by type (Food Bank or Green Waste)
+ * - Pagination for large lists
+ * - Interactive table with clickable rows
+ * - Visual indicators for different types of locations
+ */
 'use client';
 
 import React, { useState, useEffect, useMemo, SetStateAction, Dispatch } from 'react';
@@ -7,19 +18,41 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { ViewState, MapSectionState } from '../interfaces';
 
+/**
+ * Props interface for the FoodNetworkList component
+ * @interface
+ */
 interface FoodNetworkListProps {
+  /** Function to update map section state */
   setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
+  /** Currently selected point type */
   selectedType: string;
+  /** Function to update selected point type */
   setSelectedType: Dispatch<SetStateAction<string>>;  
+  /** Function to update view state */
   setViewState: Dispatch<SetStateAction<ViewState>>;
 }
 
+/**
+ * Available type options for filtering
+ * @constant
+ */
 const typeOptions = [
   { uid: "all", name: "All Types" },
   { uid: "Food Donation Point", name: "Food Bank" },
   { uid: "Green Waste", name: "Green Waste" },
 ];
 
+/**
+ * Renders a searchable and filterable list of food banks and waste disposal points
+ * 
+ * @param {object} props - Component properties
+ * @param {Dispatch<SetStateAction<MapSectionState>>} props.setMapSectionState - Function to update map section state
+ * @param {string} props.selectedType - Currently selected point type
+ * @param {Dispatch<SetStateAction<string>>} props.setSelectedType - Function to update selected point type
+ * @param {Dispatch<SetStateAction<ViewState>>} props.setViewState - Function to update view state
+ * @returns {JSX.Element} Rendered food network list with search and filter capabilities
+ */
 const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ 
   setMapSectionState, 
   selectedType,
@@ -129,7 +162,8 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
 
   return (
     <div>
-        <div className="flex flex-row gap-4 mb-6 items-center justify-between">
+        {/* <div className="flex flex-row gap-4 mb-6 items-center justify-between"> */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           {/* Title */}
           <h1 className="text-2xl font-semibold text-darkgreen">Food Network List in City of Melbourne </h1>
           <div className="flex flex-row gap-4">
@@ -149,7 +183,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
               variant="bordered"
               startContent={<FontAwesomeIcon icon={faSearch} />}
               classNames={{
-                inputWrapper: "bg-white border-1 min-h-[48px] min-w-[400px]",
+                inputWrapper: "bg-white border-1 min-h-[48px]",
               }}
             />
             {/* Type Filter */}

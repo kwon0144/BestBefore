@@ -1,26 +1,6 @@
 from django.db import models
 
 # Create your models here.
-class User(models.Model):
-    age = models.IntegerField()
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
-
-class Temperature(models.Model):
-    class Meta:
-        db_table = 'temperature'  # This specifies the actual table name in the database
-        managed = False  # Since the table already exists in the database
-        unique_together = (('month', 'day'),)  # Composite primary key
-
-    month = models.IntegerField(primary_key=True)  # Part of composite primary key
-    day = models.IntegerField()  # Part of composite primary key
-    temperature = models.FloatField()
-
-    def __str__(self):
-        return f"Temperature: {self.temperature} on month {self.month} day {self.day}"
-
 class FoodStorage(models.Model):
     type = models.CharField(max_length=255, null=True, blank=True)
     storage_time = models.IntegerField(null=True, blank=True)
@@ -74,4 +54,44 @@ class GameFoodResources(models.Model):
     def __str__(self):
         return f"{self.name} - {self.type}"
 
+class SecondLife(models.Model):
+    method_id = models.IntegerField(primary_key=True)
+    method_name = models.CharField(max_length=100)
+    is_combo = models.CharField(max_length=10)
+    method_category = models.CharField(max_length=50)
+    ingredient = models.CharField(max_length=100)
+    description = models.CharField(max_length=1000)
+    picture = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'diy_products'
+        managed = False 
+
+    def __str__(self):
+        return f"{self.method_name} - {self.ingredient}"
     
+class FoodIngredient(models.Model):
+    id = models.AutoField(primary_key=True)
+    dish = models.CharField(max_length=255)
+    ingredient = models.TextField()
+    
+    class Meta:
+        db_table = 'food_ingredients'
+        managed = True
+    
+    def __str__(self):
+        return f"{self.dish}"
+
+class Dish(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=128)
+    cuisine = models.CharField(max_length=50)
+    URL = models.CharField(max_length=128)
+
+    class Meta:
+        db_table = 'meal_data'  
+        managed = False  
+
+    def __str__(self):
+        return self.name

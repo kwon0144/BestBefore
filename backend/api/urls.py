@@ -1,17 +1,31 @@
 from django.urls import path, include
-from .views import get_users, create_user, get_temperature_data, get_storage_advice, get_food_types, get_foodbanks, start_game, update_game, end_game, get_leaderboard, get_food_items, pickup_food, perform_action
-from . import produce_detection
-from .output_calender import generate_calendar, generate_ical
+from .views import (
+    get_storage_advice, 
+    get_food_types, 
+    get_foodbanks,
+    get_second_life_items,
+    get_second_life_item_detail,
+    get_dish_ingredients,
+    search_dishes,
+    get_signature_dishes,
+    login,
+    start_game,
+    update_game,
+    end_game,
+    get_leaderboard,
+    get_food_items,
+    pickup_food,
+    perform_action
+)
+from .service import produce_detection_service
+from .service.output_calender_service import generate_calendar, generate_ical
 from rest_framework.routers import DefaultRouter
 
 
 urlpatterns = [
-    path("users/", get_users, name="get_users"),
-    path("users/create/", create_user, name="create_user"),
-    path('detect-produce/', produce_detection.detect_produce, name='detect_produce'),
+    path('detect-produce/', produce_detection_service.detect_produce, name='detect_produce'),
     path('generate_calendar/', generate_calendar, name='generate-calendar'),
     path('calendar/<uuid:calendar_id>.ics', generate_ical, name='generate-ical'),
-    path('temperature/', get_temperature_data, name='temperature-data'),
     path('storage-advice/', get_storage_advice, name='get_storage_advice'),
     path('food-types/', get_food_types, name='get_food_types'),
     path('foodbanks/', get_foodbanks, name='get_foodbanks'),
@@ -22,4 +36,11 @@ urlpatterns = [
     path('game/food-items/', get_food_items, name='get_food_items'),
     path('game/pickup/', pickup_food, name='pickup_food'),
     path('game/action/', perform_action, name='perform_action'),
+    path('second-life/', get_second_life_items, name='get_second_life_items'),
+    path('second-life/<int:item_id>/', get_second_life_item_detail, name='get_second_life_item_detail'),
+    path('dish-ingredients/', get_dish_ingredients, name='get_dish_ingredients'),
+    path('search-dishes/', search_dishes, name='search_dishes'),
+    path('signature-dishes/', get_signature_dishes, name='get_signature_dishes'),
+    path('auth/login/', login, name='login'),
 ]
+

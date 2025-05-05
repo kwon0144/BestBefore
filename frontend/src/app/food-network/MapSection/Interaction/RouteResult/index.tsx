@@ -1,3 +1,11 @@
+/**
+ * RouteResult Component
+ * 
+ * This component displays the results of a route calculation between a starting point and a food bank/green waste bin.
+ * It shows route details including start/end points, travel mode, estimated time, and distance.
+ * Users can navigate back to the previous view or choose a different destination.
+ */
+
 import { useFoodBank } from "@/hooks/useFoodBank";
 import { useGeocoding } from "@/hooks/useGeocoding";
 import { Button } from "@heroui/react";
@@ -7,6 +15,13 @@ import { faRoad, faClock, faMapPin, faWalking, faBicycle, faBus, faCar, faArrowL
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { MapSectionState } from "@/app/food-network/interfaces";
 
+/**
+ * Props interface for the RouteResult component
+ * @property mapSectionState - Current state of the map section
+ * @property setMapSectionState - Function to update the map section state
+ * @property setViewState - Function to update the view state
+ * @property selectedType - Type of destination (Food Donation Points or Green Waste Bins)
+ */
 interface RouteResultProps {
     mapSectionState: MapSectionState;
     setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
@@ -22,6 +37,7 @@ export default function RouteResult({
 }: RouteResultProps) {
     const map = useMap();
 
+    // Handle click to return to information view and reset map
     const handleClick = () => {
         setViewState(prev => ({...prev, showRouteResult: false, showInformation: true}));
         if (map) {
@@ -30,6 +46,7 @@ export default function RouteResult({
         }
     }
 
+    // Handle navigation back to the previous view
     const handleBackToNavigation = () => {
         setViewState(prev => ({...prev, showRouteResult: false, showNavigation: true}));
         setMapSectionState(prev => ({...prev, selectedStart: null, currentLocationAddress: ""}));
@@ -38,11 +55,13 @@ export default function RouteResult({
         }
     }
 
+    // Get the formatted address for the starting point
     const startAddress = useGeocoding(mapSectionState.selectedStart);
+    // Get the selected food bank details
     const { foodbank: selectedFoodBank } = useFoodBank(mapSectionState.selectedEnd);
 
     return (
-        <div className="flex flex-col pl-10 w-full">
+        <div className="flex flex-col md:pl-1 lg:pl-10 w-full">
             {/* Navigation Back Button */}
             <div className="mb-3">
                 <Button
@@ -53,10 +72,10 @@ export default function RouteResult({
                     Back to Navigation
                 </Button>
             </div>
-            {/* Route Details */}
-            <div className="border-2 border-gray-400 rounded-lg p-6 mb-6 shadow-sm">
-                {/* Starting Point */}
-                <div className="mb-5">
+            {/* Route Details Section */}
+            <div className="border-2 border-gray-400 rounded-lg px-6 py-5 mb-6 shadow-sm">
+                {/* Starting Point Display */}
+                <div className="mb-3 md:hidden xl:block">
                     <h3 className="text-sm font-medium text-gray-600 mb-1">
                         FROM
                     </h3>
@@ -67,8 +86,8 @@ export default function RouteResult({
                         <p className="font-medium break-words">{startAddress}</p>
                     </div>
                 </div>
-                {/* Travelling Mode */}
-                <div className="pl-5 ml-[0.625rem] border-l-2 border-dashed border-gray-400 py-2">
+                {/* Travel Mode Display */}
+                <div className="pl-5 ml-[0.625rem] border-l-2 border-dashed border-gray-400 py-2 md:hidden xl:block">
                     <div className="flex items-center text-gray-600">
                     {mapSectionState.travellingMode === "WALKING"
                         ? <FontAwesomeIcon icon={faWalking} className="mr-2" />
@@ -81,11 +100,11 @@ export default function RouteResult({
                     <span>via {mapSectionState.travellingMode}</span>
                     </div>
                 </div>
-                {/* Destination */}
-                <div className="mt-5">
-                    <h3 className="text-sm font-medium text-gray-600 mb-1">
+                {/* Destination Display */}
+                <div className="mt-3 md:mt-0 xl:mt-3">
+                    <h3 className="text-sm font-medium text-gray-600 mb-1 md:hidden xl:block">
                         TO
-                </h3>
+                    </h3>
                 <div className="flex items-center">
                     <div className="w-10 h-10 rounded-full bg-lightgreen flex items-center justify-center mr-3">
                     <FontAwesomeIcon icon={faMapPin} className="text-green-700" />
@@ -99,8 +118,9 @@ export default function RouteResult({
                     </div>
                 </div>
             </div>
-            {/* Route Estimation */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            {/* Route Estimation Cards */}
+            <div className="grid grid-cols-2 grid-cols-2 md:grid-cols-1 xl:grid-cols-2 gap-4 mb-6">
+                {/* Estimated Time Card */}
                 <div className="bg-gray-200/80 rounded-lg p-4 shadow-sm border border-green-200">
                     <h3 className="text-sm font-medium text-darkgreen mb-2">
                       ESTIMATED TIME
@@ -112,6 +132,7 @@ export default function RouteResult({
                       </p>
                     </div>
                   </div>
+                  {/* Estimated Distance Card */}
                   <div className="bg-gray-200/80 rounded-lg p-4 shadow-sm border border-green-200">
                     <h3 className="text-sm font-medium text-darkgreen mb-2">
                       ESTIMATED DISTANCE
@@ -124,7 +145,7 @@ export default function RouteResult({
                     </div>
                 </div>
             </div>
-            {/* Navigation Button */}
+            {/* Action Button */}
             <Button 
                 onPress={() => {handleClick()}}
                 className="bg-darkgreen hover:bg-darkgreen/50 text-white font-bold py-2 px-4 rounded-lg"

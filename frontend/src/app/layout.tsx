@@ -3,9 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Poppins } from "next/font/google";
 import { Providers } from "./providers";
-import Navigationbar from "./(components)/Navigationbar";
-import Footer from "./(components)/Footer";
-
+import LayoutWrapper from "./(components)/Layout/LayoutWrapper";
+  
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -35,26 +34,24 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-      <link
-        rel="icon"
-        href="/icon?<generated>"
-        type="image/<generated>"
-        sizes="<generated>"
-      />
-      <link
-        rel="apple-touch-icon"
-        href="/apple-icon?<generated>"
-        type="image/<generated>"
-        sizes="<generated>"
-      />
+        <link
+          rel="icon"
+          href="/icon?<generated>"
+          type="image/<generated>"
+          sizes="<generated>"
+        />
+        <link
+          rel="apple-touch-icon"
+          href="/apple-icon?<generated>"
+          type="image/<generated>"
+          sizes="<generated>"
+        />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable}`}>
         <Providers>
-          <div className={poppins.className}>
-            <Navigationbar />
-            <main>{children}</main>
-            <Footer />
-          </div>
+          <LayoutWrapper>
+            {children}
+          </LayoutWrapper>
         </Providers>
       </body>
     </html>

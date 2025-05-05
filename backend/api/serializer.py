@@ -1,15 +1,5 @@
 from rest_framework import serializers
-from .models import User, Temperature, Geospatial
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
-
-class TemperatureSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Temperature
-        fields = '__all__'
+from .models import Geospatial, FoodIngredient
 
 class FoodBankListSerializer(serializers.ModelSerializer):
     key = serializers.SerializerMethodField()
@@ -79,3 +69,9 @@ class FoodBankDetailSerializer(serializers.ModelSerializer):
         except Exception as e:
             # Fallback for any parsing errors
             return {'error': str(e), 'raw_hours': obj.hours_of_operation}
+
+
+class FoodIngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodIngredient
+        fields = ['id', 'dish', 'ingredient']
