@@ -12,8 +12,8 @@ interface ConveyorBeltProps {
 /**
  * Renders the U-shaped conveyor belt with animated segments
  */
-export default function ConveyorBelt({ resources: _ }: ConveyorBeltProps) {
-  // Removed unused resources parameter (renamed to _)
+export default function ConveyorBelt({ }: ConveyorBeltProps) {
+  // Removed unused resources parameter
   
   return (
     <>
