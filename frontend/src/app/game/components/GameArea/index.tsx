@@ -280,7 +280,7 @@ export default function GameArea({
     }, 50);
     
     return () => clearInterval(moveInterval);
-  }, [gameId, difficulty]);
+  }, [gameId, difficulty, conveyorSegments, setScore]);
 
   // Game timer
   useEffect(() => {
@@ -310,66 +310,6 @@ export default function GameArea({
     return () => clearInterval(cooldownTimer);
   }, [diyCooldown]);
 
-  // Keyboard controls
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      const gameAreaWidth = gameAreaRef.current?.clientWidth ?? 800;
-      const gameAreaHeight = gameAreaRef.current?.clientHeight ?? 600;
-      
-    
-      setIsCharacterMoving(true);
-      setLastMoveTime(Date.now());
-      
-      // Movement controls (WASD)
-      setPosition(prev => {
-        let newX = prev.x;
-        let newY = prev.y;
-        
-        // Horizontal movement
-        if (key === 'a' || key === 'arrowleft') {
-          newX = Math.max(0, prev.x - moveSpeed);
-          setCharacterDirection('left');
-        } else if (key === 'd' || key === 'arrowright') {
-          newX = Math.min(gameAreaWidth - characterSize, prev.x + moveSpeed);
-          setCharacterDirection('right');
-        }
-        
-        // Vertical movement
-        if (key === 'w' || key === 'arrowup') {
-          newY = Math.max(0, prev.y - moveSpeed);
-          setCharacterDirection('front');
-        } else if (key === 's' || key === 'arrowdown') {
-          newY = Math.min(gameAreaHeight - characterSize, prev.y + moveSpeed);
-          setCharacterDirection('back');
-        }
-        
-        return { x: newX, y: newY };
-      });
-      
-      // Action controls
-      if (key === 'q' || key === ' ') {
-        handlePickup();
-      } else if (key === 'e') {
-        diyFood();
-      }
-    };
-    
-    const handleKeyUp = () => {
-
-      setIsCharacterMoving(false);
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [foods, holdingFood, position, diyCooldown]);
-
-
   useEffect(() => {
     const autoStopMoving = () => {
       if (isCharacterMoving && Date.now() - lastMoveTime > 150) {
@@ -380,49 +320,6 @@ export default function GameArea({
     const interval = setInterval(autoStopMoving, 200);
     return () => clearInterval(interval);
   }, [isCharacterMoving, lastMoveTime]);
-
-  // Handle pickup/drop food
-  const handlePickup = useCallback(() => {
-    // Prevent rapid actions
-    const now = Date.now();
-    if (now - lastActionTime < 300) return;
-    setLastActionTime(now);
-    
-    if (isActionInProgress) return;
-    setIsActionInProgress(true);
-    
-    try {
-      // If already holding food, try to drop it in a designated zone
-      if (holdingFood) {
-        console.log('Attempting to drop food:', holdingFood.name, holdingFood.type);
-        handleAction().then(() => {
-          setIsActionInProgress(false);
-        });
-        return;
-      }
-      
-      // Try to pick up food
-      if (!holdingFood) {
-        // Find food close to character
-        const foodIndex = foods.findIndex(food => {
-          const dx = (position.x + characterSize / 2) - (food.x + foodSize / 2);
-          const dy = (position.y + characterSize / 2) - (food.y + foodSize / 2);
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          return distance < (characterSize / 2 + foodSize / 2);
-        });
-        
-        if (foodIndex >= 0) {
-          const pickedFood = foods[foodIndex];
-          console.log('Picking up food:', pickedFood.name, pickedFood.type);
-          setHoldingFood(pickedFood);
-          setFoods(prev => prev.filter((_, i) => i !== foodIndex));
-          // No sound for pickup
-        }
-      }
-    } finally {
-      setIsActionInProgress(false);
-    }
-  }, [foods, holdingFood, position, lastActionTime, isActionInProgress]);
 
   // Handle action (dropping food in zones)
   const handleAction = useCallback(async () => {
@@ -502,7 +399,54 @@ export default function GameArea({
     } finally {
       setHoldingFood(null);
     }
-  }, [holdingFood, gameId, position, characterSize]);
+  }, [holdingFood, gameId, position, characterSize, setScore]);
+  
+  // Handle pickup/drop food
+  const handlePickup = useCallback(() => {
+    // Prevent rapid actions
+    const now = Date.now();
+    if (now - lastActionTime < 300) return;
+    setLastActionTime(now);
+    
+    if (isActionInProgress) return;
+    setIsActionInProgress(true);
+    
+    try {
+      // If already holding food, try to drop it in a designated zone
+      if (holdingFood) {
+        console.log('Attempting to drop food:', holdingFood.name, holdingFood.type);
+        // Using an IIFE to avoid circular dependency
+        (async () => {
+          await handleAction();
+          setIsActionInProgress(false);
+        })();
+        return;
+      }
+      
+      // Try to pick up food
+      if (!holdingFood) {
+        // Find food close to character
+        const foodIndex = foods.findIndex(food => {
+          const dx = (position.x + characterSize / 2) - (food.x + foodSize / 2);
+          const dy = (position.y + characterSize / 2) - (food.y + foodSize / 2);
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          return distance < (characterSize / 2 + foodSize / 2);
+        });
+        
+        if (foodIndex >= 0) {
+          const pickedFood = foods[foodIndex];
+          console.log('Picking up food:', pickedFood.name, pickedFood.type);
+          setHoldingFood(pickedFood);
+          setFoods(prev => prev.filter((_, i) => i !== foodIndex));
+          // No sound for pickup
+        }
+      }
+    } finally {
+      if (!holdingFood) {
+        setIsActionInProgress(false);
+      }
+    }
+  }, [foods, holdingFood, position, lastActionTime, isActionInProgress, handleAction]);
 
   // DIY food function - directly DIY food with E key
   const diyFood = useCallback(async () => {
@@ -527,7 +471,65 @@ export default function GameArea({
       playSound('wrongAction');
       showMessage('-5 points. This food cannot be used for DIY!', 'error');
     }
-  }, [holdingFood, gameId, diyCooldown]);
+  }, [holdingFood, gameId, diyCooldown, setScore]);
+
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      const gameAreaWidth = gameAreaRef.current?.clientWidth ?? 800;
+      const gameAreaHeight = gameAreaRef.current?.clientHeight ?? 600;
+      
+    
+      setIsCharacterMoving(true);
+      setLastMoveTime(Date.now());
+      
+      // Movement controls (WASD)
+      setPosition(prev => {
+        let newX = prev.x;
+        let newY = prev.y;
+        
+        // Horizontal movement
+        if (key === 'a' || key === 'arrowleft') {
+          newX = Math.max(0, prev.x - moveSpeed);
+          setCharacterDirection('left');
+        } else if (key === 'd' || key === 'arrowright') {
+          newX = Math.min(gameAreaWidth - characterSize, prev.x + moveSpeed);
+          setCharacterDirection('right');
+        }
+        
+        // Vertical movement
+        if (key === 'w' || key === 'arrowup') {
+          newY = Math.max(0, prev.y - moveSpeed);
+          setCharacterDirection('front');
+        } else if (key === 's' || key === 'arrowdown') {
+          newY = Math.min(gameAreaHeight - characterSize, prev.y + moveSpeed);
+          setCharacterDirection('back');
+        }
+        
+        return { x: newX, y: newY };
+      });
+      
+      // Action controls
+      if (key === 'q' || key === ' ') {
+        handlePickup();
+      } else if (key === 'e') {
+        diyFood();
+      }
+    };
+    
+    const handleKeyUp = () => {
+      setIsCharacterMoving(false);
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [foods, holdingFood, position, diyCooldown, handlePickup, diyFood, moveSpeed]);
 
   // Add a useEffect to debug resource values
   useEffect(() => {
@@ -565,14 +567,6 @@ export default function GameArea({
       console.log('Specific resources:', gameResources.specificResources);
     }
   }, [gameResources]);
-
-  useEffect(() => {
-    // ... existing code ...
-  }, [conveyorSegments, setScore]); // Add missing dependencies
-
-  useEffect(() => {
-    // ... existing code ...
-  }, [diyFood, handlePickup]); // Add missing dependencies
 
   return (
     <div className="bg-white rounded-lg shadow-xl overflow-hidden">
