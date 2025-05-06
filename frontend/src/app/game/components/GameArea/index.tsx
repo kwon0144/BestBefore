@@ -15,6 +15,7 @@ import Character from './Character';
 import DropZones from './DropZones';
 import Food from './Food';
 import MessageDisplay from './MessageDisplay';
+import FullscreenButton from './FullscreenButton';
 
 interface GameAreaProps {
   gameId: string | null;
@@ -617,6 +618,9 @@ export default function GameArea({
         
         {/* Message display */}
         <MessageDisplay message={message} messageType={messageType} />
+        
+        {/* Fullscreen button */}
+        <FullscreenButton targetRef={gameAreaRef} />
       </div>
     </div>
   );

@@ -4,6 +4,11 @@
  * Game Page Component
  * Main entry point for the food waste game
  * Manages game state transitions between different screens
+ * 
+ * Features:
+ * - Game state management
+ * - Screen transitions between different game phases
+ * - Fullscreen functionality (toggled via button in the bottom-right corner of GameArea)
  */
 import React, { useState } from 'react';
 import { startGame, endGame } from '@/services/gameService';
