@@ -62,7 +62,12 @@ MIDDLEWARE = [
 """
 CORS SETTINGS
 """
-CORS_ALLOWED_ORIGINS = []
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:443",
+    "http://localhost:8000"
+]
 
 # Add additional allowed origins from environment variable
 allowed_origin = os.getenv('DJANGO_ALLOWED_ORIGIN')
@@ -203,4 +208,3 @@ REST_FRAMEWORK = {
         'produce_detection': '10/minute',
     }
 }
-

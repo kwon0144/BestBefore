@@ -13,15 +13,22 @@ from rest_framework.response import Response
 import json
 import re
 import uuid
+import random
+import logging
 from datetime import datetime, timedelta, date
 import os
+
+logger = logging.getLogger(__name__)
 
 # Local application imports
 from .service.db_service import get_storage_recommendations, get_all_food_types
 from .service.dish_ingre_service import DishIngredientService
 from .service.hours_parser_service import parse_operating_hours
-from .models import Geospatial, SecondLife, Dish
+from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources
 from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
+from .game_core import start_new_game, update_game_state, end_game_session, prepare_game_food_items
+from .game_validators import get_top_scores, validate_pickup, validate_action
+from .game_state import games
 
 #-----------------------------------------------------------------------
 # Food Storage & Information APIs
@@ -163,6 +170,224 @@ def get_foodbanks(request):
             'status': 'error',
             'message': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+#-----------------------------------------------------------------------
+# Game APIs
+#-----------------------------------------------------------------------
+
+@api_view(['POST'])
+def start_game(request):
+    """
+    Start a new game for a player.
+    
+    Expected request data:
+    {
+        "player_id": "string"
+    }
+    
+    Returns:
+        200 OK: Game started successfully
+        400 Bad Request: Invalid player_id
+        500 Internal Server Error: Server error
+    """
+    try:
+        player_id = request.data.get('player_id')
+        
+        if not player_id:
+            return Response(
+                {'error': 'player_id is required'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        game_data = start_new_game(player_id)
+        return Response(game_data, status=status.HTTP_200_OK)
+        
+    except ValueError as e:
+        return Response(
+            {'error': str(e)}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        logger.error(f"Error starting game: {str(e)}")
+        return Response(
+            {'error': 'Failed to start game'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+def update_game(request):
+    """
+    Update the game state based on player action.
+    
+    Expected request data:
+    {
+        "game_id": "string",
+        "action": "string",
+        "food_type": "string",
+        "character_position": {"x": float, "y": float},
+        "food": {"id": int, "type": string, "name": string, "image": string, "x": float, "y": float}
+    }
+    
+    Returns:
+        200 OK: Game updated successfully
+        400 Bad Request: Missing required parameters
+        404 Not Found: Game not found
+        500 Internal Server Error: Server error
+    """
+    game_id = request.data.get('game_id')
+    action = request.data.get('action')
+    food_type = request.data.get('food_type')
+    character_position = request.data.get('character_position')
+    food = request.data.get('food')
+    
+    if not all([game_id, action, food_type]):
+        return Response({'error': 'Missing required parameters'}, status=400)
+    
+    try:
+        # If character position and food are provided, use them for validation
+        if character_position and food:
+            game_data = update_game_state(game_id, action, food_type, character_position, food)
+        else:
+            game_data = update_game_state(game_id, action, food_type)
+            
+        return Response(game_data)
+    except ValueError as e:
+        return Response({'error': str(e)}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+def end_game(request):
+    game_id = request.data.get('game_id')
+    if not game_id:
+        return Response({'error': 'Game ID is required'}, status=400)
+    
+    try:
+        game_data = end_game_session(game_id)
+        return Response(game_data)
+    except ValueError as e:
+        return Response({'error': str(e)}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def get_leaderboard(request):
+    try:
+        top_scores = get_top_scores()
+        return Response(top_scores)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+def get_food_items(request):
+    """
+    Get a balanced list of food items for the game from the database.
+    Returns a consistent set of 12 items: 5 food bank, 5 green waste bin, and 2 trash.
+    
+    Optional query parameter: type (trash, food bank, green waste bin)
+    """
+    try:
+        food_type = request.GET.get('type', None)
+        
+        # Get base queryset of all food items
+        query = GameFoodResources.objects.all()
+        
+        # If a specific food type is requested, filter by that type
+        if food_type:
+            query = query.filter(type=food_type)
+            food_items = list(query.values('id', 'name', 'type', 'image', 'description'))
+            
+            # If we need exactly 5 items of a specific type and have more, randomly select 5
+            if len(food_items) > 5:
+                food_items = random.sample(food_items, 5)
+        else:
+            # Use our balanced food item generator to get 12 items (5-5-2 distribution)
+            food_items = prepare_game_food_items(query)
+        
+        return Response({
+            'food_items': food_items,
+            'count': len(food_items)
+        })
+    except Exception as e:
+        logger.error(f"Error fetching food items: {str(e)}")
+        return Response(
+            {'error': 'Failed to fetch food items'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+def pickup_food(request):
+    """
+    Validate if a player can pick up food based on their position and available foods.
+    
+    Expected request data:
+    {
+        "game_id": "string",
+        "character_position": {"x": float, "y": float},
+        "foods": [{"id": int, "type": string, "name": string, "image": string, "x": float, "y": float}, ...]
+    }
+    
+    Returns:
+        200 OK: Pickup validation result
+        400 Bad Request: Missing required parameters
+        404 Not Found: Game not found
+        500 Internal Server Error: Server error
+    """
+    game_id = request.data.get('game_id')
+    character_position = request.data.get('character_position')
+    foods = request.data.get('foods')
+    
+    if not all([game_id, character_position, foods]):
+        return Response({'error': 'Missing required parameters'}, status=400)
+    
+    try:
+        # Check if the game exists
+        if game_id not in games:
+            return Response({'error': 'Game not found'}, status=404)
+            
+        # Validate pickup
+        result = validate_pickup(character_position, foods)
+        return Response(result)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+@api_view(['POST'])
+def perform_action(request):
+    """
+    Validate if a player can perform an action (donate, compost, eat) based on their position.
+    
+    Expected request data:
+    {
+        "game_id": "string",
+        "character_position": {"x": float, "y": float},
+        "food": {"id": int, "type": string, "name": string, "image": string, "x": float, "y": float},
+        "action_type": "string"  # "donate", "compost", or "eat"
+    }
+    
+    Returns:
+        200 OK: Action validation result
+        400 Bad Request: Missing required parameters
+        404 Not Found: Game not found
+        500 Internal Server Error: Server error
+    """
+    game_id = request.data.get('game_id')
+    character_position = request.data.get('character_position')
+    food = request.data.get('food')
+    action_type = request.data.get('action_type')
+    
+    if not all([game_id, character_position, food, action_type]):
+        return Response({'error': 'Missing required parameters'}, status=400)
+    
+    try:
+        # Check if the game exists
+        if game_id not in games:
+            return Response({'error': 'Game not found'}, status=404)
+            
+        # Validate action
+        result = validate_action(character_position, food, action_type)
+        return Response(result)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
 
 #-----------------------------------------------------------------------
 # Second Life Food Repurposing APIs
@@ -461,5 +686,45 @@ def login(request):
     except Exception as e:
         return Response(
             {'error': 'Internal server error'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['GET'])
+def get_game_resources(request):
+    """
+    Get game resources (maps, background, icons) from the database.
+    This endpoint retrieves resources used in the game UI.
+    """
+    try:
+        # Get resources from the database
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT 
+                    id, 
+                    name, 
+                    type, 
+                    description,
+                    image
+                FROM 
+                    game_resources
+                """
+            )
+            # Convert to list of dictionaries
+            columns = [col[0] for col in cursor.description]
+            resources_data = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+            
+        return Response({
+            'status': 'success',
+            'count': len(resources_data),
+            'resources': resources_data
+        })
+    except Exception as e:
+        logger.error(f"Error fetching game resources: {str(e)}")
+        return Response(
+            {'error': 'Failed to fetch game resources'}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
