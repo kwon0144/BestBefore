@@ -31,7 +31,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
         <h3 className="text-lg font-semibold text-green-700 mb-2">Controls</h3>
         <ul className="text-gray-700">
           <li className="mb-1"><strong>WASD</strong> or <strong>Arrow Keys</strong>: Move your character</li>
-          <li className="mb-1"><strong>Q</strong> or <strong>Space</strong>: Pick up/drop food</li>
+          <li className="mb-1"><strong>Q</strong> or <strong>J</strong>: Pick up/drop food</li>
           <li className="mb-1"><strong>E</strong>: DIY with food (if eligible) (5s cooldown)</li>
         </ul>
       </div>
@@ -47,7 +47,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
             </h4>
             <p className="text-sm text-blue-700">Sealed, non-perishable, safe to donate items</p>
             <p className="text-xs text-blue-600 mt-1">Examples: Canned goods, pasta, rice, unopened cereals</p>
-            <p className="text-xs text-blue-600 mt-1">Place in the blue Food Bank zone (Q)</p>
+            <p className="text-xs text-blue-600 mt-1">Place in the blue Food Bank zone (Q or J)</p>
           </div>
           
           <div className="bg-green-50 p-3 rounded-lg">
@@ -57,7 +57,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
             </h4>
             <p className="text-sm text-green-700">Spoiled food, scraps, and compostable items</p>
             <p className="text-xs text-green-600 mt-1">Examples: Fruit/vegetable scraps, coffee grounds, eggshells</p>
-            <p className="text-xs text-green-600 mt-1">Place in the green Compost zone (Q)</p>
+            <p className="text-xs text-green-600 mt-1">Place in the green Compost zone (Q or J)</p>
           </div>
           
           <div className="bg-red-50 p-3 rounded-lg">

@@ -83,22 +83,16 @@ export default function GameArea({
   const conveyorSegments = React.useMemo(() => [
     { 
       id: 'top', 
-      start: { x: 50, y: 150 }, // Starting from left side of top segment with offset
-      end: { x: 1000, y: 150 },  // End at right side of top segment
+      start: { x: 50, y: 265 }, // Starting from left side of top segment with offset
+      end: { x: 1000, y: 265 },  // End at right side of top segment
       direction: 'right' as const
     },
     { 
       id: 'right', 
-      start: { x: 1000, y: 150 }, // Right side going down
+      start: { x: 1000, y: 265 }, // Right side going down
       end: { x: 1000, y: 450 },   // To bottom right corner
       direction: 'down' as const
     },
-    { 
-      id: 'bottom', 
-      start: { x: 1000, y: 480 }, // Bottom right to bottom left
-      end: { x: 50, y: 480 },    // End at bottom left
-      direction: 'left' as const
-    }
     // No left vertical segment - food resets to start after bottom segment
   ], []);
 
@@ -236,15 +230,6 @@ export default function GameArea({
               food.y += currentSpeed;
               // Check if reached end of segment
               if (food.y >= currentSegment.end.y) {
-                food.x = conveyorSegments[segment + 1].start.x;
-                food.y = conveyorSegments[segment + 1].start.y;
-                food.segment = segment + 1;
-              }
-              break;
-            case 'left':
-              food.x -= currentSpeed;
-              // Check if reached end of segment - reset to start of first segment
-              if (food.x <= currentSegment.end.x) {
                 // Check if we should apply food waste scoring
                 if (gameId && food.type !== 'trash') {
                   // Only penalize for non-trash items falling off
@@ -327,9 +312,9 @@ export default function GameArea({
     if (!holdingFood || !gameId) return;
     
     // Update the coordinates to match the new positions
-    const foodBankZone = { x: 150, y: 200, width: 150, height: 150 };
-    const greenBinZone = { x: 350, y: 200, width: 150, height: 150 }; 
-    const diyZone = { x: 550, y: 200, width: 150, height: 150 }; // Added DIY zone
+    const foodBankZone = { x: 300, y: 350, width: 150, height: 150 };
+    const greenBinZone = { x: 500, y: 350, width: 150, height: 150 }; 
+    const diyZone = { x: 700, y: 350, width: 150, height: 150 }; // Added DIY zone
     
     const playerCenterX = position.x + characterSize / 2;
     const playerCenterY = position.y + characterSize / 2;
@@ -512,7 +497,7 @@ export default function GameArea({
       });
       
       // Action controls
-      if (key === 'q' || key === ' ') {
+      if (key === 'q' || key === 'j') {
         handlePickup();
       } else if (key === 'e') {
         diyFood();
@@ -597,6 +582,26 @@ export default function GameArea({
           greenBinImage={gameResources.specificResources?.greenbin?.image}
           diyImage={gameResources.specificResources?.diy?.image}
         />
+        
+        {gameResources.specificResources?.landfill?.image && (
+          <div className="absolute bottom-16 right-16 w-20 h-20">
+            <img 
+              src={gameResources.specificResources.landfill.image} 
+              alt="Landfill" 
+              className="max-w-full max-h-full object-contain opacity-80"
+            />
+          </div>
+        )}
+
+        {gameResources.specificResources?.bush?.image && (
+          <div className="absolute bottom-16 left-16 w-20 h-20">
+            <img 
+              src={gameResources.specificResources.bush.image} 
+              alt="Bush" 
+              className="max-w-full max-h-full object-contain opacity-80"
+            />
+          </div>
+        )}
         
         {/* Foods on conveyor belt */}
         <Food foods={foods} foodSize={foodSize} />

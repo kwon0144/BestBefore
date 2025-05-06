@@ -103,7 +103,11 @@ export const getGameResources = async () => {
 
             greenbin: resourcesMap["Green waste bin"],
             
-            diy: resourcesMap["DIY"] || resourcesMap["DIY Place"],
+            diy: resourcesMap["DIY"],
+
+            landfill: resourcesMap["Landfill"],
+            
+            bush: resourcesMap["Bush"],
         };
         
         // Log resolved resources for debugging
