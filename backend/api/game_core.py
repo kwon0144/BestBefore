@@ -8,6 +8,7 @@ import random
 from datetime import datetime
 from .game_validators import validate_pickup, validate_action
 from .game_state import games
+from django.db import connection
 
 # Game constants
 INITIAL_SCORE = 0
@@ -213,5 +214,22 @@ def prepare_game_food_items(food_items_query):
     
     # Shuffle the combined array to randomize the order
     random.shuffle(game_items)
+    
+    # Add diy_option field directly after item creation
+    if game_items:
+        # Get all food IDs
+        food_ids = [item['id'] for item in game_items]
+        
+        # Get diy_option values for these IDs directly from database
+        diy_options = {}
+        with connection.cursor() as cursor:
+            ids_str = ','.join(str(id) for id in food_ids)
+            cursor.execute(f"SELECT id, diy_option FROM game_foodresources WHERE id IN ({ids_str})")
+            for row in cursor.fetchall():
+                diy_options[row[0]] = row[1]
+        
+        # Add diy_option to each item
+        for item in game_items:
+            item['diy_option'] = diy_options.get(item['id'])
     
     return game_items 

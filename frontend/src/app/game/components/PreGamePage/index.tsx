@@ -61,18 +61,25 @@ export default function PreGamePage({
   console.log('Raw DIY values:', foodItems.map(item => ({
     name: item.name,
     diy_raw: item.diy_option,
-    diy_string: String(item.diy_option)
+    type: item.type,
+    diy_string: String(item.diy_option),
+    image: item.image
   })));
   
   // Group food items that can be DIYed (based on diy_option property)
   // Try more direct string comparison to determine DIY items
   const diyItems = foodItems.filter(item => {
-    return (String(item.diy_option) === "1" || 
-    String(item.diy_option) === "true" || 
-    String(item.diy_option).toLowerCase() === "true")
+    // For debugging
+    console.log(`Item ${item.name} - diy_option: ${item.diy_option}, type: ${typeof item.diy_option}`);
+    
+    // Convert to string for safe comparison
+    const diyOption = String(item.diy_option).toLowerCase();
+    
+    // Check if diy_option is truthy (1 or true)
+    return diyOption === "1" || diyOption === "true";
   });
   
-  console.log('DIY items found with string comparison:', diyItems.length);
+  console.log('DIY items found:', diyItems.length);
 
   if (loading) {
     return <div className="text-center py-8">Loading food items...</div>;
