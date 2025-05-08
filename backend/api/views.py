@@ -224,6 +224,7 @@ def update_game(request):
         "game_id": "string",
         "action": "string",
         "food_type": "string",
+        "diy_option": "string",
         "character_position": {"x": float, "y": float},
         "food": {"id": int, "type": string, "name": string, "image": string, "x": float, "y": float}
     }
@@ -237,6 +238,7 @@ def update_game(request):
     game_id = request.data.get('game_id')
     action = request.data.get('action')
     food_type = request.data.get('food_type')
+    diy_option = request.data.get('diy_option')
     character_position = request.data.get('character_position')
     food = request.data.get('food')
     
@@ -246,9 +248,9 @@ def update_game(request):
     try:
         # If character position and food are provided, use them for validation
         if character_position and food:
-            game_data = update_game_state(game_id, action, food_type, character_position, food)
+            game_data = update_game_state(game_id, action, food_type, diy_option, character_position, food)
         else:
-            game_data = update_game_state(game_id, action, food_type)
+            game_data = update_game_state(game_id, action, food_type, diy_option)
             
         return Response(game_data)
     except ValueError as e:
@@ -364,14 +366,14 @@ def pickup_food(request):
 @api_view(['POST'])
 def perform_action(request):
     """
-    Validate if a player can perform an action (donate, compost, eat) based on their position.
+    Validate if a player can perform an action (donate, compost, eat, diy) based on their position.
     
     Expected request data:
     {
         "game_id": "string",
         "character_position": {"x": float, "y": float},
         "food": {"id": int, "type": string, "name": string, "image": string, "x": float, "y": float},
-        "action_type": "string"  # "donate", "compost", or "eat"
+        "action_type": "string"  # "donate", "compost", "eat", or "diy"
     }
     
     Returns:

@@ -22,12 +22,13 @@ export const startGame = async (playerId) => {
     }
 };
 
-export const updateGame = async (gameId, action, foodType) => {
+export const updateGame = async (gameId, action, foodType, diy_option) => {
     try {
         const response = await api.post('/api/game/update/', {
             game_id: gameId,
             action: action,
-            food_type: foodType
+            food_type: foodType,
+            diy_option: diy_option
         });
         return response.data;
     } catch (error) {

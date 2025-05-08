@@ -15,9 +15,7 @@ INITIAL_SCORE = 0
 INITIAL_TIME = 60  # seconds
 CORRECT_ACTION_POINTS = 10
 INCORRECT_ACTION_POINTS = -5
-EAT_CORRECT_POINTS = 15
-EAT_INCORRECT_POINTS = -10
-EAT_TRASH_POINTS = -15
+DIY_CORRECT_POINTS = 15  
 
 def start_new_game(player_id):
     """
@@ -56,16 +54,17 @@ def start_new_game(player_id):
     except Exception as e:
         raise Exception(f"Failed to create new game: {str(e)}")
 
-def update_game_state(game_id, action, food_type, character_position=None, food=None):
+def update_game_state(game_id, action, food_type, diy_option, character_position=None, food=None):
     """
     Update the game state based on player action.
     
     Args:
         game_id (str): The ID of the game to update
         action (str): The action taken ('correct' or 'incorrect')
-        food_type (str): The type of food ('donate', 'compost', 'eat', 'trash')
+        food_type (str): The type of the food item ('green waste bin', 'food bank', 'trash')
+                         Can also be 'diy' when the frontend sends a DIY action
         character_position (dict, optional): The position of the character {'x': float, 'y': float}
-        food (dict, optional): The food item being used
+        food (dict, optional): The food item being used, including its properties
         
     Returns:
         dict: Updated game data including score and time_remaining
@@ -77,55 +76,28 @@ def update_game_state(game_id, action, food_type, character_position=None, food=
     if not game['is_active']:
         raise ValueError("Game is not active")
     
-    # If character position and food are provided, validate the action
-    if character_position and food:
-        # Determine the action type based on the food type
-        action_type = None
-        if food_type == 'donate':
-            action_type = 'donate'
-        elif food_type == 'compost':
-            action_type = 'compost'
-        elif food_type == 'eat':
-            action_type = 'eat'
-        
-        if action_type:
-            validation_result = validate_action(character_position, food, action_type)
-            if not validation_result['success']:
-                raise ValueError(validation_result['message'])
-            
-            # Use the validation result to determine if the action is correct
-            action = 'correct' if validation_result['correct'] else 'incorrect'
-    
     # Calculate score change based on action and food type
     score_change = 0
+    print(f"\n=== Game State Update ===")
+    print(f"game_id: {game_id}")
+    print(f"action: {action}")
+    print(f"food_type: {food_type}")
+    print(f"diy_option: {diy_option}")
+    print(f"food object: {food}")
     
-    # Score rules:
-    # 1. Correct actions:
-    #    - Donating food: +10 points
-    #    - Composting food: +10 points
-    #    - Eating food: +15 points
-    # 2. Incorrect actions:
-    #    - Wrong donation: -5 points
-    #    - Wrong composting: -5 points
-    #    - Wrong eating: -10 points
-    #    - Eating trash: -15 points
-    
+    # Normal score calculation for correct/incorrect actions
     if action == 'correct':
-        if food_type == 'eat':
-            score_change = EAT_CORRECT_POINTS  # +15 points
+        # Special case: DIY action on a green waste bin item with diy_option=1
+        if food_type == 'green waste bin' and diy_option == '1':
+            score_change = DIY_CORRECT_POINTS  # +15 points for DIY
+            print("DIY_CORRECT_POINTS!!!")
         else:
-            score_change = CORRECT_ACTION_POINTS  # +10 points
+            score_change = CORRECT_ACTION_POINTS  # +10 points for normal correct actions
     elif action == 'incorrect':
-        if food_type == 'trash' and action == 'eat':
-            score_change = EAT_TRASH_POINTS  # -15 points
-        elif food_type == 'eat':
-            score_change = EAT_INCORRECT_POINTS  # -10 points
-        else:
-            score_change = INCORRECT_ACTION_POINTS  # -5 points
+        score_change = INCORRECT_ACTION_POINTS  # -5 points for incorrect actions
     
     # Update game score (ensure score doesn't go below 0)
     game['score'] = max(0, game['score'] + score_change)
-    
     
     # Check if game should end (time ran out)
     if game['time_remaining'] <= 0:

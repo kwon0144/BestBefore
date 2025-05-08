@@ -169,11 +169,6 @@ export default function GameArea({
         // Start food at the beginning of the top segment
         const startSegment = conveyorSegments[0];
         
-        // Check if this item has DIY option (use the value from API or randomly assign for 30% of non-trash items)
-        const hasDiyOption = randomFoodType.diy_option !== undefined 
-          ? Boolean(randomFoodType.diy_option) 
-          : (foodType !== 'trash' && Math.random() < 0.3);
-        
         const newFood: FoodType = {
           id: Date.now(),
           type: foodType,
@@ -182,7 +177,7 @@ export default function GameArea({
           name: randomFoodType.name,
           image: randomFoodType.image,
           segment: 0,  // Track which segment the food is on
-          diy_option: hasDiyOption
+          diy_option: String(randomFoodType.diy_option) === '1'  // 确保类型一致
         };
         
         // Debug: output converted type
@@ -322,12 +317,12 @@ export default function GameArea({
     // Check if player is in any drop zone
     const inFoodBankZone = isInZone(playerCenterX, playerCenterY, foodBankZone.x, foodBankZone.y, foodBankZone.width, foodBankZone.height);
     const inGreenBinZone = isInZone(playerCenterX, playerCenterY, greenBinZone.x, greenBinZone.y, greenBinZone.width, greenBinZone.height);
-    const inDiyZone = isInZone(playerCenterX, playerCenterY, diyZone.x, diyZone.y, diyZone.width, diyZone.height);
+    const inDiyZone = isInZone(playerCenterX, playerCenterY, diyZone.x, greenBinZone.y, diyZone.width, diyZone.height);
     
     // If not in any zone, do nothing and keep holding the food
     if (!inFoodBankZone && !inGreenBinZone && !inDiyZone) {
-      console.log('Not in a valid drop zone, still holding food');
-      return;
+        console.log('Not in a valid drop zone, still holding food');
+        return;
     }
     
     let actionType = 'incorrect';
@@ -335,58 +330,60 @@ export default function GameArea({
     let scoreChange = 0;
     
     if (inFoodBankZone) {
-      // Food Bank zone
-      if (holdingFood.type === 'food bank') {
-        actionType = 'correct';
-        scoreChange = 10;
-        successMessage = 'Great job! Food donated!';
-      } else {
-        scoreChange = -5;
-        successMessage = 'Wrong zone! This food cannot be donated.';
-      }
+        // Food Bank zone
+        if (holdingFood.type === 'food bank') {
+            actionType = 'correct';
+            scoreChange = 10;
+            successMessage = 'Great job! Food donated!';
+        } else {
+            scoreChange = -5;
+            successMessage = 'Wrong zone! This food cannot be donated.';
+        }
     } else if (inGreenBinZone) {
-      // Green Bin zone
-      if (holdingFood.type === 'green waste bin') {
-        actionType = 'correct';
-        scoreChange = 10;
-        successMessage = 'Great job! Food composted!';
-      } else {
-        scoreChange = -5;
-        successMessage = 'Wrong zone! This food cannot be composted.';
-      }
+        // Green Bin zone
+        if (holdingFood.type === 'green waste bin') {
+            actionType = 'correct';
+            scoreChange = 10;
+            successMessage = 'Great job! Food composted!';
+        } else {
+            scoreChange = -5;
+            successMessage = 'Wrong zone! This food cannot be composted.';
+        }
     } else if (inDiyZone) {
-      // DIY zone
-      if (holdingFood.diy_option) {
-        actionType = 'correct';
-        scoreChange = 15;
-        successMessage = 'Amazing! You made something new!';
-      } else {
-        scoreChange = -5;
-        successMessage = 'Wrong zone! This food cannot be used for DIY.';
-      }
+        // DIY zone
+        if (holdingFood.diy_option) {
+            actionType = 'correct';
+            scoreChange = 15;
+            successMessage = 'Amazing! You made something new!';
+        } else {
+            scoreChange = -5;
+            successMessage = 'Wrong zone! This food cannot be used for DIY.';
+        }
     }
     
     try {
-      const response = await updateGame(gameId, actionType, holdingFood.type);
-      setScore(response.score);
-      
-      // Format message with score change first
-      const formattedMessage = `${scoreChange >= 0 ? '+' : ''}${scoreChange} points. ${successMessage}`;
-      
-      if (actionType === 'correct') {
-        playSound('donate');
-        showMessage(formattedMessage, 'success');
-      } else {
-        playSound('wrongAction');
-        showMessage(formattedMessage, 'error');
-      }
+        // 只在有holdingFood时才发送diy_option
+        const diyOption = holdingFood ? (holdingFood.diy_option ? '1' : '0') : undefined;
+        const response = await updateGame(gameId, actionType, holdingFood.type, diyOption);
+        setScore(response.score);
+        
+        // Format message with score change first
+        const formattedMessage = `${scoreChange >= 0 ? '+' : ''}${scoreChange} points. ${successMessage}`;
+        
+        if (actionType === 'correct') {
+            playSound('donate');
+            showMessage(formattedMessage, 'success');
+        } else {
+            playSound('wrongAction');
+            showMessage(formattedMessage, 'error');
+        }
     } catch (error) {
-      console.error('Failed to update score:', error);
+        console.error('Failed to update score:', error);
     } finally {
-      setHoldingFood(null);
+        setHoldingFood(null);
     }
-  }, [holdingFood, gameId, position, characterSize, setScore]);
-  
+}, [holdingFood, gameId, position, characterSize, setScore]);
+
   // Handle pickup/drop food
   const handlePickup = useCallback(() => {
     // Prevent rapid actions
@@ -434,88 +431,60 @@ export default function GameArea({
     }
   }, [foods, holdingFood, position, lastActionTime, isActionInProgress, handleAction]);
 
-  // DIY food function - directly DIY food with E key
-  const diyFood = useCallback(async () => {
-    if (!holdingFood || !gameId || diyCooldown > 0) return;
-    
-    console.log('Trying to DIY food with type:', holdingFood.type);
-    
-    // Check if the food can be DIYed
-    if (holdingFood.diy_option) {
-      try {
-        const response = await updateGame(gameId, 'correct', 'diy');
-        setScore(response.score);
-        setDiyCooldown(diyCooldownTime);
-        playSound('diyFood');
-        showMessage('+15 points. Great DIY creation!', 'success');
-      } catch (error) {
-        console.error('Failed to update score:', error);
-      } finally {
-        setHoldingFood(null);
-      }
-    } else {
-      playSound('wrongAction');
-      showMessage('-5 points. This food cannot be used for DIY!', 'error');
-    }
-  }, [holdingFood, gameId, diyCooldown, setScore]);
-
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      const gameAreaWidth = gameAreaRef.current?.clientWidth ?? 800;
-      const gameAreaHeight = gameAreaRef.current?.clientHeight ?? 600;
-      
-    
-      setIsCharacterMoving(true);
-      setLastMoveTime(Date.now());
-      
-      // Movement controls (WASD)
-      setPosition(prev => {
-        let newX = prev.x;
-        let newY = prev.y;
+        const key = e.key.toLowerCase();
+        const gameAreaWidth = gameAreaRef.current?.clientWidth ?? 800;
+        const gameAreaHeight = gameAreaRef.current?.clientHeight ?? 600;
         
-        // Horizontal movement
-        if (key === 'a' || key === 'arrowleft') {
-          newX = Math.max(0, prev.x - moveSpeed);
-          setCharacterDirection('left');
-        } else if (key === 'd' || key === 'arrowright') {
-          newX = Math.min(gameAreaWidth - characterSize, prev.x + moveSpeed);
-          setCharacterDirection('right');
+        setIsCharacterMoving(true);
+        setLastMoveTime(Date.now());
+        
+        // Movement controls (WASD)
+        setPosition(prev => {
+            let newX = prev.x;
+            let newY = prev.y;
+            
+            // Horizontal movement
+            if (key === 'a' || key === 'arrowleft') {
+                newX = Math.max(0, prev.x - moveSpeed);
+                setCharacterDirection('left');
+            } else if (key === 'd' || key === 'arrowright') {
+                newX = Math.min(gameAreaWidth - characterSize, prev.x + moveSpeed);
+                setCharacterDirection('right');
+            }
+            
+            // Vertical movement
+            if (key === 'w' || key === 'arrowup') {
+                newY = Math.max(0, prev.y - moveSpeed);
+                setCharacterDirection('front');
+            } else if (key === 's' || key === 'arrowdown') {
+                newY = Math.min(gameAreaHeight - characterSize, prev.y + moveSpeed);
+                setCharacterDirection('back');
+            }
+            
+            return { x: newX, y: newY };
+        });
+        
+        // Action controls
+        if (key === 'q' || key === 'j') {
+            handlePickup();
         }
-        
-        // Vertical movement
-        if (key === 'w' || key === 'arrowup') {
-          newY = Math.max(0, prev.y - moveSpeed);
-          setCharacterDirection('front');
-        } else if (key === 's' || key === 'arrowdown') {
-          newY = Math.min(gameAreaHeight - characterSize, prev.y + moveSpeed);
-          setCharacterDirection('back');
-        }
-        
-        return { x: newX, y: newY };
-      });
-      
-      // Action controls
-      if (key === 'q' || key === 'j') {
-        handlePickup();
-      } else if (key === 'e') {
-        diyFood();
-      }
     };
     
     const handleKeyUp = () => {
-      setIsCharacterMoving(false);
+        setIsCharacterMoving(false);
     };
     
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+        window.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [foods, holdingFood, position, diyCooldown, handlePickup, diyFood, moveSpeed]);
+}, [foods, holdingFood, position, handlePickup, moveSpeed]);
 
   // Add a useEffect to debug resource values
   useEffect(() => {
