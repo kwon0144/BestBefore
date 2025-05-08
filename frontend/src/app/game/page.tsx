@@ -89,10 +89,10 @@ export default function Game() {
     setGameOver(false);
     setShowPreGame(true);
     setScore(0);
-    setTime(60);
+    setTime(120);
     
     // Optionally play a sound if needed
-          if (soundsLoaded) {
+    if (soundsLoaded) {
       playSound('gameStart');
     }
   };

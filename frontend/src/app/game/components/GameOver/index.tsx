@@ -15,20 +15,35 @@ interface GameOverProps {
 export default function GameOver({ score, handleStartGame }: GameOverProps) {
   // Determine player rank based on score
   const getRank = () => {
-    if (score >= 60) {
+    if (score >= 200) {
       return {
         title: "Zero-Waste Legend",
-        description: "You're an expert at avoiding food waste!"
+        description: "You're a true champion of sustainable living! Your exceptional sorting skills and DIY creativity have made you a role model for waste reduction."
       };
-    } else if (score >= 30) {
+    } else if (score >= 160) {
+      return {
+        title: "Zero-Waste Expert",
+        description: "Outstanding work! Your deep understanding of food waste management and creative reuse has made a significant impact."
+      };
+    } else if (score >= 120) {
+      return {
+        title: "Zero-Waste Champion",
+        description: "Great job! You've shown excellent skills in sorting and repurposing food items. Keep up the good work!"
+      };
+    } else if (score >= 80) {
       return {
         title: "Zero-Waste Saver",
-        description: "You understand how to avoid food waste."
+        description: "Good effort! You understand the basics of food waste management. With a bit more practice, you'll become even better!"
+      };
+    } else if (score >= 40) {
+      return {
+        title: "Zero-Waste Learner",
+        description: "You're on the right track! Keep learning about food waste reduction and you'll improve your sorting skills."
       };
     } else {
       return {
         title: "Waste Joker",
-        description: "You need to improve your waste sorting skills."
+        description: "Don't worry! Everyone starts somewhere. Keep practicing and you'll get better at managing food waste."
       };
     }
   };
@@ -42,9 +57,12 @@ export default function GameOver({ score, handleStartGame }: GameOverProps) {
       
       {/* Player rank title with appropriate color */}
       <h3 className={`text-xl font-bold mb-2 ${
-        score >= 60 ? 'text-green-600' : 
-        score >= 30 ? 'text-blue-600' : 
-        'text-orange-600'
+        score >= 200 ? 'text-purple-600' :
+        score >= 160 ? 'text-green-600' : 
+        score >= 120 ? 'text-blue-600' :
+        score >= 80 ? 'text-yellow-600' :
+        score >= 40 ? 'text-orange-600' : 
+        'text-red-600'
       }`}>
         {playerRank.title}
       </h3>

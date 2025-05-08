@@ -177,7 +177,7 @@ export default function GameArea({
           name: randomFoodType.name,
           image: randomFoodType.image,
           segment: 0,  // Track which segment the food is on
-          diy_option: String(randomFoodType.diy_option) === '1'  // 确保类型一致
+          diy_option: String(randomFoodType.diy_option) === '1'  
         };
         
         // Debug: output converted type
@@ -362,7 +362,7 @@ export default function GameArea({
     }
     
     try {
-        // 只在有holdingFood时才发送diy_option
+        // Only send diy_option when holdingFood exists
         const diyOption = holdingFood ? (holdingFood.diy_option ? '1' : '0') : undefined;
         const response = await updateGame(gameId, actionType, holdingFood.type, diyOption);
         setScore(response.score);
