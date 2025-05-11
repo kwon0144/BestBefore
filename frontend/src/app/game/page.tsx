@@ -12,7 +12,7 @@
  */
 import React, { useState } from 'react';
 import { startGame, endGame } from '@/services/gameService';
-import { Difficulty } from './interfaces';
+import { Difficulty, WasteStats } from './interfaces';
 import { playSound } from './utils/soundEffects';
 
 // Custom hooks
@@ -33,14 +33,16 @@ export default function Game() {
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [difficulty, setDifficulty] = useState<Difficulty>('normal');
+  const [wasteStats, setWasteStats] = useState<WasteStats>({
+    wastedFoods: {},
+    totalWasted: 0
+  });
   
   // Get game state from custom hook
   const { 
     score, setScore, time, setTime, gameId, setGameId,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     playerId, setPlayerId, foodItems, loading, 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    error, soundsLoaded
+    soundsLoaded
   } = useGameState();
 
   /**
@@ -56,26 +58,31 @@ export default function Game() {
     }
 
     // Second click: Start the game without confirmation
-      try {
-        const demoPlayerId = 'demo-player-1';
-        setPlayerId(demoPlayerId);
-        const gameData = await startGame(demoPlayerId);
-        setGameId(gameData.game_id);
-        setGameStarted(true);
-        setGameOver(false);
-        setScore(gameData.score);
-        setTime(gameData.time_remaining);
-        
-        // Play game start sound
-        if (soundsLoaded) {
-          console.log('Playing game start sound');
-          playSound('gameStart');
-        } else {
-          console.log('Sounds not loaded yet, skipping game start sound');
-        }
-      } catch (error) {
-        console.error('Failed to start game:', error);
-        alert('Failed to start game. Please try again.');
+    try {
+      // Reset waste stats
+      setWasteStats({
+        wastedFoods: {},
+        totalWasted: 0
+      });
+
+      // Start new game
+      const response = await startGame(playerId || 'anonymous');
+      setGameId(response.game_id);
+      setScore(0);
+      setTime(120);
+      setGameStarted(true);
+      setGameOver(false);
+      
+      // Play game start sound
+      if (soundsLoaded) {
+        console.log('Playing game start sound');
+        playSound('gameStart');
+      } else {
+        console.log('Sounds not loaded yet, skipping game start sound');
+      }
+    } catch (error) {
+      console.error('Failed to start game:', error);
+      alert('Failed to start game. Please try again.');
     }
   };
 
@@ -101,19 +108,28 @@ export default function Game() {
    * Handles game over event
    * Ends the game and updates final score
    */
-  const handleGameOver = async () => {
+  const handleGameOver = async (stats: WasteStats) => {
     if (!gameId) return;
 
     try {
-      const response = await endGame(gameId);
+      await endGame(gameId);
+      setWasteStats(stats);
       setGameOver(true);
-      setScore(response.score);
-      setTime(response.time_played || 0);
+      setGameStarted(false);
     } catch (error) {
       console.error('Failed to end game:', error);
       setGameOver(true);
     }
   };
+
+  // Return early if sounds haven't loaded
+  if (!soundsLoaded) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center">
+        <p className="text-xl text-green-800">Loading game resources...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex flex-col items-center py-8">
@@ -144,7 +160,8 @@ export default function Game() {
         {/* Game over screen */}
         {gameOver && (
           <GameOver 
-            score={score} 
+            score={score}
+            wasteStats={wasteStats}
             handleStartGame={handleRestartGame} 
           />
         )}

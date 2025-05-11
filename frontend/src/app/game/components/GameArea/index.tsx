@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { updateGame, getGameResources } from '@/services/gameService';
-import { Food as FoodType, FoodItem, Difficulty, ResourcesApiResponse } from '../../interfaces';
+import { Food as FoodType, FoodItem, Difficulty, ResourcesApiResponse, WasteStats } from '../../interfaces';
 import { playSound } from '../../utils/soundEffects';
 import { getConveyorSpeed, getFoodGenerationInterval, isInZone } from '../../utils/gameLogic';
 
@@ -25,7 +25,7 @@ interface GameAreaProps {
   setTime: (time: number) => void;
   difficulty: Difficulty;
   foodItems: FoodItem[];
-  handleGameOver: () => Promise<void>;
+  handleGameOver: (wasteStats: WasteStats) => Promise<void>;
 }
 
 // Add a new interface for tracking food movement on the conveyor
@@ -59,6 +59,10 @@ export default function GameArea({
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [isActionInProgress, setIsActionInProgress] = useState<boolean>(false);
   const [lastActionTime, setLastActionTime] = useState<number>(0);
+  const [wasteStats, setWasteStats] = useState<WasteStats>({
+    wastedFoods: {},
+    totalWasted: 0
+  });
   
   // Character animation state
   const [characterDirection, setCharacterDirection] = useState<'front' | 'back' | 'left' | 'right'>('front');
@@ -190,31 +194,43 @@ export default function GameArea({
     return () => clearInterval(interval);
   }, [gameId, gameFoodItems, foods.length, difficulty]);
 
-  // Move food on the conveyor belt
+  // Helper function to track wasted food
+  const trackWastedFood = useCallback((food: FoodType) => {
+    if (food.type === 'trash') return; // Don't track trash items
+
+    setWasteStats(prev => {
+      const newWastedFoods = { ...prev.wastedFoods };
+      if (!newWastedFoods[food.name]) {
+        newWastedFoods[food.name] = { name: food.name, count: 0 };
+      }
+      newWastedFoods[food.name].count++;
+
+      return {
+        wastedFoods: newWastedFoods,
+        totalWasted: prev.totalWasted + 1
+      };
+    });
+  }, []);
+
+  // Update the food movement effect to track wasted food
   useEffect(() => {
     if (!gameId) return;
     
     const moveInterval = setInterval(() => {
-      // Remove unused variables
       const currentSpeed = getConveyorSpeed(difficulty);
       
       setFoods(prevFoods => {
-        // Create a new array to store foods that haven't fallen off
         const newFoods: FoodType[] = [];
         
         for (const food of prevFoods) {
-          // Get current segment
           const segment = food.segment !== undefined ? food.segment : 0;
           const currentSegment = conveyorSegments[segment];
           
-          // Flag to track if food should be kept
           let keepFood = true;
           
-          // Update position based on segment direction
           switch (currentSegment.direction) {
             case 'right':
               food.x += currentSpeed;
-              // Check if reached end of segment
               if (food.x >= currentSegment.end.x) {
                 food.x = conveyorSegments[segment + 1].start.x;
                 food.y = conveyorSegments[segment + 1].start.y;
@@ -223,25 +239,21 @@ export default function GameArea({
               break;
             case 'down':
               food.y += currentSpeed;
-              // Check if reached end of segment
               if (food.y >= currentSegment.end.y) {
-                // Check if we should apply food waste scoring
                 if (gameId && food.type !== 'trash') {
-                  // Only penalize for non-trash items falling off
                   updateGame(gameId, 'incorrect', food.type)
                     .then(response => {
                       setScore(response.score);
                       playSound('wasteFood');
                       showMessage('-5 points. Food wasted!', 'error');
+                      trackWastedFood(food);
                     })
                     .catch(error => console.error('Failed to update score:', error));
                   keepFood = false;
                 } else if (food.type === 'trash') {
-                  // For trash items, just let them fall off with no penalty
                   keepFood = false;
                   showMessage('Good! Trash disposed properly!', 'success');
                 } else {
-                  // Reset food to beginning of the conveyor
                   food.x = conveyorSegments[0].start.x;
                   food.y = conveyorSegments[0].start.y;
                   food.segment = 0;
@@ -250,7 +262,6 @@ export default function GameArea({
               break;
           }
           
-          // Add food to the new array if it should be kept
           if (keepFood) {
             newFoods.push(food);
           }
@@ -261,7 +272,7 @@ export default function GameArea({
     }, 50);
     
     return () => clearInterval(moveInterval);
-  }, [gameId, difficulty, conveyorSegments, setScore]);
+  }, [gameId, difficulty, trackWastedFood]);
 
   // Game timer
   useEffect(() => {
@@ -270,7 +281,7 @@ export default function GameArea({
     const timer = setInterval(async () => {
       if (time <= 1) {
         clearInterval(timer);
-        handleGameOver();
+        handleGameOver(wasteStats);
         setTime(0);
       } else {
         setTime(time - 1);
@@ -278,7 +289,7 @@ export default function GameArea({
     }, 1000);
     
     return () => clearInterval(timer);
-  }, [gameId, setTime, handleGameOver, time]);
+  }, [gameId, setTime, handleGameOver, time, wasteStats]);
 
   // DIY cooldown timer
   useEffect(() => {
@@ -306,20 +317,17 @@ export default function GameArea({
   const handleAction = useCallback(async () => {
     if (!holdingFood || !gameId) return;
     
-    // Update the coordinates to match the new positions
     const foodBankZone = { x: 300, y: 350, width: 150, height: 150 };
     const greenBinZone = { x: 500, y: 350, width: 150, height: 150 }; 
-    const diyZone = { x: 700, y: 350, width: 150, height: 150 }; // Added DIY zone
+    const diyZone = { x: 700, y: 350, width: 150, height: 150 };
     
     const playerCenterX = position.x + characterSize / 2;
     const playerCenterY = position.y + characterSize / 2;
     
-    // Check if player is in any drop zone
     const inFoodBankZone = isInZone(playerCenterX, playerCenterY, foodBankZone.x, foodBankZone.y, foodBankZone.width, foodBankZone.height);
     const inGreenBinZone = isInZone(playerCenterX, playerCenterY, greenBinZone.x, greenBinZone.y, greenBinZone.width, greenBinZone.height);
     const inDiyZone = isInZone(playerCenterX, playerCenterY, diyZone.x, greenBinZone.y, diyZone.width, diyZone.height);
     
-    // If not in any zone, do nothing and keep holding the food
     if (!inFoodBankZone && !inGreenBinZone && !inDiyZone) {
         console.log('Not in a valid drop zone, still holding food');
         return;
@@ -328,9 +336,9 @@ export default function GameArea({
     let actionType = 'incorrect';
     let successMessage = '';
     let scoreChange = 0;
+    let isWrongAction = false;
     
     if (inFoodBankZone) {
-        // Food Bank zone
         if (holdingFood.type === 'food bank') {
             actionType = 'correct';
             scoreChange = 10;
@@ -338,9 +346,9 @@ export default function GameArea({
         } else {
             scoreChange = -5;
             successMessage = 'Wrong zone! This food cannot be donated.';
+            isWrongAction = true;
         }
     } else if (inGreenBinZone) {
-        // Green Bin zone
         if (holdingFood.type === 'green waste bin') {
             actionType = 'correct';
             scoreChange = 10;
@@ -348,9 +356,9 @@ export default function GameArea({
         } else {
             scoreChange = -5;
             successMessage = 'Wrong zone! This food cannot be composted.';
+            isWrongAction = true;
         }
     } else if (inDiyZone) {
-        // DIY zone
         if (holdingFood.diy_option) {
             actionType = 'correct';
             scoreChange = 15;
@@ -358,16 +366,15 @@ export default function GameArea({
         } else {
             scoreChange = -5;
             successMessage = 'Wrong zone! This food cannot be used for DIY.';
+            isWrongAction = true;
         }
     }
     
     try {
-        // Only send diy_option when holdingFood exists
         const diyOption = holdingFood ? (holdingFood.diy_option ? '1' : '0') : undefined;
         const response = await updateGame(gameId, actionType, holdingFood.type, diyOption);
         setScore(response.score);
         
-        // Format message with score change first
         const formattedMessage = `${scoreChange >= 0 ? '+' : ''}${scoreChange} points. ${successMessage}`;
         
         if (actionType === 'correct') {
@@ -376,13 +383,16 @@ export default function GameArea({
         } else {
             playSound('wrongAction');
             showMessage(formattedMessage, 'error');
+            if (isWrongAction) {
+                trackWastedFood(holdingFood);
+            }
         }
     } catch (error) {
         console.error('Failed to update score:', error);
     } finally {
         setHoldingFood(null);
     }
-}, [holdingFood, gameId, position, characterSize, setScore]);
+  }, [holdingFood, gameId, position, trackWastedFood]);
 
   // Handle pickup/drop food
   const handlePickup = useCallback(() => {
