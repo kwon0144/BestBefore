@@ -53,14 +53,14 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
     if (viewState.showInformation || viewState.showNavigation) {
       setMapSectionState(prevState => ({
         ...prevState,
-        selectedStart: null,
-        routeStart: null,
+        // selectedStart: null,
+        // routeStart: null,
         routeEnd: null,
         routeDetails: {duration: "", distance: ""},
         currentLocationAddress: ""
       }));
     }
-  }, [viewState.showInformation, viewState.showNavigation, setMapSectionState]);
+  }, [viewState.showInformation, viewState.showNavigation]);
 
   const handleTypeSelection = (selection: string) => {
     if (selection !== selectedType) {

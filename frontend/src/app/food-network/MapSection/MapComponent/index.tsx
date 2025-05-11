@@ -127,25 +127,25 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
     operation_schedule: foodbank.operation_schedule
   }));
   
-  // Effect to handle focusing on selected foodbank
-  useEffect(() => {
-    if ( mapSectionState.selectedEnd && map) {
-      const selectedFoodBank = foodBanks.find(fb => fb.id.toString() === mapSectionState.selectedEnd);
-      if (selectedFoodBank) {
-        const location = {
-          lat: selectedFoodBank.latitude,
-          lng: selectedFoodBank.longitude
-        };
+  // // Effect to handle focusing on selected foodbank
+  // useEffect(() => {
+  //   if ( mapSectionState.selectedEnd && map) {
+  //     const selectedFoodBank = foodBanks.find(fb => fb.id.toString() === mapSectionState.selectedEnd);
+  //     if (selectedFoodBank) {
+  //       const location = {
+  //         lat: selectedFoodBank.latitude,
+  //         lng: selectedFoodBank.longitude
+  //       };
         
-        try {
-          map.panTo(location);
-          map.setZoom(15);
-        } catch (e) {
-          console.error("Error focusing map on foodbank:", e);
-        }
-      }
-    }
-  }, [mapSectionState.selectedEnd, map, foodBanks]);
+  //       try {
+  //         map.panTo(location);
+  //         map.setZoom(15);
+  //       } catch (e) {
+  //         console.error("Error focusing map on foodbank:", e);
+  //       }
+  //     }
+  //   }
+  // }, [mapSectionState.selectedEnd, map, foodBanks]);
 
   return (
       <Map
