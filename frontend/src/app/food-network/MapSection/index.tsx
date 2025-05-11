@@ -53,11 +53,12 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
     if (viewState.showInformation || viewState.showNavigation) {
       setMapSectionState(prevState => ({
         ...prevState,
+        // Don't reset selectedStart and currentLocationAddress
+        // This preserves the user's location between section changes
         // selectedStart: null,
-        // routeStart: null,
+        // currentLocationAddress: "",
         routeEnd: null,
-        routeDetails: {duration: "", distance: ""},
-        currentLocationAddress: ""
+        routeDetails: {duration: "", distance: ""}
       }));
     }
   }, [viewState.showInformation, viewState.showNavigation]);

@@ -136,9 +136,9 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
         disableDefaultUI={false}
       > 
         <Markers points={points} setMapSectionState={setMapSectionState} mapSectionState={mapSectionState}/>
-        {mapSectionState.routeStart && mapSectionState.routeEnd&& <Directions mapSectionState={mapSectionState} setMapSectionState={setMapSectionState} />}
+        {mapSectionState.routeStart && mapSectionState.routeEnd && <Directions mapSectionState={mapSectionState} setMapSectionState={setMapSectionState} />}
         {mapSectionState.selectedStart && <StartMarker selectedStart={mapSectionState.selectedStart}/>}
-        <WhereAmIButton />
+        <WhereAmIButton mapSectionState={mapSectionState} setMapSectionState={setMapSectionState} />
       </Map>
   );
 });
