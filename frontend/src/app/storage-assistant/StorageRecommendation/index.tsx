@@ -13,25 +13,12 @@
  */
 
 import React, { useState } from 'react';
-import { StorageRecommendation } from '../interfaces';
+import { StorageRecommendation, StorageAdviceResponse } from '../interfaces';
 import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { config } from '@/config';
 import useInventoryStore, { FoodItem } from '@/store/useInventoryStore';
-
-/**
- * Interface representing the response from the storage advice API
- * @interface StorageAdviceResponse
- * @property {string} type - The type of food item
- * @property {number} storage_time - The recommended storage time in days
- * @property {number} method - The storage method code
- */
-interface StorageAdviceResponse {
-  type: string;
-  storage_time: number;
-  method: number;
-}
 
 /**
  * Props interface for the StorageRecommendations component
@@ -107,7 +94,10 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
           food_type: editValues.name
         });
-        const storageTime = response.data.storage_time;
+
+        // Get the correct storage time based on section
+        const storageTime = section === 'fridge' ? response.data.fridge : response.data.pantry;
+        
         newStorageRecs[section][index] = {
           name: `${editValues.name} (${storageTime} days)`,
           quantity: editValues.quantity
@@ -127,7 +117,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
             expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
           });
         }
-      } catch {
+      } catch (error) {
         // If API call fails, keep the original storage time
         const originalStorageTime = item.name.match(/\((\d+) days\)/)?.[1] || '7';
         newStorageRecs[section][index] = {
@@ -200,58 +190,81 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   };
 
   /**
-   * Adds a new item to storage recommendations and inventory store
-   * @param {'fridge' | 'pantry'} section - Storage section to add the item to
+   * Handles adding a new item to storage
+   * @param {string} section - The storage section ('fridge' or 'pantry')
    */
   const handleAdd = async (section: 'fridge' | 'pantry') => {
     if (!newItem.name) return;
 
-    const location = section === 'fridge' ? 'refrigerator' : 'pantry';
-    let storageTime = 21; // Default storage time
+    let location: 'refrigerator' | 'pantry' = section === 'fridge' ? 'refrigerator' : 'pantry';
+    let storageTime = section === 'fridge' ? 7 : 14; // Default storage times
 
     try {
-      // First try to get storage advice from API
-      try {
-        const response = await axios.post<StorageAdviceResponse>(
-          `${config.apiUrl}/api/storage-advice/`,
-          {
-            food_type: newItem.name
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            },
-            timeout: 1000 // 1 second timeout
-          }
-        );
+      // Get storage advice from API
+      const response = await axios.post<StorageAdviceResponse>(
+        `${config.apiUrl}/api/storage-advice/`,
+        {
+          food_type: newItem.name
+        }
+      );
 
-        if (response.data) {
-          storageTime = response.data.storage_time;
+      if (response.data) {
+        // Get recommended location for warning purposes only
+        const recommendedLocation: 'refrigerator' | 'pantry' = response.data.method === 1 ? 'refrigerator' : 'pantry';
+        
+        // Show warning if user's selection differs from recommendation
+        if (location !== recommendedLocation) {
+          console.warn(`User selected ${location} but API recommends ${recommendedLocation} for ${newItem.name}`);
         }
-      } catch (apiError: unknown) {
-        if (apiError && typeof apiError === 'object' && 'code' in apiError && apiError.code === 'ECONNABORTED') {
-          // Silently handle timeout errors
-        } else {
-          // Silently handle other API errors
-        }
+        
+        // Use storage time based on user's selected location
+        storageTime = section === 'fridge' ? response.data.fridge : response.data.pantry;
       }
 
-      // Add to inventory store with the correct storage time
+      // Add to inventory store with the selected location's storage time
       const addedItem: Omit<FoodItem, 'id'> = {
         name: newItem.name,
         quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
-        location: location as 'refrigerator' | 'pantry',
-        expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
+        location: location,
+        expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString(),
+        daysLeft: storageTime
       };
       addItem(addedItem);
-    } catch {
-      // Handle any other errors silently
-    }
 
-    // Reset form state and close the form
-    setNewItem({ name: '', quantity: 1 });
-    setShowAddForm(null);
+      // Update the storage recommendations display
+      const newStorageRecs = { ...storageRecs };
+      newStorageRecs[section].push({
+        name: `${newItem.name} (${storageTime} days)`,
+        quantity: newItem.quantity
+      });
+      onUpdateStorageRecs(newStorageRecs);
+
+      // Reset form state and close the form
+      setNewItem({ name: '', quantity: 1 });
+      setShowAddForm(null);
+    } catch (error) {
+      // Use default values if API call fails
+      const addedItem: Omit<FoodItem, 'id'> = {
+        name: newItem.name,
+        quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
+        location: location,
+        expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString(),
+        daysLeft: storageTime
+      };
+      addItem(addedItem);
+
+      // Update the storage recommendations display
+      const newStorageRecs = { ...storageRecs };
+      newStorageRecs[section].push({
+        name: `${newItem.name} (${storageTime} days)`,
+        quantity: newItem.quantity
+      });
+      onUpdateStorageRecs(newStorageRecs);
+
+      // Reset form state and close the form
+      setNewItem({ name: '', quantity: 1 });
+      setShowAddForm(null);
+    }
   };
 
   /**
@@ -284,58 +297,81 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   };
 
   /**
-   * Handles the drop operation for drag and drop functionality
+   * Handles the drop operation when dragging items between storage locations
    * @param {React.DragEvent} e - The drag event
    * @param {'fridge' | 'pantry'} targetSection - Target storage section
    * @param {number} [targetIndex] - Optional target index for insertion
    */
-  const handleDrop = (e: React.DragEvent, targetSection: 'fridge' | 'pantry', targetIndex?: number) => {
+  const handleDrop = async (e: React.DragEvent, targetSection: 'fridge' | 'pantry', targetIndex?: number) => {
     e.preventDefault();
     
     if (!draggedItem) return;
     
     const { index: sourceIndex, section: sourceSection, item: movedItem } = draggedItem;
     
-    // If dropped in the same position
+    // If dropped in the same position, do nothing
     if (sourceSection === targetSection && targetIndex !== undefined && sourceIndex === targetIndex) return;
     
-    // Create a deep copy of the current storage recommendations
-    const newStorageRecs = JSON.parse(JSON.stringify(storageRecs));
-    
-    // Remove the item from source section
-    newStorageRecs[sourceSection].splice(sourceIndex, 1);
-    
-    // If targetIndex is undefined, append to the end of the target section
-    const insertIndex = targetIndex !== undefined ? targetIndex : newStorageRecs[targetSection].length;
-    
-    // Insert the item at the destination
-    newStorageRecs[targetSection].splice(insertIndex, 0, movedItem);
-    
-    // Update the local state first
-    onUpdateStorageRecs(newStorageRecs);
+    try {
+      // Get storage advice for the dragged item
+      const itemName = movedItem.name?.split(' (')[0] || '';
+      
+      const response = await axios.post<StorageAdviceResponse>(
+        `${config.apiUrl}/api/storage-advice/`,
+        {
+          food_type: itemName
+        }
+      );
 
-    // Update the Zustand store
-    const itemName = movedItem.name?.split(' (')[0] || '';
-    const daysMatch = movedItem.name?.match(/\((\d+) days\)/);
-    const days = daysMatch ? parseInt(daysMatch[1]) : 7;
-    const location = targetSection === 'fridge' ? 'refrigerator' : 'pantry';
-    
-    // Find the item in the inventory store
-    const existingItem = items.find(item => 
-      item.name.toLowerCase() === itemName.toLowerCase() && 
-      item.location === (sourceSection === 'fridge' ? 'refrigerator' : 'pantry')
-    );
+      // Get storage time for the new location
+      const newStorageTime = targetSection === 'fridge' ? response.data.fridge : response.data.pantry;
 
-    if (existingItem) {
-      // Update the item's location and expiry date
-      updateItem(existingItem.id, {
-        location: location,
-        expiryDate: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+      // Create a deep copy of the current storage recommendations
+      const newStorageRecs = JSON.parse(JSON.stringify(storageRecs));
+      
+      // Remove the item from source section
+      newStorageRecs[sourceSection].splice(sourceIndex, 1);
+      
+      // Calculate insert index
+      const insertIndex = targetIndex !== undefined ? targetIndex : newStorageRecs[targetSection].length;
+      
+      // Insert the item at the destination with updated storage time
+      newStorageRecs[targetSection].splice(insertIndex, 0, {
+        name: `${itemName} (${newStorageTime} days)`,
+        quantity: movedItem.quantity
       });
+      
+      // Update the local state
+      onUpdateStorageRecs(newStorageRecs);
+
+      // Update the Zustand store
+      const location = targetSection === 'fridge' ? 'refrigerator' : 'pantry';
+      
+      // Find and update the item in the inventory store
+      const existingItem = items.find(item => 
+        item.name.toLowerCase() === itemName.toLowerCase() && 
+        item.location === (sourceSection === 'fridge' ? 'refrigerator' : 'pantry')
+      );
+
+      if (existingItem) {
+        // Update the item's location and expiry date with new storage time
+        updateItem(existingItem.id, {
+          location: location,
+          expiryDate: new Date(Date.now() + newStorageTime * 24 * 60 * 60 * 1000).toISOString(),
+          daysLeft: newStorageTime
+        });
+      }
+    } catch (error) {
+      // If API call fails, maintain the drag operation with original days
+      const newStorageRecs = JSON.parse(JSON.stringify(storageRecs));
+      newStorageRecs[sourceSection].splice(sourceIndex, 1);
+      const insertIndex = targetIndex !== undefined ? targetIndex : newStorageRecs[targetSection].length;
+      newStorageRecs[targetSection].splice(insertIndex, 0, movedItem);
+      onUpdateStorageRecs(newStorageRecs);
+    } finally {
+      // Reset dragged item state
+      setDraggedItem(null);
     }
-    
-    // Reset dragged item
-    setDraggedItem(null);
   };
 
   /**
