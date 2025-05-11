@@ -78,7 +78,7 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
           routeStart: null,
           routeEnd: null,
           routeDetails: {duration: "", distance: ""},
-          selectedEnd: selection === "Food Donation Points" ? "1" : "50",
+          selectedEnd: selection === "Food Donation Points" ? "1" : "43",
           currentLocationAddress: ""
         });
         setSelectedType(selection);
