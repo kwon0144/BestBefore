@@ -151,7 +151,7 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
                       <span className="text-gray-600">{adjustedQuantity}</span>
                     </div>
                   ) : (
-                    <span className={`text-gray-600 ${inPantry ? 'text-gray-400' : ''}`}>
+                    <span className={inPantry ? 'line-through text-gray-400' : 'text-gray-600'}>
                       {item.quantity}
                     </span>
                   )}
