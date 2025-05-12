@@ -49,7 +49,8 @@ export default function Navigation({
      * Handles navigation back to the information view
      * - Resets the view state to show information
      * - Clears the selected starting point
-     * - Adjusts map zoom level if a starting point was selected
+     * - Centers the map on the selected food bank
+     * - Adjusts map zoom level
      */
     const handleBackToInfo = () => {
         setViewState(prev => ({...prev, showInformation: true, showNavigation: false, showRouteResult:false }))
@@ -57,8 +58,18 @@ export default function Navigation({
             ...prev,
             selectedStart: null
         }))
-        if (map && mapSectionState.selectedStart) {
+        
+        if (map) {
+            // Set zoom level
             map.setZoom(12);
+            
+            // Center on the selected food bank if available
+            if (foodbank && foodbank.latitude && foodbank.longitude) {
+                map.setCenter({
+                    lat: foodbank.latitude,
+                    lng: foodbank.longitude
+                });
+            }
         }
     }
 
