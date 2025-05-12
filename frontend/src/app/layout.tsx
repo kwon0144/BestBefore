@@ -18,6 +18,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "BestBefore",
   description: "Together for a zero-waste kitchen — save food, money, and our planet",
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+  }
 };
 
 const poppins = Poppins({
