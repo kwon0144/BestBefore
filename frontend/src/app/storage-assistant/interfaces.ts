@@ -54,8 +54,9 @@ export interface FoodTypesResponse {
 }
 
 export interface StorageAdviceResponse {
-    method: number;
-    storage_time: number;
+    days: number;
+    method: string;
+    source?: string;
 }
 
 export interface CalendarResponse {

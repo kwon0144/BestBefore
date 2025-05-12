@@ -22,13 +22,12 @@ type InventoryModalProps = {
 };
 
 /**
- * Type for storage recommendation from the API
- * @interface
+ * Type definition for storage advice API response
  */
 type StorageAdviceResponse = {
-  type: string;
-  storage_time: number;
-  method: number; // 1 for refrigerator, 0 for pantry
+  days: number;
+  method: string; // 'fridge' or 'pantry'
+  source?: string;
 };
 
 /**
@@ -95,32 +94,25 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
-   * Gets storage time recommendation for a food type from the API
-   * @param {string} foodName - Name of the food to get storage advice for
-   * @returns {Promise<{storage_time: number; method: number}>} Storage time and method recommendation
+   * Gets recommended storage time and method for a food item
+   * @param {string} foodName - Food name to get storage advice for
+   * @returns {Promise<{storage_time: number; method: string}>} Storage time and method recommendation
    */
-  const getStorageTime = async (foodName: string): Promise<{storage_time: number; method: number}> => {
+  const getStorageTime = async (foodName: string): Promise<{storage_time: number; method: string}> => {
     try {
       setIsFetchingRecommendation(true);
       
-      // Find the closest match in the food types
-      const matchedType = findClosestFoodType(foodName);
-      
-      if (!matchedType) {
-        return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
-      }
-      
-      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-        food_type: matchedType
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
+        produce_name: foodName
       });
       
       return { 
-        storage_time: response.data.storage_time,
+        storage_time: response.data.days,
         method: response.data.method
       };
     } catch (error) {
       console.error(`Error getting storage time for ${foodName}:`, error);
-      return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
+      return { storage_time: 7, method: 'fridge' }; // Default to 7 days in refrigerator
     } finally {
       setIsFetchingRecommendation(false);
     }
@@ -233,7 +225,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         const { storage_time, method } = await getStorageTime(newItem.name);
         
         // Use the recommended storage location and expiry date
-        const storageMethod = method === 1 ? "refrigerator" : "pantry";
+        const storageMethod = method === 'fridge' ? "refrigerator" : "pantry";
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + storage_time);
         const expiryDateString = expiryDate.toISOString();

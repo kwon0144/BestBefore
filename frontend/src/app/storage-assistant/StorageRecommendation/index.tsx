@@ -18,19 +18,20 @@ import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } fro
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { config } from '@/config';
+import { addToast } from '@heroui/react';
 import useInventoryStore, { FoodItem } from '@/store/useInventoryStore';
 
 /**
  * Interface representing the response from the storage advice API
  * @interface StorageAdviceResponse
- * @property {string} type - The type of food item
- * @property {number} storage_time - The recommended storage time in days
- * @property {number} method - The storage method code
+ * @property {number} days - The recommended storage time in days
+ * @property {string} method - The storage method (fridge or pantry)
+ * @property {string} source - The source of the information (database or claude)
  */
 interface StorageAdviceResponse {
-  type: string;
-  storage_time: number;
-  method: number;
+  days: number;
+  method: string;
+  source?: string;
 }
 
 /**
@@ -77,7 +78,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   }));
 
   // Check if both sections are empty
-  const noItemsDetected = fridgeItems.length === 0 && pantryItems.length === 0;
+  const noItemsDetected = storageRecs.fridge.length === 0 && storageRecs.pantry.length === 0;
 
   /**
    * Handles the edit operation for an item
@@ -85,7 +86,20 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
    * @param {'fridge' | 'pantry'} section - Storage section containing the item
    */
   const handleEdit = (index: number, section: 'fridge' | 'pantry') => {
+    // Check if the item exists at the specified index
+    if (!storageRecs[section] || !storageRecs[section][index]) {
+      console.error(`Item at index ${index} in ${section} not found`);
+      return;
+    }
+    
     const item = storageRecs[section][index];
+    
+    // Check if the item has a name property
+    if (!item || !item.name) {
+      console.error('Item or item name is undefined', item);
+      return;
+    }
+    
     const itemName = item.name.split(' (')[0];
     setEditValues({ name: itemName, quantity: item.quantity });
     setEditingItem({ index, section });
@@ -98,16 +112,31 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
    */
   const handleSave = async (index: number, section: 'fridge' | 'pantry') => {
     const newStorageRecs = { ...storageRecs };
+    
+    // Check if the item exists at the specified index
+    if (!newStorageRecs[section] || !newStorageRecs[section][index]) {
+      console.error(`Item at index ${index} in ${section} not found`);
+      return;
+    }
+    
     const item = newStorageRecs[section][index];
+    
+    // Check if the item has a name property
+    if (!item || !item.name) {
+      console.error('Item or item name is undefined', item);
+      setEditingItem(null);
+      return;
+    }
+    
     const originalName = item.name.split(' (')[0];
     
     // If name changed, try to get storage time from API
     if (editValues.name !== originalName) {
       try {
-        const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-          food_type: editValues.name
+        const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
+          produce_name: editValues.name
         });
-        const storageTime = response.data.storage_time;
+        const storageTime = response.data.days;
         newStorageRecs[section][index] = {
           name: `${editValues.name} (${storageTime} days)`,
           quantity: editValues.quantity
@@ -181,7 +210,23 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
    */
   const handleDelete = (index: number, section: 'fridge' | 'pantry') => {
     const newStorageRecs = { ...storageRecs };
+    
+    // Check if the item exists at the specified index
+    if (!newStorageRecs[section] || !newStorageRecs[section][index]) {
+      console.error(`Item at index ${index} in ${section} not found`);
+      return;
+    }
+    
     const item = newStorageRecs[section][index];
+    
+    // Check if the item has a name property
+    if (!item || !item.name) {
+      console.error('Item or item name is undefined', item);
+      newStorageRecs[section].splice(index, 1);
+      onUpdateStorageRecs(newStorageRecs);
+      return;
+    }
+    
     const itemName = item.name.split(' (')[0];
     
     // Remove from inventory store
@@ -208,32 +253,54 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
 
     const location = section === 'fridge' ? 'refrigerator' : 'pantry';
     let storageTime = 21; // Default storage time
+    let actualSection = section; // The section may change based on API recommendation
 
     try {
       // First try to get storage advice from API
       try {
         const response = await axios.post<StorageAdviceResponse>(
-          `${config.apiUrl}/api/storage-advice/`,
+          `${config.apiUrl}/api/storage_assistant/`,
           {
-            food_type: newItem.name
+            produce_name: newItem.name
           },
           {
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json'
             },
-            timeout: 1000 // 1 second timeout
+            timeout: 3000 // 3 second timeout
           }
         );
 
         if (response.data) {
-          storageTime = response.data.storage_time;
+          storageTime = response.data.days;
+          
+          // If section doesn't match the recommendation, override the section
+          if ((response.data.method === 'fridge' && section !== 'fridge') ||
+              (response.data.method === 'pantry' && section !== 'pantry')) {
+            // Use recommended section instead
+            actualSection = response.data.method;
+            
+            // Show toast notification about the correction
+            addToast({
+              title: "Storage Location Corrected",
+              description: `"${newItem.name}" is best stored in the ${response.data.method}`,
+              classNames: {
+                base: "bg-blue-100/70",
+                title: "text-blue-700 font-medium font-semibold",
+                description: "text-blue-700",
+                icon: "text-blue-700"
+              },
+              timeout: 3000
+            });
+          }
         }
       } catch (apiError: unknown) {
         if (apiError && typeof apiError === 'object' && 'code' in apiError && apiError.code === 'ECONNABORTED') {
           // Silently handle timeout errors
         } else {
           // Silently handle other API errors
+          console.error("Error getting storage advice:", apiError);
         }
       }
 
@@ -241,12 +308,35 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
       const addedItem: Omit<FoodItem, 'id'> = {
         name: newItem.name,
         quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
-        location: location as 'refrigerator' | 'pantry',
+        location: (actualSection === 'fridge' ? 'refrigerator' : 'pantry') as 'refrigerator' | 'pantry',
         expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
       };
       addItem(addedItem);
-    } catch {
-      // Handle any other errors silently
+      
+      // Update storageRecs state
+      const newStorageRecs = { ...storageRecs };
+      const newItemForDisplay = {
+        name: `${newItem.name} (${storageTime} days)`,
+        quantity: newItem.quantity
+      };
+      
+      newStorageRecs[actualSection] = [...newStorageRecs[actualSection], newItemForDisplay];
+      onUpdateStorageRecs(newStorageRecs);
+      
+    } catch (error) {
+      // Handle any other errors
+      console.error("Error adding item:", error);
+      addToast({
+        title: "Error Adding Item",
+        description: "There was a problem adding the item. Please try again.",
+        classNames: {
+          base: "bg-red-100/70",
+          title: "text-red-700 font-medium font-semibold",
+          description: "text-red-700",
+          icon: "text-red-700"
+        },
+        timeout: 3000
+      });
     }
 
     // Reset form state and close the form
@@ -261,9 +351,22 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
    * @param {'fridge' | 'pantry'} section - Storage section containing the item
    */
   const handleDragStart = (e: React.DragEvent, index: number, section: 'fridge' | 'pantry') => {
-    // Get the item from the correct source based on the section
-    const items = section === 'fridge' ? fridgeItems : pantryItems;
-    const item = items[index];
+    // Get the item array based on the section
+    const itemsArray = storageRecs[section];
+    
+    // Check if the item exists at the specified index
+    if (!itemsArray || !itemsArray[index]) {
+      console.error(`Item at index ${index} in ${section} not found for drag operation`);
+      return;
+    }
+    
+    const item = itemsArray[index];
+    
+    // Check if the item has required properties
+    if (!item || !item.name) {
+      console.error('Item or item properties are undefined', item);
+      return;
+    }
     
     setDraggedItem({ 
       index, 
@@ -292,15 +395,32 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   const handleDrop = (e: React.DragEvent, targetSection: 'fridge' | 'pantry', targetIndex?: number) => {
     e.preventDefault();
     
-    if (!draggedItem) return;
+    if (!draggedItem) {
+      console.error('No item is being dragged');
+      return;
+    }
     
     const { index: sourceIndex, section: sourceSection, item: movedItem } = draggedItem;
+    
+    // Validate moved item
+    if (!movedItem || !movedItem.name) {
+      console.error('Dragged item or its name is undefined', movedItem);
+      setDraggedItem(null);
+      return;
+    }
     
     // If dropped in the same position
     if (sourceSection === targetSection && targetIndex !== undefined && sourceIndex === targetIndex) return;
     
     // Create a deep copy of the current storage recommendations
     const newStorageRecs = JSON.parse(JSON.stringify(storageRecs));
+    
+    // Check if source section exists
+    if (!newStorageRecs[sourceSection] || !newStorageRecs[sourceSection][sourceIndex]) {
+      console.error(`Source item at index ${sourceIndex} in ${sourceSection} not found`);
+      setDraggedItem(null);
+      return;
+    }
     
     // Remove the item from source section
     newStorageRecs[sourceSection].splice(sourceIndex, 1);
@@ -352,6 +472,12 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         onDrop={(e) => handleDrop(e, section)}
       >
         {items.map((item, index) => {
+          // Skip rendering if item or item.name is undefined
+          if (!item || !item.name) {
+            console.warn(`Skipping item at index ${index} because it's undefined or has no name property`);
+            return null;
+          }
+
           const days = item.name.match(/\((\d+) days\)/)?.[1] || '';
           const itemName = item.name.replace(/ \(\d+ days\)/, '');
           
@@ -430,8 +556,8 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         <h3 className="text-xl font-medium text-gray-700 mb-4 pb-2 border-b-2 border-blue-500">
           <p className="font-semibold text-blue-600">Refrigerator</p>
         </h3>
-        {fridgeItems.length > 0 ? (
-          renderItemList(fridgeItems, 'fridge')
+        {storageRecs.fridge.length > 0 ? (
+          renderItemList(storageRecs.fridge, 'fridge')
         ) : (
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <div className="w-24 h-24 mb-4 flex items-center justify-center rounded-full bg-gray-100">
@@ -493,8 +619,8 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         <h3 className="text-xl font-medium text-gray-700 mb-4 pb-2 border-b-2 border-amber-700">
           <p className="font-semibold text-amber-700">Pantry</p>
         </h3>
-        {pantryItems.length > 0 ? (
-          renderItemList(pantryItems, 'pantry')
+        {storageRecs.pantry.length > 0 ? (
+          renderItemList(storageRecs.pantry, 'pantry')
         ) : (
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <div className="w-24 h-24 mb-4 flex items-center justify-center rounded-full bg-gray-100">
