@@ -23,7 +23,7 @@ interface CalendarExportProps {
 /**
  * CalendarExport Component
  *
- * @param {CalendarExportProps} props - Component props containing the calendar selection state, update function, and detections
+ * @param {CalendarExportProps} props - Component props containing the calendar selection state and update function
  * @returns {JSX.Element} A React component for setting reminder preferences and selecting items for calendar reminders
  */
 const CalendarExport: React.FC<CalendarExportProps> = ({
@@ -41,10 +41,11 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
   const mapInventoryToCalendarItems = (items: Array<{name: string; quantity: string; daysLeft?: number}>) => {
     return items.map(item => {
       const quantity = parseInt(item.quantity.split(' ')[0]) || 1;
+      const daysLeft = item.daysLeft || 7; // Default to 7 days if undefined
       return {
         name: item.name,
         quantity: quantity,
-        expiry_date: item.daysLeft || 7, // Default to 7 days if undefined
+        expiry_date: daysLeft,
         reminder_days: calendarSelection.reminderDays,
         reminder_time: calendarSelection.reminderTime
       };
@@ -94,7 +95,7 @@ const CalendarExport: React.FC<CalendarExportProps> = ({
     });
   };
 
-  // Days before expiry
+  // Days before expiry options
   const daysBeforeExpiry = [
     {key: "1", label: "1 day before"},
     {key: "2", label: "2 days before"},
