@@ -27,7 +27,7 @@ import {
   ProduceDetections, 
   StorageRecommendation, 
   CalendarSelection,
-  FoodTypesResponse,
+  // FoodTypesResponse, // Removed unused import
   StorageAdviceResponse,
   CalendarResponse
 } from './interfaces';

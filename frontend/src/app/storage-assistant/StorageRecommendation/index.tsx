@@ -64,18 +64,8 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   } | null>(null);
 
   // Get inventory store functions
-  const { items, addItem, updateItem, removeItem, getItemsByLocation } = useInventoryStore();
+  const { items, addItem, updateItem, removeItem } = useInventoryStore();
 
-  // Get items for display
-  const fridgeItems = getItemsByLocation('refrigerator').map(item => ({
-    name: `${item.name} (${item.daysLeft} days)`,
-    quantity: parseInt(item.quantity.split(' ')[0]) || 1
-  }));
-  
-  const pantryItems = getItemsByLocation('pantry').map(item => ({
-    name: `${item.name} (${item.daysLeft} days)`,
-    quantity: parseInt(item.quantity.split(' ')[0]) || 1
-  }));
 
   // Check if both sections are empty
   const noItemsDetected = storageRecs.fridge.length === 0 && storageRecs.pantry.length === 0;
@@ -251,7 +241,6 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   const handleAdd = async (section: 'fridge' | 'pantry') => {
     if (!newItem.name) return;
 
-    const location = section === 'fridge' ? 'refrigerator' : 'pantry';
     let storageTime = 21; // Default storage time
     let actualSection = section; // The section may change based on API recommendation
 

@@ -31,14 +31,6 @@ type StorageAdviceResponse = {
 };
 
 /**
- * Type for food types API response
- * @interface
- */
-type FoodTypesResponse = {
-  food_types: string[];
-};
-
-/**
  * Modal component for managing food inventory
  * Provides UI for adding, editing, and removing food items with expiry date tracking
  * @param {InventoryModalProps} props - Component props
@@ -49,7 +41,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   const [isEditing, setIsEditing] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<FoodItem | null>(null);
   const [isFetchingRecommendation, setIsFetchingRecommendation] = useState(false);
-  const [foodTypeOptions, setFoodTypeOptions] = useState<string[]>([]);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   // Form state
@@ -65,33 +56,9 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
    */
   useEffect(() => {
     if (isOpen) {
-      fetchFoodTypes();
+      // Removed fetchFoodTypes call as it's no longer needed
     }
   }, [isOpen]);
-
-  /**
-   * Fetches all available food types from the API
-   */
-  const fetchFoodTypes = async () => {
-    try {
-      const response = await axios.get<FoodTypesResponse>(`${config.apiUrl}/api/food-types/`);
-      if (response.data && response.data.food_types) {
-        setFoodTypeOptions(response.data.food_types);
-      }
-    } catch {
-      addToast({
-        title: "Error",
-        description: "Failed to load food types from the database.",
-        classNames: {
-          base: "bg-red-50",
-          title: "text-amber-700 font-medium font-semibold",
-          description: "text-amber-700",
-          icon: "text-amber-700"
-        },
-        timeout: 3000
-      });
-    }
-  };
 
   /**
    * Gets recommended storage time and method for a food item
@@ -116,36 +83,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     } finally {
       setIsFetchingRecommendation(false);
     }
-  };
-
-  /**
-   * Finds closest matching food type from available options
-   * @param {string} inputName - Food name to match
-   * @returns {string | null} Matched food type or null if no match found
-   */
-  const findClosestFoodType = (inputName: string): string | null => {
-    if (foodTypeOptions.length === 0) return null;
-    
-    // Try exact match first (case insensitive)
-    const exactMatch = foodTypeOptions.find(
-      type => type.toLowerCase() === inputName.toLowerCase()
-    );
-    
-    if (exactMatch) return exactMatch;
-    
-    // Try substring match
-    const substringMatches = foodTypeOptions.filter(
-      type => type.toLowerCase().includes(inputName.toLowerCase()) || 
-              inputName.toLowerCase().includes(type.toLowerCase())
-    );
-    
-    if (substringMatches.length > 0) {
-      // Return the shortest matching string as it's likely more specific
-      return substringMatches.sort((a, b) => a.length - b.length)[0];
-    }
-    
-    // No match found
-    return null;
   };
 
   /**
