@@ -19,15 +19,16 @@ export default function DropZones({ diyCooldown, foodBankImage, greenBinImage, d
   return (
     <>
       {/* Food Bank - positioned in the center-left of the U-shaped conveyor belt */}
-      <div className="absolute top-[250px] left-[150px] w-[150px] h-[150px] flex flex-col items-center justify-center">
+      <div className="absolute top-[350px] left-[300px] w-[150px] h-[150px] flex flex-col items-center justify-center">
         {foodBankImage ? (
-          <div className="w-24 h-24 flex items-center justify-center relative">
-            <Image 
-              src={foodBankImage} 
-              alt="Food Bank" 
-              fill
-              className="object-contain"
-              sizes="(max-width: 96px) 100vw, 96px"
+
+          <div className="w-24 h-24 flex items-center justify-center">
+            <Image
+              src={foodBankImage}
+              alt="Food Bank"
+              width={96}
+              height={96}
+              style={{ objectFit: 'contain' }}
             />
           </div>
         ) : (
@@ -37,15 +38,16 @@ export default function DropZones({ diyCooldown, foodBankImage, greenBinImage, d
       </div>
       
       {/* Green Bin - positioned closer to the Food Bank */}
-      <div className="absolute top-[250px] left-[350px] w-[150px] h-[150px] flex flex-col items-center justify-center">
+      <div className="absolute top-[350px] left-[500px] w-[150px] h-[150px] flex flex-col items-center justify-center">
         {greenBinImage ? (
-          <div className="w-24 h-24 flex items-center justify-center relative">
-            <Image 
-              src={greenBinImage} 
-              alt="Green Bin" 
-              fill
-              className="object-contain"
-              sizes="(max-width: 96px) 100vw, 96px"
+          <div className="w-24 h-24 flex items-center justify-center">
+            <Image
+              src={greenBinImage}
+              alt="Green Bin"
+              width={96}
+              height={96}
+              style={{ objectFit: 'contain' }}
+
             />
           </div>
         ) : (
@@ -55,15 +57,16 @@ export default function DropZones({ diyCooldown, foodBankImage, greenBinImage, d
       </div>
 
       {/* DIY Place - positioned next to Green Bin */}
-      <div className="absolute top-[250px] left-[550px] w-[150px] h-[150px] flex flex-col items-center justify-center">
+      <div className="absolute top-[350px] left-[700px] w-[150px] h-[150px] flex flex-col items-center justify-center">
         {diyImage ? (
-          <div className="w-24 h-24 flex items-center justify-center relative">
-            <Image 
-              src={diyImage} 
-              alt="DIY Place" 
-              fill
-              className="object-contain"
-              sizes="(max-width: 96px) 100vw, 96px"
+          <div className="w-24 h-24 flex items-center justify-center">
+            <Image
+              src={diyImage}
+              alt="DIY Place"
+              width={96}
+              height={96}
+              style={{ objectFit: 'contain' }}
+
             />
           </div>
         ) : (

@@ -4,9 +4,11 @@
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { updateGame, getGameResources } from '@/services/gameService';
-import { Food as FoodType, FoodItem, Difficulty, ResourcesApiResponse } from '../../interfaces';
+import { Food as FoodType, FoodItem, Difficulty, ResourcesApiResponse, WasteStats } from '../../interfaces';
 import { playSound } from '../../utils/soundEffects';
 import { getConveyorSpeed, getFoodGenerationInterval, isInZone } from '../../utils/gameLogic';
+import useIsMobile from '../../hooks/useIsMobile';
+import Head from 'next/head';
 
 // Sub-components
 import ScoreBoard from './ScoreBoard';
@@ -15,7 +17,7 @@ import Character from './Character';
 import DropZones from './DropZones';
 import Food from './Food';
 import MessageDisplay from './MessageDisplay';
-import FullscreenButton from './FullscreenButton';
+import MobileControls from './MobileControls';
 
 interface GameAreaProps {
   gameId: string | null;
@@ -25,17 +27,21 @@ interface GameAreaProps {
   setTime: (time: number) => void;
   difficulty: Difficulty;
   foodItems: FoodItem[];
-  handleGameOver: () => Promise<void>;
+  handleGameOver: (wasteStats: WasteStats) => Promise<void>;
 }
 
-// Add a new interface for tracking food movement on the conveyor
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Define proper types for the conveyor segment
 interface ConveyorSegment {
   id: string;
-  start: { x: number, y: number };
-  end: { x: number, y: number };
+  start: { x: number; y: number };
+  end: { x: number; y: number };
   direction: 'right' | 'down' | 'left' | 'up';
 }
+
+// Define proper types for event handlers
+type TouchEventHandler = (event: TouchEvent) => void;
+type KeyboardEventHandler = (event: KeyboardEvent) => void;
+type ResizeEventHandler = () => void;
 
 /**
  * Main game area component that handles gameplay mechanics
@@ -51,7 +57,7 @@ export default function GameArea({
   handleGameOver
 }: GameAreaProps) {
   // Game state
-  const [position, setPosition] = useState({ x: 200, y: 300 });
+  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 200, y: 300 });
   const [holdingFood, setHoldingFood] = useState<FoodType | null>(null);
   const [foods, setFoods] = useState<FoodType[]>([]);
   const [diyCooldown, setDiyCooldown] = useState<number>(0);
@@ -59,6 +65,10 @@ export default function GameArea({
   const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
   const [isActionInProgress, setIsActionInProgress] = useState<boolean>(false);
   const [lastActionTime, setLastActionTime] = useState<number>(0);
+  const [wasteStats, setWasteStats] = useState<WasteStats>({
+    wastedFoods: {},
+    totalWasted: 0
+  });
   
   // Character animation state
   const [characterDirection, setCharacterDirection] = useState<'front' | 'back' | 'left' | 'right'>('front');
@@ -67,7 +77,6 @@ export default function GameArea({
   
   // Game resources state
   const [gameResources, setGameResources] = useState<ResourcesApiResponse>({ status: '', count: 0, resources: [] });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoadingResources, setIsLoadingResources] = useState<boolean>(true);
   
   // Refs
@@ -83,22 +92,16 @@ export default function GameArea({
   const conveyorSegments = React.useMemo(() => [
     { 
       id: 'top', 
-      start: { x: 50, y: 150 }, // Starting from left side of top segment with offset
-      end: { x: 1000, y: 150 },  // End at right side of top segment
+      start: { x: 50, y: 265 }, // Starting from left side of top segment with offset
+      end: { x: 1000, y: 265 },  // End at right side of top segment
       direction: 'right' as const
     },
     { 
       id: 'right', 
-      start: { x: 1000, y: 150 }, // Right side going down
+      start: { x: 1000, y: 265 }, // Right side going down
       end: { x: 1000, y: 450 },   // To bottom right corner
       direction: 'down' as const
     },
-    { 
-      id: 'bottom', 
-      start: { x: 1000, y: 480 }, // Bottom right to bottom left
-      end: { x: 50, y: 480 },    // End at bottom left
-      direction: 'left' as const
-    }
     // No left vertical segment - food resets to start after bottom segment
   ], []);
 
@@ -175,11 +178,6 @@ export default function GameArea({
         // Start food at the beginning of the top segment
         const startSegment = conveyorSegments[0];
         
-        // Check if this item has DIY option (use the value from API or randomly assign for 30% of non-trash items)
-        const hasDiyOption = randomFoodType.diy_option !== undefined 
-          ? Boolean(randomFoodType.diy_option) 
-          : (foodType !== 'trash' && Math.random() < 0.3);
-        
         const newFood: FoodType = {
           id: Date.now(),
           type: foodType,
@@ -188,7 +186,7 @@ export default function GameArea({
           name: randomFoodType.name,
           image: randomFoodType.image,
           segment: 0,  // Track which segment the food is on
-          diy_option: hasDiyOption
+          diy_option: String(randomFoodType.diy_option) === '1'  
         };
         
         // Debug: output converted type
@@ -201,31 +199,43 @@ export default function GameArea({
     return () => clearInterval(interval);
   }, [gameId, gameFoodItems, foods.length, difficulty, conveyorSegments]);
 
-  // Move food on the conveyor belt
+  // Helper function to track wasted food
+  const trackWastedFood = useCallback((food: FoodType) => {
+    if (food.type === 'trash') return; // Don't track trash items
+
+    setWasteStats(prev => {
+      const newWastedFoods = { ...prev.wastedFoods };
+      if (!newWastedFoods[food.name]) {
+        newWastedFoods[food.name] = { name: food.name, count: 0 };
+      }
+      newWastedFoods[food.name].count++;
+
+      return {
+        wastedFoods: newWastedFoods,
+        totalWasted: prev.totalWasted + 1
+      };
+    });
+  }, []);
+
+  // Update the food movement effect to track wasted food
   useEffect(() => {
     if (!gameId) return;
     
     const moveInterval = setInterval(() => {
-      // Remove unused variables
       const currentSpeed = getConveyorSpeed(difficulty);
       
       setFoods(prevFoods => {
-        // Create a new array to store foods that haven't fallen off
         const newFoods: FoodType[] = [];
         
         for (const food of prevFoods) {
-          // Get current segment
           const segment = food.segment !== undefined ? food.segment : 0;
           const currentSegment = conveyorSegments[segment];
           
-          // Flag to track if food should be kept
           let keepFood = true;
           
-          // Update position based on segment direction
           switch (currentSegment.direction) {
             case 'right':
               food.x += currentSpeed;
-              // Check if reached end of segment
               if (food.x >= currentSegment.end.x) {
                 food.x = conveyorSegments[segment + 1].start.x;
                 food.y = conveyorSegments[segment + 1].start.y;
@@ -234,34 +244,21 @@ export default function GameArea({
               break;
             case 'down':
               food.y += currentSpeed;
-              // Check if reached end of segment
               if (food.y >= currentSegment.end.y) {
-                food.x = conveyorSegments[segment + 1].start.x;
-                food.y = conveyorSegments[segment + 1].start.y;
-                food.segment = segment + 1;
-              }
-              break;
-            case 'left':
-              food.x -= currentSpeed;
-              // Check if reached end of segment - reset to start of first segment
-              if (food.x <= currentSegment.end.x) {
-                // Check if we should apply food waste scoring
                 if (gameId && food.type !== 'trash') {
-                  // Only penalize for non-trash items falling off
                   updateGame(gameId, 'incorrect', food.type)
                     .then(response => {
                       setScore(response.score);
                       playSound('wasteFood');
                       showMessage('-5 points. Food wasted!', 'error');
+                      trackWastedFood(food);
                     })
                     .catch(error => console.error('Failed to update score:', error));
                   keepFood = false;
                 } else if (food.type === 'trash') {
-                  // For trash items, just let them fall off with no penalty
                   keepFood = false;
                   showMessage('Good! Trash disposed properly!', 'success');
                 } else {
-                  // Reset food to beginning of the conveyor
                   food.x = conveyorSegments[0].start.x;
                   food.y = conveyorSegments[0].start.y;
                   food.segment = 0;
@@ -270,7 +267,6 @@ export default function GameArea({
               break;
           }
           
-          // Add food to the new array if it should be kept
           if (keepFood) {
             newFoods.push(food);
           }
@@ -281,7 +277,7 @@ export default function GameArea({
     }, 50);
     
     return () => clearInterval(moveInterval);
-  }, [gameId, difficulty, conveyorSegments, setScore]);
+  }, [gameId, difficulty, trackWastedFood]);
 
   // Game timer
   useEffect(() => {
@@ -290,7 +286,7 @@ export default function GameArea({
     const timer = setInterval(async () => {
       if (time <= 1) {
         clearInterval(timer);
-        handleGameOver();
+        handleGameOver(wasteStats);
         setTime(0);
       } else {
         setTime(time - 1);
@@ -298,7 +294,7 @@ export default function GameArea({
     }, 1000);
     
     return () => clearInterval(timer);
-  }, [gameId, setTime, handleGameOver, time]);
+  }, [gameId, setTime, handleGameOver, time, wasteStats]);
 
   // DIY cooldown timer
   useEffect(() => {
@@ -326,82 +322,83 @@ export default function GameArea({
   const handleAction = useCallback(async () => {
     if (!holdingFood || !gameId) return;
     
-    // Update the coordinates to match the new positions
-    const foodBankZone = { x: 150, y: 200, width: 150, height: 150 };
-    const greenBinZone = { x: 350, y: 200, width: 150, height: 150 }; 
-    const diyZone = { x: 550, y: 200, width: 150, height: 150 }; // Added DIY zone
+    const foodBankZone = { x: 300, y: 350, width: 150, height: 150 };
+    const greenBinZone = { x: 500, y: 350, width: 150, height: 150 }; 
+    const diyZone = { x: 700, y: 350, width: 150, height: 150 };
     
     const playerCenterX = position.x + characterSize / 2;
     const playerCenterY = position.y + characterSize / 2;
     
-    // Check if player is in any drop zone
     const inFoodBankZone = isInZone(playerCenterX, playerCenterY, foodBankZone.x, foodBankZone.y, foodBankZone.width, foodBankZone.height);
     const inGreenBinZone = isInZone(playerCenterX, playerCenterY, greenBinZone.x, greenBinZone.y, greenBinZone.width, greenBinZone.height);
-    const inDiyZone = isInZone(playerCenterX, playerCenterY, diyZone.x, diyZone.y, diyZone.width, diyZone.height);
+    const inDiyZone = isInZone(playerCenterX, playerCenterY, diyZone.x, greenBinZone.y, diyZone.width, diyZone.height);
     
-    // If not in any zone, do nothing and keep holding the food
     if (!inFoodBankZone && !inGreenBinZone && !inDiyZone) {
-      console.log('Not in a valid drop zone, still holding food');
-      return;
+        console.log('Not in a valid drop zone, still holding food');
+        return;
     }
     
     let actionType = 'incorrect';
     let successMessage = '';
     let scoreChange = 0;
+    let isWrongAction = false;
     
     if (inFoodBankZone) {
-      // Food Bank zone
-      if (holdingFood.type === 'food bank') {
-        actionType = 'correct';
-        scoreChange = 10;
-        successMessage = 'Great job! Food donated!';
-      } else {
-        scoreChange = -5;
-        successMessage = 'Wrong zone! This food cannot be donated.';
-      }
+        if (holdingFood.type === 'food bank') {
+            actionType = 'correct';
+            scoreChange = 10;
+            successMessage = 'Great job! Food donated!';
+        } else {
+            scoreChange = -5;
+            successMessage = 'Wrong zone! This food cannot be donated.';
+            isWrongAction = true;
+        }
     } else if (inGreenBinZone) {
-      // Green Bin zone
-      if (holdingFood.type === 'green waste bin') {
-        actionType = 'correct';
-        scoreChange = 10;
-        successMessage = 'Great job! Food composted!';
-      } else {
-        scoreChange = -5;
-        successMessage = 'Wrong zone! This food cannot be composted.';
-      }
+        if (holdingFood.type === 'green waste bin') {
+            actionType = 'correct';
+            scoreChange = 10;
+            successMessage = 'Great job! Food composted!';
+        } else {
+            scoreChange = -5;
+            successMessage = 'Wrong zone! This food cannot be composted.';
+            isWrongAction = true;
+        }
     } else if (inDiyZone) {
-      // DIY zone
-      if (holdingFood.diy_option) {
-        actionType = 'correct';
-        scoreChange = 15;
-        successMessage = 'Amazing! You made something new!';
-      } else {
-        scoreChange = -5;
-        successMessage = 'Wrong zone! This food cannot be used for DIY.';
-      }
+        if (holdingFood.diy_option) {
+            actionType = 'correct';
+            scoreChange = 15;
+            successMessage = 'Amazing! You made something new!';
+        } else {
+            scoreChange = -5;
+            successMessage = 'Wrong zone! This food cannot be used for DIY.';
+            isWrongAction = true;
+        }
     }
     
     try {
-      const response = await updateGame(gameId, actionType, holdingFood.type);
-      setScore(response.score);
-      
-      // Format message with score change first
-      const formattedMessage = `${scoreChange >= 0 ? '+' : ''}${scoreChange} points. ${successMessage}`;
-      
-      if (actionType === 'correct') {
-        playSound('donate');
-        showMessage(formattedMessage, 'success');
-      } else {
-        playSound('wrongAction');
-        showMessage(formattedMessage, 'error');
-      }
+        const diyOption = holdingFood ? (holdingFood.diy_option ? '1' : '0') : undefined;
+        const response = await updateGame(gameId, actionType, holdingFood.type, diyOption);
+        setScore(response.score);
+        
+        const formattedMessage = `${scoreChange >= 0 ? '+' : ''}${scoreChange} points. ${successMessage}`;
+        
+        if (actionType === 'correct') {
+            playSound('donate');
+            showMessage(formattedMessage, 'success');
+        } else {
+            playSound('wrongAction');
+            showMessage(formattedMessage, 'error');
+            if (isWrongAction) {
+                trackWastedFood(holdingFood);
+            }
+        }
     } catch (error) {
-      console.error('Failed to update score:', error);
+        console.error('Failed to update score:', error);
     } finally {
-      setHoldingFood(null);
+        setHoldingFood(null);
     }
-  }, [holdingFood, gameId, position, characterSize, setScore]);
-  
+  }, [holdingFood, gameId, position, trackWastedFood]);
+
   // Handle pickup/drop food
   const handlePickup = useCallback(() => {
     // Prevent rapid actions
@@ -449,88 +446,104 @@ export default function GameArea({
     }
   }, [foods, holdingFood, position, lastActionTime, isActionInProgress, handleAction]);
 
-  // DIY food function - directly DIY food with E key
-  const diyFood = useCallback(async () => {
-    if (!holdingFood || !gameId || diyCooldown > 0) return;
-    
-    console.log('Trying to DIY food with type:', holdingFood.type);
-    
-    // Check if the food can be DIYed
-    if (holdingFood.diy_option) {
-      try {
-        const response = await updateGame(gameId, 'correct', 'diy');
-        setScore(response.score);
-        setDiyCooldown(diyCooldownTime);
-        playSound('diyFood');
-        showMessage('+15 points. Great DIY creation!', 'success');
-      } catch (error) {
-        console.error('Failed to update score:', error);
-      } finally {
-        setHoldingFood(null);
-      }
-    } else {
-      playSound('wrongAction');
-      showMessage('-5 points. This food cannot be used for DIY!', 'error');
-    }
-  }, [holdingFood, gameId, diyCooldown, setScore]);
+  const isMobile = useIsMobile();
 
-  // Keyboard controls
+  // Handle mobile direction press
+  const handleMobileDirectionPress = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
+    const gameAreaWidth = gameAreaRef.current?.clientWidth ?? 800;
+    const gameAreaHeight = gameAreaRef.current?.clientHeight ?? 600;
+    
+    setIsCharacterMoving(true);
+    setLastMoveTime(Date.now());
+    
+    setPosition(prev => {
+      let newX = prev.x;
+      let newY = prev.y;
+      
+      switch (direction) {
+        case 'left':
+          newX = Math.max(0, prev.x - moveSpeed);
+          setCharacterDirection('left');
+          break;
+        case 'right':
+          newX = Math.min(gameAreaWidth - characterSize, prev.x + moveSpeed);
+          setCharacterDirection('right');
+          break;
+        case 'up':
+          newY = Math.max(0, prev.y - moveSpeed);
+          setCharacterDirection('front');
+          break;
+        case 'down':
+          newY = Math.min(gameAreaHeight - characterSize, prev.y + moveSpeed);
+          setCharacterDirection('back');
+          break;
+      }
+      
+      return { x: newX, y: newY };
+    });
+  }, [moveSpeed, characterSize]);
+
+  // Handle mobile direction release
+  const handleMobileDirectionRelease = useCallback(() => {
+    setIsCharacterMoving(false);
+  }, []);
+
+  // Only add keyboard controls if not on mobile
   useEffect(() => {
+    if (isMobile) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
       const gameAreaWidth = gameAreaRef.current?.clientWidth ?? 800;
       const gameAreaHeight = gameAreaRef.current?.clientHeight ?? 600;
       
-    
       setIsCharacterMoving(true);
       setLastMoveTime(Date.now());
       
       // Movement controls (WASD)
       setPosition(prev => {
-        let newX = prev.x;
-        let newY = prev.y;
-        
-        // Horizontal movement
-        if (key === 'a' || key === 'arrowleft') {
-          newX = Math.max(0, prev.x - moveSpeed);
-          setCharacterDirection('left');
-        } else if (key === 'd' || key === 'arrowright') {
-          newX = Math.min(gameAreaWidth - characterSize, prev.x + moveSpeed);
-          setCharacterDirection('right');
-        }
-        
-        // Vertical movement
-        if (key === 'w' || key === 'arrowup') {
-          newY = Math.max(0, prev.y - moveSpeed);
-          setCharacterDirection('front');
-        } else if (key === 's' || key === 'arrowdown') {
-          newY = Math.min(gameAreaHeight - characterSize, prev.y + moveSpeed);
-          setCharacterDirection('back');
-        }
-        
-        return { x: newX, y: newY };
+          let newX = prev.x;
+          let newY = prev.y;
+          
+          // Horizontal movement
+          if (key === 'a' || key === 'arrowleft') {
+              newX = Math.max(0, prev.x - moveSpeed);
+              setCharacterDirection('left');
+          } else if (key === 'd' || key === 'arrowright') {
+              newX = Math.min(gameAreaWidth - characterSize, prev.x + moveSpeed);
+              setCharacterDirection('right');
+          }
+          
+          // Vertical movement
+          if (key === 'w' || key === 'arrowup') {
+              newY = Math.max(0, prev.y - moveSpeed);
+              setCharacterDirection('front');
+          } else if (key === 's' || key === 'arrowdown') {
+              newY = Math.min(gameAreaHeight - characterSize, prev.y + moveSpeed);
+              setCharacterDirection('back');
+          }
+          
+          return { x: newX, y: newY };
       });
       
       // Action controls
-      if (key === 'q' || key === ' ') {
-        handlePickup();
-      } else if (key === 'e') {
-        diyFood();
+      if (key === 'q' || key === 'j') {
+          handlePickup();
       }
     };
     
     const handleKeyUp = () => {
-      setIsCharacterMoving(false);
+        setIsCharacterMoving(false);
     };
     
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+        window.removeEventListener('keydown', handleKeyDown);
+        window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [foods, holdingFood, position, diyCooldown, handlePickup, diyFood, moveSpeed]);
+  }, [isMobile, foods, holdingFood, position, handlePickup, moveSpeed]);
 
   // Add a useEffect to debug resource values
   useEffect(() => {
@@ -569,59 +582,115 @@ export default function GameArea({
     }
   }, [gameResources]);
 
+  useEffect(() => {
+    // Update conveyor segments
+    const segments = conveyorSegments;
+    // ... rest of the effect code ...
+  }, [conveyorSegments]); // Add conveyorSegments to dependencies
+
+  useEffect(() => {
+    // Score update effect
+    const segments = conveyorSegments;
+    // Calculate new score based on segments
+    const newScore = score; // Replace with actual score calculation
+    setScore(newScore);
+  }, [conveyorSegments, setScore, score]); // Add score to dependencies
+
+  const handleFoodDrop = useCallback((foodItem: FoodType): void => {
+    // ... existing callback code ...
+  }, [setScore]); // Add setScore to dependencies
+  
+  // Game configuration
+  const gameSpeed = getConveyorSpeed(difficulty);
+  const foodGenerationInterval = getFoodGenerationInterval(difficulty);
+
   return (
-    <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-      {/* Score Display */}
-      <ScoreBoard score={score} time={time} />
-      
-      {/* Game Area */}
-      <div
-        ref={gameAreaRef}
-        className="relative w-full h-[600px] overflow-hidden"
-        style={{
-          backgroundImage: gameResources.specificResources?.background?.image 
-            ? `url(${gameResources.specificResources.background.image})` 
-            : 'linear-gradient(to bottom, #e0f7fa, #b2ebf2)',
-          backgroundSize: 'contain',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
-        {/* Conveyor belt */}
-        <ConveyorBelt resources={gameResources} />
+    <>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </Head>
+      <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+        {/* Score Display */}
+        <ScoreBoard score={score} time={time} />
         
-        {/* Drop zones */}
-        <DropZones 
-          diyCooldown={diyCooldown} 
-          foodBankImage={gameResources.specificResources?.foodbank?.image}
-          greenBinImage={gameResources.specificResources?.greenbin?.image}
-          diyImage={gameResources.specificResources?.diy?.image}
-        />
-        
-        {/* Foods on conveyor belt */}
-        <Food foods={foods} foodSize={foodSize} />
-        
-        {/* Character */}
-        <Character 
-          position={position} 
-          characterSize={characterSize} 
-          holdingFood={holdingFood}
-          direction={characterDirection}
-          isMoving={isCharacterMoving}
-          spriteResources={{
-            front_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'front_player')?.image,
-            back_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'back_player')?.image,
-            left_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'left_player')?.image,
-            right_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'right_player')?.image
+        {/* Game Area */}
+        <div
+          ref={gameAreaRef}
+          className="relative w-full overflow-hidden"
+          style={{
+            backgroundImage: gameResources.specificResources?.background?.image 
+              ? `url(${gameResources.specificResources.background.image})` 
+              : 'linear-gradient(to bottom, #e0f7fa, #b2ebf2)',
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            touchAction: 'none',
+            height: '600px',
+            width: '100%'
           }}
-        />
-        
-        {/* Message display */}
-        <MessageDisplay message={message} messageType={messageType} />
-        
-        {/* Fullscreen button */}
-        <FullscreenButton targetRef={gameAreaRef} />
+        >
+          {/* Conveyor belt */}
+          <ConveyorBelt resources={gameResources} />
+          
+          {/* Drop zones */}
+          <DropZones 
+            diyCooldown={diyCooldown} 
+            foodBankImage={gameResources.specificResources?.foodbank?.image}
+            greenBinImage={gameResources.specificResources?.greenbin?.image}
+            diyImage={gameResources.specificResources?.diy?.image}
+          />
+          
+          {gameResources.specificResources?.landfill?.image && (
+            <div className="absolute bottom-16 right-16 w-20 h-20">
+              <img 
+                src={gameResources.specificResources.landfill.image} 
+                alt="Landfill" 
+                className="max-w-full max-h-full object-contain opacity-80"
+              />
+            </div>
+          )}
+
+          {gameResources.specificResources?.bush?.image && (
+            <div className="absolute bottom-16 left-16 w-20 h-20">
+              <img 
+                src={gameResources.specificResources.bush.image} 
+                alt="Bush" 
+                className="max-w-full max-h-full object-contain opacity-80"
+              />
+            </div>
+          )}
+          
+          {/* Foods on conveyor belt */}
+          <Food foods={foods} foodSize={foodSize} />
+          
+          {/* Character */}
+          <Character 
+            position={position} 
+            characterSize={characterSize} 
+            holdingFood={holdingFood}
+            direction={characterDirection}
+            isMoving={isCharacterMoving}
+            spriteResources={{
+              front_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'front_player')?.image,
+              back_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'back_player')?.image,
+              left_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'left_player')?.image,
+              right_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'right_player')?.image
+            }}
+          />
+          
+          {/* Message display */}
+          <MessageDisplay message={message} messageType={messageType} />
+          
+          {/* Mobile Controls */}
+          {isMobile && (
+            <MobileControls
+              onDirectionPress={handleMobileDirectionPress}
+              onDirectionRelease={handleMobileDirectionRelease}
+              onPickupPress={handlePickup}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 } 
