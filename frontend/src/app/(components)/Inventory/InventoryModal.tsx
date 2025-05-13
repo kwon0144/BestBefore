@@ -75,11 +75,11 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       });
 
       if (!response.data) {
-        return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
+        return { storage_time: 7, method: 'fridge' }; // Default to 7 days in refrigerator
       }
 
       // Get the correct storage time based on the recommended method
-      const storage_time = response.data.method === 1 ? response.data.fridge : response.data.pantry;
+      const storage_time = response.data.method === 'fridge' ? response.data.fridge : response.data.pantry;
       
       return { 
         
