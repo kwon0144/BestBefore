@@ -54,8 +54,10 @@ export interface FoodTypesResponse {
 }
 
 export interface StorageAdviceResponse {
-    method: number;
-    storage_time: number;
+    Type: string;
+    pantry: number;
+    fridge: number;
+    method: number;  // 1 for refrigerator, 0 for pantry
 }
 
 export interface CalendarResponse {

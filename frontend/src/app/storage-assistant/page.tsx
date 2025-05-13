@@ -180,42 +180,57 @@ const FoodStorageAssistant: React.FC = () => {
 
             const recommendation = response.data;
             const quantity = produceCounts[item] || 1;
-            const storageTime = recommendation.storage_time;
+            
+            // Determine storage location based on method
+            const isRefrigeratedItem = recommendation.method === 1;
+            const storageTime = isRefrigeratedItem ? recommendation.fridge : recommendation.pantry;
+            const location = isRefrigeratedItem ? 'refrigerator' : 'pantry';
             
             // Add the item to inventory store
             addIdentifiedItem(
               item,                                     // Item name 
               `${quantity} item${quantity > 1 ? 's' : ''}`,  // Quantity
-              storageTime                               // Expiry days
+              storageTime,                              // Expiry days
+              location                                  // Storage location
             );
 
-            if (recommendation.method === 1) {
+            // Add to the correct storage section based on method
+            if (isRefrigeratedItem) {
               fridgeItems.push({
-                name: `${item} (${recommendation.storage_time} days)`,
+                name: `${item} (${recommendation.fridge} days)`,
                 quantity: quantity
               });
-            } else if (recommendation.method === 0) {
+            } else {
               pantryItems.push({
-                name: `${item} (${recommendation.storage_time} days)`,
+                name: `${item} (${recommendation.pantry} days)`,
                 quantity: quantity
               });
             }
           } else {
+            // If no match found in food types, use default categorization
             const quantity = produceCounts[item] || 1;
             const isRefrigeratedItem = ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase());
             const defaultStorageTime = isRefrigeratedItem ? 7 : 14; // Default storage times
+            const location = isRefrigeratedItem ? 'refrigerator' : 'pantry';
             
             // Add to inventory with default values
             addIdentifiedItem(
               item,
               `${quantity} item${quantity > 1 ? 's' : ''}`,
-              defaultStorageTime
+              defaultStorageTime,
+              location
             );
             
             if (isRefrigeratedItem) {
-              fridgeItems.push({ name: item, quantity: quantity });
+              fridgeItems.push({ 
+                name: `${item} (${defaultStorageTime} days)`,
+                quantity: quantity 
+              });
             } else {
-              pantryItems.push({ name: item, quantity: quantity });
+              pantryItems.push({ 
+                name: `${item} (${defaultStorageTime} days)`,
+                quantity: quantity 
+              });
             }
           }
         } catch (err) {
@@ -227,10 +242,12 @@ const FoodStorageAssistant: React.FC = () => {
           const defaultStorageTime = isRefrigeratedItem ? 7 : 14;
           
           // Add to inventory even if there's an error
+          const location = isRefrigeratedItem ? 'refrigerator' : 'pantry';
           addIdentifiedItem(
             item,
             `${quantity} item${quantity > 1 ? 's' : ''}`,
-            defaultStorageTime
+            defaultStorageTime,
+            location
           );
           
           if (isRefrigeratedItem) {

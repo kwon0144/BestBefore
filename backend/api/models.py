@@ -2,8 +2,9 @@ from django.db import models
 
 # Create your models here.
 class FoodStorage(models.Model):
-    type = models.CharField(max_length=255, null=True, blank=True)
-    storage_time = models.IntegerField(null=True, blank=True)
+    Type = models.CharField(max_length=50, primary_key=True)  # Make Type the primary key
+    pantry = models.IntegerField(null=True, blank=True)
+    fridge = models.IntegerField(null=True, blank=True)
     method = models.IntegerField(null=True, blank=True)
 
     class Meta:
@@ -11,7 +12,7 @@ class FoodStorage(models.Model):
         managed = False  # Since the table already exists, no need for Django to manage it
 
     def __str__(self):
-        return f"{self.type} - {self.storage_time} days"
+        return f"{self.Type} - {self.fridge if self.method == 1 else self.pantry} days"
 
 # geospatial model for map
 class Geospatial(models.Model):

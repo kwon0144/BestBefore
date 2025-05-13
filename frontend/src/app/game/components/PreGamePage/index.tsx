@@ -3,6 +3,7 @@
  * Initial game screen that shows game information and difficulty selection
  */
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Button } from "@heroui/react";
 import { FoodItem, Difficulty } from '../../interfaces';
 
@@ -81,10 +82,12 @@ export default function PreGamePage({
                     {foodBankItems.map(item => (
                       <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
                         <div className="w-full aspect-square relative mb-2">
-                          <img 
+                          <Image 
                             src={item.image} 
                             alt={item.name}
-                            className="absolute inset-0 w-full h-full object-contain rounded-lg"
+                            fill
+                            className="object-contain rounded-lg"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
                         </div>
                         <h5 className="font-medium text-blue-800 text-center">{item.name}</h5>
@@ -120,10 +123,12 @@ export default function PreGamePage({
                     {greenBinItems.map(item => (
                       <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
                         <div className="w-full aspect-square relative mb-2">
-                          <img 
+                          <Image 
                             src={item.image} 
                             alt={item.name}
-                            className="absolute inset-0 w-full h-full object-contain rounded-lg"
+                            fill
+                            className="object-contain rounded-lg"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
                         </div>
                         <h5 className="font-medium text-green-800 text-center">{item.name}</h5>
@@ -159,10 +164,12 @@ export default function PreGamePage({
                     {trashItems.map(item => (
                       <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
                         <div className="w-full aspect-square relative mb-2">
-                          <img 
+                          <Image 
                             src={item.image} 
                             alt={item.name}
-                            className="absolute inset-0 w-full h-full object-contain rounded-lg"
+                            fill
+                            className="object-contain rounded-lg"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
                         </div>
                         <h5 className="font-medium text-red-800 text-center">{item.name}</h5>
