@@ -13,27 +13,13 @@
  */
 
 import React, { useState } from 'react';
-import { StorageRecommendation } from '../interfaces';
+import { StorageRecommendation, StorageAdviceResponse } from '../interfaces';
 import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { config } from '@/config';
 import { addToast } from '@heroui/react';
 import useInventoryStore, { FoodItem } from '@/store/useInventoryStore';
-import { StorageAdviceResponse } from '../interfaces';
-
-/**
- * Interface representing the response from the storage advice API
- * @interface StorageAdviceResponse
- * @property {string} type - The type of food item
- * @property {number} storage_time - The recommended storage time in days
- * @property {number} method - The storage method code
- */
-interface StorageAdviceResponse {
-  type: string;
-  storage_time: number;
-  method: number;
-}
 
 /**
  * Props interface for the StorageRecommendations component
