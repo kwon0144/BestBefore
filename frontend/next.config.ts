@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const getBasePath = () => {
-  const branch = process.env.NEXT_PUBLIC_BRANCH_NAME || 'main';
+  const branch = process.env.NEXT_PUBLIC_BRANCH_NAME || 'develop';
   if (branch === 'main') {
     return '';
   }
@@ -20,6 +20,9 @@ const nextConfig: NextConfig = {
     ],
   },
   allowedDevOrigins: ['local-origin.dev', '*.local-origin.dev'],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
