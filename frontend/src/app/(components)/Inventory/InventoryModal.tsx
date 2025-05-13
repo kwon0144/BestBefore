@@ -5,6 +5,7 @@
  */
 
 import { useState } from "react";
+import type { DragEvent as ReactDragEvent } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, ToastProvider, addToast } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
 import useInventoryStore from "@/store/useInventoryStore";
@@ -26,11 +27,11 @@ type InventoryModalProps = {
  * Type definition for storage advice API response
  */
 type StorageAdviceResponse = {
-
   days: number;
   method: string; // 'fridge' or 'pantry'
   source?: string;
-
+  fridge?: number;
+  pantry?: number;
 };
 
 /**
@@ -67,14 +68,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         produce_name: foodName
       });
 
-
       if (!response.data) {
         return { storage_time: 7, method: 'fridge' }; // Default to 7 days in refrigerator
       }
       
       return { 
         storage_time: response.data.days,
-
         method: response.data.method
       };
     } catch (error) {
@@ -86,39 +85,8 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
-   * Finds an existing item with similar name and expiry date
-   * @param {string} name - Item name to check
-   * @param {string} expiryDate - Expiry date to compare
-   * @returns {FoodItem | null} Matching item or null if no match found
-   */
-  const findMatchingItem = (name: string, expiryDate: string): FoodItem | null => {
-    // Case insensitive name match
-    const matchingItems = items.filter(item => 
-      item.name.toLowerCase() === name.toLowerCase()
-    );
-    
-    if (matchingItems.length === 0) return null;
-    
-    // Check for similar expiry dates (within 2 days)
-    const newExpiryDate = new Date(expiryDate);
-    
-    for (const item of matchingItems) {
-      const existingExpiryDate = new Date(item.expiryDate);
-      const diffDays = Math.abs((newExpiryDate.getTime() - existingExpiryDate.getTime()) / (1000 * 3600 * 24));
-      
-      // If expiry dates are within 2 days, return this item
-      if (diffDays <= 2) {
-        return item;
-      }
-    }
-    
-
-    return null;
-  };
-
-  /**
-   * Finds an existing item with similar name and expiry date
-   * @param {string} name - Item name to check
+   * Finds a matching item in the inventory by name and expiry date
+   * @param {string} name - Name of the item to find
    * @param {string} expiryDate - Expiry date to compare
    * @returns {FoodItem | null} Matching item or null if no match found
    */
@@ -167,10 +135,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     }
 
     try {
+      // For new items, get storage time using the simplified approach
+      const { storage_time, method } = await getStorageTime(formState.name);
+      
       const newItem = {
         ...formState,
         id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
-
         location: formState.location || (method === 'fridge' ? "refrigerator" : "pantry"),
         expiryDate: new Date(Date.now() + storage_time * 24 * 60 * 60 * 1000).toISOString(),
         daysLeft: storage_time
@@ -190,11 +160,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
           timeout: 3000
         });
       } else {
-        // For new items, get storage time using the simplified approach
-        const { storage_time, method } = await getStorageTime(newItem.name);
-        
         // Use the recommended storage location and expiry date
-
         const storageMethod = method === 'fridge' ? "refrigerator" : "pantry";
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + storage_time);
@@ -268,7 +234,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
-
    * Combines two quantity strings into one
    * @param {string} q1 - First quantity string
    * @param {string} q2 - Second quantity string
@@ -342,7 +307,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     resetForm();
   };
 
-
   // Update the handleStorageTransfer function to handle undefined daysLeft
   const handleStorageTransfer = async (item: FoodItem, newLocation: "refrigerator" | "pantry") => {
     try {
@@ -415,20 +379,20 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   // Update drag event type definitions
-  const handleDragStart = (e: DragEvent<HTMLLIElement>, item: FoodItem) => {
+  const handleDragStart = (e: ReactDragEvent<HTMLLIElement>, item: FoodItem) => {
     e.dataTransfer.setData("itemId", item.id);
   };
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: ReactDragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.currentTarget.classList.add("bg-gray-100");
   };
 
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = (e: ReactDragEvent<HTMLDivElement>) => {
     e.currentTarget.classList.remove("bg-gray-100");
   };
 
-  const handleDrop = async (e: DragEvent<HTMLDivElement>, targetLocation: "refrigerator" | "pantry") => {
+  const handleDrop = async (e: ReactDragEvent<HTMLDivElement>, targetLocation: "refrigerator" | "pantry") => {
     e.preventDefault();
     e.currentTarget.classList.remove("bg-gray-100");
     
@@ -441,207 +405,207 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   return (
-  <div>
-    <ToastProvider placement={"top-center"} toastOffset={80}/>
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
-      <ModalContent>
-        <ModalHeader>
-          <h2 className="text-xl font-semibold text-darkgreen">
-            Manage Food Inventory
-          </h2>
-        </ModalHeader>
-        <ModalBody>
-          <div className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="md:col-span-2 relative">
-                <Input
-                  label="Food Item"
-                  placeholder="e.g., Chicken Breast"
-                  value={formState.name}
-                  onChange={(e) => setFormState({ ...formState, name: e.target.value })}
-                  onClear={() => setFormState({ ...formState, name: "" })}
-                />
-              </div>
-              <div>
-                <Input
-                  label="Quantity"
-                  placeholder="e.g., 500g, 2L"
-                  value={formState.quantity}
-                  onChange={(e) => setFormState({ ...formState, quantity: e.target.value })}
-                />
-              </div>
-            </div>
-
-            {showMoreOptions && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <Select
-                    label="Location"
-                    placeholder="Choose location"
-                    selectedKeys={formState.location ? [formState.location] : []}
-                    onSelectionChange={(keys) => {
-                      const selectedKey = Array.from(keys)[0] as string;
-                      if (selectedKey) {
-                        setFormState({
-                          ...formState,
-                          location: selectedKey as "refrigerator" | "pantry"
-                        });
-                      }
-                    }}
-                  >
-                    <SelectItem key="refrigerator">Refrigerator</SelectItem>
-                    <SelectItem key="pantry">Pantry</SelectItem>
-                  </Select>
+    <div>
+      <ToastProvider placement={"top-center"} toastOffset={80}/>
+      <Modal isOpen={isOpen} onClose={onClose} size="xl">
+        <ModalContent>
+          <ModalHeader>
+            <h2 className="text-xl font-semibold text-darkgreen">
+              Manage Food Inventory
+            </h2>
+          </ModalHeader>
+          <ModalBody>
+            <div className="mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="md:col-span-2 relative">
+                  <Input
+                    label="Food Item"
+                    placeholder="e.g., Chicken Breast"
+                    value={formState.name}
+                    onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                    onClear={() => setFormState({ ...formState, name: "" })}
+                  />
                 </div>
                 <div>
                   <Input
-                    type="date"
-                    label="Expiry Date"
-                    placeholder="Choose expiry date"
-                    value={formState.expiryDate}
-                    onChange={(e) => setFormState({ ...formState, expiryDate: e.target.value })}
+                    label="Quantity"
+                    placeholder="e.g., 500g, 2L"
+                    value={formState.quantity}
+                    onChange={(e) => setFormState({ ...formState, quantity: e.target.value })}
                   />
                 </div>
               </div>
-            )}
 
-            <div className="flex gap-4">
-              <Button
-                color="primary"
-                className="flex-1 bg-[#2F5233] text-white hover:bg-[#1B371F]"
-                onPress={handleAddItem}
-                isLoading={isFetchingRecommendation}
-              >
-                {isEditing ? "Update Item" : "Add Item"}
-              </Button>
-              
-              <Button
+              {showMoreOptions && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <Select
+                      label="Location"
+                      placeholder="Choose location"
+                      selectedKeys={formState.location ? [formState.location] : []}
+                      onSelectionChange={(keys) => {
+                        const selectedKey = Array.from(keys)[0] as string;
+                        if (selectedKey) {
+                          setFormState({
+                            ...formState,
+                            location: selectedKey as "refrigerator" | "pantry"
+                          });
+                        }
+                      }}
+                    >
+                      <SelectItem key="refrigerator">Refrigerator</SelectItem>
+                      <SelectItem key="pantry">Pantry</SelectItem>
+                    </Select>
+                  </div>
+                  <div>
+                    <Input
+                      type="date"
+                      label="Expiry Date"
+                      placeholder="Choose expiry date"
+                      value={formState.expiryDate}
+                      onChange={(e) => setFormState({ ...formState, expiryDate: e.target.value })}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-4">
+                <Button
+                  color="primary"
+                  className="flex-1 bg-[#2F5233] text-white hover:bg-[#1B371F]"
+                  onPress={handleAddItem}
+                  isLoading={isFetchingRecommendation}
+                >
+                  {isEditing ? "Update Item" : "Add Item"}
+                </Button>
+                
+                <Button
+                  variant="flat"
+                  onPress={() => setShowMoreOptions(!showMoreOptions)}
+                  className="flex-none"
+                >
+                  {showMoreOptions ? "Hide Options" : "More Options"}
+                </Button>
+              </div>
+            </div>
+
+            {/* Replace tabs with side-by-side layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Refrigerator Section */}
+              <div className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200">
+                <div className="mb-2 border-b-2 border-blue-500">
+                  <h3 className="text-lg font-medium font-semibold text-blue-600">Refrigerator</h3>
+                </div>
+                
+                <div className="mt-2">
+                  {getItemsByLocation("refrigerator").length === 0 ? (
+                    <div className="mt-4">
+                      <p className="text-gray-500">No items in refrigerator</p>
+                    </div>
+                  ) : (
+                    <ul className="divide-y divide-gray-200">
+                      {getItemsByLocation("refrigerator").map((item) => (
+                        <li key={item.id} className="py-3 flex justify-between items-center">
+                          <div>
+                            <div className="font-medium">
+                              {item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()} <span className="text-sm text-gray-500">qty: {item.quantity}</span>
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              Expires in {item.daysLeft} days
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              isIconOnly
+                              variant="light"
+                              onPress={() => handleEditItem(item)}
+                            >
+                              <FontAwesomeIcon icon={faEdit} />
+                            </Button>
+                            <Button
+                              isIconOnly
+                              variant="light"
+                              color="danger"
+                              onPress={() => handleDeleteItem(item.id)}
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+
+              {/* Pantry Section */}
+              <div className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200">
+                <div className="mb-4 border-b-2 border-amber-700">
+                  <h3 className="text-lg font-medium font-semibold text-amber-700">Pantry</h3>
+                </div>
+
+                <div className="mt-2">
+                  {getItemsByLocation("pantry").length === 0 ? (
+                    <div className="mt-4">
+                      <p className="text-gray-500">No items in pantry</p>
+                    </div>
+                  ) : (
+                    <ul className="divide-y divide-gray-200">
+                      {getItemsByLocation("pantry").map((item) => (
+                        <li key={item.id} className="py-3 flex justify-between items-center">
+                          <div>
+                            <div className="font-medium">
+                              {item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()} <span className="text-sm text-gray-500">qty: {item.quantity}</span>
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              Expires in {item.daysLeft} days
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              isIconOnly
+                              variant="light"
+                              onPress={() => handleEditItem(item)}
+                            >
+                              <FontAwesomeIcon icon={faEdit} />
+                            </Button>
+                            <Button
+                              isIconOnly
+                              variant="light"
+                              color="danger"
+                              onPress={() => handleDeleteItem(item.id)}
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <div className="flex justify-between w-full">
+              <Button 
+                color="danger" 
                 variant="flat"
-                onPress={() => setShowMoreOptions(!showMoreOptions)}
-                className="flex-none"
+                onPress={clearAllItems}
               >
-                {showMoreOptions ? "Hide Options" : "More Options"}
+                Clear All Items
+              </Button>
+              <Button 
+                color="danger" 
+                variant="light" 
+                onPress={onClose}
+              >
+                Close
               </Button>
             </div>
-          </div>
-
-          {/* Replace tabs with side-by-side layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Refrigerator Section */}
-            <div className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200">
-              <div className="mb-2 border-b-2 border-blue-500">
-                <h3 className="text-lg font-medium font-semibold text-blue-600">Refrigerator</h3>
-              </div>
-              
-              <div className="mt-2">
-                {getItemsByLocation("refrigerator").length === 0 ? (
-                  <div className="mt-4">
-                    <p className="text-gray-500">No items in refrigerator</p>
-                  </div>
-                ) : (
-                  <ul className="divide-y divide-gray-200">
-                    {getItemsByLocation("refrigerator").map((item) => (
-                      <li key={item.id} className="py-3 flex justify-between items-center">
-                        <div>
-                          <div className="font-medium">
-                            {item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()} <span className="text-sm text-gray-500">qty: {item.quantity}</span>
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Expires in {item.daysLeft} days
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            isIconOnly
-                            variant="light"
-                            onPress={() => handleEditItem(item)}
-                          >
-                            <FontAwesomeIcon icon={faEdit} />
-                          </Button>
-                          <Button
-                            isIconOnly
-                            variant="light"
-                            color="danger"
-                            onPress={() => handleDeleteItem(item.id)}
-                          >
-                            <FontAwesomeIcon icon={faTrash} />
-                          </Button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-
-            {/* Pantry Section */}
-            <div className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200">
-              <div className="mb-4 border-b-2 border-amber-700">
-                <h3 className="text-lg font-medium font-semibold text-amber-700">Pantry</h3>
-              </div>
-
-              <div className="mt-2">
-                {getItemsByLocation("pantry").length === 0 ? (
-                  <div className="mt-4">
-                    <p className="text-gray-500">No items in pantry</p>
-                  </div>
-                ) : (
-                  <ul className="divide-y divide-gray-200">
-                    {getItemsByLocation("pantry").map((item) => (
-                      <li key={item.id} className="py-3 flex justify-between items-center">
-                        <div>
-                          <div className="font-medium">
-                            {item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()} <span className="text-sm text-gray-500">qty: {item.quantity}</span>
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Expires in {item.daysLeft} days
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            isIconOnly
-                            variant="light"
-                            onPress={() => handleEditItem(item)}
-                          >
-                            <FontAwesomeIcon icon={faEdit} />
-                          </Button>
-                          <Button
-                            isIconOnly
-                            variant="light"
-                            color="danger"
-                            onPress={() => handleDeleteItem(item.id)}
-                          >
-                            <FontAwesomeIcon icon={faTrash} />
-                          </Button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <div className="flex justify-between w-full">
-            <Button 
-              color="danger" 
-              variant="flat"
-              onPress={clearAllItems}
-            >
-              Clear All Items
-            </Button>
-            <Button 
-              color="danger" 
-              variant="light" 
-              onPress={onClose}
-            >
-              Close
-            </Button>
-          </div>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  </div>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </div>
   );
-} 
+}
