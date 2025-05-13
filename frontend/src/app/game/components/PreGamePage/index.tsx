@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { Button } from "@heroui/react";
 import { FoodItem, Difficulty } from '../../interfaces';
+import Image from 'next/image';
 
 interface PreGamePageProps {
   foodItems: FoodItem[];
@@ -117,10 +118,12 @@ export default function PreGamePage({
                     {foodBankItems.map(item => (
                       <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
                         <div className="w-full aspect-square relative mb-2">
-                          <img 
+                          <Image 
                             src={item.image} 
                             alt={item.name}
                             className="absolute inset-0 w-full h-full object-contain rounded-lg"
+                            width={200}
+                            height={200}
                           />
                         </div>
                         <h5 className="font-medium text-blue-800 text-center">{item.name}</h5>
@@ -156,10 +159,12 @@ export default function PreGamePage({
                     {greenBinItems.map(item => (
                       <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
                         <div className="w-full aspect-square relative mb-2">
-                          <img 
+                          <Image 
                             src={item.image} 
                             alt={item.name}
                             className="absolute inset-0 w-full h-full object-contain rounded-lg"
+                            width={200}
+                            height={200}
                           />
                         </div>
                         <h5 className="font-medium text-green-800 text-center">{item.name}</h5>
@@ -195,10 +200,12 @@ export default function PreGamePage({
                     {trashItems.map(item => (
                       <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
                         <div className="w-full aspect-square relative mb-2">
-                          <img 
+                          <Image 
                             src={item.image} 
                             alt={item.name}
                             className="absolute inset-0 w-full h-full object-contain rounded-lg"
+                            width={200}
+                            height={200}
                           />
                         </div>
                         <h5 className="font-medium text-red-800 text-center">{item.name}</h5>
@@ -234,10 +241,12 @@ export default function PreGamePage({
                     {diyItems.map(item => (
                       <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
                         <div className="w-full aspect-square relative mb-2">
-                          <img 
+                          <Image 
                             src={item.image} 
                             alt={item.name}
                             className="absolute inset-0 w-full h-full object-contain rounded-lg"
+                            width={200}
+                            height={200}
                           />
                           <div className="absolute top-1 right-1 w-5 h-5 bg-yellow-400 rounded-full" title="DIY Item"></div>
                         </div>

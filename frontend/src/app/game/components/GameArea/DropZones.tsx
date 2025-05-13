@@ -3,6 +3,7 @@
  * Renders the food bank, green bin, and DIY zones
  */
 import React from 'react';
+import Image from 'next/image';
 
 interface DropZonesProps {
   diyCooldown: number;
@@ -21,7 +22,13 @@ export default function DropZones({ diyCooldown, foodBankImage, greenBinImage, d
       <div className="absolute top-[350px] left-[300px] w-[150px] h-[150px] flex flex-col items-center justify-center">
         {foodBankImage ? (
           <div className="w-24 h-24 flex items-center justify-center">
-            <img src={foodBankImage} alt="Food Bank" className="max-w-full max-h-full object-contain" />
+            <Image
+              src={foodBankImage}
+              alt="Food Bank"
+              width={96}
+              height={96}
+              style={{ objectFit: 'contain' }}
+            />
           </div>
         ) : (
           <span className="text-blue-500 text-5xl mb-2">🏢</span>
@@ -33,7 +40,13 @@ export default function DropZones({ diyCooldown, foodBankImage, greenBinImage, d
       <div className="absolute top-[350px] left-[500px] w-[150px] h-[150px] flex flex-col items-center justify-center">
         {greenBinImage ? (
           <div className="w-24 h-24 flex items-center justify-center">
-            <img src={greenBinImage} alt="Green Bin" className="max-w-full max-h-full object-contain" />
+            <Image
+              src={greenBinImage}
+              alt="Green Bin"
+              width={96}
+              height={96}
+              style={{ objectFit: 'contain' }}
+            />
           </div>
         ) : (
           <span className="text-green-500 text-5xl mb-2">♻️</span>
@@ -45,7 +58,13 @@ export default function DropZones({ diyCooldown, foodBankImage, greenBinImage, d
       <div className="absolute top-[350px] left-[700px] w-[150px] h-[150px] flex flex-col items-center justify-center">
         {diyImage ? (
           <div className="w-24 h-24 flex items-center justify-center">
-            <img src={diyImage} alt="DIY Place" className="max-w-full max-h-full object-contain" />
+            <Image
+              src={diyImage}
+              alt="DIY Place"
+              width={96}
+              height={96}
+              style={{ objectFit: 'contain' }}
+            />
           </div>
         ) : (
           <span className="text-yellow-500 text-5xl mb-2">🏠</span>
