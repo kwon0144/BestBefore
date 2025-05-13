@@ -326,11 +326,11 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         },
         timeout: 3000
       });
+    } finally {
+      // Reset form state and close the form
+      setNewItem({ name: '', quantity: 1 });
+      setShowAddForm(null);
     }
-
-    // Reset form state and close the form
-    setNewItem({ name: '', quantity: 1 });
-    setShowAddForm(null);
   };
 
   /**
