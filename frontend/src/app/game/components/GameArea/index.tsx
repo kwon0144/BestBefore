@@ -17,6 +17,7 @@ import Character from './Character';
 import DropZones from './DropZones';
 import Food from './Food';
 import MessageDisplay from './MessageDisplay';
+
 import MobileControls from './MobileControls';
 
 interface GameAreaProps {
@@ -42,6 +43,7 @@ interface ConveyorSegment {
 type TouchEventHandler = (event: TouchEvent) => void;
 type KeyboardEventHandler = (event: KeyboardEvent) => void;
 type ResizeEventHandler = () => void;
+
 
 /**
  * Main game area component that handles gameplay mechanics
@@ -448,6 +450,7 @@ export default function GameArea({
 
   const isMobile = useIsMobile();
 
+
   // Handle mobile direction press
   const handleMobileDirectionPress = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
     const gameAreaWidth = gameAreaRef.current?.clientWidth ?? 800;
@@ -487,6 +490,7 @@ export default function GameArea({
   const handleMobileDirectionRelease = useCallback(() => {
     setIsCharacterMoving(false);
   }, []);
+
 
   // Only add keyboard controls if not on mobile
   useEffect(() => {
@@ -608,6 +612,7 @@ export default function GameArea({
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
       </Head>
       <div className="bg-white rounded-lg shadow-xl overflow-hidden">
         {/* Score Display */}
@@ -627,6 +632,7 @@ export default function GameArea({
             touchAction: 'none',
             height: '600px',
             width: '100%'
+
           }}
         >
           {/* Conveyor belt */}

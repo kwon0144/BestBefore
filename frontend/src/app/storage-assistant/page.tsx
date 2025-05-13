@@ -27,7 +27,6 @@ import {
   ProduceDetections, 
   StorageRecommendation, 
   CalendarSelection,
-  FoodTypesResponse,
   StorageAdviceResponse,
   CalendarResponse
 } from './interfaces';
@@ -147,10 +146,6 @@ const FoodStorageAssistant: React.FC = () => {
       // Reset the items added flag
       setItemsAddedToInventory(false);
       
-      // Get all food types
-      const foodTypesResponse = await axios.get<FoodTypesResponse>(`${config.apiUrl}/api/food-types/`);
-      const allFoodTypes = foodTypesResponse.data.food_types;
-      
       // If no food detected, use empty array
       const allItems = Object.keys(produceCounts).length > 0
         ? Object.keys(produceCounts)
@@ -167,71 +162,34 @@ const FoodStorageAssistant: React.FC = () => {
       
       for (const item of allItems) {
         try {
-          // Find best matching food type
-          const matchedType = allFoodTypes.find((type: string) => 
-            type.toLowerCase().includes(item.toLowerCase()) || 
-            item.toLowerCase().includes(type.toLowerCase())
-          );
+          // Call the new storage_assistant endpoint
+          const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
+            produce_name: item
+          });
+
+
+          const recommendation = response.data;
+          const quantity = produceCounts[item] || 1;
+          const storageTime = recommendation.days;
           
-          if (matchedType) {
-            const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-              food_type: matchedType
+          // Add the item to inventory store
+          addIdentifiedItem(
+            item,                                     // Item name 
+            `${quantity} item${quantity > 1 ? 's' : ''}`,  // Quantity
+            storageTime                               // Expiry days
+          );
+
+          if (recommendation.method === 'fridge') {
+            fridgeItems.push({
+              name: `${item} (${storageTime} days)`,
+              quantity: quantity
+            });
+          } else if (recommendation.method === 'pantry') {
+            pantryItems.push({
+              name: `${item} (${storageTime} days)`,
+              quantity: quantity
             });
 
-            const recommendation = response.data;
-            const quantity = produceCounts[item] || 1;
-            
-            // Determine storage location based on method
-            const isRefrigeratedItem = recommendation.method === 1;
-            const storageTime = isRefrigeratedItem ? recommendation.fridge : recommendation.pantry;
-            const location = isRefrigeratedItem ? 'refrigerator' : 'pantry';
-            
-            // Add the item to inventory store
-            addIdentifiedItem(
-              item,                                     // Item name 
-              `${quantity} item${quantity > 1 ? 's' : ''}`,  // Quantity
-              storageTime,                              // Expiry days
-              location                                  // Storage location
-            );
-
-            // Add to the correct storage section based on method
-            if (isRefrigeratedItem) {
-              fridgeItems.push({
-                name: `${item} (${recommendation.fridge} days)`,
-                quantity: quantity
-              });
-            } else {
-              pantryItems.push({
-                name: `${item} (${recommendation.pantry} days)`,
-                quantity: quantity
-              });
-            }
-          } else {
-            // If no match found in food types, use default categorization
-            const quantity = produceCounts[item] || 1;
-            const isRefrigeratedItem = ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase());
-            const defaultStorageTime = isRefrigeratedItem ? 7 : 14; // Default storage times
-            const location = isRefrigeratedItem ? 'refrigerator' : 'pantry';
-            
-            // Add to inventory with default values
-            addIdentifiedItem(
-              item,
-              `${quantity} item${quantity > 1 ? 's' : ''}`,
-              defaultStorageTime,
-              location
-            );
-            
-            if (isRefrigeratedItem) {
-              fridgeItems.push({ 
-                name: `${item} (${defaultStorageTime} days)`,
-                quantity: quantity 
-              });
-            } else {
-              pantryItems.push({ 
-                name: `${item} (${defaultStorageTime} days)`,
-                quantity: quantity 
-              });
-            }
           }
         } catch (err) {
           console.error(`Error fetching storage advice for ${item}:`, err);
@@ -251,9 +209,15 @@ const FoodStorageAssistant: React.FC = () => {
           );
           
           if (isRefrigeratedItem) {
-            fridgeItems.push({ name: item, quantity: quantity });
+            fridgeItems.push({ 
+              name: `${item} (${defaultStorageTime} days)`, 
+              quantity: quantity 
+            });
           } else {
-            pantryItems.push({ name: item, quantity: quantity });
+            pantryItems.push({ 
+              name: `${item} (${defaultStorageTime} days)`, 
+              quantity: quantity 
+            });
           }
         }
       }
@@ -263,7 +227,7 @@ const FoodStorageAssistant: React.FC = () => {
         pantry: pantryItems,
       });
     } catch (err) {
-      console.error('Error fetching food types:', err);
+      console.error('Error in fetchStorageRecommendations:', err);
 
       // Use empty arrays instead of default data
       const allItems = Object.keys(produceCounts).length > 0
@@ -272,11 +236,17 @@ const FoodStorageAssistant: React.FC = () => {
       
       const fridgeItems = allItems
         .filter(item => ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase()))
-        .map(item => ({ name: item, quantity: produceCounts[item] || 1 }));
+        .map(item => ({ 
+          name: `${item} (7 days)`, 
+          quantity: produceCounts[item] || 1 
+        }));
       
       const pantryItems = allItems
         .filter(item => !['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase()))
-        .map(item => ({ name: item, quantity: produceCounts[item] || 1 }));
+        .map(item => ({ 
+          name: `${item} (14 days)`, 
+          quantity: produceCounts[item] || 1 
+        }));
       
       setStorageRecs({
         fridge: fridgeItems,

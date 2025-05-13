@@ -3,8 +3,8 @@
  * It allows users to add, edit, and remove food items from their refrigerator and pantry,
  * with intelligent recommendations for storage locations and expiry dates based on food types.
  */
-import { useState, useEffect } from "react";
-import type { DragEvent } from "react";
+import { useState } from "react";
+
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, ToastProvider, addToast } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
 import useInventoryStore from "@/store/useInventoryStore";
@@ -23,22 +23,13 @@ type InventoryModalProps = {
 };
 
 /**
- * Type for storage recommendation from the API
- * @interface
+ * Type definition for storage advice API response
  */
 type StorageAdviceResponse = {
-  Type: string;
-  pantry: number;
-  fridge: number;
-  method: number;
-};
+  days: number;
+  method: string; // 'fridge' or 'pantry'
+  source?: string;
 
-/**
- * Type for food types API response
- * @interface
- */
-type FoodTypesResponse = {
-  food_types: string[];
 };
 
 /**
@@ -52,7 +43,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   const [isEditing, setIsEditing] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<FoodItem | null>(null);
   const [isFetchingRecommendation, setIsFetchingRecommendation] = useState(false);
-  const [foodTypeOptions, setFoodTypeOptions] = useState<string[]>([]);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   // Form state
@@ -64,104 +54,62 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   });
 
   /**
-   * Fetches food types from the API when the component mounts
+   * Gets recommended storage time and method for a food item
+   * @param {string} foodName - Food name to get storage advice for
+   * @returns {Promise<{storage_time: number; method: string}>} Storage time and method recommendation
    */
-  useEffect(() => {
-    if (isOpen) {
-      fetchFoodTypes();
-    }
-  }, [isOpen]);
-
-  /**
-   * Fetches all available food types from the API
-   */
-  const fetchFoodTypes = async () => {
-    try {
-      const response = await axios.get<FoodTypesResponse>(`${config.apiUrl}/api/food-types/`);
-      if (response.data && response.data.food_types) {
-        setFoodTypeOptions(response.data.food_types);
-      }
-    } catch {
-      addToast({
-        title: "Error",
-        description: "Failed to load food types from the database.",
-        classNames: {
-          base: "bg-red-50",
-          title: "text-amber-700 font-medium font-semibold",
-          description: "text-amber-700",
-          icon: "text-amber-700"
-        },
-        timeout: 3000
-      });
-    }
-  };
-
-  /**
-   * Gets storage time recommendation for a food type from the API
-   * @param {string} foodName - Name of the food to get storage advice for
-   * @returns {Promise<{storage_time: number; method: number}>} Storage time and method recommendation
-   */
-  const getStorageTime = async (foodName: string): Promise<{storage_time: number; method: number}> => {
+  const getStorageTime = async (foodName: string): Promise<{storage_time: number; method: string}> => {
     try {
       setIsFetchingRecommendation(true);
       
-      // Find the closest match in the food types
-      const matchedType = findClosestFoodType(foodName);
-      
-      if (!matchedType) {
-        return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
-      }
-      
-      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-        food_type: matchedType
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
+        produce_name: foodName
       });
 
       if (!response.data) {
-        return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
+        return { storage_time: 7, method: 'fridge' }; // Default to 7 days in refrigerator
       }
-
-      // Get the correct storage time based on the recommended method
-      const storage_time = response.data.method === 1 ? response.data.fridge : response.data.pantry;
       
       return { 
-        storage_time: storage_time,
+        storage_time: response.data.days,
         method: response.data.method
       };
     } catch (error) {
       console.error(`Error getting storage time for ${foodName}:`, error);
-      return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
+      return { storage_time: 7, method: 'fridge' }; // Default to 7 days in refrigerator
     } finally {
       setIsFetchingRecommendation(false);
     }
   };
 
   /**
-   * Finds closest matching food type from available options
-   * @param {string} inputName - Food name to match
-   * @returns {string | null} Matched food type or null if no match found
+   * Finds an existing item with similar name and expiry date
+   * @param {string} name - Item name to check
+   * @param {string} expiryDate - Expiry date to compare
+   * @returns {FoodItem | null} Matching item or null if no match found
    */
-  const findClosestFoodType = (inputName: string): string | null => {
-    if (foodTypeOptions.length === 0) return null;
-    
-    // Try exact match first (case insensitive)
-    const exactMatch = foodTypeOptions.find(
-      type => type.toLowerCase() === inputName.toLowerCase()
+  const findMatchingItem = (name: string, expiryDate: string): FoodItem | null => {
+    // Case insensitive name match
+    const matchingItems = items.filter(item => 
+      item.name.toLowerCase() === name.toLowerCase()
     );
     
-    if (exactMatch) return exactMatch;
+    if (matchingItems.length === 0) return null;
     
-    // Try substring match
-    const substringMatches = foodTypeOptions.filter(
-      type => type.toLowerCase().includes(inputName.toLowerCase()) || 
-              inputName.toLowerCase().includes(type.toLowerCase())
-    );
+    // Check for similar expiry dates (within 2 days)
+    const newExpiryDate = new Date(expiryDate);
     
-    if (substringMatches.length > 0) {
-      // Return the shortest matching string as it's likely more specific
-      return substringMatches.sort((a, b) => a.length - b.length)[0];
+    for (const item of matchingItems) {
+      const existingExpiryDate = new Date(item.expiryDate);
+      const diffDays = Math.abs((newExpiryDate.getTime() - existingExpiryDate.getTime()) / (1000 * 3600 * 24));
+      
+      // If expiry dates are within 2 days, return this item
+      if (diffDays <= 2) {
+        return item;
+      }
     }
     
-    // No match found
+
     return null;
   };
 
@@ -191,7 +139,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       const newItem = {
         ...formState,
         id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
-        location: formState.location || (method === 1 ? "refrigerator" : "pantry"),
+        location: formState.location || (method === 'fridge' ? "refrigerator" : "pantry"),
         expiryDate: new Date(Date.now() + storage_time * 24 * 60 * 60 * 1000).toISOString(),
         daysLeft: storage_time
       };
@@ -210,18 +158,61 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
           timeout: 3000
         });
       } else {
-        addItem(newItem);
-        addToast({
-          title: "Item Added",
-          description: `"${formState.name}" added to your inventory`,
-          classNames: {
-            base: "bg-background",
-            title: "text-darkgreen font-medium font-semibold",
-            description: "text-darkgreen",
-            icon: "text-darkgreen"
-          },
-          timeout: 3000
-        });
+        // For new items, get storage time using the simplified approach
+        const { storage_time, method } = await getStorageTime(newItem.name);
+        
+        // Use the recommended storage location and expiry date
+        const storageMethod = method === 'fridge' ? "refrigerator" : "pantry";
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + storage_time);
+        const expiryDateString = expiryDate.toISOString();
+        
+        // Check if item already exists with similar expiry date
+        const existingItem = findMatchingItem(newItem.name, expiryDateString);
+        
+        if (existingItem) {
+          // Accumulate quantity for existing item
+          const currentQuantity = existingItem.quantity;
+          const newQuantity = combineQuantities(currentQuantity, newItem.quantity);
+          
+          // Update the existing item with new quantity
+          updateItem(existingItem.id, {
+            ...existingItem,
+            quantity: newQuantity
+          });
+          
+          // Show toast for combined quantities
+          addToast({
+            title: "Item Updated",
+            description: `Added to existing "${newItem.name}" with similar expiry date.`,
+            classNames: {
+              base: "bg-background",
+              title: "text-darkgreen font-medium font-semibold",
+              description: "text-darkgreen",
+              icon: "text-darkgreen"
+            },
+            timeout: 3000
+          });
+        } else {
+          // Add as new item with recommended values
+          const recommendedItem = {
+            ...newItem,
+            location: storageMethod as "refrigerator" | "pantry",
+            expiryDate: expiryDateString
+          };
+          addItem(recommendedItem);
+          addToast({
+            title: "Item Added",
+            description: `"${formState.name}" added to your inventory`,
+            classNames: {
+              base: "bg-background",
+              title: "text-darkgreen font-medium font-semibold",
+              description: "text-darkgreen",
+              icon: "text-darkgreen"
+            },
+            timeout: 3000
+          });
+        }
       }
       
       resetForm();
@@ -241,6 +232,30 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         timeout: 3000
       });
     }
+  };
+
+  /**
+   * Combines two quantity strings into one
+   * @param {string} q1 - First quantity string
+   * @param {string} q2 - Second quantity string
+   * @returns {string} Combined quantity string
+   */
+  const combineQuantities = (q1: string, q2: string): string => {
+    // Extract numeric values from the strings
+    const num1 = parseFloat(q1.split(' ')[0]) || 0;
+    const num2 = parseFloat(q2.split(' ')[0]) || 0;
+    
+    // Extract unit if present
+    const unit1 = q1.split(' ').slice(1).join(' ');
+    const unit2 = q2.split(' ').slice(1).join(' ');
+    
+    // Use the first unit if available, otherwise use the second unit
+    const unit = unit1 || unit2 || 'items';
+    
+    // Sum the numeric values
+    const total = num1 + num2;
+    
+    return `${total} ${unit}`;
   };
 
   /**
@@ -296,8 +311,8 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   // Update the handleStorageTransfer function to handle undefined daysLeft
   const handleStorageTransfer = async (item: FoodItem, newLocation: "refrigerator" | "pantry") => {
     try {
-      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-        food_type: findClosestFoodType(item.name)
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
+        produce_name: item.name
       });
 
       if (!response.data) {
@@ -305,7 +320,11 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       }
 
       // Get the new storage time based on the new location
-      const newStorageTime = newLocation === "refrigerator" ? response.data.fridge : response.data.pantry;
+      const newStorageTime = (newLocation === "refrigerator" && response.data.fridge) 
+        ? response.data.fridge 
+        : (newLocation === "pantry" && response.data.pantry)
+          ? response.data.pantry
+          : response.data.days || 7; // Fallback to days or default 7
       
       // Calculate remaining life percentage
       const currentDate = new Date();
