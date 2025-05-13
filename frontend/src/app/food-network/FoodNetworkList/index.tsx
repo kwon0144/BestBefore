@@ -31,6 +31,8 @@ interface FoodNetworkListProps {
   setSelectedType: Dispatch<SetStateAction<string>>;  
   /** Function to update view state */
   setViewState: Dispatch<SetStateAction<ViewState>>;
+  /** Function to scroll to the map section */
+  scrollToMapSection: () => void;
 }
 
 /**
@@ -51,13 +53,15 @@ const typeOptions = [
  * @param {string} props.selectedType - Currently selected point type
  * @param {Dispatch<SetStateAction<string>>} props.setSelectedType - Function to update selected point type
  * @param {Dispatch<SetStateAction<ViewState>>} props.setViewState - Function to update view state
+ * @param {Function} props.scrollToMapSection - Function to scroll to the map section
  * @returns {JSX.Element} Rendered food network list with search and filter capabilities
  */
 const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ 
   setMapSectionState, 
   selectedType,
   setSelectedType,
-  setViewState
+  setViewState,
+  scrollToMapSection
 }) => {
   const [foodbanks, setFoodbanks] = useState<Foodbank[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -155,8 +159,8 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
     }
     setMapSectionState(prev => ({...prev, selectedEnd: foodbank.id.toString()}));
 
-    // Scroll to top of the page
-    window.scrollTo({ top: 700, behavior: 'smooth' });
+    // Scroll to the map section using the provided function
+    scrollToMapSection();
     setViewState({ showInformation: true, showNavigation: false, showRouteResult: false});
   };
 

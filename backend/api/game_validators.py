@@ -26,6 +26,12 @@ EAT_ZONE = {
     'y_min': 250,
     'y_max': 350
 }
+DIY_ZONE = {
+    'x_min': 650,
+    'x_max': 800,
+    'y_min': 300,
+    'y_max': 450
+}
 
 def validate_pickup(character_position, foods):
     """
@@ -74,12 +80,12 @@ def validate_pickup(character_position, foods):
 
 def validate_action(character_position, food, action_type):
     """
-    Validate if a player can perform an action (donate, compost, eat) based on their position.
+    Validate if a player can perform an action (donate, compost, eat, diy) based on their position.
     
     Args:
         character_position (dict): The position of the character {'x': float, 'y': float}
         food (dict): The food item being used
-        action_type (str): The type of action ('donate', 'compost', 'eat')
+        action_type (str): The type of action ('donate', 'compost', 'eat', 'diy')
         
     Returns:
         dict: Result of the validation including success status, zone, and correctness
@@ -103,6 +109,12 @@ def validate_action(character_position, food, action_type):
     in_eat_zone = (
         EAT_ZONE['x_min'] < character_position['x'] < EAT_ZONE['x_max'] and
         EAT_ZONE['y_min'] < character_position['y'] < EAT_ZONE['y_max']
+    )
+    
+    # Check if character is in the DIY zone
+    in_diy_zone = (
+        DIY_ZONE['x_min'] < character_position['x'] < DIY_ZONE['x_max'] and
+        DIY_ZONE['y_min'] < character_position['y'] < DIY_ZONE['y_max']
     )
     
     # Determine if the action is correct based on the zone and food type
@@ -135,6 +147,16 @@ def validate_action(character_position, food, action_type):
                 'correct': food['type'] == 'eat',
                 'message': 'Yum! Perfect food to eat. +15 points' if food['type'] == 'eat' else 'Yuck! This food is not edible! -10 points'
             }
+    elif action_type == 'diy' and in_diy_zone:
+        # Check if the food can be DIYed (has diy_option=1)
+        has_diy_option = food.get('diy_option') == '1' or food.get('diy_option') == 1 or food.get('diy_option') is True
+        
+        return {
+            'success': True,
+            'zone': 'diy',
+            'correct': has_diy_option and food['type'] == 'green waste bin',
+            'message': 'Amazing! Great DIY creation! +15 points' if has_diy_option and food['type'] == 'green waste bin' else 'Wrong! This food cannot be used for DIY. -5 points'
+        }
     else:
         return {
             'success': False,

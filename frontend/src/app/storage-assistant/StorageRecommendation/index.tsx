@@ -253,7 +253,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           
           // If section doesn't match the recommendation, override the section
           if ((response.data.method === 'fridge' && section !== 'fridge') ||
-              (response.data.method === 'pantry' && section !== 'pantry')) {
+            (response.data.method === 'pantry' && section !== 'pantry')) {
             // Use recommended section instead
             actualSection = response.data.method;
             
@@ -279,7 +279,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           console.error("Error getting storage advice:", apiError);
         }
       }
-
+    
       // Add to inventory store with the correct storage time
       const addedItem: Omit<FoodItem, 'id'> = {
         name: newItem.name,

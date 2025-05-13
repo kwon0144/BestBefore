@@ -3,6 +3,7 @@
  * Initial game screen that shows game information and difficulty selection
  */
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Button } from "@heroui/react";
 import { FoodItem, Difficulty } from '../../interfaces';
 
@@ -28,6 +29,15 @@ export default function PreGamePage({
   const [expandedFoodBank, setExpandedFoodBank] = useState(false);
   const [expandedGreenBin, setExpandedGreenBin] = useState(false);
   const [expandedTrash, setExpandedTrash] = useState(false);
+  const [expandedDiy, setExpandedDiy] = useState(false);
+  
+  // Debug: log food items to check diy_option values
+  console.log('All food items:', foodItems);
+  console.log('Food items with DIY options:', foodItems.map(item => ({
+    name: item.name,
+    diy_option: item.diy_option,
+    type: typeof item.diy_option
+  })));
   
   // Group food items by type
   const foodBankItems = foodItems.filter(item => {
@@ -44,6 +54,33 @@ export default function PreGamePage({
     const typeStr = String(item.type || '').toLowerCase().trim();
     return typeStr === 'trash';
   });
+
+  // Simple print of all food items
+  console.log('All food items count:', foodItems.length);
+  
+  // Add more debug information
+  console.log('Raw DIY values:', foodItems.map(item => ({
+    name: item.name,
+    diy_raw: item.diy_option,
+    type: item.type,
+    diy_string: String(item.diy_option),
+    image: item.image
+  })));
+  
+  // Group food items that can be DIYed (based on diy_option property)
+  // Try more direct string comparison to determine DIY items
+  const diyItems = foodItems.filter(item => {
+    // For debugging
+    console.log(`Item ${item.name} - diy_option: ${item.diy_option}, type: ${typeof item.diy_option}`);
+    
+    // Convert to string for safe comparison
+    const diyOption = String(item.diy_option).toLowerCase();
+    
+    // Check if diy_option is truthy (1 or true)
+    return diyOption === "1" || diyOption === "true";
+  });
+  
+  console.log('DIY items found:', diyItems.length);
 
   if (loading) {
     return <div className="text-center py-8">Loading food items...</div>;
@@ -81,10 +118,12 @@ export default function PreGamePage({
                     {foodBankItems.map(item => (
                       <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
                         <div className="w-full aspect-square relative mb-2">
-                          <img 
+                          <Image 
                             src={item.image} 
                             alt={item.name}
-                            className="absolute inset-0 w-full h-full object-contain rounded-lg"
+                            fill
+                            className="object-contain rounded-lg"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
                         </div>
                         <h5 className="font-medium text-blue-800 text-center">{item.name}</h5>
@@ -120,10 +159,12 @@ export default function PreGamePage({
                     {greenBinItems.map(item => (
                       <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
                         <div className="w-full aspect-square relative mb-2">
-                          <img 
+                          <Image 
                             src={item.image} 
                             alt={item.name}
-                            className="absolute inset-0 w-full h-full object-contain rounded-lg"
+                            fill
+                            className="object-contain rounded-lg"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           />
                         </div>
                         <h5 className="font-medium text-green-800 text-center">{item.name}</h5>
@@ -159,13 +200,55 @@ export default function PreGamePage({
                     {trashItems.map(item => (
                       <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
                         <div className="w-full aspect-square relative mb-2">
+                          <Image 
+                            src={item.image} 
+                            alt={item.name}
+                            fill
+                            className="object-contain rounded-lg"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          />
+                        </div>
+                        <h5 className="font-medium text-red-800 text-center">{item.name}</h5>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* DIY Items */}
+          <div className="border rounded-lg overflow-hidden">
+            <div 
+              className="p-4 bg-yellow-50 flex justify-between items-center cursor-pointer"
+              onClick={() => setExpandedDiy(!expandedDiy)}
+            >
+              <div>
+                <h4 className="font-bold text-yellow-800">DIY Items</h4>
+                <p className="text-sm text-yellow-600">Food items that can be repurposed into something new</p>
+              </div>
+              <div className="text-yellow-800">
+                {expandedDiy ? '▲' : '▼'}
+              </div>
+            </div>
+            
+            {expandedDiy && (
+              <div className="p-4 bg-white">
+                {diyItems.length === 0 ? (
+                  <p className="text-center text-gray-500">No DIY items available</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {diyItems.map(item => (
+                      <div key={item.id} className="border rounded-lg p-3 bg-gray-50">
+                        <div className="w-full aspect-square relative mb-2">
                           <img 
                             src={item.image} 
                             alt={item.name}
                             className="absolute inset-0 w-full h-full object-contain rounded-lg"
                           />
+                          <div className="absolute top-1 right-1 w-5 h-5 bg-yellow-400 rounded-full" title="DIY Item"></div>
                         </div>
-                        <h5 className="font-medium text-red-800 text-center">{item.name}</h5>
+                        <h5 className="font-medium text-yellow-800 text-center">{item.name}</h5>
                       </div>
                     ))}
                   </div>

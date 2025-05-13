@@ -22,7 +22,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
         <p className="text-gray-700">
           Sort food items by moving your character and picking up food from the conveyor belt.
           Place each food in the correct destination based on its condition to earn points and prevent food waste.
-          You can also DIY new items from eligible food by pressing E or taking them to the DIY Place.
+          You can also DIY new items from eligible food by taking them to the DIY Place.
         </p>
       </div>
       
@@ -31,8 +31,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
         <h3 className="text-lg font-semibold text-green-700 mb-2">Controls</h3>
         <ul className="text-gray-700">
           <li className="mb-1"><strong>WASD</strong> or <strong>Arrow Keys</strong>: Move your character</li>
-          <li className="mb-1"><strong>Q</strong> or <strong>Space</strong>: Pick up/drop food</li>
-          <li className="mb-1"><strong>E</strong>: DIY with food (if eligible) (5s cooldown)</li>
+          <li className="mb-1"><strong>Q</strong> or <strong>J</strong>: Pick up/drop food</li>
         </ul>
       </div>
       
@@ -47,7 +46,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
             </h4>
             <p className="text-sm text-blue-700">Sealed, non-perishable, safe to donate items</p>
             <p className="text-xs text-blue-600 mt-1">Examples: Canned goods, pasta, rice, unopened cereals</p>
-            <p className="text-xs text-blue-600 mt-1">Place in the blue Food Bank zone (Q)</p>
+            <p className="text-xs text-blue-600 mt-1">Place in the blue Food Bank zone (Q or J)</p>
           </div>
           
           <div className="bg-green-50 p-3 rounded-lg">
@@ -57,7 +56,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
             </h4>
             <p className="text-sm text-green-700">Spoiled food, scraps, and compostable items</p>
             <p className="text-xs text-green-600 mt-1">Examples: Fruit/vegetable scraps, coffee grounds, eggshells</p>
-            <p className="text-xs text-green-600 mt-1">Place in the green Compost zone (Q)</p>
+            <p className="text-xs text-green-600 mt-1">Place in the green Compost zone (Q or J)</p>
           </div>
           
           <div className="bg-red-50 p-3 rounded-lg">
@@ -76,8 +75,8 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
               DIY Items
             </h4>
             <p className="text-sm text-yellow-700">Some food items can be repurposed into something new</p>
-            <p className="text-xs text-yellow-600 mt-1">Look for food items marked as DIY-eligible</p>
-            <p className="text-xs text-yellow-600 mt-1">Press E to DIY or take to DIY Place (5 second cooldown)</p>
+            <p className="text-xs text-yellow-600 mt-1">Look for food items with a yellow circle indicator</p>
+            <p className="text-xs text-yellow-600 mt-1">Take them to the DIY Place zone (Q or J)</p>
           </div>
         </div>
       </div>
@@ -87,7 +86,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
         <h3 className="text-lg font-semibold text-green-700 mb-2">Game Strategy</h3>
         <ul className="text-gray-700 list-disc pl-5">
           <li>Act quickly! Food items move along the conveyor belt and will fall off if not handled</li>
-          <li>Prioritize DIY with eligible items when you can (but watch the 5-second cooldown)</li>
+          <li>Look for food items with a yellow circle - these can be DIYed at the DIY Place</li>
           <li>Sort items correctly between the Food Bank and Green Bin</li>
           <li>Let trash items fall off the conveyor - don&apos;t pick them up!</li>
         </ul>

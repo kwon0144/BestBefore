@@ -37,28 +37,41 @@ export default function RouteResult({
 }: RouteResultProps) {
     const map = useMap();
 
+    // Get the formatted address for the starting point
+    const startAddress = useGeocoding(mapSectionState.selectedStart);
+    // Get the selected food bank details
+    const { foodbank: selectedFoodBank } = useFoodBank(mapSectionState.selectedEnd);
+
     // Handle click to return to information view and reset map
     const handleClick = () => {
         setViewState(prev => ({...prev, showRouteResult: false, showInformation: true}));
         if (map) {
             map.setZoom(12);
-            map.setCenter({lat: -37.8136, lng: 144.9631});
+            
+            // Center on the selected food bank/green waste bin
+            if (selectedFoodBank && selectedFoodBank.latitude && selectedFoodBank.longitude) {
+                map.setCenter({
+                    lat: selectedFoodBank.latitude,
+                    lng: selectedFoodBank.longitude
+                });
+            }
         }
     }
 
     // Handle navigation back to the previous view
     const handleBackToNavigation = () => {
         setViewState(prev => ({...prev, showRouteResult: false, showNavigation: true}));
-        setMapSectionState(prev => ({...prev, selectedStart: null, currentLocationAddress: ""}));
         if (map && mapSectionState.selectedStart) {
             map.setZoom(12);
+            // Center on the selected food bank/green waste bin
+            if (selectedFoodBank && selectedFoodBank.latitude && selectedFoodBank.longitude) {
+                map.setCenter({
+                    lat: selectedFoodBank.latitude,
+                    lng: selectedFoodBank.longitude
+                });
+            }
         }
     }
-
-    // Get the formatted address for the starting point
-    const startAddress = useGeocoding(mapSectionState.selectedStart);
-    // Get the selected food bank details
-    const { foodbank: selectedFoodBank } = useFoodBank(mapSectionState.selectedEnd);
 
     return (
         <div className="flex flex-col md:pl-1 lg:pl-10 w-full">
