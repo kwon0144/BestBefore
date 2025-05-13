@@ -199,7 +199,7 @@ export default function GameArea({
     }, getFoodGenerationInterval(difficulty));
     
     return () => clearInterval(interval);
-  }, [gameId, gameFoodItems, foods.length, difficulty]);
+  }, [gameId, gameFoodItems, foods.length, difficulty, conveyorSegments]);
 
   // Move food on the conveyor belt
   useEffect(() => {

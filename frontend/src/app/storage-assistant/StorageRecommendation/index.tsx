@@ -148,7 +148,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
             expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
           });
         }
-      } catch (error) {
+      } catch {
         // If API call fails, keep the original storage time
         const originalStorageTime = item.name.match(/\((\d+) days\)/)?.[1] || '7';
         newStorageRecs[section][index] = {
@@ -243,8 +243,10 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   const handleAdd = async (section: 'fridge' | 'pantry') => {
     if (!newItem.name) return;
 
+
     let storageTime = 21; // Default storage time
     let actualSection = section; // The section may change based on API recommendation
+
 
     try {
       // First try to get storage advice from API
@@ -346,7 +348,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
       // Reset form state and close the form
       setNewItem({ name: '', quantity: 1 });
       setShowAddForm(null);
-    } catch (error) {
+    } catch {
       // Use default values if API call fails
       const addedItem: Omit<FoodItem, 'id'> = {
         name: newItem.name,
@@ -500,7 +502,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           daysLeft: newStorageTime
         });
       }
-    } catch (error) {
+    } catch {
       // If API call fails, maintain the drag operation with original days
       const newStorageRecs = JSON.parse(JSON.stringify(storageRecs));
       newStorageRecs[sourceSection].splice(sourceIndex, 1);

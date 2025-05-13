@@ -96,6 +96,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
+
    * Finds an existing item with similar name and expiry date
    * @param {string} name - Item name to check
    * @param {string} expiryDate - Expiry date to compare
@@ -122,6 +123,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       }
     }
     
+
     return null;
   };
 
@@ -244,38 +246,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         timeout: 3000
       });
     }
-  };
-
-  /**
-   * Combines quantities when adding to existing items
-   * @param {string} q1 - First quantity
-   * @param {string} q2 - Second quantity
-   * @returns {string} Combined quantity string
-   */
-  const combineQuantities = (q1: string, q2: string): string => {
-    // Special case for items already with combined quantities
-    if (q1.includes('+')) {
-      const parts = q1.split('+').map(p => p.trim());
-      parts.push(q2);
-      return parts.join(' + ');
-    }
-    
-    // Convert to numbers if both quantities are numeric
-    const num1 = parseFloat(q1);
-    const num2 = parseFloat(q2);
-    
-    if (!isNaN(num1) && !isNaN(num2)) {
-      // If both quantities have the same unit (e.g., "g", "kg", "ml", etc.)
-      const unit1 = q1.replace(/[\d.]/g, '').trim();
-      const unit2 = q2.replace(/[\d.]/g, '').trim();
-      
-      if (unit1 === unit2) {
-        return `${(num1 + num2).toString()}${unit1}`;
-      }
-    }
-    
-    // If quantities cannot be combined numerically, concatenate with '+'
-    return `${q1} + ${q2}`;
   };
 
   /**
