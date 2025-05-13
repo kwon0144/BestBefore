@@ -4,6 +4,7 @@
  * with intelligent recommendations for storage locations and expiry dates based on food types.
  */
 import { useState, useEffect } from "react";
+import type { DragEvent } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, ToastProvider, addToast } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
 import useInventoryStore from "@/store/useInventoryStore";
@@ -72,9 +73,18 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
         produce_name: foodName
       });
+
+      if (!response.data) {
+        return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
+      }
+
+      // Get the correct storage time based on the recommended method
+      const storage_time = response.data.method === 1 ? response.data.fridge : response.data.pantry;
       
       return { 
+        
         storage_time: response.data.days,
+
         method: response.data.method
       };
     } catch (error) {
@@ -86,6 +96,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
+
    * Finds an existing item with similar name and expiry date
    * @param {string} name - Item name to check
    * @param {string} expiryDate - Expiry date to compare
@@ -112,6 +123,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       }
     }
     
+
     return null;
   };
 
@@ -136,12 +148,14 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     }
 
     try {
+      const { storage_time, method } = await getStorageTime(formState.name);
+      
       const newItem = {
         ...formState,
         id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
-        location: formState.location || "refrigerator",
-        expiryDate: formState.expiryDate || new Date().toISOString(),
-        daysLeft: 0,
+        location: formState.location || (method === 1 ? "refrigerator" : "pantry"),
+        expiryDate: new Date(Date.now() + storage_time * 24 * 60 * 60 * 1000).toISOString(),
+        daysLeft: storage_time
       };
 
       if (isEditing && itemToEdit) {
@@ -235,38 +249,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
-   * Combines quantities when adding to existing items
-   * @param {string} q1 - First quantity
-   * @param {string} q2 - Second quantity
-   * @returns {string} Combined quantity string
-   */
-  const combineQuantities = (q1: string, q2: string): string => {
-    // Special case for items already with combined quantities
-    if (q1.includes('+')) {
-      const parts = q1.split('+').map(p => p.trim());
-      parts.push(q2);
-      return parts.join(' + ');
-    }
-    
-    // Convert to numbers if both quantities are numeric
-    const num1 = parseFloat(q1);
-    const num2 = parseFloat(q2);
-    
-    if (!isNaN(num1) && !isNaN(num2)) {
-      // If both quantities have the same unit (e.g., "g", "kg", "ml", etc.)
-      const unit1 = q1.replace(/[\d.]/g, '').trim();
-      const unit2 = q2.replace(/[\d.]/g, '').trim();
-      
-      if (unit1 === unit2) {
-        return `${(num1 + num2).toString()}${unit1}`;
-      }
-    }
-    
-    // If quantities cannot be combined numerically, concatenate with '+'
-    return `${q1} + ${q2}`;
-  };
-
-  /**
    * Resets the form to default values
    */
   const resetForm = () => {
@@ -314,6 +296,99 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     // Use the store's clearAll function
     clearAll();
     resetForm();
+  };
+
+  // Update the handleStorageTransfer function to handle undefined daysLeft
+  const handleStorageTransfer = async (item: FoodItem, newLocation: "refrigerator" | "pantry") => {
+    try {
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+        food_type: findClosestFoodType(item.name)
+      });
+
+      if (!response.data) {
+        throw new Error("Failed to get storage advice");
+      }
+
+      // Get the new storage time based on the new location
+      const newStorageTime = newLocation === "refrigerator" ? response.data.fridge : response.data.pantry;
+      
+      // Calculate remaining life percentage
+      const currentDate = new Date();
+      const expiryDate = new Date(item.expiryDate);
+      const currentDaysLeft = item.daysLeft || 0;
+      const totalDays = currentDaysLeft + Math.floor((currentDate.getTime() - expiryDate.getTime()) / (1000 * 60 * 60 * 24));
+      const remainingPercentage = totalDays > 0 ? currentDaysLeft / totalDays : 1;
+      
+      // Calculate new days left based on the percentage of shelf life remaining
+      const newDaysLeft = Math.ceil(newStorageTime * remainingPercentage);
+      
+      // Calculate new expiry date
+      const newExpiryDate = new Date();
+      newExpiryDate.setDate(newExpiryDate.getDate() + newDaysLeft);
+
+      // Update the item
+      const updatedItem = {
+        ...item,
+        location: newLocation,
+        expiryDate: newExpiryDate.toISOString(),
+        daysLeft: newDaysLeft
+      };
+
+      // Update item in store
+      updateItem(item.id, updatedItem);
+
+      addToast({
+        title: "Storage Updated",
+        description: `${item.name} moved to ${newLocation}`,
+        classNames: {
+          base: "bg-background",
+          title: "text-darkgreen font-medium font-semibold",
+          description: "text-darkgreen",
+          icon: "text-darkgreen"
+        },
+        timeout: 3000
+      });
+
+    } catch (error) {
+      console.error("Error transferring storage:", error);
+      addToast({
+        title: "Error",
+        description: "Failed to update storage location. Please try again.",
+        classNames: {
+          base: "bg-red-50",
+          title: "text-amber-700 font-medium font-semibold",
+          description: "text-amber-700",
+          icon: "text-amber-700"
+        },
+        timeout: 3000
+      });
+    }
+  };
+
+  // Update drag event type definitions
+  const handleDragStart = (e: DragEvent<HTMLLIElement>, item: FoodItem) => {
+    e.dataTransfer.setData("itemId", item.id);
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.currentTarget.classList.add("bg-gray-100");
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.currentTarget.classList.remove("bg-gray-100");
+  };
+
+  const handleDrop = async (e: DragEvent<HTMLDivElement>, targetLocation: "refrigerator" | "pantry") => {
+    e.preventDefault();
+    e.currentTarget.classList.remove("bg-gray-100");
+    
+    const itemId = e.dataTransfer.getData("itemId");
+    const item = items.find(i => i.id === itemId);
+    
+    if (item && item.location !== targetLocation) {
+      await handleStorageTransfer(item, targetLocation);
+    }
   };
 
   return (
@@ -404,7 +479,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
           {/* Replace tabs with side-by-side layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Refrigerator Section */}
-            <div className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200">
+            <div 
+              className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200 transition-colors duration-200"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, "refrigerator")}
+            >
               <div className="mb-2 border-b-2 border-blue-500">
                 <h3 className="text-lg font-medium font-semibold text-blue-600">Refrigerator</h3>
               </div>
@@ -417,7 +497,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
                 ) : (
                   <ul className="divide-y divide-gray-200">
                     {getItemsByLocation("refrigerator").map((item) => (
-                      <li key={item.id} className="py-3 flex justify-between items-center">
+                      <li 
+                        key={item.id} 
+                        className="py-3 flex justify-between items-center cursor-move"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, item)}
+                      >
                         <div>
                           <div className="font-medium">
                             {item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()} <span className="text-sm text-gray-500">qty: {item.quantity}</span>
@@ -451,7 +536,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
             </div>
 
             {/* Pantry Section */}
-            <div className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200">
+            <div 
+              className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200 transition-colors duration-200"
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, "pantry")}
+            >
               <div className="mb-4 border-b-2 border-amber-700">
                 <h3 className="text-lg font-medium font-semibold text-amber-700">Pantry</h3>
               </div>
@@ -464,7 +554,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
                 ) : (
                   <ul className="divide-y divide-gray-200">
                     {getItemsByLocation("pantry").map((item) => (
-                      <li key={item.id} className="py-3 flex justify-between items-center">
+                      <li 
+                        key={item.id} 
+                        className="py-3 flex justify-between items-center cursor-move"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, item)}
+                      >
                         <div>
                           <div className="font-medium">
                             {item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()} <span className="text-sm text-gray-500">qty: {item.quantity}</span>

@@ -13,7 +13,7 @@
  */
 
 import React, { useState } from 'react';
-import { StorageRecommendation } from '../interfaces';
+import { StorageRecommendation, StorageAdviceResponse } from '../interfaces';
 import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
@@ -126,7 +126,9 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
           produce_name: editValues.name
         });
+
         const storageTime = response.data.days;
+
         newStorageRecs[section][index] = {
           name: `${editValues.name} (${storageTime} days)`,
           quantity: editValues.quantity
@@ -235,14 +237,16 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   };
 
   /**
-   * Adds a new item to storage recommendations and inventory store
-   * @param {'fridge' | 'pantry'} section - Storage section to add the item to
+   * Handles adding a new item to storage
+   * @param {string} section - The storage section ('fridge' or 'pantry')
    */
   const handleAdd = async (section: 'fridge' | 'pantry') => {
     if (!newItem.name) return;
 
+
     let storageTime = 21; // Default storage time
     let actualSection = section; // The section may change based on API recommendation
+
 
     try {
       // First try to get storage advice from API
@@ -291,12 +295,16 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           // Silently handle other API errors
           console.error("Error getting storage advice:", apiError);
         }
+        
+        // Use storage time based on user's selected location
+        storageTime = section === 'fridge' ? response.data.fridge : response.data.pantry;
       }
 
-      // Add to inventory store with the correct storage time
+      // Add to inventory store with the selected location's storage time
       const addedItem: Omit<FoodItem, 'id'> = {
         name: newItem.name,
         quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
+
         location: (actualSection === 'fridge' ? 'refrigerator' : 'pantry') as 'refrigerator' | 'pantry',
         expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
       };
@@ -376,12 +384,12 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   };
 
   /**
-   * Handles the drop operation for drag and drop functionality
+   * Handles the drop operation when dragging items between storage locations
    * @param {React.DragEvent} e - The drag event
    * @param {'fridge' | 'pantry'} targetSection - Target storage section
    * @param {number} [targetIndex] - Optional target index for insertion
    */
-  const handleDrop = (e: React.DragEvent, targetSection: 'fridge' | 'pantry', targetIndex?: number) => {
+  const handleDrop = async (e: React.DragEvent, targetSection: 'fridge' | 'pantry', targetIndex?: number) => {
     e.preventDefault();
     
     if (!draggedItem) {
@@ -423,28 +431,56 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     // Update the local state first
     onUpdateStorageRecs(newStorageRecs);
 
-    // Update the Zustand store
-    const itemName = movedItem.name?.split(' (')[0] || '';
-    const daysMatch = movedItem.name?.match(/\((\d+) days\)/);
-    const days = daysMatch ? parseInt(daysMatch[1]) : 7;
-    const location = targetSection === 'fridge' ? 'refrigerator' : 'pantry';
-    
-    // Find the item in the inventory store
-    const existingItem = items.find(item => 
-      item.name.toLowerCase() === itemName.toLowerCase() && 
-      item.location === (sourceSection === 'fridge' ? 'refrigerator' : 'pantry')
-    );
 
-    if (existingItem) {
-      // Update the item's location and expiry date
-      updateItem(existingItem.id, {
-        location: location,
-        expiryDate: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+      // Get storage time for the new location
+      const newStorageTime = targetSection === 'fridge' ? response.data.fridge : response.data.pantry;
+
+      // Create a deep copy of the current storage recommendations
+      const newStorageRecs = JSON.parse(JSON.stringify(storageRecs));
+      
+      // Remove the item from source section
+      newStorageRecs[sourceSection].splice(sourceIndex, 1);
+      
+      // Calculate insert index
+      const insertIndex = targetIndex !== undefined ? targetIndex : newStorageRecs[targetSection].length;
+      
+      // Insert the item at the destination with updated storage time
+      newStorageRecs[targetSection].splice(insertIndex, 0, {
+        name: `${itemName} (${newStorageTime} days)`,
+        quantity: movedItem.quantity
       });
+      
+      // Update the local state
+      onUpdateStorageRecs(newStorageRecs);
+
+      // Update the Zustand store
+      const location = targetSection === 'fridge' ? 'refrigerator' : 'pantry';
+      
+      // Find and update the item in the inventory store
+      const existingItem = items.find(item => 
+        item.name.toLowerCase() === itemName.toLowerCase() && 
+        item.location === (sourceSection === 'fridge' ? 'refrigerator' : 'pantry')
+      );
+
+      if (existingItem) {
+        // Update the item's location and expiry date with new storage time
+        updateItem(existingItem.id, {
+          location: location,
+          expiryDate: new Date(Date.now() + newStorageTime * 24 * 60 * 60 * 1000).toISOString(),
+          daysLeft: newStorageTime
+        });
+      }
+    } catch {
+      // If API call fails, maintain the drag operation with original days
+      const newStorageRecs = JSON.parse(JSON.stringify(storageRecs));
+      newStorageRecs[sourceSection].splice(sourceIndex, 1);
+      const insertIndex = targetIndex !== undefined ? targetIndex : newStorageRecs[targetSection].length;
+      newStorageRecs[targetSection].splice(insertIndex, 0, movedItem);
+      onUpdateStorageRecs(newStorageRecs);
+    } finally {
+      // Reset dragged item state
+      setDraggedItem(null);
     }
-    
-    // Reset dragged item
-    setDraggedItem(null);
   };
 
   /**

@@ -30,7 +30,7 @@ type InventoryState = {
   removeItem: (id: string) => void;
   clearAll: () => void;
   // Camera identification function
-  addIdentifiedItem: (itemName: string, quantity?: string, expiryDays?: number) => void;
+  addIdentifiedItem: (itemName: string, quantity?: string, expiryDays?: number, location?: FoodItem['location']) => void;
   // Utility functions
   getItemsByLocation: (location: FoodItem['location']) => FoodItem[];
   calculateDaysLeft: (expiryDate: string) => number;
@@ -49,11 +49,13 @@ const useInventoryStore = create<InventoryState>()((set, get) => ({
    * @param {Omit<FoodItem, 'id'>} item - The food item to add (without ID)
    */
   addItem: (item) => {
+    console.log('Adding new item to inventory:', item);
     const newItem = {
       ...item,
-      id: Date.now().toString(), // Generate a unique ID
+      id: Date.now().toString(),
       daysLeft: get().calculateDaysLeft(item.expiryDate),
     };
+    console.log('Created new item with days left:', newItem);
 
     set((state) => ({
       items: [...state.items, newItem],
@@ -66,13 +68,13 @@ const useInventoryStore = create<InventoryState>()((set, get) => ({
    * @param {Partial<Omit<FoodItem, 'id'>>} updates - The properties to update
    */
   updateItem: (id, updates) => {
+    console.log('Updating item:', id, 'with updates:', updates);
     set((state) => ({
       items: state.items.map((item) =>
         item.id === id
           ? {
             ...item,
             ...updates,
-            // Recalculate days left if expiry date is updated
             daysLeft: updates.expiryDate
               ? get().calculateDaysLeft(updates.expiryDate)
               : item.daysLeft
@@ -111,7 +113,9 @@ const useInventoryStore = create<InventoryState>()((set, get) => ({
     const expiry = new Date(expiryDate);
     const diffTime = expiry.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 0 ? diffDays : 0;
+    const daysLeft = diffDays > 0 ? diffDays : 0;
+    console.log('Calculating days left for date:', expiryDate, '=', daysLeft, 'days');
+    return daysLeft;
   },
 
   /**
@@ -133,14 +137,22 @@ const useInventoryStore = create<InventoryState>()((set, get) => ({
    * @param {string} itemName - Name of the identified food item
    * @param {string} [quantity='1 item'] - Quantity of the item
    * @param {number} [expiryDays=7] - Default days until expiry
+   * @param {FoodItem['location']} [location='refrigerator'] - Storage location
    */
-  addIdentifiedItem: (itemName, quantity = '1 item', expiryDays = 7) => {
-    // Check if item with same name already exists
+  addIdentifiedItem: (itemName, quantity = '1 item', expiryDays = 7, location = 'refrigerator') => {
+    console.log('Adding identified item:', {
+      name: itemName,
+      quantity,
+      expiryDays,
+      location
+    });
+    
     const existingItem = get().items.find(
       (item) => item.name.toLowerCase() === itemName.toLowerCase()
     );
 
     if (existingItem) {
+      console.log('Found existing item:', existingItem);
       // If item exists, update its quantity and expiry date
       const updatedQuantity = existingItem.quantity.includes('g') && quantity.includes('g')
         ? `${parseInt(existingItem.quantity) + parseInt(quantity)}g`
@@ -150,13 +162,14 @@ const useInventoryStore = create<InventoryState>()((set, get) => ({
         quantity: updatedQuantity,
         // Reset expiry date to new value
         expiryDate: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString(),
+        location: location
       });
     } else {
       // If item doesn't exist, add new item
       const newItem: Omit<FoodItem, 'id'> = {
         name: itemName,
         quantity: quantity,
-        location: 'refrigerator', // Default location for camera-identified items
+        location: location,
         expiryDate: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString(),
       };
 

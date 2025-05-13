@@ -3,6 +3,7 @@
  * Renders food items on the conveyor belt
  */
 import React from 'react';
+import Image from 'next/image';
 import { Food as FoodType } from '../../interfaces';
 
 interface FoodProps {
@@ -24,14 +25,19 @@ export default function Food({ foods, foodSize }: FoodProps) {
             left: `${food.x}px`,
             top: `${food.y}px`,
             width: `${foodSize}px`,
-            height: `${foodSize}px`
+            height: `${foodSize}px`,
+            position: 'absolute'
           }}
         >
-          <img
-            src={food.image}
-            alt={food.name}
-            className="w-full h-full object-contain"
-          />
+          <div className="relative w-full h-full">
+            <Image
+              src={food.image}
+              alt={food.name}
+              fill
+              className="object-contain"
+              sizes={`${foodSize}px`}
+            />
+          </div>
         </div>
       ))}
     </>
