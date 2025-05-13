@@ -8,7 +8,7 @@
  * are properly selected.
  */
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Button } from "@heroui/react";
 import { faRoute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -41,6 +41,8 @@ interface SubmitButtonProps {
 export default function SubmitButton({ mapSectionState, setMapSectionState, setViewState, setError }: SubmitButtonProps) {
     // Get food bank data for the selected end point
     const { foodbank } = useFoodBank(mapSectionState.selectedEnd);
+    // Add loading state to prevent multiple submissions and flashing
+    const [isLoading, setIsLoading] = useState(false);
 
     /**
      * Handles the button click event
@@ -50,6 +52,9 @@ export default function SubmitButton({ mapSectionState, setMapSectionState, setV
      * - Shows the route result view
      */
     const handleSubmit = () => {
+        // Prevent multiple rapid clicks
+        if (isLoading) return;
+        
         // Error message if not selected start point or food bank
         if (!mapSectionState.selectedStart || !mapSectionState.selectedEnd) {
             if (!mapSectionState.selectedStart) {
@@ -61,13 +66,38 @@ export default function SubmitButton({ mapSectionState, setMapSectionState, setV
             return;
         }
         setError("");
+        
+        // Set loading state to prevent repeated submissions
+        setIsLoading(true);
 
         if (foodbank) {
             console.log("Selected Food Bank:", foodbank.name);
-            setMapSectionState(prev => ({...prev, routeStart: mapSectionState.selectedStart, routeEnd: { lat: foodbank.latitude, lng: foodbank.longitude }}));
-            setViewState(prev => ({...prev, showNavigation: false, showRouteResult: true}));
+            
+            // Use a short timeout to ensure DOM updates happen in a single batch
+            // This helps prevent the map from flashing
+            setTimeout(() => {
+                // Update both states in a single render cycle
+                setMapSectionState(prev => ({
+                    ...prev, 
+                    routeStart: mapSectionState.selectedStart, 
+                    routeEnd: { 
+                        lat: foodbank.latitude, 
+                        lng: foodbank.longitude 
+                    }
+                }));
+                
+                setViewState(prev => ({
+                    ...prev, 
+                    showNavigation: false, 
+                    showRouteResult: true
+                }));
+                
+                // Reset loading state after state updates
+                setIsLoading(false);
+            }, 50);
         } else {
             console.log("No matching food bank found");
+            setIsLoading(false);
         }
     };
 
@@ -75,6 +105,8 @@ export default function SubmitButton({ mapSectionState, setMapSectionState, setV
         <Button 
             startContent={<FontAwesomeIcon icon={faRoute} />}
             onPress={handleSubmit}
+            isLoading={isLoading}
+            isDisabled={isLoading}
             className="w-full bg-darkgreen hover:bg-darkgreen/50 text-white font-bold py-2 px-4 rounded-lg"
         >
             Get Route
