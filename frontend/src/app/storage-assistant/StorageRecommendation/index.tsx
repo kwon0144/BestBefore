@@ -20,19 +20,7 @@ import axios from 'axios';
 import { config } from '@/config';
 import { addToast } from '@heroui/react';
 import useInventoryStore, { FoodItem } from '@/store/useInventoryStore';
-
-/**
- * Interface representing the response from the storage advice API
- * @interface StorageAdviceResponse
- * @property {number} days - The recommended storage time in days
- * @property {string} method - The storage method (fridge or pantry)
- * @property {string} source - The source of the information (database or claude)
- */
-interface StorageAdviceResponse {
-  days: number;
-  method: string;
-  source?: string;
-}
+import { StorageAdviceResponse } from '../interfaces';
 
 /**
  * Props interface for the StorageRecommendations component
@@ -64,18 +52,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   } | null>(null);
 
   // Get inventory store functions
-  const { items, addItem, updateItem, removeItem, getItemsByLocation } = useInventoryStore();
-
-  // Get items for display
-  const fridgeItems = getItemsByLocation('refrigerator').map(item => ({
-    name: `${item.name} (${item.daysLeft} days)`,
-    quantity: parseInt(item.quantity.split(' ')[0]) || 1
-  }));
-  
-  const pantryItems = getItemsByLocation('pantry').map(item => ({
-    name: `${item.name} (${item.daysLeft} days)`,
-    quantity: parseInt(item.quantity.split(' ')[0]) || 1
-  }));
+  const { items, addItem, updateItem, removeItem } = useInventoryStore();
 
   // Check if both sections are empty
   const noItemsDetected = storageRecs.fridge.length === 0 && storageRecs.pantry.length === 0;
@@ -251,7 +228,6 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   const handleAdd = async (section: 'fridge' | 'pantry') => {
     if (!newItem.name) return;
 
-    const location = section === 'fridge' ? 'refrigerator' : 'pantry';
     let storageTime = 21; // Default storage time
     let actualSection = section; // The section may change based on API recommendation
 
