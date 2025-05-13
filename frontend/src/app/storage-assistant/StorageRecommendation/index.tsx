@@ -20,19 +20,7 @@ import axios from 'axios';
 import { config } from '@/config';
 import { addToast } from '@heroui/react';
 import useInventoryStore, { FoodItem } from '@/store/useInventoryStore';
-
-/**
- * Interface representing the response from the storage advice API
- * @interface StorageAdviceResponse
- * @property {number} days - The recommended storage time in days
- * @property {string} method - The storage method (fridge or pantry)
- * @property {string} source - The source of the information (database or claude)
- */
-interface StorageAdviceResponse {
-  days: number;
-  method: string;
-  source?: string;
-}
+import { StorageAdviceResponse } from '../interfaces';
 
 /**
  * Props interface for the StorageRecommendations component

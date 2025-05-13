@@ -4,7 +4,7 @@
  * with intelligent recommendations for storage locations and expiry dates based on food types.
  */
 import { useState } from "react";
-import type { DragEvent } from "react";
+
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, ToastProvider, addToast } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
 import useInventoryStore from "@/store/useInventoryStore";
@@ -29,8 +29,7 @@ type StorageAdviceResponse = {
   days: number;
   method: string; // 'fridge' or 'pantry'
   source?: string;
-  fridge?: number;
-  pantry?: number;
+
 };
 
 /**
