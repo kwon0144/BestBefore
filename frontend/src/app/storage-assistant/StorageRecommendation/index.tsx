@@ -334,39 +334,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         },
         timeout: 3000
       });
-    }
-
-
-      // Update the storage recommendations display
-      const newStorageRecs = { ...storageRecs };
-      newStorageRecs[section].push({
-        name: `${newItem.name} (${storageTime} days)`,
-        quantity: newItem.quantity
-      });
-      onUpdateStorageRecs(newStorageRecs);
-
-      // Reset form state and close the form
-      setNewItem({ name: '', quantity: 1 });
-      setShowAddForm(null);
-    } catch {
-      // Use default values if API call fails
-      const addedItem: Omit<FoodItem, 'id'> = {
-        name: newItem.name,
-        quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
-        location: location,
-        expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString(),
-        daysLeft: storageTime
-      };
-      addItem(addedItem);
-
-      // Update the storage recommendations display
-      const newStorageRecs = { ...storageRecs };
-      newStorageRecs[section].push({
-        name: `${newItem.name} (${storageTime} days)`,
-        quantity: newItem.quantity
-      });
-      onUpdateStorageRecs(newStorageRecs);
-
+    } finally {
       // Reset form state and close the form
       setNewItem({ name: '', quantity: 1 });
       setShowAddForm(null);
