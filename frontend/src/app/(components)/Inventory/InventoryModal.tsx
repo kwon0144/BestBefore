@@ -3,7 +3,7 @@
  * It allows users to add, edit, and remove food items from their refrigerator and pantry,
  * with intelligent recommendations for storage locations and expiry dates based on food types.
  */
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { DragEvent } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, ToastProvider, addToast } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
@@ -29,6 +29,8 @@ type StorageAdviceResponse = {
   days: number;
   method: string; // 'fridge' or 'pantry'
   source?: string;
+  fridge?: number;
+  pantry?: number;
 };
 
 /**
@@ -53,15 +55,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   });
 
   /**
-   * Fetches food types from the API when the component mounts
-   */
-  useEffect(() => {
-    if (isOpen) {
-      // Removed fetchFoodTypes call as it's no longer needed
-    }
-  }, [isOpen]);
-
-  /**
    * Gets recommended storage time and method for a food item
    * @param {string} foodName - Food name to get storage advice for
    * @returns {Promise<{storage_time: number; method: string}>} Storage time and method recommendation
@@ -75,16 +68,11 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       });
 
       if (!response.data) {
-        return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
+        return { storage_time: 7, method: 'fridge' }; // Default to 7 days in refrigerator
       }
-
-      // Get the correct storage time based on the recommended method
-      const storage_time = response.data.method === 1 ? response.data.fridge : response.data.pantry;
       
       return { 
-        
         storage_time: response.data.days,
-
         method: response.data.method
       };
     } catch (error) {
@@ -96,7 +84,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
-
    * Finds an existing item with similar name and expiry date
    * @param {string} name - Item name to check
    * @param {string} expiryDate - Expiry date to compare
@@ -153,7 +140,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       const newItem = {
         ...formState,
         id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
-        location: formState.location || (method === 1 ? "refrigerator" : "pantry"),
+        location: formState.location || (method === 'fridge' ? "refrigerator" : "pantry"),
         expiryDate: new Date(Date.now() + storage_time * 24 * 60 * 60 * 1000).toISOString(),
         daysLeft: storage_time
       };
@@ -249,6 +236,30 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
+   * Combines two quantity strings into one
+   * @param {string} q1 - First quantity string
+   * @param {string} q2 - Second quantity string
+   * @returns {string} Combined quantity string
+   */
+  const combineQuantities = (q1: string, q2: string): string => {
+    // Extract numeric values from the strings
+    const num1 = parseFloat(q1.split(' ')[0]) || 0;
+    const num2 = parseFloat(q2.split(' ')[0]) || 0;
+    
+    // Extract unit if present
+    const unit1 = q1.split(' ').slice(1).join(' ');
+    const unit2 = q2.split(' ').slice(1).join(' ');
+    
+    // Use the first unit if available, otherwise use the second unit
+    const unit = unit1 || unit2 || 'items';
+    
+    // Sum the numeric values
+    const total = num1 + num2;
+    
+    return `${total} ${unit}`;
+  };
+
+  /**
    * Resets the form to default values
    */
   const resetForm = () => {
@@ -301,8 +312,8 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   // Update the handleStorageTransfer function to handle undefined daysLeft
   const handleStorageTransfer = async (item: FoodItem, newLocation: "refrigerator" | "pantry") => {
     try {
-      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-        food_type: findClosestFoodType(item.name)
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
+        produce_name: item.name
       });
 
       if (!response.data) {
@@ -310,7 +321,11 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       }
 
       // Get the new storage time based on the new location
-      const newStorageTime = newLocation === "refrigerator" ? response.data.fridge : response.data.pantry;
+      const newStorageTime = (newLocation === "refrigerator" && response.data.fridge) 
+        ? response.data.fridge 
+        : (newLocation === "pantry" && response.data.pantry)
+          ? response.data.pantry
+          : response.data.days || 7; // Fallback to days or default 7
       
       // Calculate remaining life percentage
       const currentDate = new Date();
