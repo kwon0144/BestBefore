@@ -32,6 +32,14 @@ type StorageAdviceResponse = {
 };
 
 /**
+ * Type for food types API response
+ * @interface
+ */
+type FoodTypesResponse = {
+  food_types: string[];
+};
+
+/**
  * Modal component for managing food inventory
  * Provides UI for adding, editing, and removing food items with expiry date tracking
  * @param {InventoryModalProps} props - Component props
@@ -42,6 +50,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   const [isEditing, setIsEditing] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<FoodItem | null>(null);
   const [isFetchingRecommendation, setIsFetchingRecommendation] = useState(false);
+  const [foodTypeOptions, setFoodTypeOptions] = useState<string[]>([]);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   // Form state
@@ -57,9 +66,33 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
    */
   useEffect(() => {
     if (isOpen) {
-      // Removed fetchFoodTypes call as it's no longer needed
+      fetchFoodTypes();
     }
   }, [isOpen]);
+
+  /**
+   * Fetches all available food types from the API
+   */
+  const fetchFoodTypes = async () => {
+    try {
+      const response = await axios.get<FoodTypesResponse>(`${config.apiUrl}/api/food-types/`);
+      if (response.data && response.data.food_types) {
+        setFoodTypeOptions(response.data.food_types);
+      }
+    } catch {
+      addToast({
+        title: "Error",
+        description: "Failed to load food types from the database.",
+        classNames: {
+          base: "bg-red-50",
+          title: "text-amber-700 font-medium font-semibold",
+          description: "text-amber-700",
+          icon: "text-amber-700"
+        },
+        timeout: 3000
+      });
+    }
+  };
 
   /**
    * Gets recommended storage time and method for a food item
