@@ -3,7 +3,8 @@
  * It allows users to add, edit, and remove food items from their refrigerator and pantry,
  * with intelligent recommendations for storage locations and expiry dates based on food types.
  */
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, ToastProvider, addToast } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
 import useInventoryStore from "@/store/useInventoryStore";
@@ -22,21 +23,14 @@ type InventoryModalProps = {
 };
 
 /**
- * Type for storage recommendation from the API
- * @interface
+ * Type definition for storage advice API response
  */
 type StorageAdviceResponse = {
-  type: string;
-  storage_time: number;
-  method: number; // 1 for refrigerator, 0 for pantry
-};
 
-/**
- * Type for food types API response
- * @interface
- */
-type FoodTypesResponse = {
-  food_types: string[];
+  days: number;
+  method: string; // 'fridge' or 'pantry'
+  source?: string;
+
 };
 
 /**
@@ -50,7 +44,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   const [isEditing, setIsEditing] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<FoodItem | null>(null);
   const [isFetchingRecommendation, setIsFetchingRecommendation] = useState(false);
-  const [foodTypeOptions, setFoodTypeOptions] = useState<string[]>([]);
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 
   // Form state
@@ -62,97 +55,64 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   });
 
   /**
-   * Fetches food types from the API when the component mounts
+   * Gets recommended storage time and method for a food item
+   * @param {string} foodName - Food name to get storage advice for
+   * @returns {Promise<{storage_time: number; method: string}>} Storage time and method recommendation
    */
-  useEffect(() => {
-    if (isOpen) {
-      fetchFoodTypes();
-    }
-  }, [isOpen]);
-
-  /**
-   * Fetches all available food types from the API
-   */
-  const fetchFoodTypes = async () => {
-    try {
-      const response = await axios.get<FoodTypesResponse>(`${config.apiUrl}/api/food-types/`);
-      if (response.data && response.data.food_types) {
-        setFoodTypeOptions(response.data.food_types);
-      }
-    } catch {
-      addToast({
-        title: "Error",
-        description: "Failed to load food types from the database.",
-        classNames: {
-          base: "bg-red-50",
-          title: "text-amber-700 font-medium font-semibold",
-          description: "text-amber-700",
-          icon: "text-amber-700"
-        },
-        timeout: 3000
-      });
-    }
-  };
-
-  /**
-   * Gets storage time recommendation for a food type from the API
-   * @param {string} foodName - Name of the food to get storage advice for
-   * @returns {Promise<{storage_time: number; method: number}>} Storage time and method recommendation
-   */
-  const getStorageTime = async (foodName: string): Promise<{storage_time: number; method: number}> => {
+  const getStorageTime = async (foodName: string): Promise<{storage_time: number; method: string}> => {
     try {
       setIsFetchingRecommendation(true);
       
-      // Find the closest match in the food types
-      const matchedType = findClosestFoodType(foodName);
-      
-      if (!matchedType) {
-        return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
+        produce_name: foodName
+      });
+
+
+      if (!response.data) {
+        return { storage_time: 7, method: 'fridge' }; // Default to 7 days in refrigerator
       }
       
-      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-        food_type: matchedType
-      });
-      
       return { 
-        storage_time: response.data.storage_time,
+        storage_time: response.data.days,
+
         method: response.data.method
       };
     } catch (error) {
       console.error(`Error getting storage time for ${foodName}:`, error);
-      return { storage_time: 7, method: 1 }; // Default to 7 days in refrigerator
+      return { storage_time: 7, method: 'fridge' }; // Default to 7 days in refrigerator
     } finally {
       setIsFetchingRecommendation(false);
     }
   };
 
   /**
-   * Finds closest matching food type from available options
-   * @param {string} inputName - Food name to match
-   * @returns {string | null} Matched food type or null if no match found
+   * Finds an existing item with similar name and expiry date
+   * @param {string} name - Item name to check
+   * @param {string} expiryDate - Expiry date to compare
+   * @returns {FoodItem | null} Matching item or null if no match found
    */
-  const findClosestFoodType = (inputName: string): string | null => {
-    if (foodTypeOptions.length === 0) return null;
-    
-    // Try exact match first (case insensitive)
-    const exactMatch = foodTypeOptions.find(
-      type => type.toLowerCase() === inputName.toLowerCase()
+  const findMatchingItem = (name: string, expiryDate: string): FoodItem | null => {
+    // Case insensitive name match
+    const matchingItems = items.filter(item => 
+      item.name.toLowerCase() === name.toLowerCase()
     );
     
-    if (exactMatch) return exactMatch;
+    if (matchingItems.length === 0) return null;
     
-    // Try substring match
-    const substringMatches = foodTypeOptions.filter(
-      type => type.toLowerCase().includes(inputName.toLowerCase()) || 
-              inputName.toLowerCase().includes(type.toLowerCase())
-    );
+    // Check for similar expiry dates (within 2 days)
+    const newExpiryDate = new Date(expiryDate);
     
-    if (substringMatches.length > 0) {
-      // Return the shortest matching string as it's likely more specific
-      return substringMatches.sort((a, b) => a.length - b.length)[0];
+    for (const item of matchingItems) {
+      const existingExpiryDate = new Date(item.expiryDate);
+      const diffDays = Math.abs((newExpiryDate.getTime() - existingExpiryDate.getTime()) / (1000 * 3600 * 24));
+      
+      // If expiry dates are within 2 days, return this item
+      if (diffDays <= 2) {
+        return item;
+      }
     }
     
-    // No match found
+
     return null;
   };
 
@@ -210,9 +170,10 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
       const newItem = {
         ...formState,
         id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
-        location: formState.location || "refrigerator",
-        expiryDate: formState.expiryDate || new Date().toISOString(),
-        daysLeft: 0,
+
+        location: formState.location || (method === 'fridge' ? "refrigerator" : "pantry"),
+        expiryDate: new Date(Date.now() + storage_time * 24 * 60 * 60 * 1000).toISOString(),
+        daysLeft: storage_time
       };
 
       if (isEditing && itemToEdit) {
@@ -233,7 +194,8 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         const { storage_time, method } = await getStorageTime(newItem.name);
         
         // Use the recommended storage location and expiry date
-        const storageMethod = method === 1 ? "refrigerator" : "pantry";
+
+        const storageMethod = method === 'fridge' ? "refrigerator" : "pantry";
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + storage_time);
         const expiryDateString = expiryDate.toISOString();
@@ -306,35 +268,28 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
-   * Combines quantities when adding to existing items
-   * @param {string} q1 - First quantity
-   * @param {string} q2 - Second quantity
+
+   * Combines two quantity strings into one
+   * @param {string} q1 - First quantity string
+   * @param {string} q2 - Second quantity string
    * @returns {string} Combined quantity string
    */
   const combineQuantities = (q1: string, q2: string): string => {
-    // Special case for items already with combined quantities
-    if (q1.includes('+')) {
-      const parts = q1.split('+').map(p => p.trim());
-      parts.push(q2);
-      return parts.join(' + ');
-    }
+    // Extract numeric values from the strings
+    const num1 = parseFloat(q1.split(' ')[0]) || 0;
+    const num2 = parseFloat(q2.split(' ')[0]) || 0;
     
-    // Convert to numbers if both quantities are numeric
-    const num1 = parseFloat(q1);
-    const num2 = parseFloat(q2);
+    // Extract unit if present
+    const unit1 = q1.split(' ').slice(1).join(' ');
+    const unit2 = q2.split(' ').slice(1).join(' ');
     
-    if (!isNaN(num1) && !isNaN(num2)) {
-      // If both quantities have the same unit (e.g., "g", "kg", "ml", etc.)
-      const unit1 = q1.replace(/[\d.]/g, '').trim();
-      const unit2 = q2.replace(/[\d.]/g, '').trim();
-      
-      if (unit1 === unit2) {
-        return `${(num1 + num2).toString()}${unit1}`;
-      }
-    }
+    // Use the first unit if available, otherwise use the second unit
+    const unit = unit1 || unit2 || 'items';
     
-    // If quantities cannot be combined numerically, concatenate with '+'
-    return `${q1} + ${q2}`;
+    // Sum the numeric values
+    const total = num1 + num2;
+    
+    return `${total} ${unit}`;
   };
 
   /**
@@ -385,6 +340,104 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     // Use the store's clearAll function
     clearAll();
     resetForm();
+  };
+
+
+  // Update the handleStorageTransfer function to handle undefined daysLeft
+  const handleStorageTransfer = async (item: FoodItem, newLocation: "refrigerator" | "pantry") => {
+    try {
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
+        produce_name: item.name
+      });
+
+      if (!response.data) {
+        throw new Error("Failed to get storage advice");
+      }
+
+      // Get the new storage time based on the new location
+      const newStorageTime = (newLocation === "refrigerator" && response.data.fridge) 
+        ? response.data.fridge 
+        : (newLocation === "pantry" && response.data.pantry)
+          ? response.data.pantry
+          : response.data.days || 7; // Fallback to days or default 7
+      
+      // Calculate remaining life percentage
+      const currentDate = new Date();
+      const expiryDate = new Date(item.expiryDate);
+      const currentDaysLeft = item.daysLeft || 0;
+      const totalDays = currentDaysLeft + Math.floor((currentDate.getTime() - expiryDate.getTime()) / (1000 * 60 * 60 * 24));
+      const remainingPercentage = totalDays > 0 ? currentDaysLeft / totalDays : 1;
+      
+      // Calculate new days left based on the percentage of shelf life remaining
+      const newDaysLeft = Math.ceil(newStorageTime * remainingPercentage);
+      
+      // Calculate new expiry date
+      const newExpiryDate = new Date();
+      newExpiryDate.setDate(newExpiryDate.getDate() + newDaysLeft);
+
+      // Update the item
+      const updatedItem = {
+        ...item,
+        location: newLocation,
+        expiryDate: newExpiryDate.toISOString(),
+        daysLeft: newDaysLeft
+      };
+
+      // Update item in store
+      updateItem(item.id, updatedItem);
+
+      addToast({
+        title: "Storage Updated",
+        description: `${item.name} moved to ${newLocation}`,
+        classNames: {
+          base: "bg-background",
+          title: "text-darkgreen font-medium font-semibold",
+          description: "text-darkgreen",
+          icon: "text-darkgreen"
+        },
+        timeout: 3000
+      });
+
+    } catch (error) {
+      console.error("Error transferring storage:", error);
+      addToast({
+        title: "Error",
+        description: "Failed to update storage location. Please try again.",
+        classNames: {
+          base: "bg-red-50",
+          title: "text-amber-700 font-medium font-semibold",
+          description: "text-amber-700",
+          icon: "text-amber-700"
+        },
+        timeout: 3000
+      });
+    }
+  };
+
+  // Update drag event type definitions
+  const handleDragStart = (e: DragEvent<HTMLLIElement>, item: FoodItem) => {
+    e.dataTransfer.setData("itemId", item.id);
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.currentTarget.classList.add("bg-gray-100");
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.currentTarget.classList.remove("bg-gray-100");
+  };
+
+  const handleDrop = async (e: DragEvent<HTMLDivElement>, targetLocation: "refrigerator" | "pantry") => {
+    e.preventDefault();
+    e.currentTarget.classList.remove("bg-gray-100");
+    
+    const itemId = e.dataTransfer.getData("itemId");
+    const item = items.find(i => i.id === itemId);
+    
+    if (item && item.location !== targetLocation) {
+      await handleStorageTransfer(item, targetLocation);
+    }
   };
 
   return (

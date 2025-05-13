@@ -80,14 +80,24 @@ export default function Markers({ points, setMapSectionState, mapSectionState }:
     /**
      * Handles marker click events
      * Updates the selected end point in the map section state
+     * Centers and zooms the map on the clicked marker
      * 
      * @param {Point} point - The clicked point
      */
     const handleMarkerClick = (point: Point) => {
+        // Update the selected end point
         setMapSectionState({
             ...mapSectionState,
             selectedEnd: point.key,
-        });  
+        });
+        
+        // Center and zoom the map on the clicked marker
+        if (map) {
+            // Smooth pan to the marker position
+            map.panTo({ lat: point.lat, lng: point.lng });
+            // Zoom in to a closer level
+            map.setZoom(16);
+        }
     };
 
     return (

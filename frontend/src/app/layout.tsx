@@ -17,7 +17,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "BestBefore",
-  description: "Together for a zero-waste kitchen — save food, money, and our planet",
+  description: "Together for a zero-waste kitchen - save food, money, and our planet",
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+  }
 };
 
 const poppins = Poppins({
@@ -33,20 +37,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link
-          rel="icon"
-          href="/icon?<generated>"
-          type="image/<generated>"
-          sizes="<generated>"
-        />
-        <link
-          rel="apple-touch-icon"
-          href="/apple-icon?<generated>"
-          type="image/<generated>"
-          sizes="<generated>"
-        />
-      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable}`}>
         <Providers>
           <LayoutWrapper>
