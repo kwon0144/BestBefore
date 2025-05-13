@@ -27,7 +27,8 @@ export default function Food({ foods, foodSize }: FoodProps) {
             top: food.y,
             cursor: 'pointer',
             width: `${foodSize}px`,
-            height: `${foodSize}px`
+            height: `${foodSize}px`,
+            position: 'absolute'
           }}
         >
           <Image
@@ -37,6 +38,7 @@ export default function Food({ foods, foodSize }: FoodProps) {
             height={50}
             style={{ objectFit: 'contain' }}
           />
+
         </div>
       ))}
     </>

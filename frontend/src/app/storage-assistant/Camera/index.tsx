@@ -242,6 +242,7 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
                   <span className="absolute bottom-0 right-0 bg-black/70 text-white text-xs py-1 px-2 rounded-tl-md">
                     {index + 1}
                   </span>
+
                 </div>
               ))}
             </div>
