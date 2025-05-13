@@ -5,6 +5,7 @@
  */
 
 import { useState } from "react";
+import type { DragEvent as ReactDragEvent } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, ToastProvider, addToast } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
 import useInventoryStore from "@/store/useInventoryStore";
@@ -26,11 +27,11 @@ type InventoryModalProps = {
  * Type definition for storage advice API response
  */
 type StorageAdviceResponse = {
-
   days: number;
   method: string; // 'fridge' or 'pantry'
   source?: string;
-
+  fridge?: number;
+  pantry?: number;
 };
 
 /**
@@ -67,14 +68,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         produce_name: foodName
       });
 
-
       if (!response.data) {
         return { storage_time: 7, method: 'fridge' }; // Default to 7 days in refrigerator
       }
       
       return { 
         storage_time: response.data.days,
-
         method: response.data.method
       };
     } catch (error) {
@@ -83,37 +82,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     } finally {
       setIsFetchingRecommendation(false);
     }
-  };
-
-  /**
-   * Finds an existing item with similar name and expiry date
-   * @param {string} name - Item name to check
-   * @param {string} expiryDate - Expiry date to compare
-   * @returns {FoodItem | null} Matching item or null if no match found
-   */
-  const findMatchingItem = (name: string, expiryDate: string): FoodItem | null => {
-    // Case insensitive name match
-    const matchingItems = items.filter(item => 
-      item.name.toLowerCase() === name.toLowerCase()
-    );
-    
-    if (matchingItems.length === 0) return null;
-    
-    // Check for similar expiry dates (within 2 days)
-    const newExpiryDate = new Date(expiryDate);
-    
-    for (const item of matchingItems) {
-      const existingExpiryDate = new Date(item.expiryDate);
-      const diffDays = Math.abs((newExpiryDate.getTime() - existingExpiryDate.getTime()) / (1000 * 3600 * 24));
-      
-      // If expiry dates are within 2 days, return this item
-      if (diffDays <= 2) {
-        return item;
-      }
-    }
-    
-
-    return null;
   };
 
   /**
@@ -167,10 +135,12 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     }
 
     try {
+      // For new items, get storage time using the simplified approach
+      const { storage_time, method } = await getStorageTime(formState.name);
+      
       const newItem = {
         ...formState,
         id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
-
         location: formState.location || (method === 'fridge' ? "refrigerator" : "pantry"),
         expiryDate: new Date(Date.now() + storage_time * 24 * 60 * 60 * 1000).toISOString(),
         daysLeft: storage_time
@@ -190,11 +160,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
           timeout: 3000
         });
       } else {
-        // For new items, get storage time using the simplified approach
-        const { storage_time, method } = await getStorageTime(newItem.name);
-        
         // Use the recommended storage location and expiry date
-
         const storageMethod = method === 'fridge' ? "refrigerator" : "pantry";
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + storage_time);
@@ -268,7 +234,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
-
    * Combines two quantity strings into one
    * @param {string} q1 - First quantity string
    * @param {string} q2 - Second quantity string
@@ -342,7 +307,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     resetForm();
   };
 
-
   // Update the handleStorageTransfer function to handle undefined daysLeft
   const handleStorageTransfer = async (item: FoodItem, newLocation: "refrigerator" | "pantry") => {
     try {
@@ -415,20 +379,20 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   // Update drag event type definitions
-  const handleDragStart = (e: DragEvent<HTMLLIElement>, item: FoodItem) => {
+  const handleDragStart = (e: ReactDragEvent<HTMLLIElement>, item: FoodItem) => {
     e.dataTransfer.setData("itemId", item.id);
   };
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: ReactDragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.currentTarget.classList.add("bg-gray-100");
   };
 
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = (e: ReactDragEvent<HTMLDivElement>) => {
     e.currentTarget.classList.remove("bg-gray-100");
   };
 
-  const handleDrop = async (e: DragEvent<HTMLDivElement>, targetLocation: "refrigerator" | "pantry") => {
+  const handleDrop = async (e: ReactDragEvent<HTMLDivElement>, targetLocation: "refrigerator" | "pantry") => {
     e.preventDefault();
     e.currentTarget.classList.remove("bg-gray-100");
     
