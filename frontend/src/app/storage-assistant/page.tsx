@@ -27,7 +27,6 @@ import {
   ProduceDetections, 
   StorageRecommendation, 
   CalendarSelection,
-  FoodTypesResponse,
   StorageAdviceResponse,
   CalendarResponse
 } from './interfaces';
