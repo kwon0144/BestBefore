@@ -57,7 +57,7 @@ export default function LocationInput({ mapSectionState, setMapSectionState }: L
         if (mapSectionState.currentLocationAddress) {
             setValue(mapSectionState.currentLocationAddress, false);
         }
-    }, []);
+    }, [mapSectionState.currentLocationAddress, setValue]);
 
     // Update input value when currentLocationAddress changes in the state
     useEffect(() => {

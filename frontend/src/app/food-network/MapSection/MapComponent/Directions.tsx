@@ -118,7 +118,17 @@ export default function Directions({ mapSectionState, setMapSectionState }: Dire
         return () => {
             clearTimeout(timeoutId);
         };
-    }, [directionsService, directionsRenderer, map, mapSectionState.routeStart, mapSectionState.routeEnd, mapSectionState.travellingMode]);
+    }, [
+        directionsService, 
+        directionsRenderer, 
+        map, 
+        mapSectionState.routeStart, 
+        mapSectionState.routeEnd, 
+        mapSectionState.travellingMode,
+        mapSectionState.routeDetails.distance,
+        mapSectionState.routeDetails.duration,
+        setMapSectionState
+    ]);
 
     return null;
 }
