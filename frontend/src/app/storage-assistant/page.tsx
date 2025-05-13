@@ -179,6 +179,7 @@ const FoodStorageAssistant: React.FC = () => {
             storageTime                               // Expiry days
           );
 
+
           if (recommendation.method === 'fridge') {
             fridgeItems.push({
               name: `${item} (${storageTime} days)`,
@@ -200,12 +201,10 @@ const FoodStorageAssistant: React.FC = () => {
           const defaultStorageTime = isRefrigeratedItem ? 7 : 14;
           
           // Add to inventory even if there's an error
-          const location = isRefrigeratedItem ? 'refrigerator' : 'pantry';
           addIdentifiedItem(
             item,
             `${quantity} item${quantity > 1 ? 's' : ''}`,
-            defaultStorageTime,
-            location
+            defaultStorageTime
           );
           
           if (isRefrigeratedItem) {

@@ -3,8 +3,6 @@
  * Initial game screen that shows game information and difficulty selection
  */
 import React, { useState } from 'react';
-import Image from 'next/image';
-import { Button } from "@heroui/react";
 import { FoodItem, Difficulty } from '../../interfaces';
 import Image from 'next/image';
 
@@ -125,7 +123,6 @@ export default function PreGamePage({
                             className="absolute inset-0 w-full h-full object-contain rounded-lg"
                             width={200}
                             height={200}
-
                           />
                         </div>
                         <h5 className="font-medium text-blue-800 text-center">{item.name}</h5>
@@ -167,7 +164,6 @@ export default function PreGamePage({
                             className="absolute inset-0 w-full h-full object-contain rounded-lg"
                             width={200}
                             height={200}
-
                           />
                         </div>
                         <h5 className="font-medium text-green-800 text-center">{item.name}</h5>
@@ -209,7 +205,6 @@ export default function PreGamePage({
                             className="absolute inset-0 w-full h-full object-contain rounded-lg"
                             width={200}
                             height={200}
-
                           />
                         </div>
                         <h5 className="font-medium text-red-800 text-center">{item.name}</h5>
@@ -266,49 +261,51 @@ export default function PreGamePage({
       </div>
 
       {/* Difficulty Selection */}
-      <div className="mb-8">
+      <div className="mt-8">
         <h3 className="text-xl font-semibold text-green-700 mb-4">Select Difficulty:</h3>
-        <div className="flex gap-4 justify-center">
-          <Button
-            onPress={() => setDifficulty('easy')}
-            className={`py-2 px-6 rounded-lg ${
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <button
+            onClick={() => setDifficulty('easy')}
+            className={`p-4 rounded-lg shadow transition-all ${
               difficulty === 'easy'
-                ? 'bg-orange-500 text-white'
-                : 'bg-gray-100 text-green-600 hover:bg-gray-200'
+                ? 'bg-green-500 text-white'
+                : 'bg-white text-green-700 hover:bg-green-100'
             }`}
           >
             Easy
-          </Button>
-          <Button
-            onPress={() => setDifficulty('normal')}
-            className={`py-2 px-6 rounded-lg ${
+          </button>
+          <button
+            onClick={() => setDifficulty('normal')}
+            className={`p-4 rounded-lg shadow transition-all ${
               difficulty === 'normal'
-                ? 'bg-orange-500 text-white'
-                : 'bg-gray-100 text-green-600 hover:bg-gray-200'
+                ? 'bg-yellow-500 text-white'
+                : 'bg-white text-yellow-700 hover:bg-yellow-100'
             }`}
           >
             Normal
-          </Button>
-          <Button
-            onPress={() => setDifficulty('hard')}
-            className={`py-2 px-6 rounded-lg ${
+          </button>
+          <button
+            onClick={() => setDifficulty('hard')}
+            className={`p-4 rounded-lg shadow transition-all ${
               difficulty === 'hard'
-                ? 'bg-orange-500 text-white'
-                : 'bg-gray-100 text-green-600 hover:bg-gray-200'
+                ? 'bg-red-500 text-white'
+                : 'bg-white text-red-700 hover:bg-red-100'
             }`}
           >
             Hard
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* Start Game Button */}
-      <Button
-        onPress={handleStartGame}
-        className="w-full bg-black hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
-      >
-        Start Game
-      </Button>
+      <div className="mt-8 text-center">
+        <button
+          onClick={handleStartGame}
+          className="bg-green-500 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-green-600 transition-colors"
+        >
+          Start Game
+        </button>
+      </div>
     </div>
   );
 } 

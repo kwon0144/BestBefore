@@ -23,6 +23,19 @@ import useInventoryStore, { FoodItem } from '@/store/useInventoryStore';
 import { StorageAdviceResponse } from '../interfaces';
 
 /**
+ * Interface representing the response from the storage advice API
+ * @interface StorageAdviceResponse
+ * @property {string} type - The type of food item
+ * @property {number} storage_time - The recommended storage time in days
+ * @property {number} method - The storage method code
+ */
+interface StorageAdviceResponse {
+  type: string;
+  storage_time: number;
+  method: number;
+}
+
+/**
  * Props interface for the StorageRecommendations component
  * @interface StorageRecommendationsProps
  * @property {StorageRecommendation} storageRecs - Current storage recommendations
@@ -113,6 +126,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
           produce_name: editValues.name
         });
+
         const storageTime = response.data.days;
         newStorageRecs[section][index] = {
           name: `${editValues.name} (${storageTime} days)`,
@@ -228,27 +242,34 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   const handleAdd = async (section: 'fridge' | 'pantry') => {
     if (!newItem.name) return;
 
+
     let storageTime = 21; // Default storage time
     let actualSection = section; // The section may change based on API recommendation
+
 
     try {
       // First try to get storage advice from API
       try {
         const response = await axios.post<StorageAdviceResponse>(
+
           `${config.apiUrl}/api/storage_assistant/`,
           {
             produce_name: newItem.name
+
           },
           {
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json'
             },
+
             timeout: 3000 // 3 second timeout
+
           }
         );
 
         if (response.data) {
+
           storageTime = response.data.days;
           
           // If section doesn't match the recommendation, override the section
@@ -270,20 +291,24 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
               timeout: 3000
             });
           }
+
         }
       } catch (apiError: unknown) {
         if (apiError && typeof apiError === 'object' && 'code' in apiError && apiError.code === 'ECONNABORTED') {
           // Silently handle timeout errors
         } else {
           // Silently handle other API errors
+
           console.error("Error getting storage advice:", apiError);
         }
       }
     
+
       // Add to inventory store with the correct storage time
       const addedItem: Omit<FoodItem, 'id'> = {
         name: newItem.name,
         quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
+
         location: (actualSection === 'fridge' ? 'refrigerator' : 'pantry') as 'refrigerator' | 'pantry',
         expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
       };
@@ -313,6 +338,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         },
         timeout: 3000
       });
+
     }
 
     // Reset form state and close the form
@@ -378,19 +404,21 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     
     const { index: sourceIndex, section: sourceSection, item: movedItem } = draggedItem;
     
+
     // Validate moved item
     if (!movedItem || !movedItem.name) {
       console.error('Dragged item or its name is undefined', movedItem);
       setDraggedItem(null);
       return;
     }
-    
+
     // If dropped in the same position
     if (sourceSection === targetSection && targetIndex !== undefined && sourceIndex === targetIndex) return;
     
     // Create a deep copy of the current storage recommendations
     const newStorageRecs = JSON.parse(JSON.stringify(storageRecs));
     
+
     // Check if source section exists
     if (!newStorageRecs[sourceSection] || !newStorageRecs[sourceSection][sourceIndex]) {
       console.error(`Source item at index ${sourceIndex} in ${sourceSection} not found`);
@@ -398,6 +426,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
       return;
     }
     
+
     // Remove the item from source section
     newStorageRecs[sourceSection].splice(sourceIndex, 1);
     

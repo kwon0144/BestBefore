@@ -55,9 +55,11 @@ export interface FoodTypesResponse {
 
 export interface StorageAdviceResponse {
 
+
     days: number;
     method: string;
     source?: string;
+
 
 }
 

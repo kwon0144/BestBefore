@@ -21,7 +21,6 @@ export default function DropZones({ diyCooldown, foodBankImage, greenBinImage, d
       {/* Food Bank - positioned in the center-left of the U-shaped conveyor belt */}
       <div className="absolute top-[350px] left-[300px] w-[150px] h-[150px] flex flex-col items-center justify-center">
         {foodBankImage ? (
-
           <div className="w-24 h-24 flex items-center justify-center">
             <Image
               src={foodBankImage}
@@ -47,7 +46,6 @@ export default function DropZones({ diyCooldown, foodBankImage, greenBinImage, d
               width={96}
               height={96}
               style={{ objectFit: 'contain' }}
-
             />
           </div>
         ) : (
@@ -66,7 +64,6 @@ export default function DropZones({ diyCooldown, foodBankImage, greenBinImage, d
               width={96}
               height={96}
               style={{ objectFit: 'contain' }}
-
             />
           </div>
         ) : (

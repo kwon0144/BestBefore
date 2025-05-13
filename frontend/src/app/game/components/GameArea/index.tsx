@@ -199,7 +199,7 @@ export default function GameArea({
     }, getFoodGenerationInterval(difficulty));
     
     return () => clearInterval(interval);
-  }, [gameId, gameFoodItems, foods.length, difficulty, conveyorSegments]);
+  }, [gameId, gameFoodItems, foods.length, difficulty]);
 
   // Helper function to track wasted food
   const trackWastedFood = useCallback((food: FoodType) => {

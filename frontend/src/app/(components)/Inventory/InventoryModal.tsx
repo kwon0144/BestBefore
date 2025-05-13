@@ -3,8 +3,8 @@
  * It allows users to add, edit, and remove food items from their refrigerator and pantry,
  * with intelligent recommendations for storage locations and expiry dates based on food types.
  */
-import { useState } from "react";
 
+import { useState } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem, ToastProvider, addToast } from "@heroui/react";
 import { FoodItem } from "@/store/useInventoryStore";
 import useInventoryStore from "@/store/useInventoryStore";
@@ -26,6 +26,7 @@ type InventoryModalProps = {
  * Type definition for storage advice API response
  */
 type StorageAdviceResponse = {
+
   days: number;
   method: string; // 'fridge' or 'pantry'
   source?: string;
@@ -66,12 +67,14 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         produce_name: foodName
       });
 
+
       if (!response.data) {
         return { storage_time: 7, method: 'fridge' }; // Default to 7 days in refrigerator
       }
       
       return { 
         storage_time: response.data.days,
+
         method: response.data.method
       };
     } catch (error) {
@@ -114,6 +117,36 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
+   * Finds an existing item with similar name and expiry date
+   * @param {string} name - Item name to check
+   * @param {string} expiryDate - Expiry date to compare
+   * @returns {FoodItem | null} Matching item or null if no match found
+   */
+  const findMatchingItem = (name: string, expiryDate: string): FoodItem | null => {
+    // Case insensitive name match
+    const matchingItems = items.filter(item => 
+      item.name.toLowerCase() === name.toLowerCase()
+    );
+    
+    if (matchingItems.length === 0) return null;
+    
+    // Check for similar expiry dates (within 2 days)
+    const newExpiryDate = new Date(expiryDate);
+    
+    for (const item of matchingItems) {
+      const existingExpiryDate = new Date(item.expiryDate);
+      const diffDays = Math.abs((newExpiryDate.getTime() - existingExpiryDate.getTime()) / (1000 * 3600 * 24));
+      
+      // If expiry dates are within 2 days, return this item
+      if (diffDays <= 2) {
+        return item;
+      }
+    }
+    
+    return null;
+  };
+
+  /**
    * Handles adding or updating an item in the inventory
    * Gets storage recommendations for new items
    */
@@ -134,11 +167,10 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     }
 
     try {
-      const { storage_time, method } = await getStorageTime(formState.name);
-      
       const newItem = {
         ...formState,
         id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
+
         location: formState.location || (method === 'fridge' ? "refrigerator" : "pantry"),
         expiryDate: new Date(Date.now() + storage_time * 24 * 60 * 60 * 1000).toISOString(),
         daysLeft: storage_time
@@ -162,6 +194,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         const { storage_time, method } = await getStorageTime(newItem.name);
         
         // Use the recommended storage location and expiry date
+
         const storageMethod = method === 'fridge' ? "refrigerator" : "pantry";
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + storage_time);
@@ -235,6 +268,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   };
 
   /**
+
    * Combines two quantity strings into one
    * @param {string} q1 - First quantity string
    * @param {string} q2 - Second quantity string
@@ -307,6 +341,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
     clearAll();
     resetForm();
   };
+
 
   // Update the handleStorageTransfer function to handle undefined daysLeft
   const handleStorageTransfer = async (item: FoodItem, newLocation: "refrigerator" | "pantry") => {
@@ -493,12 +528,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
           {/* Replace tabs with side-by-side layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Refrigerator Section */}
-            <div 
-              className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200 transition-colors duration-200"
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, "refrigerator")}
-            >
+            <div className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200">
               <div className="mb-2 border-b-2 border-blue-500">
                 <h3 className="text-lg font-medium font-semibold text-blue-600">Refrigerator</h3>
               </div>
@@ -511,12 +541,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
                 ) : (
                   <ul className="divide-y divide-gray-200">
                     {getItemsByLocation("refrigerator").map((item) => (
-                      <li 
-                        key={item.id} 
-                        className="py-3 flex justify-between items-center cursor-move"
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, item)}
-                      >
+                      <li key={item.id} className="py-3 flex justify-between items-center">
                         <div>
                           <div className="font-medium">
                             {item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()} <span className="text-sm text-gray-500">qty: {item.quantity}</span>
@@ -550,12 +575,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
             </div>
 
             {/* Pantry Section */}
-            <div 
-              className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200 transition-colors duration-200"
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, "pantry")}
-            >
+            <div className="border h-[200px] overflow-y-auto p-4 rounded-lg border-gray-200">
               <div className="mb-4 border-b-2 border-amber-700">
                 <h3 className="text-lg font-medium font-semibold text-amber-700">Pantry</h3>
               </div>
@@ -568,12 +588,7 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
                 ) : (
                   <ul className="divide-y divide-gray-200">
                     {getItemsByLocation("pantry").map((item) => (
-                      <li 
-                        key={item.id} 
-                        className="py-3 flex justify-between items-center cursor-move"
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, item)}
-                      >
+                      <li key={item.id} className="py-3 flex justify-between items-center">
                         <div>
                           <div className="font-medium">
                             {item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()} <span className="text-sm text-gray-500">qty: {item.quantity}</span>
