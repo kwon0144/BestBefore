@@ -7,7 +7,7 @@
  * - iOS security restriction handling
  * - Error handling for camera access
  */
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { CameraState } from '../interfaces';
 import { Button } from '@heroui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -147,27 +147,41 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
-      <div className="flex-1">
+    <div className="bg-gray-100 p-6">
+      <div className="max-w-4xl mx-auto">
         {/* Camera preview */}
         <div className="bg-gray-900 rounded-lg overflow-hidden relative h-96">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover"
-            style={{ display: state.stream ? 'block' : 'none' }}
-          />
-          {!state.stream && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-              <div className="mx-auto mb-4 flex items-center justify-center">
-                <FontAwesomeIcon icon={faCamera} className="text-3xl text-gray-400" />
-              </div>
-              <p className="text-gray-300 text-lg animate-pulse text-center px-10">
-                Click &quot;Start Camera&quot; to begin
-              </p>
+          {state.photos.length > 0 ? (
+            <div className="captured-image">
+              <Image
+                src={state.photos[state.photos.length - 1]}
+                alt="Captured"
+                width={640}
+                height={480}
+                style={{ objectFit: 'contain' }}
+              />
             </div>
+          ) : (
+            <>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+                style={{ display: state.stream ? 'block' : 'none' }}
+              />
+              {!state.stream && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                  <div className="mx-auto mb-4 flex items-center justify-center">
+                    <FontAwesomeIcon icon={faCamera} className="text-3xl text-gray-400" />
+                  </div>
+                  <p className="text-gray-300 text-lg animate-pulse text-center px-10">
+                    Click &quot;Start Camera&quot; to begin
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
         
@@ -207,71 +221,33 @@ const Camera: React.FC<CameraProps> = ({ state, setState, submitPhotos, handleRe
             </>
           )}
         </div>
-      </div>
-      
-      {/* Photo gallery */}
-      <div className="w-full md:w-96">
-        <div className="rounded-lg p-4 border bg-darkgreen/10">
-          <div className="flex justify-between items-center text-lg font-medium font-semibold text-darkgreen mb-4">
-            <p>Captured Photos ({state.photos.length})</p>
-            <Button
-              onPress={handleReset}
-              className="bg-red-500 text-white rounded-lg"
-            >
-              <FontAwesomeIcon icon={faTrash} className="text-white text-lg" />
-            </Button>
-          </div>
-          
-          <div className="rounded-lg h-80 mb-4">
-            {state.photos.length === 0 ? (
-              <div className="flex flex-col h-80 text-center p-4 justify-center items-center">
-                  <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-gray-200 flex items-center justify-center">
-                    <FontAwesomeIcon icon={faImage} className="text-gray-400" />
-                  </div>
-                  <p className="text-gray-500 italic">
-                    No photos captured yet
-                  </p>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-3 h-80 overflow-y-auto">
-                  {state.photos.map((photo, index) => (
-                    <div
-                      key={index}
-                      className="relative h-32 bg-white rounded-lg overflow-hidden shadow-sm group"
-                    >
-                      <Image
-                        src={photo}
-                        alt={`Captured item ${index + 1}`}
-                        className="w-full h-32 object-cover"
-                        width={150}
-                        height={120}
-                        sizes="150px"
-                      />
-                      <span className="absolute bottom-0 right-0 bg-black/70 text-white text-xs py-1 px-2 rounded-tl-md">
-                        #{index + 1}
-                      </span>
-                      <button 
-                        onClick={() => deletePhoto(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label={`Delete photo ${index + 1}`}
-                      >
-                        <FontAwesomeIcon icon={faTimes} className="text-xs" />
-                      </button>
-                    </div>
-                  ))}
+
+        {/* Photo gallery */}
+        {state.photos.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-gray-700 mb-3">Captured Photos</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {state.photos.map((photo, index) => (
+                <div
+                  key={index}
+                  className="relative h-32 bg-white rounded-lg overflow-hidden shadow-sm group"
+                >
+                  <Image
+                    src={photo}
+                    alt={`Captured item ${index + 1}`}
+                    width={128}
+                    height={128}
+                    style={{ objectFit: 'cover' }}
+                  />
+                  <span className="absolute bottom-0 right-0 bg-black/70 text-white text-xs py-1 px-2 rounded-tl-md">
+                    {index + 1}
+                  </span>
+
                 </div>
-              </> 
-          )}
+              ))}
+            </div>
           </div>
-            <Button
-              onPress={submitPhotos}
-              className="w-full bg-darkgreen text-white py-2 px-4 rounded-lg"
-              disabled={state.photos.length === 0 || state.isAnalyzing}
-            >
-              {state.isAnalyzing ? 'Analyzing...' : 'Analyze Photos'}
-            </Button>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ import Character from './Character';
 import DropZones from './DropZones';
 import Food from './Food';
 import MessageDisplay from './MessageDisplay';
-import FullscreenButton from './FullscreenButton';
+
 import MobileControls from './MobileControls';
 
 interface GameAreaProps {
@@ -31,138 +31,19 @@ interface GameAreaProps {
   handleGameOver: (wasteStats: WasteStats) => Promise<void>;
 }
 
-// Add a new interface for tracking food movement on the conveyor
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Define proper types for the conveyor segment
 interface ConveyorSegment {
   id: string;
-  start: { x: number, y: number };
-  end: { x: number, y: number };
+  start: { x: number; y: number };
+  end: { x: number; y: number };
   direction: 'right' | 'down' | 'left' | 'up';
 }
 
-// Update the requestFullscreen function
-const requestFullscreen = async () => {
-  try {
-    // Check if we're on iOS
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    
-    if (!isIOS) {
-      // For non-iOS devices, try standard methods
-      const docElem = document.documentElement;
-      
-      if (docElem.requestFullscreen) {
-        await docElem.requestFullscreen();
-        return true;
-      }
-      
-      if ((docElem as any).webkitRequestFullscreen) {
-        await (docElem as any).webkitRequestFullscreen();
-        return true;
-      }
-      
-      if ((docElem as any).mozRequestFullScreen) {
-        await (docElem as any).mozRequestFullScreen();
-        return true;
-      }
-      
-      if ((docElem as any).msRequestFullscreen) {
-        await (docElem as any).msRequestFullscreen();
-        return true;
-      }
-    } else {
-      // iOS-specific approach
-      const videoElem = document.createElement('video');
-      videoElem.style.width = '100%';
-      videoElem.style.height = '100%';
-      videoElem.style.position = 'fixed';
-      videoElem.style.top = '0';
-      videoElem.style.left = '0';
-      videoElem.style.zIndex = '1000';
-      videoElem.playsInline = true;
-      videoElem.muted = true;
-      videoElem.autoplay = true;
-      videoElem.controls = false;
-      
-      // Use a short video source
-      videoElem.src = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAs1tZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0MiByMjQ3OSBkZDc5YTYxIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNCAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PWluZmluaXRlIGtleWludF9taW49Mjkgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAAAAwZYiEAD//8W/xoUjEe1H4KFEeT/ySFgH9X+ghBxhqN3B1YmxpYyBkb21haW4gZHVtbXkK';
-      
-      // Add to body temporarily
-      document.body.appendChild(videoElem);
-      
-      try {
-        // Wait for video to be loaded
-        await new Promise((resolve) => {
-          videoElem.addEventListener('loadedmetadata', resolve, { once: true });
-          videoElem.addEventListener('error', resolve, { once: true });
-        });
-        
-        // Try to play the video first (required for iOS)
-        await videoElem.play();
-        
-        // Now try to enter fullscreen
-        if ((videoElem as any).webkitEnterFullscreen) {
-          await (videoElem as any).webkitEnterFullscreen();
-          return true;
-        }
-      } catch (e) {
-        console.warn('iOS video fullscreen failed:', e);
-      } finally {
-        // Clean up
-        videoElem.pause();
-        document.body.removeChild(videoElem);
-      }
-    }
-    
-    // If all else fails, try one last fallback
-    const elem = document.body;
-    if ((elem as any).webkitRequestFullscreen) {
-      await (elem as any).webkitRequestFullscreen();
-      return true;
-    }
+// Define proper types for event handlers
+type TouchEventHandler = (event: TouchEvent) => void;
+type KeyboardEventHandler = (event: KeyboardEvent) => void;
+type ResizeEventHandler = () => void;
 
-    return false;
-  } catch (error) {
-    console.error('Fullscreen request failed:', error);
-    return false;
-  }
-};
-
-// Add this near the top of the component
-const isFullscreenMode = () => {
-  return !!(
-    document.fullscreenElement ||
-    (document as any).webkitFullscreenElement ||
-    (document as any).mozFullScreenElement ||
-    (document as any).msFullscreenElement ||
-    (document as any).webkitIsFullScreen ||
-    (window.innerHeight === screen.height && window.innerWidth === screen.width)
-  );
-};
-
-// Add this function before the component
-const setFullscreenMetaTag = (enable: boolean) => {
-  // Get or create the viewport meta tag
-  let viewport = document.querySelector('meta[name="viewport"]') as HTMLMetaElement;
-  if (!viewport) {
-    viewport = document.createElement('meta');
-    viewport.name = 'viewport';
-    document.head.appendChild(viewport);
-  }
-  
-  if (enable) {
-    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui';
-    // Add iOS specific meta tags
-    let webappCapable = document.querySelector('meta[name="apple-mobile-web-app-capable"]') as HTMLMetaElement;
-    if (!webappCapable) {
-      webappCapable = document.createElement('meta');
-      webappCapable.setAttribute('name', 'apple-mobile-web-app-capable');
-      webappCapable.setAttribute('content', 'yes');
-      document.head.appendChild(webappCapable);
-    }
-  } else {
-    viewport.content = 'width=device-width, initial-scale=1.0';
-  }
-};
 
 /**
  * Main game area component that handles gameplay mechanics
@@ -178,7 +59,7 @@ export default function GameArea({
   handleGameOver
 }: GameAreaProps) {
   // Game state
-  const [position, setPosition] = useState({ x: 200, y: 300 });
+  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 200, y: 300 });
   const [holdingFood, setHoldingFood] = useState<FoodType | null>(null);
   const [foods, setFoods] = useState<FoodType[]>([]);
   const [diyCooldown, setDiyCooldown] = useState<number>(0);
@@ -198,7 +79,6 @@ export default function GameArea({
   
   // Game resources state
   const [gameResources, setGameResources] = useState<ResourcesApiResponse>({ status: '', count: 0, resources: [] });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoadingResources, setIsLoadingResources] = useState<boolean>(true);
   
   // Refs
@@ -569,81 +449,7 @@ export default function GameArea({
   }, [foods, holdingFood, position, lastActionTime, isActionInProgress, handleAction]);
 
   const isMobile = useIsMobile();
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [fullscreenAttempted, setFullscreenAttempted] = useState(false);
 
-  // Handle fullscreen request
-  const handleFullscreenRequest = async () => {
-    setFullscreenAttempted(true);
-    try {
-      // First try to detect if we're on iOS
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-      
-      // For iOS, show specific instructions
-      if (isIOS) {
-        showMessage('Tap the screen once, then tap the fullscreen button in your browser', 'error');
-        // Add a temporary interaction handler
-        const handleTouch = () => {
-          document.removeEventListener('touchend', handleTouch);
-          requestFullscreen().then(success => {
-            if (success) {
-              setIsFullscreen(true);
-            }
-          });
-        };
-        document.addEventListener('touchend', handleTouch, { once: true });
-        return;
-      }
-      
-      // For non-iOS devices
-      const success = await requestFullscreen();
-      if (success) {
-        setIsFullscreen(true);
-      } else {
-        showMessage('Unable to enter fullscreen. Try rotating your device to landscape.', 'error');
-      }
-    } catch (error) {
-      console.error('Fullscreen request error:', error);
-      showMessage('Failed to enter fullscreen mode. Please try again.', 'error');
-    }
-  };
-
-  // Update the fullscreen effect
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      const fullscreenNow = isFullscreenMode();
-      console.log('Fullscreen state changed:', fullscreenNow);
-      setIsFullscreen(fullscreenNow);
-    };
-
-    // Check initial state
-    setIsFullscreen(isFullscreenMode());
-
-    // Add event listeners for fullscreen changes
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-    
-    // Also check on orientation and resize changes
-    const handleResize = () => {
-      const fullscreenNow = isFullscreenMode();
-      console.log('Window resized, fullscreen:', fullscreenNow);
-      setIsFullscreen(fullscreenNow);
-    };
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-    };
-  }, []);
 
   // Handle mobile direction press
   const handleMobileDirectionPress = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
@@ -684,6 +490,7 @@ export default function GameArea({
   const handleMobileDirectionRelease = useCallback(() => {
     setIsCharacterMoving(false);
   }, []);
+
 
   // Only add keyboard controls if not on mobile
   useEffect(() => {
@@ -779,12 +586,33 @@ export default function GameArea({
     }
   }, [gameResources]);
 
+  useEffect(() => {
+    // Update conveyor segments
+    const segments = conveyorSegments;
+    // ... rest of the effect code ...
+  }, [conveyorSegments]); // Add conveyorSegments to dependencies
+
+  useEffect(() => {
+    // Score update effect
+    const segments = conveyorSegments;
+    // Calculate new score based on segments
+    const newScore = score; // Replace with actual score calculation
+    setScore(newScore);
+  }, [conveyorSegments, setScore, score]); // Add score to dependencies
+
+  const handleFoodDrop = useCallback((foodItem: FoodType): void => {
+    // ... existing callback code ...
+  }, [setScore]); // Add setScore to dependencies
+  
+  // Game configuration
+  const gameSpeed = getConveyorSpeed(difficulty);
+  const foodGenerationInterval = getFoodGenerationInterval(difficulty);
+
   return (
     <>
       <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
       </Head>
       <div className="bg-white rounded-lg shadow-xl overflow-hidden">
         {/* Score Display */}
@@ -802,16 +630,9 @@ export default function GameArea({
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
             touchAction: 'none',
-            height: isMobile 
-              ? isFullscreen 
-                ? '100dvh' // Use dynamic viewport height
-                : '100dvh'
-              : '600px',
-            width: isMobile ? '100dvw' : '100%', // Use dynamic viewport width
-            position: isMobile ? 'fixed' : 'relative',
-            top: isMobile ? '0' : 'auto',
-            left: isMobile ? '0' : 'auto',
-            zIndex: isMobile ? '50' : 'auto'
+            height: '600px',
+            width: '100%'
+
           }}
         >
           {/* Conveyor belt */}
@@ -867,80 +688,12 @@ export default function GameArea({
           <MessageDisplay message={message} messageType={messageType} />
           
           {/* Mobile Controls */}
-          {isMobile && isFullscreen && (
+          {isMobile && (
             <MobileControls
               onDirectionPress={handleMobileDirectionPress}
               onDirectionRelease={handleMobileDirectionRelease}
               onPickupPress={handlePickup}
             />
-          )}
-          
-          {/* Fullscreen overlay for mobile */}
-          {isMobile && (!isFullscreen || window.innerWidth < window.innerHeight) && (
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-[9999] p-4"
-              style={{ 
-                height: '100dvh',
-                width: '100dvw',
-                position: 'fixed',
-                top: 0,
-                left: 0
-              }}
-            >
-              <h2 className="text-white text-2xl font-bold mb-4 text-center">
-                {window.innerWidth < window.innerHeight 
-                  ? "Please Rotate Your Device" 
-                  : "Please Play in Fullscreen"}
-              </h2>
-              
-              {/* Rotation indicator */}
-              {window.innerWidth < window.innerHeight && (
-                <div className="animate-pulse mb-4">
-                  <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                </div>
-              )}
-              
-              <div className="flex flex-col items-center gap-4">
-                {window.innerWidth > window.innerHeight ? (
-                  <button
-                    onClick={() => {
-                      console.log('Starting game in fullscreen-like mode');
-                      setFullscreenMetaTag(true);
-                      // Force reflow
-                      window.scrollTo(0, 0);
-                      document.body.style.overflow = 'hidden';
-                      document.body.style.position = 'fixed';
-                      document.body.style.width = '100%';
-                      document.body.style.height = '100%';
-                      
-                      // Set timeout to ensure styles are applied
-                      setTimeout(() => {
-                        setIsFullscreen(true);
-                      }, 100);
-                    }}
-                    className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white px-8 py-4 rounded-lg font-bold text-xl shadow-lg transform transition hover:scale-105 active:scale-95"
-                  >
-                    Start Game
-                  </button>
-                ) : (
-                  <div className="animate-pulse text-white text-center">
-                    <p className="mb-4">Please rotate your device</p>
-                    <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  </div>
-                )}
-
-                {/* Debug information */}
-                <div className="text-white text-sm mt-4 text-center opacity-50">
-                  <p>Device: {/iPad|iPhone|iPod/.test(navigator.userAgent) ? 'iOS' : 'Other'}</p>
-                  <p>Orientation: {window.innerWidth > window.innerHeight ? 'Landscape' : 'Portrait'}</p>
-                  <p>Screen: {window.innerWidth}x{window.innerHeight}</p>
-                </div>
-              </div>
-            </div>
           )}
         </div>
       </div>
