@@ -3,7 +3,6 @@
  * Initial game screen that shows game information and difficulty selection
  */
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { Button } from "@heroui/react";
 import { FoodItem, Difficulty } from '../../interfaces';
 import Image from 'next/image';
@@ -125,7 +124,6 @@ export default function PreGamePage({
                             className="absolute inset-0 w-full h-full object-contain rounded-lg"
                             width={200}
                             height={200}
-
                           />
                         </div>
                         <h5 className="font-medium text-blue-800 text-center">{item.name}</h5>
@@ -167,7 +165,6 @@ export default function PreGamePage({
                             className="absolute inset-0 w-full h-full object-contain rounded-lg"
                             width={200}
                             height={200}
-
                           />
                         </div>
                         <h5 className="font-medium text-green-800 text-center">{item.name}</h5>
@@ -209,7 +206,6 @@ export default function PreGamePage({
                             className="absolute inset-0 w-full h-full object-contain rounded-lg"
                             width={200}
                             height={200}
-
                           />
                         </div>
                         <h5 className="font-medium text-red-800 text-center">{item.name}</h5>

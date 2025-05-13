@@ -15,15 +15,6 @@ import Categories from "./Categories";
 import ItemsGrid from "./ItemsGrid";
 import ItemDetail from "./ItemDetail";
 
-// Debounce function to prevent excessive API calls
-const debounce = <T extends (...args: unknown[]) => void>(func: T, wait: number): ((...args: Parameters<T>) => void) => {
-    let timeout: NodeJS.Timeout;
-    return (...args: Parameters<T>) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func(...args), wait);
-    };
-};
-
 export default function SecondLife() {
     // State management for search, filters, and data
     const [searchQuery, setSearchQuery] = useState('');
@@ -75,8 +66,8 @@ export default function SecondLife() {
         { name: 'first aid', icon: faKitMedical }
     ];
 
-    // Raw fetch items function without debounce
-    const fetchItemsRaw = useCallback(async () => {
+    // Fetch items from the backend API when searching
+    const fetchItems = useCallback(async () => {
         try {
             setLoading(true);
             const response = await axios.get<SecondLifeItem[]>(`${config.apiUrl}/api/second-life/`, {
@@ -113,10 +104,7 @@ export default function SecondLife() {
         }
     }, [searchQuery, selectedIngredient]);
 
-    // Debounced version of fetchItems to prevent excessive API calls
-    const fetchItems = useMemo(() => debounce(fetchItemsRaw, 300), [fetchItemsRaw]);
-
-    // Single useEffect to handle all cases when fetchItems needs to be called
+    // Fetch all items when component mounts
     useEffect(() => {
         fetchItems();
     }, [fetchItems]);
@@ -192,6 +180,16 @@ export default function SecondLife() {
         setInputValue('');
         setCurrentPage(1);
     };
+
+    // Add this useEffect to handle fetching when searchQuery changes
+    useEffect(() => {
+        fetchItems();
+    }, [searchQuery, fetchItems]);
+
+    // Add this useEffect to handle fetching when selectedIngredient changes
+    useEffect(() => {
+        fetchItems();
+    }, [selectedIngredient, fetchItems]);
 
     const handleCardClick = (item: SecondLifeItem) => {
         setSelectedItem(item);
