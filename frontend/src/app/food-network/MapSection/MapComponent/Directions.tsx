@@ -69,30 +69,56 @@ export default function Directions({ mapSectionState, setMapSectionState }: Dire
             return;
         }
 
-        // Reattach renderer to map
-        directionsRenderer.setMap(map);
-
-        // Calculate and show new route
-        directionsService.route({
-            origin: { lat: mapSectionState.routeStart.lat, lng: mapSectionState.routeStart.lng },
-            destination: { lat: mapSectionState.routeEnd.lat, lng: mapSectionState.routeEnd.lng },
-            travelMode: mapSectionState.travellingMode as google.maps.TravelMode,
-            provideRouteAlternatives: true
-        }, (result, status) => {
-            if (status === "OK") {
-                directionsRenderer.setDirections(result);
-            }
-        }).then((result) => {
-            // Update route details in the state
-            setMapSectionState({
-                ...mapSectionState,
-                routeDetails: {
-                    duration: result.routes[0]?.legs[0]?.duration?.text || "Unknown",
-                    distance: result.routes[0]?.legs[0]?.distance?.text || "Unknown"
+        // Use a debounce mechanism to avoid frequent re-renders
+        const updateRoute = async () => {
+            try {
+                // We already checked that these values are not null above, but add additional check
+                // to satisfy TypeScript
+                if (!mapSectionState.routeStart || !mapSectionState.routeEnd) return;
+                
+                // Reattach renderer to map
+                directionsRenderer.setMap(map);
+                
+                // Calculate and show new route
+                const result = await directionsService.route({
+                    origin: { lat: mapSectionState.routeStart.lat, lng: mapSectionState.routeStart.lng },
+                    destination: { lat: mapSectionState.routeEnd.lat, lng: mapSectionState.routeEnd.lng },
+                    travelMode: mapSectionState.travellingMode as google.maps.TravelMode,
+                    provideRouteAlternatives: true
+                });
+                
+                if (result && directionsRenderer) {
+                    // Set directions only if the renderer is still available
+                    directionsRenderer.setDirections(result);
+                    
+                    // Update route details in the state only if there's a change
+                    const newDuration = result.routes[0]?.legs[0]?.duration?.text || "Unknown";
+                    const newDistance = result.routes[0]?.legs[0]?.distance?.text || "Unknown";
+                    
+                    if (newDuration !== mapSectionState.routeDetails.duration || 
+                        newDistance !== mapSectionState.routeDetails.distance) {
+                        setMapSectionState(prev => ({
+                            ...prev,
+                            routeDetails: {
+                                duration: newDuration,
+                                distance: newDistance
+                            }
+                        }));
+                    }
                 }
-            });
-        });
-    }, [directionsService, directionsRenderer, map, mapSectionState, setMapSectionState]);
+            } catch (error) {
+                console.error("Error calculating route:", error);
+                // Don't update the UI if there's an error to prevent flashing
+            }
+        };
+        
+        // Use setTimeout to avoid multiple rapid calculations
+        const timeoutId = setTimeout(updateRoute, 100);
+        
+        return () => {
+            clearTimeout(timeoutId);
+        };
+    }, [directionsService, directionsRenderer, map, mapSectionState.routeStart, mapSectionState.routeEnd, mapSectionState.travellingMode]);
 
     return null;
 }

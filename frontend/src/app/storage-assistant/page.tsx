@@ -168,6 +168,7 @@ const FoodStorageAssistant: React.FC = () => {
             produce_name: item
           });
 
+
           const recommendation = response.data;
           const quantity = produceCounts[item] || 1;
           const storageTime = recommendation.days;
@@ -189,6 +190,7 @@ const FoodStorageAssistant: React.FC = () => {
               name: `${item} (${storageTime} days)`,
               quantity: quantity
             });
+
           }
         } catch (err) {
           console.error(`Error fetching storage advice for ${item}:`, err);
@@ -199,10 +201,12 @@ const FoodStorageAssistant: React.FC = () => {
           const defaultStorageTime = isRefrigeratedItem ? 7 : 14;
           
           // Add to inventory even if there's an error
+          const location = isRefrigeratedItem ? 'refrigerator' : 'pantry';
           addIdentifiedItem(
             item,
             `${quantity} item${quantity > 1 ? 's' : ''}`,
-            defaultStorageTime
+            defaultStorageTime,
+            location
           );
           
           if (isRefrigeratedItem) {
