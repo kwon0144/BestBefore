@@ -1,23 +1,52 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Function to get the base path using the environment variable
+const getBasePath = () => {
+    const branch = process.env.NEXT_PUBLIC_BRANCH_NAME || 'main';
+    if (branch === 'main') {
+        return '';
+    }
+    return `/${branch}`;
+};
+
 export function middleware(request: NextRequest) {
     const sessionToken = request.cookies.get('session_token');
-    const isLoginPage = request.nextUrl.pathname === '/login';
+    const path = request.nextUrl.pathname;
 
-    // If user is not authenticated and not on login page, redirect to login
-    if (!sessionToken && !isLoginPage) {
-        return NextResponse.redirect(new URL('/login', request.url));
+    // Get base path from environment variable
+    const basePath = getBasePath();
+
+    // Check if the current path is a login page based on the base path
+    const loginPath = `${basePath}/login`;
+    const isLoginPage = path === '/login' || path === loginPath;
+
+    // Public paths that don't require authentication
+    const isPublicPath =
+        isLoginPage ||
+        path.startsWith('/api') ||
+        path.startsWith('/_next') ||
+        path === '/favicon.ico';
+
+    // Redirect unauthenticated users from protected paths to branch-specific login
+    if (!sessionToken && !isPublicPath) {
+        return NextResponse.redirect(new URL(loginPath, request.url));
     }
 
-    // If user is authenticated and on login page, redirect to home
+    // Redirect authenticated users from login to branch-specific home
     if (sessionToken && isLoginPage) {
-        return NextResponse.redirect(new URL('/', request.url));
+        const homePath = basePath || '/';
+        return NextResponse.redirect(new URL(homePath, request.url));
     }
 
     return NextResponse.next();
 }
 
+// Match ALL paths
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+    matcher: [
+        // Match root and all paths
+        '/',
+        '/:path*',
+    ],
 }; 

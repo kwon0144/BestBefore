@@ -95,7 +95,8 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   useEffect(() => {
     const fetchFoodBanks = async () => {
       try {
-        const response = await fetch('/api/foodbanks');
+        const apiPath = process.env.NEXT_PUBLIC_BRANCH_NAME? `/${process.env.NEXT_PUBLIC_BRANCH_NAME}/api/foodbanks` : '/api/foodbanks';
+        const response = await fetch(apiPath);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
