@@ -76,7 +76,7 @@ export default function Game() {
       return;
     }
 
-    // Second click: Start the game without confirmation
+    // Second click: Start the actual game without confirmation
     try {
       // Reset waste stats
       setWasteStats({
@@ -92,12 +92,10 @@ export default function Game() {
       setGameStarted(true);
       setGameOver(false);
       
-      // Play game start sound
+      // Play game start sound only when actually starting the game
       if (soundsLoaded) {
         console.log('Playing game start sound');
         playSound('gameStart');
-      } else {
-        console.log('Sounds not loaded yet, skipping game start sound');
       }
     } catch (error) {
       console.error('Failed to start game:', error);
@@ -117,10 +115,7 @@ export default function Game() {
     setScore(0);
     setTime(120);
     
-    // Optionally play a sound if needed
-    if (soundsLoaded) {
-      playSound('gameStart');
-    }
+    // Remove the sound play here since we're just going back to pre-game
   };
 
   /**
@@ -135,6 +130,11 @@ export default function Game() {
       setWasteStats(stats);
       setGameOver(true);
       setGameStarted(false);
+      
+      // Play game over sound
+      if (soundsLoaded) {
+        playSound('gameOver');
+      }
     } catch (error) {
       console.error('Failed to end game:', error);
       setGameOver(true);

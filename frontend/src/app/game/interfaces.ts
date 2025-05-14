@@ -79,7 +79,7 @@ export interface GameData {
 }
 
 // Sound types
-export type SoundType = 'donate' | 'diyFood' | 'gameStart' | 'wasteFood' | 'wrongAction' | 'pickup';
+export type SoundType = 'donate' | 'diyFood' | 'gameStart' | 'wasteFood' | 'wrongAction' | 'pickup' | 'gameOver';
 
 // Food waste tracking
 export interface WastedFood {

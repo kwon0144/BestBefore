@@ -8,12 +8,24 @@ import { SoundType } from '../interfaces';
  * Sound URLs mapping for different game actions
  */
 const soundUrls: Record<SoundType, string> = {
-  donate: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/donate.wav',
-  diyFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/donate.wav', // Reuse donate sound for DIY
-  gameStart: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/gameStart.wav',
-  wasteFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/wasteFodd.wav',
-  wrongAction: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/wrongAction.wav',
-  pickup: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/pickup.wav'
+  donate: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/donate.mp3',
+  diyFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/donate.mp3', // Reuse donate sound for DIY
+  gameStart: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/gameStart.mp3',
+  wasteFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/wrongAction.mp3',
+  wrongAction: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/wrongAction.mp3',
+  pickup: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/pickup.mp3',
+  gameOver: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/gameOver.mp3'
+};
+
+// Volume settings for different sound types
+const soundVolumes: Record<SoundType, number> = {
+  donate: 0.3,
+  diyFood: 0.3,
+  gameStart: 0.3,
+  wasteFood: 0.15, // Reduced volume
+  wrongAction: 0.15, // Reduced volume
+  pickup: 0.3,
+  gameOver: 0.3
 };
 
 /**
@@ -25,7 +37,7 @@ export const playSound = (type: SoundType): void => {
   
   try {
     const audio = new Audio(soundUrls[type]);
-    audio.volume = 0.3; // Set to 30% volume
+    audio.volume = soundVolumes[type]; // Use type-specific volume
     audio.play().catch(err => {
       // Silently fail on autoplay restrictions
       console.warn('Sound playback failed:', err.message);
