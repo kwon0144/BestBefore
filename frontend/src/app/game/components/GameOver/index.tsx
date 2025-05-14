@@ -2,7 +2,7 @@
  * GameOver Component
  * Final screen showing game results and option to play again
  */
-import React from 'react';
+import React, { useRef } from 'react';
 import { WasteStats } from '../../interfaces';
 
 interface GameOverProps {
@@ -15,6 +15,37 @@ interface GameOverProps {
  * Game over component showing final score and play again option
  */
 export default function GameOver({ score, wasteStats, handleStartGame }: GameOverProps) {
+  const statsRef = useRef<HTMLDivElement>(null);
+
+  const scrollToStats = () => {
+    if (statsRef.current) {
+      const startPosition = window.pageYOffset;
+      const targetPosition = statsRef.current.getBoundingClientRect().top + startPosition;
+      const distance = targetPosition - startPosition;
+      const duration = 2000; // 2 seconds duration
+      let start: number | null = null;
+
+      const animation = (currentTime: number) => {
+        if (start === null) start = currentTime;
+        const timeElapsed = currentTime - start;
+        const progress = Math.min(timeElapsed / duration, 1);
+
+        // Easing function for smoother animation
+        const easeInOutQuad = (t: number) => {
+          return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        };
+
+        window.scrollTo(0, startPosition + (distance * easeInOutQuad(progress)));
+
+        if (timeElapsed < duration) {
+          requestAnimationFrame(animation);
+        }
+      };
+
+      requestAnimationFrame(animation);
+    }
+  };
+
   // Determine player rank based on score
   const getRank = () => {
     if (score >= 200) {
@@ -67,32 +98,70 @@ export default function GameOver({ score, wasteStats, handleStartGame }: GameOve
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg shadow-xl max-w-2xl w-full mx-4">
-        <h2 className="text-3xl font-bold text-center mb-4">Game Over!</h2>
-        
-        {/* Score and Rank */}
-        <div className="text-center mb-6">
-          <p className="text-2xl font-semibold mb-2">Final Score: {score}</p>
-          <h3 className="text-xl font-bold text-green-600 mb-2">{playerRank.title}</h3>
-          <p className="text-gray-600 mb-4">{playerRank.description}</p>
+    <div className="min-h-screen py-12">
+      <div className="max-w-2xl mx-auto px-4 space-y-48">
+        {/* Top Section - White Background */}
+        <div className="bg-white rounded-lg p-8">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold text-red-600 mb-4">Game Over!</h2>
+            <p className="text-2xl text-gray-700 mb-4">Final Score: {score}</p>
+            <h3 className="text-2xl font-bold text-green-600 mb-2">{playerRank.title}</h3>
+            <p className="text-lg text-gray-600 mb-8">{playerRank.description}</p>
+            
+            {/* Main buttons */}
+            <div className="flex flex-col gap-4 items-center">
+              <button
+                onClick={handleStartGame}
+                className="bg-gradient-to-r from-yellow-400 to-yellow-500 py-3 px-8 rounded-lg text-lg font-bold text-yellow-900 hover:from-yellow-500 hover:to-yellow-600 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                🎮 Play Again 🎮
+              </button>
+              
+              <button
+                onClick={scrollToStats}
+                className="bg-gradient-to-r from-emerald-400 to-emerald-500 py-3 px-8 rounded-lg text-lg font-bold text-emerald-900 hover:from-emerald-500 hover:to-emerald-600 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                📊 View Stats 📊
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Waste Statistics */}
-        <div className="bg-gray-50 p-4 rounded-lg mb-6">
-          <h4 className="text-lg font-semibold mb-2">Food Waste Statistics</h4>
-          <p className="text-gray-700">{formatWasteStats()}</p>
+        {/* Add extra spacing */}
+        <div className="h-48"></div>
+
+        {/* Bottom Stats Section - White Background */}
+        <div ref={statsRef} className="bg-white rounded-lg p-8">
+          <h3 className="text-2xl font-semibold text-gray-800 mb-6">Wasted Food Items</h3>
+          
+          {Object.entries(wasteStats.wastedFoods).length > 0 ? (
+            <div className="space-y-4">
+              {Object.entries(wasteStats.wastedFoods).map(([name, info]) => (
+                <div 
+                  key={name}
+                  className="flex justify-between items-center bg-red-50 p-4 rounded-lg border border-red-200"
+                >
+                  <span className="text-lg text-gray-700">{name}</span>
+                  <span className="text-lg font-semibold text-red-600">
+                    × {info.count}
+                  </span>
+                </div>
+              ))}
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <p className="text-xl text-gray-800 font-semibold">
+                  Total Items Wasted: <span className="text-red-600">{wasteStats.totalWasted}</span>
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-lg text-gray-600 text-center">
+              No food was wasted! Great job! 🌟
+            </p>
+          )}
         </div>
-        
-        {/* Play Again Button */}
-        <div className="text-center">
-          <button
-            onClick={handleStartGame}
-            className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200"
-          >
-            Play Again
-          </button>
-        </div>
+
+        {/* Add bottom spacing */}
+        <div className="h-24"></div>
       </div>
     </div>
   );

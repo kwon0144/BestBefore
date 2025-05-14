@@ -611,8 +611,7 @@ export default function GameArea({
   return (
     <>
       <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+        <title>Food Waste Game - Playing</title>
       </Head>
       <div className="bg-white rounded-lg shadow-xl overflow-hidden">
         {/* Score Display */}
@@ -623,8 +622,8 @@ export default function GameArea({
           ref={gameAreaRef}
           className="relative w-full overflow-hidden"
           style={{
-            backgroundImage: gameResources.specificResources?.background?.image 
-              ? `url(${gameResources.specificResources.background.image})` 
+            backgroundImage: gameResources.specificResources?.map1?.image 
+              ? `url(${gameResources.specificResources.map1.image})` 
               : 'linear-gradient(to bottom, #e0f7fa, #b2ebf2)',
             backgroundSize: 'contain',
             backgroundPosition: 'center',
@@ -632,7 +631,6 @@ export default function GameArea({
             touchAction: 'none',
             height: '600px',
             width: '100%'
-
           }}
         >
           {/* Conveyor belt */}

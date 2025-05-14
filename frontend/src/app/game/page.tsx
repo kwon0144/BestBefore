@@ -10,8 +10,8 @@
  * - Screen transitions between different game phases
  * - Fullscreen functionality (toggled via button in the bottom-right corner of GameArea)
  */
-import React, { useState } from 'react';
-import { startGame, endGame } from '@/services/gameService';
+import React, { useState, useEffect } from 'react';
+import { startGame, endGame, getGameResources } from '@/services/gameService';
 import { Difficulty, WasteStats } from './interfaces';
 import { playSound } from './utils/soundEffects';
 
@@ -44,6 +44,25 @@ export default function Game() {
     playerId, setPlayerId, foodItems, loading, 
     soundsLoaded
   } = useGameState();
+
+  // Add state for background image
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+
+  // Load game resources and set background
+  useEffect(() => {
+    const loadGameResources = async () => {
+      try {
+        const resources = await getGameResources();
+        console.log('Background resource:', resources.specificResources.background);
+        if (resources.specificResources.background?.image) {
+          setBackgroundImage(resources.specificResources.background.image);
+        }
+      } catch (error) {
+        console.error('Failed to load background:', error);
+      }
+    };
+    loadGameResources();
+  }, []);
 
   /**
    * Handles starting the game
@@ -132,8 +151,16 @@ export default function Game() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex flex-col items-center py-8">
-      <div className="w-full max-w-6xl px-4">
+    <div 
+      className="min-h-screen w-full relative"
+      style={{
+        backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'linear-gradient(to bottom, #e0f7fa, #b2ebf2)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'top center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="relative z-10 max-w-6xl mx-auto px-4">
         <h1 className="text-4xl font-bold text-center text-green-800 mb-4">Food Waste Sorting Game</h1>
         <p className="text-lg text-center text-green-700 mb-8">
           Help reduce food waste in Melbourne by correctly sorting food items!
