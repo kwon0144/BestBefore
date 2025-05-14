@@ -9,10 +9,8 @@
 
 import { Button } from '@heroui/react';
 import { useState, useEffect } from 'react';
-import { useMap, AdvancedMarker } from "@vis.gl/react-google-maps";
+import { useMap } from "@vis.gl/react-google-maps";
 import { Icon } from '@iconify/react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLocationCrosshairs } from '@fortawesome/free-solid-svg-icons';
 import { Dispatch, SetStateAction } from 'react';
 import { MapSectionState } from "@/app/food-network/interfaces";
 
@@ -34,7 +32,7 @@ interface WhereAmIButtonProps {
  */
 export default function WhereAmIButton({ mapSectionState, setMapSectionState }: WhereAmIButtonProps = {}) {
     const map = useMap();
-    const [currentLocation, setCurrentLocation] = useState<google.maps.LatLngLiteral | null>(null);
+    const [, setCurrentLocation] = useState<google.maps.LatLngLiteral | null>(null);
     const [isMarkerVisible, setIsMarkerVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
