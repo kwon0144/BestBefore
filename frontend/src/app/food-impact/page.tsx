@@ -737,6 +737,35 @@ export default function FoodImpact() {
                 </div>
             </div>
 
+            {/* Around the World Section */}
+            <div className="flex flex-col md:flex-row items-center">
+                <div className="w-full space-y-2">
+                    <div className="w-3/5 h-24 bg-darkgreen overflow-hidden"></div>
+                    <div className="w-full flex flex-row items-center gap-12">
+                        <div className="w-2/5 h-24 bg-darkgreen overflow-hidden"></div>
+                        <h2 className="text-9xl font-black text-darkgreen tracking-tight">
+                            Around the World
+                        </h2> 
+                    </div>
+                    <div className="w-3/5 h-24 bg-darkgreen overflow-hidden"></div>  
+                </div>
+            </div>
+
+            {/* Map Section */}
+            <div className="py-16">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <h2 className="text-4xl font-bold text-darkgreen mb-6">
+                        Global Food Waste Distribution
+                    </h2>
+                    <p className="text-gray-700 mb-10">
+                        Food waste is a global issue with varying impacts across different regions.
+                    </p>
+                    {/* Map visualization to be added here */}
+                    <div className="h-[500px] w-full bg-gray-100 flex items-center justify-center border border-gray-200 rounded-lg">
+                        <p className="text-gray-500 text-xl">Interactive map visualization will be added here</p>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
