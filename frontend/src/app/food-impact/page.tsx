@@ -766,6 +766,66 @@ export default function FoodImpact() {
                     </div>
                 </div>
             </div>
+
+            {/* Slogan Section */}
+            <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center">
+                <div className="w-full flex flex-row items-center">
+                    <div className="w-1/3">
+                        <div className="w-3/5 h-16 bg-darkgreen overflow-hidden mb-4"></div>
+                        <div className="w-2/5 h-16 bg-darkgreen overflow-hidden mb-4"></div>
+                        <div className="w-3/5 h-16 bg-darkgreen overflow-hidden mb-4"></div> 
+                    </div>
+                    <div className="w-2/3">
+                        <h2 className="text-5xl font-black text-darkgreen tracking-tight">
+                            Together, we can make a difference to stop food waste.
+                        </h2> 
+                    </div>
+                </div>
+            </div>
+
+            {/* Sources */}
+            <div className="bg-green-50 py-16 ">
+                <div className="max-w-6xl mx-auto pt-4 border-t border-darkgreen sm:px-6 lg:px-8">
+                    <h2 className="text-3xl font-bold text-darkgreen mb-8">Sources</h2>
+                    
+                    <div className="space-y-4 text-gray-700">
+                        <div className="flex items-start">
+                            <span className="font-bold mr-4 text-darkgreen">1.</span>
+                            <p>National Food Waste Strategy Feasibility Study (Source: Australian Government)</p>
+                        </div>
+                        
+                        <div className="flex items-start">
+                            <span className="font-bold mr-4 text-darkgreen">2.</span>
+                            <p>Food waste costs Australian economy $36.6 billion annually (Source: Rabobank Food Waste Report 2023)</p>
+                        </div>
+                        
+                        <div className="flex items-start">
+                            <span className="font-bold mr-4 text-darkgreen">3.</span>
+                            <p>Global greenhouse gas emissions from food systems (Source: UN FAO, Climate Watch)</p>
+                        </div>
+                        
+                        <div className="flex items-start">
+                            <span className="font-bold mr-4 text-darkgreen">4.</span>
+                            <p>GHG emissions per kg of different food products (Source: Our World in Data based on Poore & Nemecek 2018)</p>
+                        </div>
+                        
+                        <div className="flex items-start">
+                            <span className="font-bold mr-4 text-darkgreen">5.</span>
+                            <p>Company emissions: Scopes 1 & 2 – operational control, Scope 3 – category 11, upstream production only, 2021 (Source: company reporting)</p>
+                        </div>
+                        
+                        <div className="flex items-start">
+                            <span className="font-bold mr-4 text-darkgreen">6.</span>
+                            <p>2023 Domestic GHG emissions only (Source: EDGAR Community GHG Database)</p>
+                        </div>
+                        
+                        <div className="flex items-start">
+                            <span className="font-bold mr-4 text-darkgreen">7.</span>
+                            <p>Global food waste reduction initiatives and impact measurements (Source: UN Environment Programme)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
