@@ -652,7 +652,7 @@ export default function FoodImpact() {
 
             {/* Emissions Chart */}
             <div className="bg-green-50 py-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <h2 className="text-5xl font-bold text-darkgreen mb-4">
                         Top 5 Greenhouse Gas Emissions Food Items{" "}
                     </h2>
