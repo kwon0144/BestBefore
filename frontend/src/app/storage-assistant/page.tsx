@@ -458,6 +458,17 @@ const FoodStorageAssistant: React.FC = () => {
                   Take photos of your groceries to get personalised storage recommendations.
                 </p>
                 <Camera state={state} setState={setState} submitPhotos={submitPhotos} handleReset={handleReset} />
+                
+                {/* Camera disclaimer */}
+                <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-600">
+                  <p className="font-medium mb-1">Camera Usage Disclaimer:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Photos taken are processed only on your device and our secure server</li>
+                    <li>Images are not permanently stored and are deleted after analysis</li>
+                    <li>No personal information is gathered through the camera feature</li>
+                    <li>You may need to grant camera permissions in your browser settings</li>
+                  </ul>
+                </div>
               </div>
             ) : (
               <>
@@ -575,6 +586,19 @@ const FoodStorageAssistant: React.FC = () => {
                 imageAlt="Eco Grocery"
               />
             )}
+          </div>
+            
+          {/* Footer disclaimer for all pages */}
+          <div className="max-w-7xl mx-auto px-10 py-6 mb-10 border-t border-gray-200">
+            <div className="text-center text-sm text-gray-600">
+              <p className="font-medium mb-2">BestBefore Privacy & Data Usage Notice:</p>
+              <p className="mb-2">
+                This application processes and stores food inventory data locally in your browser. No personal data is 
+                shared with third parties. Food detection and storage recommendations are handled by our AI algorithms 
+                using anonymized data. For any questions about data handling, please contact our support team.
+              </p>
+              <p className="text-xs">© {new Date().getFullYear()} BestBefore. All rights reserved.</p>
+            </div>
           </div>
       </div>  
   );
