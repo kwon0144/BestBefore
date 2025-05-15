@@ -18,47 +18,57 @@ import { MapSectionState } from "@/app/food-network/interfaces";
 /**
  * Props interface for the RouteResult component
  * @property mapSectionState - Current state of the map section
- * @property setMapSectionState - Function to update the map section state
  * @property setViewState - Function to update the view state
  * @property selectedType - Type of destination (Food Donation Points or Green Waste Bins)
  */
 interface RouteResultProps {
     mapSectionState: MapSectionState;
-    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
     setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
     selectedType: string;
 }
 
 export default function RouteResult({ 
     mapSectionState, 
-    setMapSectionState,
     setViewState,
     selectedType
 }: RouteResultProps) {
     const map = useMap();
+
+    // Get the formatted address for the starting point
+    const startAddress = useGeocoding(mapSectionState.selectedStart);
+    // Get the selected food bank details
+    const { foodbank: selectedFoodBank } = useFoodBank(mapSectionState.selectedEnd);
 
     // Handle click to return to information view and reset map
     const handleClick = () => {
         setViewState(prev => ({...prev, showRouteResult: false, showInformation: true}));
         if (map) {
             map.setZoom(12);
-            map.setCenter({lat: -37.8136, lng: 144.9631});
+            
+            // Center on the selected food bank/green waste bin
+            if (selectedFoodBank && selectedFoodBank.latitude && selectedFoodBank.longitude) {
+                map.setCenter({
+                    lat: selectedFoodBank.latitude,
+                    lng: selectedFoodBank.longitude
+                });
+            }
         }
     }
 
     // Handle navigation back to the previous view
     const handleBackToNavigation = () => {
         setViewState(prev => ({...prev, showRouteResult: false, showNavigation: true}));
-        setMapSectionState(prev => ({...prev, selectedStart: null, currentLocationAddress: ""}));
         if (map && mapSectionState.selectedStart) {
             map.setZoom(12);
+            // Center on the selected food bank/green waste bin
+            if (selectedFoodBank && selectedFoodBank.latitude && selectedFoodBank.longitude) {
+                map.setCenter({
+                    lat: selectedFoodBank.latitude,
+                    lng: selectedFoodBank.longitude
+                });
+            }
         }
     }
-
-    // Get the formatted address for the starting point
-    const startAddress = useGeocoding(mapSectionState.selectedStart);
-    // Get the selected food bank details
-    const { foodbank: selectedFoodBank } = useFoodBank(mapSectionState.selectedEnd);
 
     return (
         <div className="flex flex-col md:pl-1 lg:pl-10 w-full">

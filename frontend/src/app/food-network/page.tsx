@@ -1,7 +1,7 @@
 "use client";
 
 import { useLoadScript } from "@react-google-maps/api";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { APIProvider } from "@vis.gl/react-google-maps";
 import Title from "../(components)/Title";
 import MapSection from "./MapSection";
@@ -71,6 +71,30 @@ export default function FoodNetwork() {
     showRouteResult: false,
   });
 
+  /**
+   * Reference to the map section for scrolling
+   */
+  const mapSectionRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Scrolls to the map section
+   * Includes an offset to account for the navigation bar
+   */
+  const scrollToMapSection = () => {
+    if (mapSectionRef.current) {
+      // Get the element's position
+      const elementPosition = mapSectionRef.current.getBoundingClientRect().top;
+      // Get the current scroll position
+      const offsetPosition = elementPosition + window.pageYOffset - 80; // 80px offset for nav bar
+      
+      // Scroll to the element with the offset
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <div>
       {/* Page header with title and background image */}
@@ -84,7 +108,7 @@ export default function FoodNetwork() {
       {/* Main content container */}
       <div className="min-h-screen max-w-7xl mx-auto px-10">
         {/* Donation and disposal options section */}
-        <div className="py-16">
+        <div className="py-8">
           <h2 className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12">
             What are the options?
           </h2>
@@ -94,7 +118,7 @@ export default function FoodNetwork() {
         {isLoaded && (
           <APIProvider apiKey={apiKey}>
             {/* Map section for location selection and route planning */}
-            <div className="mt-20">
+            <div className="mt-8" ref={mapSectionRef}>
               <h2 className="text-3xl md:text-4xl font-bold text-darkgreen text-center mb-12">
                 Where is it?
               </h2>
@@ -115,6 +139,7 @@ export default function FoodNetwork() {
                   selectedType={selectedType}
                   setSelectedType={setSelectedType}
                   setViewState={setViewState}
+                  scrollToMapSection={scrollToMapSection}
                 />
               </div>
             </div>

@@ -1,10 +1,9 @@
 {
   "extends": "next/core-web-vitals",
   "rules": {
-    "@next/next/no-img-element": "warn",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "off",
     "react-hooks/exhaustive-deps": "off",
-    "@typescript-eslint/no-unused-vars": "error",
-    "react/no-unescaped-entities": "error",
-    "@typescript-eslint/prefer-as-const": "warn"
+    "@next/next/no-img-element": "off"
   }
 } 

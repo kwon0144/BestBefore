@@ -61,7 +61,6 @@ export default function Interaction({
             {viewState.showRouteResult && (
                 <RouteResult 
                     mapSectionState={mapSectionState}
-                    setMapSectionState={setMapSectionState}
                     setViewState={setViewState}
                     selectedType={selectedType}
                 />

@@ -53,11 +53,12 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
     if (viewState.showInformation || viewState.showNavigation) {
       setMapSectionState(prevState => ({
         ...prevState,
-        selectedStart: null,
-        routeStart: null,
+        // Don't reset selectedStart and currentLocationAddress
+        // This preserves the user's location between section changes
+        // selectedStart: null,
+        // currentLocationAddress: "",
         routeEnd: null,
-        routeDetails: {duration: "", distance: ""},
-        currentLocationAddress: ""
+        routeDetails: {duration: "", distance: ""}
       }));
     }
   }, [viewState.showInformation, viewState.showNavigation, setMapSectionState]);
@@ -77,7 +78,7 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
           routeStart: null,
           routeEnd: null,
           routeDetails: {duration: "", distance: ""},
-          selectedEnd: selection === "Food Donation Points" ? "1" : "50",
+          selectedEnd: selection === "Food Donation Points" ? "1" : "43",
           currentLocationAddress: ""
         });
         setSelectedType(selection);

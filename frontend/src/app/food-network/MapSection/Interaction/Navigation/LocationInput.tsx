@@ -52,12 +52,25 @@ export default function LocationInput({ mapSectionState, setMapSectionState }: L
         debounce: 300, // Debounce time for input changes
     });
 
-    // Update input value when currentLocationAddress changes in the state
+    // Initialize the input with the saved address when component mounts
     useEffect(() => {
         if (mapSectionState.currentLocationAddress) {
             setValue(mapSectionState.currentLocationAddress, false);
         }
     }, [mapSectionState.currentLocationAddress, setValue]);
+
+    // Update input value when currentLocationAddress changes in the state
+    useEffect(() => {
+        // This will handle both setting the address and clearing it
+        // No need for a conditional check - if it's an empty string, it will clear the input
+        setValue(mapSectionState.currentLocationAddress ?? "", false);
+        
+        // If currentLocationAddress is empty or undefined and there's no selectedStart,
+        // make sure the input is cleared
+        if (!mapSectionState.currentLocationAddress && !mapSectionState.selectedStart) {
+            setValue("", false);
+        }
+    }, [mapSectionState.currentLocationAddress, mapSectionState.selectedStart, setValue]);
 
     /**
      * Handles the selection of a location from the autocomplete suggestions
@@ -70,9 +83,15 @@ export default function LocationInput({ mapSectionState, setMapSectionState }: L
         const results = await getGeocode({ address });
         const { lat, lng } = await getLatLng(results[0]);
         // Update map state and center map on selected location
-        setMapSectionState(prev => ({...prev, selectedStart: { lat, lng }}));
+        setMapSectionState(prev => ({
+            ...prev, 
+            selectedStart: { lat, lng },
+            // Store the address in currentLocationAddress to persist it
+            currentLocationAddress: address,
+            // Also update routeStart to maintain consistency
+            routeStart: { lat, lng }
+        }));
         map?.panTo({ lat: lat, lng: lng });
-        map?.setZoom(15);
     };
 
     /**
@@ -80,7 +99,13 @@ export default function LocationInput({ mapSectionState, setMapSectionState }: L
      */
     const onHandleClear = () => {
         setValue("", false);
-        setMapSectionState(prev => ({...prev, selectedStart: null, currentLocationAddress: "" }));
+        setMapSectionState(prev => ({
+            ...prev, 
+            selectedStart: null, 
+            currentLocationAddress: "",
+            // Also clear routeStart to maintain consistency
+            routeStart: null 
+        }));
     };
 
     return (
