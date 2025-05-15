@@ -14,7 +14,7 @@ import { FoodItem, ApiResponse } from '../interfaces';
 export default function useGameState() {
   // Game state
   const [score, setScore] = useState<number>(0);
-  const [time, setTime] = useState<number>(120);
+  const [time, setTime] = useState<number>(60);
   const [gameId, setGameId] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
   

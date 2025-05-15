@@ -7,7 +7,6 @@ import { updateGame, getGameResources } from '@/services/gameService';
 import { Food as FoodType, FoodItem, Difficulty, ResourcesApiResponse, WasteStats } from '../../interfaces';
 import { playSound } from '../../utils/soundEffects';
 import { getConveyorSpeed, getFoodGenerationInterval, isInZone } from '../../utils/gameLogic';
-import useIsMobile from '../../hooks/useIsMobile';
 import Head from 'next/head';
 
 // Sub-components
@@ -17,8 +16,6 @@ import Character from './Character';
 import DropZones from './DropZones';
 import Food from './Food';
 import MessageDisplay from './MessageDisplay';
-
-import MobileControls from './MobileControls';
 
 interface GameAreaProps {
   gameId: string | null;
@@ -448,54 +445,8 @@ export default function GameArea({
     }
   }, [foods, holdingFood, position, lastActionTime, isActionInProgress, handleAction]);
 
-  const isMobile = useIsMobile();
-
-
-  // Handle mobile direction press
-  const handleMobileDirectionPress = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
-    const gameAreaWidth = gameAreaRef.current?.clientWidth ?? 800;
-    const gameAreaHeight = gameAreaRef.current?.clientHeight ?? 600;
-    
-    setIsCharacterMoving(true);
-    setLastMoveTime(Date.now());
-    
-    setPosition(prev => {
-      let newX = prev.x;
-      let newY = prev.y;
-      
-      switch (direction) {
-        case 'left':
-          newX = Math.max(0, prev.x - moveSpeed);
-          setCharacterDirection('left');
-          break;
-        case 'right':
-          newX = Math.min(gameAreaWidth - characterSize, prev.x + moveSpeed);
-          setCharacterDirection('right');
-          break;
-        case 'up':
-          newY = Math.max(0, prev.y - moveSpeed);
-          setCharacterDirection('front');
-          break;
-        case 'down':
-          newY = Math.min(gameAreaHeight - characterSize, prev.y + moveSpeed);
-          setCharacterDirection('back');
-          break;
-      }
-      
-      return { x: newX, y: newY };
-    });
-  }, [moveSpeed, characterSize]);
-
-  // Handle mobile direction release
-  const handleMobileDirectionRelease = useCallback(() => {
-    setIsCharacterMoving(false);
-  }, []);
-
-
-  // Only add keyboard controls if not on mobile
+  // Add keyboard controls
   useEffect(() => {
-    if (isMobile) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
       const gameAreaWidth = gameAreaRef.current?.clientWidth ?? 800;
@@ -547,7 +498,7 @@ export default function GameArea({
         window.removeEventListener('keydown', handleKeyDown);
         window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isMobile, foods, holdingFood, position, handlePickup, moveSpeed]);
+  }, [foods, holdingFood, position, handlePickup, moveSpeed]);
 
   // Add a useEffect to debug resource values
   useEffect(() => {
@@ -684,15 +635,6 @@ export default function GameArea({
           
           {/* Message display */}
           <MessageDisplay message={message} messageType={messageType} />
-          
-          {/* Mobile Controls */}
-          {isMobile && (
-            <MobileControls
-              onDirectionPress={handleMobileDirectionPress}
-              onDirectionRelease={handleMobileDirectionRelease}
-              onPickupPress={handlePickup}
-            />
-          )}
         </div>
       </div>
     </>

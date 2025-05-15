@@ -22,8 +22,8 @@ const soundVolumes: Record<SoundType, number> = {
   donate: 0.3,
   diyFood: 0.3,
   gameStart: 0.3,
-  wasteFood: 0.15, // Reduced volume
-  wrongAction: 0.15, // Reduced volume
+  wasteFood: 0.05, // Reduced volume
+  wrongAction: 0.05, // Reduced volume
   pickup: 0.3,
   gameOver: 0.3
 };
