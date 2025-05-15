@@ -2,7 +2,7 @@
 
 import Title from "../(components)/Title"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowRight, faQuoteLeft, faSeedling, faShoppingCart, faTruck, faAppleAlt, faIndustry, faTrash, faRecycle, faArrowUp, faHome, faArrowDown, faWeightHanging, faDollarSign, faGlobe } from '@fortawesome/free-solid-svg-icons'
+import { faArrowRight, faQuoteLeft, faSeedling, faShoppingCart, faTruck, faAppleAlt, faIndustry, faTrash, faRecycle, faArrowUp, faHome, faArrowDown, faWeightHanging, faDollarSign, faGlobe, faAppleWhole, faMoneyBill, faLeaf, faEarthAmericas, faBookOpen } from '@fortawesome/free-solid-svg-icons'
 import { useRef, useState, useEffect } from "react";
 import * as echarts from "echarts";
 import { Slider } from "@heroui/react";
@@ -19,6 +19,15 @@ export default function FoodImpact() {
     const metricCardsRef = useRef<HTMLDivElement>(null);
     const sloganRef = useRef<HTMLDivElement>(null);
     
+    // Add new refs for navigation menu sections
+    const australiaWasteRef = useRef<HTMLDivElement>(null);
+    const environmentalImpactRef = useRef<HTMLDivElement>(null);
+    const aroundWorldRef = useRef<HTMLDivElement>(null);
+    const sourcesRef = useRef<HTMLDivElement>(null);
+    
+    // Track current active section for the navigation bar
+    const [activeSection, setActiveSection] = useState<string>('australia-waste');
+    
     // Track element visibility for animation triggers
     const isQuoteInView = useInView(quoteRef, { once: false, amount: 0.3 });
     const isFoodWasteInView = useInView(foodWasteRef, { once: false, amount: 0.3 });
@@ -26,6 +35,67 @@ export default function FoodImpact() {
     const isSupplyChainInView = useInView(supplyChainRef, { once: false, amount: 0.3 });
     const isMetricCardsInView = useInView(metricCardsRef, { once: false, amount: 0.3 });
     const isSloganInView = useInView(sloganRef, { once: false, amount: 0.3 });
+    
+    // Track section visibility for progress bar
+    const isAustraliaWasteInView = useInView(australiaWasteRef, { amount: 0.3 });
+    const isEconomicLossInViewNav = useInView(economicLossRef, { amount: 0.3 });
+    const isEnvironmentalImpactInView = useInView(environmentalImpactRef, { amount: 0.3 });
+    const isAroundWorldInView = useInView(aroundWorldRef, { amount: 0.3 });
+    const isSourcesInView = useInView(sourcesRef, { amount: 0.3 });
+    
+    // Update active section based on scroll position
+    useEffect(() => {
+        if (isAustraliaWasteInView) {
+            setActiveSection('australia-waste');
+        } else if (isEconomicLossInViewNav) {
+            setActiveSection('economic-loss');
+        } else if (isEnvironmentalImpactInView) {
+            setActiveSection('environmental-impact');
+        } else if (isAroundWorldInView) {
+            setActiveSection('around-world');
+        } else if (isSourcesInView) {
+            setActiveSection('sources');
+        }
+    }, [
+        isAustraliaWasteInView, 
+        isEconomicLossInViewNav, 
+        isEnvironmentalImpactInView, 
+        isAroundWorldInView, 
+        isSourcesInView
+    ]);
+    
+    // Function to scroll to a section when navbar item is clicked
+    const scrollToSection = (sectionId: string) => {
+        let targetRef;
+        
+        switch(sectionId) {
+            case 'australia-waste':
+                targetRef = australiaWasteRef;
+                break;
+            case 'economic-loss':
+                targetRef = economicLossRef;
+                break;
+            case 'environmental-impact':
+                targetRef = environmentalImpactRef;
+                break;
+            case 'around-world':
+                targetRef = aroundWorldRef;
+                break;
+            case 'sources':
+                targetRef = sourcesRef;
+                break;
+            default:
+                return;
+        }
+        
+        if (targetRef.current) {
+            targetRef.current.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+            setActiveSection(sectionId);
+        }
+    };
     
     // Animation controls for manually triggered animations
     const quoteControls = useAnimation();
@@ -228,6 +298,104 @@ export default function FoodImpact() {
                 />
             </div>
 
+            {/* Vertical Progress Bar */}
+            <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-50">
+                <div className="flex flex-col items-center">
+                    {/* Progress Line */}
+                    <div className="absolute h-full w-0.5 bg-gray-300 left-1/2 transform -translate-x-1/2 z-0"></div>
+                    
+                    {/* Australia Waste Section */}
+                    <div 
+                        className={`relative z-10 mb-6 cursor-pointer group`}
+                        onClick={() => scrollToSection('australia-waste')}
+                    >
+                        <div 
+                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                                ${activeSection === 'australia-waste' 
+                                    ? 'bg-green text-white' 
+                                    : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-100'}`}
+                        >
+                            <FontAwesomeIcon icon={faAppleWhole} className="text-lg" />
+                        </div>
+                        <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-sm py-1 px-3 rounded">
+                            Australia Waste
+                        </div>
+                    </div>
+                    
+                    {/* Economic Loss Section */}
+                    <div 
+                        className={`relative z-10 mb-6 cursor-pointer group`}
+                        onClick={() => scrollToSection('economic-loss')}
+                    >
+                        <div 
+                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                                ${activeSection === 'economic-loss' 
+                                    ? 'bg-green text-white' 
+                                    : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-100'}`}
+                        >
+                            <FontAwesomeIcon icon={faMoneyBill} className="text-lg" />
+                        </div>
+                        <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-sm py-1 px-3 rounded">
+                            Economic Loss
+                        </div>
+                    </div>
+                    
+                    {/* Environmental Impact Section */}
+                    <div 
+                        className={`relative z-10 mb-6 cursor-pointer group`}
+                        onClick={() => scrollToSection('environmental-impact')}
+                    >
+                        <div 
+                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                                ${activeSection === 'environmental-impact' 
+                                    ? 'bg-green text-white' 
+                                    : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-100'}`}
+                        >
+                            <FontAwesomeIcon icon={faLeaf} className="text-lg" />
+                        </div>
+                        <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-sm py-1 px-3 rounded">
+                            Environmental Impact
+                        </div>
+                    </div>
+                    
+                    {/* Around the World Section */}
+                    <div 
+                        className={`relative z-10 mb-6 cursor-pointer group`}
+                        onClick={() => scrollToSection('around-world')}
+                    >
+                        <div 
+                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                                ${activeSection === 'around-world' 
+                                    ? 'bg-green text-white' 
+                                    : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-100'}`}
+                        >
+                            <FontAwesomeIcon icon={faEarthAmericas} className="text-lg" />
+                        </div>
+                        <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-sm py-1 px-3 rounded">
+                            Around the World
+                        </div>
+                    </div>
+                    
+                    {/* Sources Section */}
+                    <div 
+                        className={`relative z-10 cursor-pointer group`}
+                        onClick={() => scrollToSection('sources')}
+                    >
+                        <div 
+                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                                ${activeSection === 'sources' 
+                                    ? 'bg-green text-white' 
+                                    : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-100'}`}
+                        >
+                            <FontAwesomeIcon icon={faBookOpen} className="text-lg" />
+                        </div>
+                        <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-sm py-1 px-3 rounded">
+                            Sources
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {/* Quote Section */} 
             <motion.div 
                 ref={quoteRef}
@@ -262,7 +430,14 @@ export default function FoodImpact() {
 
             {/* Australia's Food Waste Section */}
             <motion.div 
-                ref={foodWasteRef}
+                ref={(node) => {
+                    // Set both refs
+                    if (node) {
+                        foodWasteRef.current = node;
+                        australiaWasteRef.current = node;
+                    }
+                }}
+                id="australia-waste"
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: false, amount: 0.3 }}
@@ -428,6 +603,7 @@ export default function FoodImpact() {
             {/* Economic Loss Title */}
             <motion.div 
                 ref={economicLossRef}
+                id="economic-loss"
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: false, amount: 0.3 }}
@@ -1017,7 +1193,7 @@ export default function FoodImpact() {
                 {/* Sticky Container */}
                 <div className="sticky top-0 left-0 w-full h-screen flex flex-col">
                     {/* Environmental Impact Title */}
-                    <div className="py-8">
+                    <div className="py-8" ref={environmentalImpactRef} id="environmental-impact">
                         <div className="w-full space-y-2">
                             <motion.div 
                                 className="w-3/5 h-24 bg-darkgreen overflow-hidden"
@@ -1249,6 +1425,8 @@ export default function FoodImpact() {
 
             {/* Around the World Title */}
             <motion.div 
+                ref={aroundWorldRef}
+                id="around-world"
                 className="flex flex-col md:flex-row items-center"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -1374,6 +1552,8 @@ export default function FoodImpact() {
 
             {/* Sources */}
             <motion.div 
+                ref={sourcesRef}
+                id="sources"
                 className="bg-green-50 py-16"
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ 
