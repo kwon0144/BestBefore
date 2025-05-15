@@ -147,16 +147,27 @@ const FoodStorageAssistant: React.FC = () => {
       // Reset the items added flag
       setItemsAddedToInventory(false);
       
-      // If no food detected, use empty array
+      // If no food detected, check if we have inventory items to display
       const allItems = Object.keys(produceCounts).length > 0
         ? Object.keys(produceCounts)
         : [];
+        
+      // If no items detected but we have inventory items, sync with inventory instead
+      if (allItems.length === 0) {
+        const inventoryItems = useInventoryStore.getState().items;
+        
+        if (inventoryItems.length > 0) {
+          // Don't reset storage recommendations if we're just syncing with inventory
+          // The StorageRecommendation component will handle this
+          return;
+        }
+      }
       
       // Get storage advice for each item
       const fridgeItems: Array<{ name: string; quantity: number }> = [];
       const pantryItems: Array<{ name: string; quantity: number }> = [];
       
-      // Only add to inventory if there are items detected
+      // Only add to inventory if there are newly detected items
       if (allItems.length > 0) {
         setItemsAddedToInventory(true);
       }
@@ -317,10 +328,10 @@ const FoodStorageAssistant: React.FC = () => {
         title: "No Items in Inventory",
         description: "Please add items to your inventory to set up expiry reminders",
         classNames: {
-          base: "bg-amber-100/70",
-          title: "text-amber-700 font-medium font-semibold",
+          base: "bg-amber-500/10 border border-amber-500",
+          title: "text-amber-800 font-semibold",
           description: "text-amber-700",
-          icon: "text-amber-700"
+          icon: "text-amber-600"
         },
         timeout: 3000
       });
@@ -341,10 +352,10 @@ const FoodStorageAssistant: React.FC = () => {
         title: "Calendar Generation Failed",
         description: "Please select at least one item",
         classNames: {
-          base: "bg-amber-100/70",
-          title: "text-amber-700 font-medium font-semibold",
+          base: "bg-amber-500/10 border border-amber-500",
+          title: "text-amber-800 font-semibold",
           description: "text-amber-700",
-          icon: "text-amber-700"
+          icon: "text-amber-600"
         },
         timeout: 3000
       });
@@ -394,7 +405,17 @@ const FoodStorageAssistant: React.FC = () => {
 
   // Initialize with storage recommendations on mount
   useEffect(() => {
-    fetchStorageRecommendations();
+    // Initialize from the inventory store
+    const inventoryItems = useInventoryStore.getState().items;
+    if (inventoryItems.length > 0) {
+      // Only fetch new recommendations if we don't already have items from store
+      // This prevents overwriting existing inventory data
+      fetchStorageRecommendations();
+    } else {
+      // Otherwise just prepare an empty structure
+      fetchStorageRecommendations({});
+    }
+    
     // Clean up camera stream on unmount
     return () => {
       if (state.stream) {

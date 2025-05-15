@@ -12,7 +12,7 @@
  * 
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StorageRecommendation, StorageAdviceResponse } from '../interfaces';
 import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -64,8 +64,66 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   // Get inventory store functions
   const { items, addItem, updateItem, removeItem } = useInventoryStore();
 
+  // Effect to sync with inventory store on mount and when inventory changes
+  useEffect(() => {
+    // Only synchronize if storage recommendations are empty
+    if (storageRecs.fridge.length === 0 && storageRecs.pantry.length === 0 && items.length > 0) {
+      const newStorageRecs: StorageRecommendation = {
+        fridge: [],
+        pantry: []
+      };
+      
+      // Convert items from inventory store to storage recommendations format
+      items.forEach(item => {
+        // Extract days from item's expiry date
+        const expiryDate = new Date(item.expiryDate);
+        const now = new Date();
+        const diffTime = expiryDate.getTime() - now.getTime();
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Extract quantity from item's quantity string
+        const qtyMatch = item.quantity.match(/^(\d+)/);
+        const quantity = qtyMatch ? parseInt(qtyMatch[1], 10) : 1;
+        
+        // Capitalize the item name
+        const capitalizedName = capitalizeWords(item.name);
+        
+        // Create storage recommendation item
+        const storageItem = {
+          name: `${capitalizedName} (${daysLeft > 0 ? daysLeft : 0} days)`,
+          quantity: quantity
+        };
+        
+        // Add to appropriate section
+        if (item.location === 'refrigerator') {
+          newStorageRecs.fridge.push(storageItem);
+        } else if (item.location === 'pantry') {
+          newStorageRecs.pantry.push(storageItem);
+        }
+      });
+      
+      // Update parent component's state if we found items
+      if (newStorageRecs.fridge.length > 0 || newStorageRecs.pantry.length > 0) {
+        onUpdateStorageRecs(newStorageRecs);
+      }
+    }
+  }, [items, storageRecs.fridge.length, storageRecs.pantry.length, onUpdateStorageRecs]);
+
   // Check if both sections are empty
   const noItemsDetected = storageRecs.fridge.length === 0 && storageRecs.pantry.length === 0;
+
+  /**
+   * Capitalizes the first letter of each word in a string
+   * @param {string} text - Text to capitalize
+   * @returns {string} Text with first letter of each word capitalized
+   */
+  const capitalizeWords = (text: string): string => {
+    if (!text) return '';
+    return text
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
 
   /**
    * Handles the edit operation for an item
@@ -128,7 +186,6 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         // Process recommendation
         const recommendation = response.data;
         let storageTime: number;
-        let sourceLabel: string;
         
         // Determine storage time based on response format
         if (typeof recommendation.method === 'number') {
@@ -145,13 +202,14 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           storageTime = 7;
         }
         
-        // Create source label if available
-        sourceLabel = recommendation.source 
-          ? `, ${recommendation.source}` 
-          : '';
+        // Create source label if available - removed
+        const sourceLabel = '';
+        
+        // Capitalize the name
+        const capitalizedName = capitalizeWords(editValues.name);
         
         newStorageRecs[section][index] = {
-          name: `${editValues.name} (${storageTime} days${sourceLabel})`,
+          name: `${capitalizedName} (${storageTime} days${sourceLabel})`,
           quantity: editValues.quantity
         };
 
@@ -164,7 +222,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
 
         if (existingItem) {
           updateItem(existingItem.id, {
-            name: editValues.name,
+            name: capitalizedName,
             quantity: `${editValues.quantity} item${editValues.quantity > 1 ? 's' : ''}`,
             expiryDate: new Date(Date.now() + (Number.isFinite(storageTime) ? storageTime : 7) * 24 * 60 * 60 * 1000).toISOString()
           });
@@ -173,11 +231,12 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         // If API call fails, keep the original storage time
         const originalDetails = item.name.match(/\((\d+) days(?:, (\w+))?\)/);
         const originalStorageTime = originalDetails?.[1] || '7';
-        const originalSource = originalDetails?.[2] || '';
-        const sourceLabel = originalSource ? `, ${originalSource}` : '';
+        
+        // Capitalize the name
+        const capitalizedName = capitalizeWords(editValues.name);
         
         newStorageRecs[section][index] = {
-          name: `${editValues.name} (${originalStorageTime} days${sourceLabel})`,
+          name: `${capitalizedName} (${originalStorageTime} days)`,
           quantity: editValues.quantity
         };
 
@@ -190,13 +249,14 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
 
         if (existingItem) {
           updateItem(existingItem.id, {
-            name: editValues.name,
+            name: capitalizedName,
             quantity: `${editValues.quantity} item${editValues.quantity > 1 ? 's' : ''}`,
             expiryDate: new Date(Date.now() + (Number.isFinite(parseInt(originalStorageTime)) ? parseInt(originalStorageTime) : 7) * 24 * 60 * 60 * 1000).toISOString()
           });
         }
       }
     } else {
+      // If name hasn't changed, update only the quantity
       newStorageRecs[section][index] = {
         name: item.name,
         quantity: editValues.quantity
@@ -341,37 +401,120 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
    * Helper function to add item to storage after location is determined
    */
   const addItemToStorage = (itemName: string, section: 'fridge' | 'pantry', storageTime: number, sourceLabel: string) => {
+    // Capitalize the item name
+    const capitalizedName = capitalizeWords(itemName);
+    
+    // Create a new storage recs object to update
+    const newStorageRecs = { ...storageRecs };
+    
+    // Check if item already exists in the section
+    const existingItemIndex = newStorageRecs[section].findIndex(
+      item => item.name.split(' (')[0].toLowerCase() === capitalizedName.toLowerCase()
+    );
+    
     // Add to inventory
     const inventoryLocation = section === 'fridge' ? 'refrigerator' : 'pantry';
-    addItem({
-      name: itemName,
-      quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
-      expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString(),
-      location: inventoryLocation
-    });
     
-    // Add to local storage recs
-    const newStorageRecs = { ...storageRecs };
-    newStorageRecs[section].push({
-      name: `${itemName} (${storageTime} days${sourceLabel})`,
-      quantity: newItem.quantity
-    });
+    // Also check if item exists in inventory store
+    const existingInventoryItem = items.find(
+      item => item.name.toLowerCase() === capitalizedName.toLowerCase() && 
+              item.location === inventoryLocation
+    );
     
+    if (existingItemIndex >= 0) {
+      // Item exists in storage recommendations, update quantity
+      const existingItem = newStorageRecs[section][existingItemIndex];
+      const newQuantity = existingItem.quantity + newItem.quantity;
+      
+      // Update the existing item
+      newStorageRecs[section][existingItemIndex] = {
+        ...existingItem,
+        quantity: newQuantity
+      };
+      
+      // If item also exists in inventory, update quantity there too
+      if (existingInventoryItem) {
+        // Extract numeric part from quantity strings like "2 items" or "500g"
+        const existingQtyMatch = existingInventoryItem.quantity.match(/^(\d+)/);
+        const newQtyMatch = (`${newItem.quantity}`).match(/^(\d+)/);
+        
+        let existingQty = existingQtyMatch ? parseInt(existingQtyMatch[1]) : 1;
+        let newQty = newQtyMatch ? parseInt(newQtyMatch[1]) : 1;
+        
+        // Add quantities
+        const totalQty = existingQty + newQty;
+        
+        // Determine unit from existing item (items, g, kg, etc.)
+        const unitMatch = existingInventoryItem.quantity.match(/[^\d\s]+/);
+        const unit = unitMatch ? unitMatch[0] : "items";
+        
+        // Update inventory item
+        updateItem(existingInventoryItem.id, {
+          ...existingInventoryItem,
+          quantity: `${totalQty} ${unit}`
+        });
+      } else {
+        // Add new inventory item
+        addItem({
+          name: capitalizedName,
+          quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
+          expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString(),
+          location: inventoryLocation
+        });
+      }
+      
+      addToast({
+        title: 'Item Quantity Updated',
+        description: `Updated ${capitalizedName} quantity in your ${section === 'fridge' ? 'refrigerator' : 'pantry'}.`,
+        classNames: {
+          base: "bg-darkgreen/10 border border-darkgreen",
+          title: "text-darkgreen font-semibold",
+          description: "text-darkgreen",
+          icon: "text-darkgreen"
+        },
+        timeout: 3000
+      });
+    } else {
+      // Add new item to storage recommendations
+      newStorageRecs[section].push({
+        name: `${capitalizedName} (${storageTime} days)`,
+        quantity: newItem.quantity
+      });
+      
+      // If item exists in inventory but in a different location, update it
+      if (existingInventoryItem) {
+        updateItem(existingInventoryItem.id, {
+          ...existingInventoryItem,
+          location: inventoryLocation,
+          expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
+        });
+      } else {
+        // Add new inventory item
+        addItem({
+          name: capitalizedName,
+          quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
+          expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString(),
+          location: inventoryLocation
+        });
+      }
+      
+      addToast({
+        title: 'Item Added',
+        description: `${capitalizedName} has been added to your ${section === 'fridge' ? 'refrigerator' : 'pantry'}.`,
+        classNames: {
+          base: "bg-darkgreen/10 border border-darkgreen",
+          title: "text-darkgreen font-semibold",
+          description: "text-darkgreen",
+          icon: "text-darkgreen"
+        },
+        timeout: 3000
+      });
+    }
+    
+    // Update state
     onUpdateStorageRecs(newStorageRecs);
     setNewItem({ name: '', quantity: 1 });
     setShowAddForm(null);
-    
-    addToast({
-      title: 'Item Added',
-      description: `${itemName} has been added to your ${section === 'fridge' ? 'refrigerator' : 'pantry'}.`,
-      classNames: {
-        base: "bg-green-50",
-        title: "text-green-700 font-medium font-semibold",
-        description: "text-green-700",
-        icon: "text-green-700"
-      },
-      timeout: 3000
-    });
   };
   
   /**
@@ -502,12 +645,12 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
         // Use the correct time based on target location
         newStorageTime = targetSection === 'fridge' ? fridgeTime : pantryTime;
         
-        // Add source label if available
-        sourceLabel = response.data.source ? `, ${response.data.source}` : '';
+        // Remove source label
+        sourceLabel = '';
       } else {
         // Fallback if API fails
         newStorageTime = targetSection === 'fridge' ? 7 : 14;
-        sourceLabel = ', default';
+        sourceLabel = '';
       }
       
       console.log(`Moving ${itemName} to ${targetSection}:`, {
@@ -522,10 +665,13 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
       // If targetIndex is undefined, append to the end of the target section
       const insertIndex = targetIndex !== undefined ? targetIndex : newStorageRecs[targetSection].length;
       
+      // Capitalize item name
+      const capitalizedItemName = capitalizeWords(itemName);
+      
       // Update the item with new storage time before inserting
       const updatedItem = {
         ...movedItem,
-        name: `${itemName} (${newStorageTime} days${sourceLabel})`
+        name: `${capitalizedItemName} (${newStorageTime} days${sourceLabel})`
       };
       
       // Insert the updated item at the destination
@@ -615,13 +761,18 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           }
 
           // Extract the item details with updated regex to handle source as well
-          const detailsMatch = item.name.match(/\((\d+) days(?:, (\w+))?\)/);
+          // Only capture days, ignore source
+          const detailsMatch = item.name.match(/\((\d+) days(?:, (?:\w+))?\)/);
           const days = detailsMatch ? detailsMatch[1] : '7';
-          const source = detailsMatch && detailsMatch[2] ? detailsMatch[2] : '';
+          
+          // Get item name without the days info
           const itemName = item.name.split(' (')[0];
           
-          // Storage label with source if available
-          const storageLabel = source ? `${days} days, ${source}` : `${days} days`;
+          // Capitalize the item name
+          const capitalizedName = capitalizeWords(itemName);
+          
+          // Simplified storage label without source
+          const storageLabel = `${days} days`;
           
           if (editingItem?.index === index && editingItem?.section === section) {
             return (
@@ -662,7 +813,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
               }}
             >
               <div className="grid grid-cols-3 w-full items-center">
-                <div className="text-left">{itemName}</div>
+                <div className="text-left">{capitalizedName}</div>
                 <div className="text-center text-gray-600">Qty: {item.quantity}</div>
                 <div className="text-right text-gray-600">Storage: {storageLabel}</div>
               </div>

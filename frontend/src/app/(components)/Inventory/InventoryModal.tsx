@@ -259,19 +259,18 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         ? new Date(formState.expiryDate).toISOString() 
         : new Date(Date.now() + actualStorageTime * 24 * 60 * 60 * 1000).toISOString();
       
-      console.log(`Adding item: ${formState.name} in ${location} with ${actualStorageTime} days until expiry`);
-      
-      // Create the new item
-      const newItem = {
-        ...formState,
-        id: isEditing && itemToEdit ? itemToEdit.id : Date.now().toString(),
-        location: location,
-        expiryDate: expiryDate,
-        daysLeft: actualStorageTime
-      };
-
+      // Check if we're in edit mode
       if (isEditing && itemToEdit) {
-        updateItem(itemToEdit.id, newItem);
+        // Update existing item
+        const updatedItem = {
+          ...formState,
+          id: itemToEdit.id,
+          location: location,
+          expiryDate: expiryDate,
+          daysLeft: actualStorageTime
+        };
+        
+        updateItem(itemToEdit.id, updatedItem);
         addToast({
           title: "Item Updated",
           description: `"${formState.name}" updated`,
@@ -284,18 +283,71 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
           timeout: 3000
         });
       } else {
-        addItem(newItem);
-        addToast({
-          title: "Item Added",
-          description: `"${formState.name}" added to your inventory with ${actualStorageTime} days until expiry`,
-          classNames: {
-            base: "bg-background",
-            title: "text-darkgreen font-medium font-semibold",
-            description: "text-darkgreen",
-            icon: "text-darkgreen"
-          },
-          timeout: 3000
-        });
+        // Check if an item with the same name and location already exists
+        const existingItem = items.find(item => 
+          item.name.toLowerCase() === formState.name.toLowerCase() && 
+          item.location === location
+        );
+        
+        if (existingItem) {
+          // Item exists, update its quantity instead of creating a new one
+          // Extract numeric part from quantity strings like "2 items" or "500g"
+          const existingQtyMatch = existingItem.quantity.match(/^(\d+)/);
+          const newQtyMatch = formState.quantity.match(/^(\d+)/);
+          
+          let existingQty = existingQtyMatch ? parseInt(existingQtyMatch[1]) : 1;
+          let newQty = newQtyMatch ? parseInt(newQtyMatch[1]) : 1;
+          
+          // Add quantities
+          const totalQty = existingQty + newQty;
+          
+          // Determine unit from existing item (items, g, kg, etc.)
+          const unitMatch = existingItem.quantity.match(/[^\d\s]+/);
+          const unit = unitMatch ? unitMatch[0] : "items";
+          
+          // Create updated quantity string
+          const updatedQuantity = `${totalQty} ${unit}`;
+          
+          // Update the existing item
+          updateItem(existingItem.id, {
+            ...existingItem,
+            quantity: updatedQuantity
+          });
+          
+          addToast({
+            title: "Item Quantity Updated",
+            description: `Added more "${formState.name}" to your inventory. New quantity: ${updatedQuantity}`,
+            classNames: {
+              base: "bg-background",
+              title: "text-darkgreen font-medium font-semibold",
+              description: "text-darkgreen",
+              icon: "text-darkgreen"
+            },
+            timeout: 3000
+          });
+        } else {
+          // Create new item
+          const newItem = {
+            ...formState,
+            id: Date.now().toString(),
+            location: location,
+            expiryDate: expiryDate,
+            daysLeft: actualStorageTime
+          };
+          
+          addItem(newItem);
+          addToast({
+            title: "Item Added",
+            description: `"${formState.name}" added to your inventory with ${actualStorageTime} days until expiry`,
+            classNames: {
+              base: "bg-background",
+              title: "text-darkgreen font-medium font-semibold",
+              description: "text-darkgreen",
+              icon: "text-darkgreen"
+            },
+            timeout: 3000
+          });
+        }
       }
       
       resetForm();
@@ -370,60 +422,121 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
   // Update the handleStorageTransfer function to handle different storage time recommendations
   const handleStorageTransfer = async (item: FoodItem, newLocation: "refrigerator" | "pantry") => {
     try {
+      // Extract the pure item name without any storage information in parentheses
+      // Item names from Claude might not be in the database
+      const itemNameClean = item.name.split(' (')[0].trim();
+      
       // Get the food type recommendation from the API
-      const foodType = findClosestFoodType(item.name);
+      const foodType = findClosestFoodType(itemNameClean);
       
-      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-        food_type: foodType
-      });
+      // If no food type match was found and the API call would fail with 400
+      if (!foodType) {
+        console.warn(`No matching food type found for ${itemNameClean}. Using item name directly.`);
+        
+        // Try with the clean item name directly
+        const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+          food_type: itemNameClean
+        });
 
-      if (!response.data) {
-        throw new Error("Failed to get storage advice");
+        if (!response.data) {
+          throw new Error("Failed to get storage advice");
+        }
+
+        // Get the appropriate storage time for the new location from the API
+        // Make sure to handle undefined values and set defaults
+        const fridgeTime = response.data.fridge || 7; // Default to 7 days
+        const pantryTime = response.data.pantry || 14; // Default to 14 days
+        
+        // Use the correct storage time based on the new location
+        const newStorageTime = newLocation === "refrigerator" ? fridgeTime : pantryTime;
+        
+        console.log(`Transferring ${item.name} to ${newLocation}:`, { 
+          fridgeTime: response.data.fridge, 
+          pantryTime: response.data.pantry,
+          recommendedMethod: response.data.method,
+          newLocation,
+          newStorageTime
+        });
+        
+        // Calculate new expiry date based on the full recommended storage time for the new location
+        const newExpiryDate = new Date();
+        newExpiryDate.setDate(newExpiryDate.getDate() + newStorageTime);
+
+        // Update the item with the new values
+        const updatedItem = {
+          ...item,
+          location: newLocation,
+          expiryDate: newExpiryDate.toISOString(),
+          daysLeft: newStorageTime
+        };
+
+        // Update item in store
+        updateItem(item.id, updatedItem);
+
+        addToast({
+          title: "Storage Updated",
+          description: `${item.name} moved to ${newLocation}. New expiry time: ${newStorageTime} days`,
+          classNames: {
+            base: "bg-background",
+            title: "text-darkgreen font-medium font-semibold",
+            description: "text-darkgreen",
+            icon: "text-darkgreen"
+          },
+          timeout: 3000
+        });
+      } else {
+        // Food type match was found, use it to call the API
+        const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+          food_type: foodType
+        });
+
+        if (!response.data) {
+          throw new Error("Failed to get storage advice");
+        }
+
+        // Get the appropriate storage time for the new location from the API
+        // Make sure to handle undefined values and set defaults
+        const fridgeTime = response.data.fridge || 7; // Default to 7 days
+        const pantryTime = response.data.pantry || 14; // Default to 14 days
+        
+        // Use the correct storage time based on the new location
+        const newStorageTime = newLocation === "refrigerator" ? fridgeTime : pantryTime;
+        
+        console.log(`Transferring ${item.name} to ${newLocation}:`, { 
+          fridgeTime: response.data.fridge, 
+          pantryTime: response.data.pantry,
+          recommendedMethod: response.data.method,
+          newLocation,
+          newStorageTime
+        });
+        
+        // Calculate new expiry date based on the full recommended storage time for the new location
+        const newExpiryDate = new Date();
+        newExpiryDate.setDate(newExpiryDate.getDate() + newStorageTime);
+
+        // Update the item with the new values
+        const updatedItem = {
+          ...item,
+          location: newLocation,
+          expiryDate: newExpiryDate.toISOString(),
+          daysLeft: newStorageTime
+        };
+
+        // Update item in store
+        updateItem(item.id, updatedItem);
+
+        addToast({
+          title: "Storage Updated",
+          description: `${item.name} moved to ${newLocation}. New expiry time: ${newStorageTime} days`,
+          classNames: {
+            base: "bg-background",
+            title: "text-darkgreen font-medium font-semibold",
+            description: "text-darkgreen",
+            icon: "text-darkgreen"
+          },
+          timeout: 3000
+        });
       }
-
-      // Get the appropriate storage time for the new location from the API
-      // Make sure to handle undefined values and set defaults
-      const fridgeTime = response.data.fridge || 7; // Default to 7 days
-      const pantryTime = response.data.pantry || 14; // Default to 14 days
-      
-      // Use the correct storage time based on the new location
-      const newStorageTime = newLocation === "refrigerator" ? fridgeTime : pantryTime;
-      
-      console.log(`Transferring ${item.name} to ${newLocation}:`, { 
-        fridgeTime: response.data.fridge, 
-        pantryTime: response.data.pantry,
-        recommendedMethod: response.data.method,
-        newLocation,
-        newStorageTime
-      });
-      
-      // Calculate new expiry date based on the full recommended storage time for the new location
-      const newExpiryDate = new Date();
-      newExpiryDate.setDate(newExpiryDate.getDate() + newStorageTime);
-
-      // Update the item with the new values
-      const updatedItem = {
-        ...item,
-        location: newLocation,
-        expiryDate: newExpiryDate.toISOString(),
-        daysLeft: newStorageTime
-      };
-
-      // Update item in store
-      updateItem(item.id, updatedItem);
-
-      addToast({
-        title: "Storage Updated",
-        description: `${item.name} moved to ${newLocation}. New expiry time: ${newStorageTime} days`,
-        classNames: {
-          base: "bg-background",
-          title: "text-darkgreen font-medium font-semibold",
-          description: "text-darkgreen",
-          icon: "text-darkgreen"
-        },
-        timeout: 3000
-      });
-
     } catch (error) {
       console.error("Error transferring storage:", error);
       addToast({
