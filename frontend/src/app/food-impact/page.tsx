@@ -6,13 +6,109 @@ import { faArrowRight, faQuoteLeft, faSeedling, faShoppingCart, faTruck, faApple
 import { useRef, useState, useEffect } from "react";
 import * as echarts from "echarts";
 import { Slider } from "@heroui/react";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform, useAnimation, useInView, Variants } from "framer-motion";
 
 export default function FoodImpact() {
     const chartRef = useRef<HTMLDivElement>(null);
     const earthSectionRef = useRef<HTMLDivElement>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const quoteRef = useRef<HTMLDivElement>(null);
+    const foodWasteRef = useRef<HTMLDivElement>(null);
+    const economicLossRef = useRef<HTMLDivElement>(null);
+    const supplyChainRef = useRef<HTMLDivElement>(null);
+    const metricCardsRef = useRef<HTMLDivElement>(null);
+    const sloganRef = useRef<HTMLDivElement>(null);
+    
+    // Track element visibility for animation triggers
+    const isQuoteInView = useInView(quoteRef, { once: false, amount: 0.3 });
+    const isFoodWasteInView = useInView(foodWasteRef, { once: false, amount: 0.3 });
+    const isEconomicLossInView = useInView(economicLossRef, { once: false, amount: 0.3 });
+    const isSupplyChainInView = useInView(supplyChainRef, { once: false, amount: 0.3 });
+    const isMetricCardsInView = useInView(metricCardsRef, { once: false, amount: 0.3 });
+    const isSloganInView = useInView(sloganRef, { once: false, amount: 0.3 });
+    
+    // Animation controls for manually triggered animations
+    const quoteControls = useAnimation();
+    const foodWasteControls = useAnimation();
+    const economicLossControls = useAnimation();
+    const supplyChainControls = useAnimation();
+    const metricCardsControls = useAnimation();
+    const sloganControls = useAnimation();
+    
+    // Trigger animations when elements come into view
+    useEffect(() => {
+        if (isQuoteInView) quoteControls.start("visible");
+        if (isFoodWasteInView) foodWasteControls.start("visible");
+        if (isEconomicLossInView) economicLossControls.start("visible");
+        if (isSupplyChainInView) supplyChainControls.start("visible");
+        if (isMetricCardsInView) metricCardsControls.start("visible");
+        if (isSloganInView) sloganControls.start("visible");
+    }, [
+        isQuoteInView, 
+        isFoodWasteInView, 
+        isEconomicLossInView, 
+        isSupplyChainInView,
+        isMetricCardsInView,
+        isSloganInView,
+        quoteControls,
+        foodWasteControls,
+        economicLossControls,
+        supplyChainControls,
+        metricCardsControls,
+        sloganControls
+    ]);
+    
     const [activeCardIndex, setActiveCardIndex] = useState<number>(-1);
+    
+    // Animation variants
+    const fadeInUpVariant: Variants = {
+        hidden: { opacity: 0, y: 50 },
+        visible: { 
+            opacity: 1, 
+            y: 0,
+            transition: { 
+                type: "spring", 
+                duration: 0.8,
+                bounce: 0.25
+            }
+        }
+    };
+    
+    const fadeInVariant: Variants = {
+        hidden: { opacity: 0 },
+        visible: { 
+            opacity: 1,
+            transition: { 
+                duration: 0.6 
+            }
+        }
+    };
+    
+    const staggerContainerVariant: Variants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.15,
+                delayChildren: 0.2
+            }
+        }
+    };
+    
+    const scaleInVariant: Variants = {
+        hidden: { 
+            opacity: 0, 
+            scale: 0.8 
+        },
+        visible: { 
+            opacity: 1, 
+            scale: 1,
+            transition: { 
+                type: "spring", 
+                duration: 0.5
+            }
+        }
+    };
     
     // Scroll progress for the environmental section
     const { scrollYProgress } = useScroll({
@@ -35,41 +131,30 @@ export default function FoodImpact() {
       return unsubscribe;
     }, [currentCardIndex]);
     
-    // ECharts setup for pie chart
+    // ECharts setup for pie chart - no animations
     useEffect(() => {
+      // Simple chart initialization without animations
       if (chartRef.current) {
+        // Dispose any existing chart
+        echarts.dispose(chartRef.current);
+        
+        // Create a new chart
         const chart = echarts.init(chartRef.current);
+        
+        // Simple configuration without animations
         const option = {
           animation: false,
+          backgroundColor: 'transparent',
           tooltip: {
             trigger: "item",
+            formatter: "{b}: {c} ({d}%)"
           },
           series: [
             {
               name: "Food Waste Stages",
               type: "pie",
-              radius: "70%",
-              avoidLabelOverlap: false,
-              itemStyle: {
-                borderRadius: 10,
-                borderColor: "#fff",
-                borderWidth: 2,
-              },
-              label: {
-                show: true,
-                formatter: "{b}: {d}%",
-                fontSize: 14,
-              },
-              emphasis: {
-                label: {
-                  show: true,
-                  fontSize: 16,
-                  fontWeight: "bold",
-                },
-              },
-              labelLine: {
-                show: false,
-              },
+              radius: "65%",
+              center: ['50%', '50%'],
               data: [
                 { value: 28, name: "Stage 1", itemStyle: { color: "#ff6b6b" } },
                 { value: 22, name: "Stage 2", itemStyle: { color: "#ffd166" } },
@@ -77,17 +162,34 @@ export default function FoodImpact() {
                 { value: 18, name: "Stage 4", itemStyle: { color: "#118ab2" } },
                 { value: 12, name: "Stage 5", itemStyle: { color: "#073b4c" } },
               ],
-            },
-          ],
+              itemStyle: {
+                borderRadius: 4,
+                borderColor: '#fff',
+                borderWidth: 1
+              },
+              label: {
+                show: true,
+                formatter: '{b}: {d}%',
+                fontSize: 14
+              }
+            }
+          ]
         };
+        
+        // Apply the configuration
         chart.setOption(option);
+        
+        // Handle window resize
         const handleResize = () => {
           chart.resize();
         };
-        window.addEventListener("resize", handleResize);
+        
+        window.addEventListener('resize', handleResize);
+        
+        // Cleanup
         return () => {
           chart.dispose();
-          window.removeEventListener("resize", handleResize);
+          window.removeEventListener('resize', handleResize);
         };
       }
     }, []);
@@ -127,44 +229,94 @@ export default function FoodImpact() {
             </div>
 
             {/* Quote Section */} 
-            <div className="max-w-7xl mx-auto px-10 mt-8 mb-20">
+            <motion.div 
+                ref={quoteRef}
+                initial="hidden"
+                whileInView="visible" 
+                viewport={{ once: false, amount: 0.3 }}
+                variants={staggerContainerVariant}
+                className="max-w-7xl mx-auto px-10 mt-8 mb-20"
+            >
                 <div className="max-w-4xl mx-auto px-6">
-                    <FontAwesomeIcon icon={faQuoteLeft} className="text-darkgreen text-4xl font-semibold leading-tight mb-8" />
-                    <p className="text-darkgreen text-4xl font-semibold leading-tight mb-8">
-                    "Food waste is not just about economics and hunger. It's about
-                    climate, environment, and sustainability."
-                    </p>
-                    <div className="flex items-center">
+                    <motion.div variants={scaleInVariant}>
+                        <FontAwesomeIcon icon={faQuoteLeft} className="text-darkgreen text-4xl font-semibold leading-tight mb-8" />
+                    </motion.div>
+                    <motion.p 
+                        variants={fadeInUpVariant}
+                        className="text-darkgreen text-4xl font-semibold leading-tight mb-8"
+                    >
+                        "Food waste is not just about economics and hunger. It's about
+                        climate, environment, and sustainability."
+                    </motion.p>
+                    <motion.div 
+                        variants={fadeInVariant}
+                        className="flex items-center"
+                    >
                         <div className="w-12 h-0.5 bg-darkgreen mr-4"></div>
-                        <p className="text-darkgreen  text-lg">
+                        <p className="text-darkgreen text-lg">
                             Tristram Stuart
                         </p>
-                    </div>
+                    </motion.div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Australia's Food Waste Section */}
-            <div className="mt-12" style={{ 
-                backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url(https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/aus_food_waste.jpg)', 
-                backgroundSize: 'cover', 
-                backgroundPosition: 'center',
-                height: '500px' 
-            }}>
+            <motion.div 
+                ref={foodWasteRef}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false, amount: 0.3 }}
+                variants={fadeInVariant}
+                className="mt-12" 
+                style={{ 
+                    backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url(https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/aus_food_waste.jpg)', 
+                    backgroundSize: 'cover', 
+                    backgroundPosition: 'center',
+                    height: '500px' 
+                }}
+            >
                 <div className="max-w-6xl mx-auto h-full flex flex-col justify-end pb-4">
-                    <p className="text-darkgreen text-2xl font-bold">
+                    <motion.p 
+                        variants={fadeInUpVariant}
+                        className="text-darkgreen text-2xl font-bold"
+                    >
                         Each year, Australians waste food across the supply chain in a total of
-                    </p>
-                    <h2 className="text-darkgreen text-9xl font-bold leading-tight">
+                    </motion.p>
+                    <motion.h2 
+                        variants={{
+                            hidden: { opacity: 0, scale: 0.9 },
+                            visible: { 
+                                opacity: 1, 
+                                scale: 1,
+                                transition: {
+                                    duration: 0.8,
+                                    delay: 0.2,
+                                    ease: "easeOut"
+                                }
+                            }
+                        }}
+                        className="text-darkgreen text-9xl font-bold leading-tight"
+                    >
                         7.6 million tonnes<sup className="text-2xl align-super ml-4">1</sup>
-                    </h2>
+                    </motion.h2>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Supply Chain Visualization */}
-            <div className="max-w-6xl mx-auto py-20 px-6">
+            <motion.div 
+                ref={supplyChainRef}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false, amount: 0.3 }}
+                variants={staggerContainerVariant}
+                className="max-w-6xl mx-auto py-20 px-6"
+            >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {/* Text Section */}
-                    <div className="flex flex-col justify-center h-full">
+                    <motion.div 
+                        variants={fadeInUpVariant}
+                        className="flex flex-col justify-center h-full"
+                    >
                         <h2 className="text-3xl font-bold text-darkgreen mb-6">
                             What's in Our Food Waste?
                         </h2>
@@ -174,30 +326,51 @@ export default function FoodImpact() {
                             efforts more effectively.
                         </p>
                         <div className="space-y-4">
-                            <div className="flex items-center">
+                            <motion.div 
+                                variants={fadeInVariant}
+                                transition={{ delay: 0.1 }}
+                                className="flex items-center"
+                            >
                                 <div className="w-4 h-4 rounded-full bg-red-400 mr-3"></div>
                                 <span className="text-gray-700">Stage 1</span>
-                            </div>
-                            <div className="flex items-center">
+                            </motion.div>
+                            <motion.div 
+                                variants={fadeInVariant}
+                                transition={{ delay: 0.2 }}
+                                className="flex items-center"
+                            >
                                 <div className="w-4 h-4 rounded-full bg-yellow-300 mr-3"></div>
                                 <span className="text-gray-700">Stage 2</span>
-                            </div>
-                            <div className="flex items-center">
+                            </motion.div>
+                            <motion.div 
+                                variants={fadeInVariant}
+                                transition={{ delay: 0.3 }}
+                                className="flex items-center"
+                            >
                                 <div className="w-4 h-4 rounded-full bg-green-400 mr-3"></div>
                                 <span className="text-gray-700">Stage 3</span>
-                            </div>
-                            <div className="flex items-center">
+                            </motion.div>
+                            <motion.div 
+                                variants={fadeInVariant}
+                                transition={{ delay: 0.4 }}
+                                className="flex items-center"
+                            >
                                 <div className="w-4 h-4 rounded-full bg-blue-500 mr-3"></div>
                                 <span className="text-gray-700">Stage 4</span>
-                            </div>
-                            <div className="flex items-center">
+                            </motion.div>
+                            <motion.div 
+                                variants={fadeInVariant}
+                                transition={{ delay: 0.5 }}
+                                className="flex items-center"
+                            >
                                 <div className="w-4 h-4 rounded-full bg-blue-900 mr-3"></div>
                                 <span className="text-gray-700">Stage 5</span>
-                            </div>
+                            </motion.div>
                         </div>
-                    </div>
+                    </motion.div>
                     {/* Supply Chain */}
-                    <div>
+                    <motion.div variants={fadeInUpVariant}>
+                        {/* Replace animated supply chain with static version */}
                         <div className="flex justify-center items-center space-x-2 mb-12">
                             <div className="flex flex-col items-center">
                                 <div className="bg-amber-300 rounded-full p-4 mb-2">
@@ -205,112 +378,355 @@ export default function FoodImpact() {
                                 </div>
                                 <span className="text-xs text-gray-600">PRODUCTION</span>
                             </div>
-                        <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
-                        <div className="flex flex-col items-center">
-                            <div className="bg-amber-300 rounded-full p-4 mb-2">
-                                <FontAwesomeIcon icon={faIndustry} className="text-2xl text-gray-800" />
+                            <div>
+                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
                             </div>
-                            <span className="text-xs text-gray-600 text-center">
-                                PROCESSING & MANUFACTURING
-                            </span>
+                            <div className="flex flex-col items-center">
+                                <div className="bg-amber-300 rounded-full p-4 mb-2">
+                                    <FontAwesomeIcon icon={faIndustry} className="text-2xl text-gray-800" />
+                                </div>
+                                <span className="text-xs text-gray-600 text-center">
+                                    PROCESSING & MANUFACTURING
+                                </span>
+                            </div>
+                            <div>
+                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <div className="bg-amber-300 rounded-full p-4 mb-2">
+                                    <FontAwesomeIcon icon={faTruck} className="text-2xl text-gray-800" />
+                                </div>
+                                <span className="text-xs text-gray-600 text-center">
+                                    DISTRIBUTION & LOGISTICS
+                                </span>
+                            </div>
+                            <div>
+                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <div className="bg-amber-300 rounded-full p-4 mb-2">
+                                    <FontAwesomeIcon icon={faShoppingCart} className="text-2xl text-gray-800" />
+                                </div>
+                                <span className="text-xs text-gray-600">RETAIL</span>
+                            </div>
+                            <div>
+                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <div className="bg-amber-300 rounded-full p-4 mb-2">
+                                    <FontAwesomeIcon icon={faAppleAlt} className="text-2xl text-gray-800" />
+                                </div>
+                                <span className="text-xs text-gray-600">CONSUMPTION</span>
+                            </div>
                         </div>
-                        <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
-                        <div className="flex flex-col items-center">
-                            <div className="bg-amber-300 rounded-full p-4 mb-2">
-                                <FontAwesomeIcon icon={faTruck} className="text-2xl text-gray-800" />
-                            </div>
-                            <span className="text-xs text-gray-600 text-center">
-                                DISTRIBUTION & LOGISTICS
-                            </span>
-                        </div>
-                        <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
-                        <div className="flex flex-col items-center">
-                            <div className="bg-amber-300 rounded-full p-4 mb-2">
-                                <FontAwesomeIcon icon={faShoppingCart} className="text-2xl text-gray-800" />
-                            </div>
-                            <span className="text-xs text-gray-600">RETAIL</span>
-                        </div>
-                        <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
-                        <div className="flex flex-col items-center">
-                            <div className="bg-amber-300 rounded-full p-4 mb-2">
-                                <FontAwesomeIcon icon={faAppleAlt} className="text-2xl text-gray-800" />
-                            </div>
-                            <span className="text-xs text-gray-600">CONSUMPTION</span>
-                            </div>
-                        </div>
+                        {/* Separate the chart from motion animations */}
                         <div ref={chartRef} className="w-full h-80"></div>
-                    </div>
+                    </motion.div>
                 </div>
-            </div>
+            </motion.div>
 
-            {/* Economic Loss Section */}
-            <div className="flex flex-col md:flex-row items-center">
+            {/* Economic Loss Title */}
+            <motion.div 
+                ref={economicLossRef}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false, amount: 0.3 }}
+                variants={staggerContainerVariant}
+                className="flex flex-col md:flex-row items-center"
+            >
                 <div className="w-full space-y-2">
-                    <div className="w-3/5 h-24 bg-darkgreen overflow-hidden"></div>
+                    <motion.div 
+                        className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                        variants={{
+                            hidden: { width: 0 },
+                            visible: { 
+                                width: "60%",
+                                transition: { duration: 0.8 }
+                            }
+                        }}
+                    ></motion.div>
                     <div className="w-full flex flex-row items-center gap-12">
-                        <div className="w-2/5 h-24 bg-darkgreen overflow-hidden"></div>
-                        <h2 className="text-9xl font-black text-darkgreen tracking-tight">
+                        <motion.div 
+                            className="w-2/5 h-24 bg-darkgreen overflow-hidden"
+                            variants={{
+                                hidden: { width: 0 },
+                                visible: { 
+                                    width: "40%",
+                                    transition: { duration: 0.8, delay: 0.2 }
+                                }
+                            }}
+                        ></motion.div>
+                        <motion.h2 
+                            className="text-9xl font-black text-darkgreen tracking-tight"
+                            variants={{
+                                hidden: { 
+                                    opacity: 0,
+                                    x: 50
+                                },
+                                visible: { 
+                                    opacity: 1,
+                                    x: 0,
+                                    transition: {
+                                        duration: 0.8,
+                                        delay: 0.4
+                                    }
+                                }
+                            }}
+                        >
                             ECONOMIC LOSS
-                        </h2> 
+                        </motion.h2> 
                     </div>
-                    <div className="w-3/5 h-24 bg-darkgreen overflow-hidden"></div>  
+                    <motion.div 
+                        className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                        variants={{
+                            hidden: { width: 0 },
+                            visible: { 
+                                width: "60%",
+                                transition: { duration: 0.8, delay: 0.6 }
+                            }
+                        }}
+                    ></motion.div>  
                 </div>
-            </div>
+            </motion.div>
 
             {/* Cost of Food Waste */}
             <div className="py-10 mb-20">
-                <div className="mt-12" style={{ 
-                    backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url(https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/aus_food_waste.jpg)', 
-                    backgroundSize: 'cover', 
-                    backgroundPosition: 'center',
-                    height: '500px' 
-                }}>
+                <motion.div 
+                    className="mt-12" 
+                    style={{ 
+                        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url(https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/aus_food_waste.jpg)', 
+                        backgroundSize: 'cover', 
+                        backgroundPosition: 'center',
+                        height: '500px' 
+                    }}
+                    initial={{ opacity: 0 }}
+                    whileInView={{ 
+                        opacity: 1,
+                        transition: {
+                            duration: 0.8
+                        }
+                    }}
+                    viewport={{ once: false, amount: 0.3 }}
+                >
                     <div className="max-w-6xl mx-auto h-full flex flex-col justify-end pb-4">
-                        <p className="text-darkgreen text-2xl font-bold">
+                        <motion.p 
+                            className="text-darkgreen text-2xl font-bold"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ 
+                                opacity: 1,
+                                y: 0,
+                                transition: {
+                                    duration: 0.5,
+                                    delay: 0.2
+                                }
+                            }}
+                            viewport={{ once: false, amount: 0.3 }}
+                        >
                             The cost of food waste to Australian economy in a year is
-                        </p>
-                        <h2 className="text-darkgreen text-9xl font-bold leading-tight">
+                        </motion.p>
+                        <motion.h2 
+                            className="text-darkgreen text-9xl font-bold leading-tight"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            whileInView={{ 
+                                opacity: 1,
+                                scale: 1,
+                                transition: {
+                                    type: "spring",
+                                    bounce: 0.2,
+                                    duration: 0.8,
+                                    delay: 0.4
+                                }
+                            }}
+                            viewport={{ once: false, amount: 0.3 }}
+                        >
                             $36.6 billion<sup className="text-2xl align-super ml-4">2</sup>
-                        </h2>
+                        </motion.h2>
                     </div>
-                </div>
+                </motion.div>
             </div>
 
             {/* Analysis of Food Waste Cost */}
             <div className="py-10 mb-20">
-                <div className="max-w-6xl mx-auto">
+                <motion.div 
+                    className="max-w-6xl mx-auto"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ 
+                        opacity: 1,
+                        transition: { duration: 0.6 }
+                    }}
+                    viewport={{ once: false, amount: 0.2 }}
+                >
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
-                    <div>
-                        <div className="text-3xl font-bold leading-tight mb-4">
-                            <span className="bg-green text-white text-3xl font-bold px-4 py-2 inline-block">Household food waste amounts</span>
-                            <span className="bg-green text-white text-3xl font-bold px-4 py-2 inline-block">to $19.3 billion (52.7%)</span> 
-                            annually,
-                            <p>and costs up to </p>
-                            <span className="bg-green text-white text-3xl font-bold px-4 py-2 inline-block">$2,500 per household.</span>
-                        </div>
-                        <div className="text-lg font-bold leading-tight">
-                        If we reduced this waste, families could redirect that money toward essentials like groceries, bills, education, or savings, making a meaningful difference in everyday life.
-                        </div>
-                    </div>
-                    <div>
+                    <motion.div
+                        initial={{ opacity: 0, x: -50 }}
+                        whileInView={{ 
+                            opacity: 1,
+                            x: 0,
+                            transition: {
+                                type: "spring",
+                                duration: 0.8,
+                                bounce: 0.25
+                            }
+                        }}
+                        viewport={{ once: false, amount: 0.3 }}
+                    >
+                        <motion.div 
+                            className="text-3xl font-bold leading-tight mb-4"
+                        >
+                            <motion.span 
+                                className="bg-green text-white text-3xl font-bold px-4 py-2 inline-block"
+                                initial={{ y: 20, opacity: 0 }}
+                                whileInView={{ 
+                                    y: 0, 
+                                    opacity: 1,
+                                    transition: {
+                                        delay: 0.2,
+                                        duration: 0.5
+                                    }
+                                }}
+                                viewport={{ once: false, amount: 0.3 }}
+                            >Household food waste amounts</motion.span>
+                            
+                            <motion.span 
+                                className="bg-green text-white text-3xl font-bold px-4 py-2 inline-block"
+                                initial={{ y: 20, opacity: 0 }}
+                                whileInView={{ 
+                                    y: 0, 
+                                    opacity: 1,
+                                    transition: {
+                                        delay: 0.4,
+                                        duration: 0.5
+                                    }
+                                }}
+                                viewport={{ once: false, amount: 0.3 }}
+                            >to $19.3 billion (52.7%)</motion.span> 
+                            
+                            <motion.span
+                                initial={{ opacity: 0 }}
+                                whileInView={{ 
+                                    opacity: 1,
+                                    transition: {
+                                        delay: 0.6,
+                                        duration: 0.5
+                                    }
+                                }}
+                                viewport={{ once: false, amount: 0.3 }}
+                            >
+                                annually,
+                            </motion.span>
+                            
+                            <motion.p
+                                initial={{ opacity: 0 }}
+                                whileInView={{ 
+                                    opacity: 1,
+                                    transition: {
+                                        delay: 0.7,
+                                        duration: 0.5
+                                    }
+                                }}
+                                viewport={{ once: false, amount: 0.3 }}
+                            >
+                                and costs up to 
+                            </motion.p>
+                            
+                            <motion.span 
+                                className="bg-green text-white text-3xl font-bold px-4 py-2 inline-block"
+                                initial={{ y: 20, opacity: 0 }}
+                                whileInView={{ 
+                                    y: 0, 
+                                    opacity: 1,
+                                    transition: {
+                                        delay: 0.8,
+                                        duration: 0.5
+                                    }
+                                }}
+                                viewport={{ once: false, amount: 0.3 }}
+                            >$2,500 per household.</motion.span>
+                        </motion.div>
+                        <motion.div 
+                            className="text-lg font-bold leading-tight"
+                            initial={{ opacity: 0 }}
+                            whileInView={{ 
+                                opacity: 1,
+                                transition: {
+                                    delay: 1,
+                                    duration: 0.8
+                                }
+                            }}
+                            viewport={{ once: false, amount: 0.3 }}
+                        >
+                            If we reduced this waste, families could redirect that money toward essentials like groceries, bills, education, or savings, making a meaningful difference in everyday life.
+                        </motion.div>
+                    </motion.div>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ 
+                            opacity: 1,
+                            scale: 1,
+                            transition: {
+                                type: "spring",
+                                duration: 0.8,
+                                bounce: 0.25,
+                                delay: 0.4
+                            }
+                        }}
+                        viewport={{ once: false, amount: 0.3 }}
+                    >
                         <div className="relative h-64">
                             <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-64 h-64 rounded-full bg-lightgreen relative">
-                                <div className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-darkgreen flex items-center justify-center text-xs text-white font-bold">
-                                $40b
-                                </div>
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center">
-                                <div className="text-lg font-bold">$2.7 trillion</div>
-                                <div className="text-xs">
-                                    Global waste management industry income in 2023
-                                </div>
-                                </div>
-                            </div>
+                                <motion.div 
+                                    className="w-64 h-64 rounded-full bg-lightgreen relative"
+                                    animate={{ 
+                                        rotate: [0, 5, 0, -5, 0],
+                                    }}
+                                    transition={{
+                                        duration: 10,
+                                        ease: "easeInOut",
+                                        repeat: Infinity,
+                                    }}
+                                >
+                                    <motion.div 
+                                        className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-darkgreen flex items-center justify-center text-xs text-white font-bold"
+                                        whileHover={{ scale: 1.2 }}
+                                    >
+                                        $40b
+                                    </motion.div>
+                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center">
+                                        <motion.div 
+                                            className="text-lg font-bold"
+                                            initial={{ opacity: 0 }}
+                                            whileInView={{ 
+                                                opacity: 1,
+                                                transition: {
+                                                    delay: 0.6,
+                                                    duration: 0.4
+                                                }
+                                            }}
+                                            viewport={{ once: false, amount: 0.3 }}
+                                        >
+                                            $2.7 trillion
+                                        </motion.div>
+                                        <motion.div 
+                                            className="text-xs"
+                                            initial={{ opacity: 0 }}
+                                            whileInView={{ 
+                                                opacity: 1,
+                                                transition: {
+                                                    delay: 0.8,
+                                                    duration: 0.4
+                                                }
+                                            }}
+                                            viewport={{ once: false, amount: 0.3 }}
+                                        >
+                                            Global waste management industry income in 2023
+                                        </motion.div>
+                                    </div>
+                                </motion.div>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
-                </div>
+                </motion.div>
             </div>
 
             {/* Interactive Food Waste Impact */}
@@ -419,122 +835,180 @@ export default function FoodImpact() {
                     </div>
 
                     {/* Metrics Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <motion.div 
+                        ref={metricCardsRef}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: false, amount: 0.3 }}
+                        variants={staggerContainerVariant}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"
+                    >
                         {/* Annual Cost */}
-                        <div
-                        className="bg-white rounded-xl p-6 shadow-md border border-gray-100"
-                        onMouseEnter={(e) => {
-                            const target = e.currentTarget;
-                            target.classList.add("transform", "scale-105");
-                        }}
-                        onMouseLeave={(e) => {
-                            const target = e.currentTarget;
-                            target.classList.remove("transform", "scale-105");
-                        }}
+                        <motion.div
+                            className="bg-white rounded-xl p-6 shadow-md border border-gray-100"
+                            variants={scaleInVariant}
+                            whileHover={{ 
+                                scale: 1.05,
+                                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                                transition: { 
+                                    duration: 0.2 
+                                }
+                            }}
+                            whileTap={{ scale: 0.98 }}
                         >
-                        <div className="flex items-center justify-start mb-4">
-                            <FontAwesomeIcon icon={faDollarSign} className="mr-1 text-teal-500 text-xl" />
-                            <h3 className="text-gray-500 font-medium">Annual Cost</h3>
-                        </div>
-                        <div className="flex items-end justify-start">
-                            <span className="text-3xl font-bold text-teal-600">$</span>
-                            <span
-                            className="text-4xl font-bold text-teal-600 counter-value"
-                            data-target="36.6"
-                            >
-                            36.6
-                            </span>
-                            <span className="text-3xl font-bold text-teal-600">B</span>
-                        </div>
-                        <div className="mt-2 text-sm text-gray-500 text-left">
-                            <span className="inline-flex items-center text-green">
-                            <FontAwesomeIcon icon={faArrowDown} className="mr-1 text-green" /> 2.3% from last year
-                            </span>
-                        </div>
-                        <div className="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
-                            <div
-                            className="h-full bg-teal-500 rounded-full"
-                            style={{ width: "70%" }}
-                            ></div>
-                        </div>
-                        </div>
+                            <div className="flex items-center justify-start mb-4">
+                                <FontAwesomeIcon icon={faDollarSign} className="mr-1 text-teal-500 text-xl" />
+                                <h3 className="text-gray-500 font-medium">Annual Cost</h3>
+                            </div>
+                            <div className="flex items-end justify-start">
+                                <span className="text-3xl font-bold text-teal-600">$</span>
+                                <motion.span
+                                    className="text-4xl font-bold text-teal-600"
+                                    initial={{ opacity: 0 }}
+                                    whileInView={{
+                                        opacity: 1,
+                                        transition: {
+                                            delay: 0.3,
+                                            duration: 0.5
+                                        }
+                                    }}
+                                    viewport={{ once: false, amount: 0.8 }}
+                                >
+                                    36.6
+                                </motion.span>
+                                <span className="text-3xl font-bold text-teal-600">B</span>
+                            </div>
+                            <div className="mt-2 text-sm text-gray-500 text-left">
+                                <span className="inline-flex items-center text-green">
+                                    <FontAwesomeIcon icon={faArrowDown} className="mr-1 text-green" /> 2.3% from last year
+                                </span>
+                            </div>
+                            <div className="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
+                                <motion.div
+                                    className="h-full bg-teal-500 rounded-full"
+                                    initial={{ width: 0 }}
+                                    whileInView={{ 
+                                        width: "70%",
+                                        transition: {
+                                            duration: 1,
+                                            delay: 0.5
+                                        }
+                                    }}
+                                    viewport={{ once: false, amount: 0.8 }}
+                                ></motion.div>
+                            </div>
+                        </motion.div>
 
                         {/* Tonnes Wasted */}
-                        <div
-                        className="bg-white rounded-xl p-6 shadow-md border border-gray-100"
-                        onMouseEnter={(e) => {
-                            const target = e.currentTarget;
-                            target.classList.add("transform", "scale-105");
-                        }}
-                        onMouseLeave={(e) => {
-                            const target = e.currentTarget;
-                            target.classList.remove("transform", "scale-105");
-                        }}
+                        <motion.div
+                            className="bg-white rounded-xl p-6 shadow-md border border-gray-100"
+                            variants={scaleInVariant}
+                            whileHover={{ 
+                                scale: 1.05,
+                                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                                transition: { 
+                                    duration: 0.2 
+                                }
+                            }}
+                            whileTap={{ scale: 0.98 }}
                         >
-                        <div className="flex items-center justify-start mb-4">
-                            <FontAwesomeIcon icon={faWeightHanging} className="mr-1 text-blue-500 text-xl" />
-                            <h3 className="text-gray-500 font-medium">Tonnes Wasted</h3>
-                        </div>
-                        <div className="flex items-end justify-start">
-                            <span
-                            className="text-4xl font-bold text-blue-600 counter-value"
-                            data-target="7.6"
-                            >
-                            7.6
-                            </span>
-                            <span className="text-3xl font-bold text-blue-600">M</span>
-                        </div>
-                        <div className="mt-2 text-sm text-gray-500 text-left">
-                            <span className="inline-flex items-center text-green">
-                            <FontAwesomeIcon icon={faArrowDown} className="mr-1" /> 1.8% from last year
-                            </span>
-                        </div>
-                        <div className="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
-                            <div
-                            className="h-full bg-blue-500 rounded-full"
-                            style={{ width: "60%" }}
-                            ></div>
-                        </div>
-                        </div>
+                            <div className="flex items-center justify-start mb-4">
+                                <FontAwesomeIcon icon={faWeightHanging} className="mr-1 text-blue-500 text-xl" />
+                                <h3 className="text-gray-500 font-medium">Tonnes Wasted</h3>
+                            </div>
+                            <div className="flex items-end justify-start">
+                                <motion.span
+                                    className="text-4xl font-bold text-blue-600"
+                                    initial={{ opacity: 0 }}
+                                    whileInView={{
+                                        opacity: 1,
+                                        transition: {
+                                            delay: 0.3,
+                                            duration: 0.5
+                                        }
+                                    }}
+                                    viewport={{ once: false, amount: 0.8 }}
+                                >
+                                    7.6
+                                </motion.span>
+                                <span className="text-3xl font-bold text-blue-600">M</span>
+                            </div>
+                            <div className="mt-2 text-sm text-gray-500 text-left">
+                                <span className="inline-flex items-center text-green">
+                                    <FontAwesomeIcon icon={faArrowDown} className="mr-1" /> 1.8% from last year
+                                </span>
+                            </div>
+                            <div className="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
+                                <motion.div
+                                    className="h-full bg-blue-500 rounded-full"
+                                    initial={{ width: 0 }}
+                                    whileInView={{ 
+                                        width: "60%",
+                                        transition: {
+                                            duration: 1,
+                                            delay: 0.5
+                                        }
+                                    }}
+                                    viewport={{ once: false, amount: 0.8 }}
+                                ></motion.div>
+                            </div>
+                        </motion.div>
 
                         {/* Household Waste */}
-                        <div
-                        className="bg-white rounded-xl p-6 shadow-md border border-gray-100"
-                        onMouseEnter={(e) => {
-                            const target = e.currentTarget;
-                            target.classList.add("transform", "scale-105");
-                        }}
-                        onMouseLeave={(e) => {
-                            const target = e.currentTarget;
-                            target.classList.remove("transform", "scale-105");
-                        }}
+                        <motion.div
+                            className="bg-white rounded-xl p-6 shadow-md border border-gray-100"
+                            variants={scaleInVariant}
+                            whileHover={{ 
+                                scale: 1.05,
+                                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                                transition: { 
+                                    duration: 0.2 
+                                }
+                            }}
+                            whileTap={{ scale: 0.98 }}
                         >
-                        <div className="flex items-center justify-start mb-4">
-                            <FontAwesomeIcon icon={faHome} className="mr-1 text-amber-500 text-xl" />
-                            <h3 className="text-gray-500 font-medium">Household Waste</h3>
-                        </div>
-                        <div className="flex items-end justify-start">
-                            <span
-                            className="text-4xl font-bold text-amber-600 counter-value"
-                            data-target="52.7"
-                            >
-                            52.7
-                            </span>
-                            <span className="text-3xl font-bold text-amber-600">%</span>
-                        </div>
-                        <div className="mt-2 text-sm text-gray-500 text-left">
-                            <span className="inline-flex items-center text-red-600">
-                            <FontAwesomeIcon icon={faArrowUp} className="mr-1" /> 0.5% from last year
-                            </span>
-                        </div>
-                        <div className="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
-                            <div
-                            className="h-full bg-amber-500 rounded-full"
-                            style={{ width: "52.7%" }}
-                            ></div>
-                        </div>
-                        </div>
-                    </div>
+                            <div className="flex items-center justify-start mb-4">
+                                <FontAwesomeIcon icon={faHome} className="mr-1 text-amber-500 text-xl" />
+                                <h3 className="text-gray-500 font-medium">Household Waste</h3>
+                            </div>
+                            <div className="flex items-end justify-start">
+                                <motion.span
+                                    className="text-4xl font-bold text-amber-600"
+                                    initial={{ opacity: 0 }}
+                                    whileInView={{
+                                        opacity: 1,
+                                        transition: {
+                                            delay: 0.3,
+                                            duration: 0.5
+                                        }
+                                    }}
+                                    viewport={{ once: false, amount: 0.8 }}
+                                >
+                                    52.7
+                                </motion.span>
+                                <span className="text-3xl font-bold text-amber-600">%</span>
+                            </div>
+                            <div className="mt-2 text-sm text-gray-500 text-left">
+                                <span className="inline-flex items-center text-red-600">
+                                    <FontAwesomeIcon icon={faArrowUp} className="mr-1" /> 0.5% from last year
+                                </span>
+                            </div>
+                            <div className="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
+                                <motion.div
+                                    className="h-full bg-amber-500 rounded-full"
+                                    initial={{ width: 0 }}
+                                    whileInView={{ 
+                                        width: "52.7%",
+                                        transition: {
+                                            duration: 1,
+                                            delay: 0.5
+                                        }
+                                    }}
+                                    viewport={{ once: false, amount: 0.8 }}
+                                ></motion.div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
                 </div>
             </div>
 
@@ -545,14 +1019,50 @@ export default function FoodImpact() {
                     {/* Environmental Impact Title */}
                     <div className="py-8">
                         <div className="w-full space-y-2">
-                            <div className="w-3/5 h-24 bg-darkgreen overflow-hidden"></div>
+                            <motion.div 
+                                className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                                initial={{ width: 0 }}
+                                whileInView={{ 
+                                    width: "60%",
+                                    transition: { duration: 0.8 }
+                                }}
+                                viewport={{ once: false, amount: 0.3 }}
+                            ></motion.div>
                             <div className="w-full flex flex-row items-center gap-12">
-                                <div className="w-1/5 h-24 bg-darkgreen overflow-hidden"></div>
-                                <h2 className="text-7xl md:text-9xl font-black text-darkgreen tracking-tight">
+                                <motion.div 
+                                    className="w-1/5 h-24 bg-darkgreen overflow-hidden"
+                                    initial={{ width: 0 }}
+                                    whileInView={{ 
+                                        width: "20%",
+                                        transition: { duration: 0.8, delay: 0.2 }
+                                    }}
+                                    viewport={{ once: false, amount: 0.3 }}
+                                ></motion.div>
+                                <motion.h2 
+                                    className="text-7xl md:text-9xl font-black text-darkgreen tracking-tight"
+                                    initial={{ opacity: 0, x: 50 }}
+                                    whileInView={{ 
+                                        opacity: 1, 
+                                        x: 0,
+                                        transition: {
+                                            duration: 0.8,
+                                            delay: 0.4
+                                        }
+                                    }}
+                                    viewport={{ once: false, amount: 0.3 }}
+                                >
                                     Environmental Impact
-                                </h2> 
+                                </motion.h2> 
                             </div>
-                            <div className="w-3/5 h-24 bg-darkgreen overflow-hidden"></div>  
+                            <motion.div 
+                                className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                                initial={{ width: 0 }}
+                                whileInView={{ 
+                                    width: "60%",
+                                    transition: { duration: 0.8, delay: 0.6 }
+                                }}
+                                viewport={{ once: false, amount: 0.3 }}
+                            ></motion.div>  
                         </div>
                     </div>
                 
@@ -737,19 +1247,61 @@ export default function FoodImpact() {
                 </div>
             </div>
 
-            {/* Around the World Section */}
-            <div className="flex flex-col md:flex-row items-center">
+            {/* Around the World Title */}
+            <motion.div 
+                className="flex flex-col md:flex-row items-center"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: false, amount: 0.3 }}
+                transition={{ duration: 0.5 }}
+            >
                 <div className="w-full space-y-2">
-                    <div className="w-3/5 h-24 bg-darkgreen overflow-hidden"></div>
+                    <motion.div 
+                        className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                        initial={{ width: 0 }}
+                        whileInView={{ 
+                            width: "60%",
+                            transition: { duration: 0.8 }
+                        }}
+                        viewport={{ once: false, amount: 0.3 }}
+                    ></motion.div>
                     <div className="w-full flex flex-row items-center gap-12">
-                        <div className="w-2/5 h-24 bg-darkgreen overflow-hidden"></div>
-                        <h2 className="text-9xl font-black text-darkgreen tracking-tight">
+                        <motion.div 
+                            className="w-2/5 h-24 bg-darkgreen overflow-hidden"
+                            initial={{ width: 0 }}
+                            whileInView={{ 
+                                width: "40%",
+                                transition: { duration: 0.8, delay: 0.2 }
+                            }}
+                            viewport={{ once: false, amount: 0.3 }}
+                        ></motion.div>
+                        <motion.h2 
+                            className="text-9xl font-black text-darkgreen tracking-tight"
+                            initial={{ opacity: 0, x: 50 }}
+                            whileInView={{ 
+                                opacity: 1,
+                                x: 0,
+                                transition: {
+                                    duration: 0.8,
+                                    delay: 0.4
+                                }
+                            }}
+                            viewport={{ once: false, amount: 0.3 }}
+                        >
                             Around the World
-                        </h2> 
+                        </motion.h2> 
                     </div>
-                    <div className="w-3/5 h-24 bg-darkgreen overflow-hidden"></div>  
+                    <motion.div 
+                        className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                        initial={{ width: 0 }}
+                        whileInView={{ 
+                            width: "60%",
+                            transition: { duration: 0.8, delay: 0.6 }
+                        }}
+                        viewport={{ once: false, amount: 0.3 }}
+                    ></motion.div>  
                 </div>
-            </div>
+            </motion.div>
 
             {/* Map Section */}
             <div className="py-16">
@@ -768,64 +1320,129 @@ export default function FoodImpact() {
             </div>
 
             {/* Slogan Section */}
-            <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center">
+            <motion.div 
+                ref={sloganRef}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false, amount: 0.3 }}
+                variants={staggerContainerVariant}
+                className="max-w-6xl mx-auto flex flex-col md:flex-row items-center mb-16"
+            >
                 <div className="w-full flex flex-row items-center">
                     <div className="w-1/3">
-                        <div className="w-3/5 h-16 bg-darkgreen overflow-hidden mb-4"></div>
-                        <div className="w-2/5 h-16 bg-darkgreen overflow-hidden mb-4"></div>
-                        <div className="w-3/5 h-16 bg-darkgreen overflow-hidden mb-4"></div> 
+                        <motion.div 
+                            className="w-3/5 h-16 bg-darkgreen overflow-hidden mb-4"
+                            variants={{
+                                hidden: { width: 0 },
+                                visible: { 
+                                    width: "60%",
+                                    transition: { duration: 0.6, delay: 0.1 }
+                                }
+                            }}
+                        ></motion.div>
+                        <motion.div 
+                            className="w-2/5 h-16 bg-darkgreen overflow-hidden mb-4"
+                            variants={{
+                                hidden: { width: 0 },
+                                visible: { 
+                                    width: "40%",
+                                    transition: { duration: 0.6, delay: 0.3 }
+                                }
+                            }}
+                        ></motion.div>
+                        <motion.div 
+                            className="w-3/5 h-16 bg-darkgreen overflow-hidden mb-4"
+                            variants={{
+                                hidden: { width: 0 },
+                                visible: { 
+                                    width: "60%",
+                                    transition: { duration: 0.6, delay: 0.5 }
+                                }
+                            }}
+                        ></motion.div>
                     </div>
-                    <div className="w-2/3">
+                    <motion.div 
+                        className="w-2/3"
+                        variants={fadeInUpVariant}
+                    >
                         <h2 className="text-5xl font-black text-darkgreen tracking-tight">
                             Together, we can make a difference to stop food waste.
                         </h2> 
-                    </div>
+                    </motion.div>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Sources */}
-            <div className="bg-green-50 py-16 ">
+            <motion.div 
+                className="bg-green-50 py-16"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ 
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.8 }
+                }}
+                viewport={{ once: false, amount: 0.1 }}
+            >
                 <div className="max-w-6xl mx-auto pt-4 border-t border-darkgreen sm:px-6 lg:px-8">
-                    <h2 className="text-3xl font-bold text-darkgreen mb-8">Sources</h2>
+                    <motion.h2 
+                        className="text-3xl font-bold text-darkgreen mb-8"
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ 
+                            opacity: 1,
+                            x: 0,
+                            transition: { 
+                                duration: 0.5,
+                                delay: 0.2
+                            }
+                        }}
+                        viewport={{ once: false, amount: 0.5 }}
+                    >
+                        Sources
+                    </motion.h2>
                     
-                    <div className="space-y-4 text-gray-700">
-                        <div className="flex items-start">
-                            <span className="font-bold mr-4 text-darkgreen">1.</span>
-                            <p>National Food Waste Strategy Feasibility Study (Source: Australian Government)</p>
-                        </div>
-                        
-                        <div className="flex items-start">
-                            <span className="font-bold mr-4 text-darkgreen">2.</span>
-                            <p>Food waste costs Australian economy $36.6 billion annually (Source: Rabobank Food Waste Report 2023)</p>
-                        </div>
-                        
-                        <div className="flex items-start">
-                            <span className="font-bold mr-4 text-darkgreen">3.</span>
-                            <p>Global greenhouse gas emissions from food systems (Source: UN FAO, Climate Watch)</p>
-                        </div>
-                        
-                        <div className="flex items-start">
-                            <span className="font-bold mr-4 text-darkgreen">4.</span>
-                            <p>GHG emissions per kg of different food products (Source: Our World in Data based on Poore & Nemecek 2018)</p>
-                        </div>
-                        
-                        <div className="flex items-start">
-                            <span className="font-bold mr-4 text-darkgreen">5.</span>
-                            <p>Company emissions: Scopes 1 & 2 – operational control, Scope 3 – category 11, upstream production only, 2021 (Source: company reporting)</p>
-                        </div>
-                        
-                        <div className="flex items-start">
-                            <span className="font-bold mr-4 text-darkgreen">6.</span>
-                            <p>2023 Domestic GHG emissions only (Source: EDGAR Community GHG Database)</p>
-                        </div>
-                        
-                        <div className="flex items-start">
-                            <span className="font-bold mr-4 text-darkgreen">7.</span>
-                            <p>Global food waste reduction initiatives and impact measurements (Source: UN Environment Programme)</p>
-                        </div>
-                    </div>
+                    <motion.div 
+                        className="space-y-4 text-gray-700"
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: false, amount: 0.3 }}
+                        variants={{
+                            visible: {
+                                transition: {
+                                    staggerChildren: 0.1
+                                }
+                            },
+                            hidden: {}
+                        }}
+                    >
+                        {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+                            <motion.div 
+                                key={num}
+                                className="flex items-start"
+                                variants={{
+                                    visible: { 
+                                        opacity: 1, 
+                                        x: 0,
+                                        transition: { duration: 0.5 }
+                                    },
+                                    hidden: { 
+                                        opacity: 0, 
+                                        x: -20
+                                    }
+                                }}
+                            >
+                                <span className="font-bold mr-4 text-darkgreen">{num}.</span>
+                                {num === 1 && <p>National Food Waste Strategy Feasibility Study (Source: Australian Government)</p>}
+                                {num === 2 && <p>Food waste costs Australian economy $36.6 billion annually (Source: Rabobank Food Waste Report 2023)</p>}
+                                {num === 3 && <p>Global greenhouse gas emissions from food systems (Source: UN FAO, Climate Watch)</p>}
+                                {num === 4 && <p>GHG emissions per kg of different food products (Source: Our World in Data based on Poore & Nemecek 2018)</p>}
+                                {num === 5 && <p>Company emissions: Scopes 1 & 2 – operational control, Scope 3 – category 11, upstream production only, 2021 (Source: company reporting)</p>}
+                                {num === 6 && <p>2023 Domestic GHG emissions only (Source: EDGAR Community GHG Database)</p>}
+                                {num === 7 && <p>Global food waste reduction initiatives and impact measurements (Source: UN Environment Programme)</p>}
+                            </motion.div>
+                        ))}
+                    </motion.div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     )
 }
