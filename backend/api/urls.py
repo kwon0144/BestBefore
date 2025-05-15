@@ -19,7 +19,6 @@ from .views import (
     get_game_resources
 )
 from .service import produce_detection_service
-from .service.produce_expiry_date_service import storage_assistant
 from .service.output_calender_service import generate_calendar, generate_ical
 from rest_framework.routers import DefaultRouter
 
@@ -28,7 +27,6 @@ urlpatterns = [
     path('detect-produce/', produce_detection_service.detect_produce, name='detect_produce'),
     path('food-types/', get_food_types, name='get_food_types'),
     path('storage-advice/', get_storage_advice, name='get_storage_advice'),
-    path('storage_assistant/', storage_assistant, name='storage_assistant'),
     path('generate_calendar/', generate_calendar, name='generate-calendar'),
     path('calendar/<uuid:calendar_id>.ics', generate_ical, name='generate-ical'),
     path('dish-ingredients/', get_dish_ingredients, name='get_dish_ingredients'),

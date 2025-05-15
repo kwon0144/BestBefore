@@ -30,7 +30,7 @@ type InventoryState = {
   removeItem: (id: string) => void;
   clearAll: () => void;
   // Camera identification function
-  addIdentifiedItem: (itemName: string, quantity?: string, expiryDays?: number) => void;
+  addIdentifiedItem: (itemName: string, quantity?: string, expiryDays?: number, location?: FoodItem['location']) => void;
   // Utility functions
   getItemsByLocation: (location: FoodItem['location']) => FoodItem[];
   calculateDaysLeft: (expiryDate: string) => number;
@@ -133,8 +133,9 @@ const useInventoryStore = create<InventoryState>()((set, get) => ({
    * @param {string} itemName - Name of the identified food item
    * @param {string} [quantity='1 item'] - Quantity of the item
    * @param {number} [expiryDays=7] - Default days until expiry
+   * @param {FoodItem['location']} [location='refrigerator'] - Storage location for the item
    */
-  addIdentifiedItem: (itemName, quantity = '1 item', expiryDays = 7) => {
+  addIdentifiedItem: (itemName, quantity = '1 item', expiryDays = 7, location = 'refrigerator') => {
     // Check if item with same name already exists
     const existingItem = get().items.find(
       (item) => item.name.toLowerCase() === itemName.toLowerCase()
@@ -150,18 +151,23 @@ const useInventoryStore = create<InventoryState>()((set, get) => ({
         quantity: updatedQuantity,
         // Reset expiry date to new value
         expiryDate: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString(),
+        // Update location if different
+        location: location as FoodItem['location']
       });
     } else {
       // If item doesn't exist, add new item
       const newItem: Omit<FoodItem, 'id'> = {
         name: itemName,
         quantity: quantity,
-        location: 'refrigerator', // Default location for camera-identified items
+        location: location as FoodItem['location'],
         expiryDate: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString(),
       };
 
       get().addItem(newItem);
     }
+    
+    // Log the action for debugging
+    console.log(`Added/updated item in inventory: ${itemName} in ${location} with ${expiryDays} days until expiry`);
   },
 
   /**

@@ -87,6 +87,7 @@ const FoodStorageAssistant: React.FC = () => {
 
   // Get the addIdentifiedItem function from the inventory store
   const addIdentifiedItem = useInventoryStore((state) => state.addIdentifiedItem);
+  const addItem = useInventoryStore((state) => state.addItem);
   
   // State to track if items were added to inventory
   const [itemsAddedToInventory, setItemsAddedToInventory] = useState(false);
@@ -162,35 +163,84 @@ const FoodStorageAssistant: React.FC = () => {
       
       for (const item of allItems) {
         try {
-          // Call the new storage_assistant endpoint
-          const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
-            produce_name: item
+          // Call the storage-advice endpoint (handles database and Claude fallback)
+          const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+            food_type: item
           });
-
-
+          
           const recommendation = response.data;
           const quantity = produceCounts[item] || 1;
-          const storageTime = recommendation.days;
           
-          // Add the item to inventory store
-          addIdentifiedItem(
-            item,                                     // Item name 
-            `${quantity} item${quantity > 1 ? 's' : ''}`,  // Quantity
-            storageTime                               // Expiry days
-          );
+          // Properly handle different API response formats
+          let fridgeStorageTime = 7; // Default fridge time
+          let pantryStorageTime = 14; // Default pantry time
+          let recommendedMethod = 'pantry'; // Default method
+          
+          // Extract storage times from the recommendation based on response format
+          if (typeof recommendation.method === 'number') {
+            // Database response format - method is a number (1=fridge, 2=pantry)
+            recommendedMethod = recommendation.method === 1 ? 'fridge' : 'pantry';
+            fridgeStorageTime = Number(recommendation.fridge) || fridgeStorageTime;
+            pantryStorageTime = Number(recommendation.pantry) || pantryStorageTime;
+          } else if (typeof recommendation.method === 'string') {
+            // Claude response format - method is a string ('fridge' or 'pantry')
+            recommendedMethod = recommendation.method;
+            // Claude might only provide one storage time in the 'days' field
+            const providedDays = Number(recommendation.days) || 7;
+            if (recommendedMethod === 'fridge') {
+              fridgeStorageTime = providedDays;
+            } else {
+              pantryStorageTime = providedDays;
+            }
+          }
+          
+          console.log(`Storage recommendation for ${item}:`, { 
+            fridgeTime: fridgeStorageTime, 
+            pantryTime: pantryStorageTime,
+            recommendedMethod 
+          });
+          
+          // Determine where to put the item based on recommendation
+          // This is an initial recommendation but user can change later
+          const isRecommendedForFridge = recommendedMethod === 'fridge';
+          
+          // Add the item to inventory store with the CORRECT storage time for the ACTUAL storage location
+          // This is critical - we need to use the appropriate storage time for WHERE the item is being stored
+          if (isRecommendedForFridge) {
+            // Instead of using addIdentifiedItem with 4 parameters, directly use addItem
+            // for more control over the location
+            addItem({
+              name: item,
+              quantity: `${quantity} item${quantity > 1 ? 's' : ''}`,
+              location: 'refrigerator',
+              expiryDate: new Date(Date.now() + fridgeStorageTime * 24 * 60 * 60 * 1000).toISOString()
+            });
+          } else {
+            // Add to pantry with pantry storage time
+            addItem({
+              name: item,
+              quantity: `${quantity} item${quantity > 1 ? 's' : ''}`,
+              location: 'pantry',
+              expiryDate: new Date(Date.now() + pantryStorageTime * 24 * 60 * 60 * 1000).toISOString()
+            });
+          }
 
-
-          if (recommendation.method === 'fridge') {
+          // Create label for display
+          const sourceLabel = recommendation.source 
+            ? `, ${recommendation.source}` 
+            : '';
+              
+          // Add to UI display lists
+          if (isRecommendedForFridge) {
             fridgeItems.push({
-              name: `${item} (${storageTime} days)`,
+              name: `${item} (${fridgeStorageTime} days${sourceLabel})`,
               quantity: quantity
             });
-          } else if (recommendation.method === 'pantry') {
+          } else {
             pantryItems.push({
-              name: `${item} (${storageTime} days)`,
+              name: `${item} (${pantryStorageTime} days${sourceLabel})`,
               quantity: quantity
             });
-
           }
         } catch (err) {
           console.error(`Error fetching storage advice for ${item}:`, err);
@@ -200,21 +250,22 @@ const FoodStorageAssistant: React.FC = () => {
           const isRefrigeratedItem = ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase());
           const defaultStorageTime = isRefrigeratedItem ? 7 : 14;
           
-          // Add to inventory even if there's an error
-          addIdentifiedItem(
-            item,
-            `${quantity} item${quantity > 1 ? 's' : ''}`,
-            defaultStorageTime
-          );
+          // Add to inventory even if there's an error - use addItem instead of addIdentifiedItem
+          addItem({
+            name: item,
+            quantity: `${quantity} item${quantity > 1 ? 's' : ''}`,
+            location: isRefrigeratedItem ? 'refrigerator' : 'pantry',
+            expiryDate: new Date(Date.now() + defaultStorageTime * 24 * 60 * 60 * 1000).toISOString()
+          });
           
           if (isRefrigeratedItem) {
             fridgeItems.push({ 
-              name: `${item} (${defaultStorageTime} days)`, 
+              name: `${item} (${defaultStorageTime} days, default)`, 
               quantity: quantity 
             });
           } else {
             pantryItems.push({ 
-              name: `${item} (${defaultStorageTime} days)`, 
+              name: `${item} (${defaultStorageTime} days, default)`, 
               quantity: quantity 
             });
           }
@@ -227,32 +278,8 @@ const FoodStorageAssistant: React.FC = () => {
       });
     } catch (err) {
       console.error('Error in fetchStorageRecommendations:', err);
-
-      // Use empty arrays instead of default data
-      const allItems = Object.keys(produceCounts).length > 0
-        ? Object.keys(produceCounts)
-        : [];
-      
-      const fridgeItems = allItems
-        .filter(item => ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase()))
-        .map(item => ({ 
-          name: `${item} (7 days)`, 
-          quantity: produceCounts[item] || 1 
-        }));
-      
-      const pantryItems = allItems
-        .filter(item => !['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase()))
-        .map(item => ({ 
-          name: `${item} (14 days)`, 
-          quantity: produceCounts[item] || 1 
-        }));
-      
-      setStorageRecs({
-        fridge: fridgeItems,
-        pantry: pantryItems,
-      });
     }
-  }, [addIdentifiedItem]);
+  }, [addIdentifiedItem, addItem]);
 
   /**
    * Updates storage recommendations state

@@ -18,7 +18,7 @@ import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } fro
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { config } from '@/config';
-import { addToast } from '@heroui/react';
+import { addToast, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
 import useInventoryStore, { FoodItem } from '@/store/useInventoryStore';
 
 /**
@@ -48,6 +48,17 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     index: number; 
     section: 'fridge' | 'pantry'; 
     item: { name: string; quantity: number } 
+  } | null>(null);
+  
+  // State for recommendation dialog
+  const [recommendationDialog, setRecommendationDialog] = useState<{
+    isOpen: boolean;
+    itemName: string;
+    recommendedSection: 'fridge' | 'pantry';
+    userSelectedSection: 'fridge' | 'pantry';
+    fridgeTime: number;
+    pantryTime: number;
+    sourceLabel: string;
   } | null>(null);
 
   // Get inventory store functions
@@ -109,13 +120,38 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     // If name changed, try to get storage time from API
     if (editValues.name !== originalName) {
       try {
-        const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
-          produce_name: editValues.name
+        // Call the unified storage-advice endpoint (handles database and Claude fallback)
+        const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+          food_type: editValues.name
         });
-
-        const storageTime = response.data.days;
+        
+        // Process recommendation
+        const recommendation = response.data;
+        let storageTime: number;
+        let sourceLabel: string;
+        
+        // Determine storage time based on response format
+        if (typeof recommendation.method === 'number') {
+          // Database-style response
+          const methodValue = recommendation.method === 1 ? 'fridge' : 'pantry';
+          storageTime = methodValue === 'fridge' 
+            ? Number(recommendation.fridge) || 7 
+            : Number(recommendation.pantry) || 14;
+        } else if (typeof recommendation.days === 'number') {
+          // Claude-style response
+          storageTime = recommendation.days;
+        } else {
+          // Fallback
+          storageTime = 7;
+        }
+        
+        // Create source label if available
+        sourceLabel = recommendation.source 
+          ? `, ${recommendation.source}` 
+          : '';
+        
         newStorageRecs[section][index] = {
-          name: `${editValues.name} (${storageTime} days)`,
+          name: `${editValues.name} (${storageTime} days${sourceLabel})`,
           quantity: editValues.quantity
         };
 
@@ -130,14 +166,18 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           updateItem(existingItem.id, {
             name: editValues.name,
             quantity: `${editValues.quantity} item${editValues.quantity > 1 ? 's' : ''}`,
-            expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
+            expiryDate: new Date(Date.now() + (Number.isFinite(storageTime) ? storageTime : 7) * 24 * 60 * 60 * 1000).toISOString()
           });
         }
-      } catch {
+      } catch (err) {
         // If API call fails, keep the original storage time
-        const originalStorageTime = item.name.match(/\((\d+) days\)/)?.[1] || '7';
+        const originalDetails = item.name.match(/\((\d+) days(?:, (\w+))?\)/);
+        const originalStorageTime = originalDetails?.[1] || '7';
+        const originalSource = originalDetails?.[2] || '';
+        const sourceLabel = originalSource ? `, ${originalSource}` : '';
+        
         newStorageRecs[section][index] = {
-          name: `${editValues.name} (${originalStorageTime} days)`,
+          name: `${editValues.name} (${originalStorageTime} days${sourceLabel})`,
           quantity: editValues.quantity
         };
 
@@ -152,7 +192,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           updateItem(existingItem.id, {
             name: editValues.name,
             quantity: `${editValues.quantity} item${editValues.quantity > 1 ? 's' : ''}`,
-            expiryDate: new Date(Date.now() + parseInt(originalStorageTime) * 24 * 60 * 60 * 1000).toISOString()
+            expiryDate: new Date(Date.now() + (Number.isFinite(parseInt(originalStorageTime)) ? parseInt(originalStorageTime) : 7) * 24 * 60 * 60 * 1000).toISOString()
           });
         }
       }
@@ -226,110 +266,138 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
    * @param {'fridge' | 'pantry'} section - Storage section to add the item to
    */
   const handleAdd = async (section: 'fridge' | 'pantry') => {
-    if (!newItem.name) return;
-
-
-    let storageTime = 21; // Default storage time
-    let actualSection = section; // The section may change based on API recommendation
-
-
-    try {
-      // First try to get storage advice from API
-      try {
-        const response = await axios.post<StorageAdviceResponse>(
-
-          `${config.apiUrl}/api/storage_assistant/`,
-          {
-            produce_name: newItem.name
-
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            },
-
-            timeout: 3000 // 3 second timeout
-
-          }
-        );
-
-        if (response.data) {
-
-          storageTime = response.data.days;
-          
-          // If section doesn't match the recommendation, override the section
-          if ((response.data.method === 'fridge' && section !== 'fridge') ||
-            (response.data.method === 'pantry' && section !== 'pantry')) {
-            // Use recommended section instead
-            actualSection = response.data.method;
-            
-            // Show toast notification about the correction
-            addToast({
-              title: "Storage Location Corrected",
-              description: `"${newItem.name}" is best stored in the ${response.data.method}`,
-              classNames: {
-                base: "bg-blue-100/70",
-                title: "text-blue-700 font-medium font-semibold",
-                description: "text-blue-700",
-                icon: "text-blue-700"
-              },
-              timeout: 3000
-            });
-          }
-
-        }
-      } catch (apiError: unknown) {
-        if (apiError && typeof apiError === 'object' && 'code' in apiError && apiError.code === 'ECONNABORTED') {
-          // Silently handle timeout errors
-        } else {
-          // Silently handle other API errors
-
-          console.error("Error getting storage advice:", apiError);
-        }
-      }
-    
-
-      // Add to inventory store with the correct storage time
-      const addedItem: Omit<FoodItem, 'id'> = {
-        name: newItem.name,
-        quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
-
-        location: (actualSection === 'fridge' ? 'refrigerator' : 'pantry') as 'refrigerator' | 'pantry',
-        expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString()
-      };
-      addItem(addedItem);
-      
-      // Update storageRecs state
-      const newStorageRecs = { ...storageRecs };
-      const newItemForDisplay = {
-        name: `${newItem.name} (${storageTime} days)`,
-        quantity: newItem.quantity
-      };
-      
-      newStorageRecs[actualSection] = [...newStorageRecs[actualSection], newItemForDisplay];
-      onUpdateStorageRecs(newStorageRecs);
-      
-    } catch (error) {
-      // Handle any other errors
-      console.error("Error adding item:", error);
+    if (!newItem.name.trim()) {
       addToast({
-        title: "Error Adding Item",
-        description: "There was a problem adding the item. Please try again.",
+        title: 'Error',
+        description: 'Please enter an item name',
         classNames: {
           base: "bg-red-100/70",
           title: "text-red-700 font-medium font-semibold",
           description: "text-red-700",
           icon: "text-red-700"
-        },
-        timeout: 3000
+        }
       });
-
+      return;
     }
 
-    // Reset form state and close the form
+    try {
+      // Call the unified storage-advice endpoint (handles database and Claude fallback)
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+        food_type: newItem.name
+      });
+      
+      // Process recommendation
+      const recommendation = response.data;
+      let recommendedMethod: 'fridge' | 'pantry' = 'pantry'; // Default method
+      
+      // Extract the storage times for both locations
+      const fridgeTime = Number(recommendation.fridge) || 7; // Default fridge time
+      const pantryTime = Number(recommendation.pantry) || 14; // Default pantry time
+      
+      // Determine the recommended method based on response format
+      if (typeof recommendation.method === 'number') {
+        // Database-style response
+        recommendedMethod = recommendation.method === 1 ? 'fridge' : 'pantry';
+      } else if (typeof recommendation.method === 'string') {
+        // Claude-style response with string method
+        recommendedMethod = recommendation.method === 'fridge' ? 'fridge' : 'pantry';
+      }
+      
+      // Create source label if available
+      const sourceLabel = recommendation.source 
+        ? `, ${recommendation.source}` 
+        : '';
+      
+      // If API recommends a different storage location than what user selected,
+      // show the recommendation dialog instead of a popup
+      if (recommendedMethod !== section) {
+        setRecommendationDialog({
+          isOpen: true,
+          itemName: newItem.name,
+          recommendedSection: recommendedMethod,
+          userSelectedSection: section,
+          fridgeTime,
+          pantryTime,
+          sourceLabel
+        });
+        return; // Wait for user decision via dialog
+      }
+      
+      // If recommendation matches user's selection, proceed directly
+      addItemToStorage(newItem.name, section, section === 'fridge' ? fridgeTime : pantryTime, sourceLabel);
+      
+    } catch (error) {
+      console.error('Error adding item:', error);
+      
+      // Default fallback for errors
+      const defaultStorageTime = section === 'fridge' ? 7 : 14;
+      
+      // Add to inventory even with error
+      addItemToStorage(newItem.name, section, defaultStorageTime, ', default');
+    }
+  };
+
+  /**
+   * Helper function to add item to storage after location is determined
+   */
+  const addItemToStorage = (itemName: string, section: 'fridge' | 'pantry', storageTime: number, sourceLabel: string) => {
+    // Add to inventory
+    const inventoryLocation = section === 'fridge' ? 'refrigerator' : 'pantry';
+    addItem({
+      name: itemName,
+      quantity: `${newItem.quantity} item${newItem.quantity > 1 ? 's' : ''}`,
+      expiryDate: new Date(Date.now() + storageTime * 24 * 60 * 60 * 1000).toISOString(),
+      location: inventoryLocation
+    });
+    
+    // Add to local storage recs
+    const newStorageRecs = { ...storageRecs };
+    newStorageRecs[section].push({
+      name: `${itemName} (${storageTime} days${sourceLabel})`,
+      quantity: newItem.quantity
+    });
+    
+    onUpdateStorageRecs(newStorageRecs);
     setNewItem({ name: '', quantity: 1 });
     setShowAddForm(null);
+    
+    addToast({
+      title: 'Item Added',
+      description: `${itemName} has been added to your ${section === 'fridge' ? 'refrigerator' : 'pantry'}.`,
+      classNames: {
+        base: "bg-green-50",
+        title: "text-green-700 font-medium font-semibold",
+        description: "text-green-700",
+        icon: "text-green-700"
+      },
+      timeout: 3000
+    });
+  };
+  
+  /**
+   * Handler for recommendation dialog confirmation
+   */
+  const handleRecommendationConfirm = (useRecommended: boolean) => {
+    if (!recommendationDialog) return;
+    
+    const { 
+      itemName, 
+      recommendedSection,
+      userSelectedSection,
+      fridgeTime,
+      pantryTime,
+      sourceLabel
+    } = recommendationDialog;
+    
+    // Use either the recommended location or user's original choice
+    const finalSection = useRecommended ? recommendedSection : userSelectedSection;
+    const storageTime = finalSection === 'fridge' ? fridgeTime : pantryTime;
+    
+    // Add the item with the chosen location
+    addItemToStorage(itemName, finalSection, storageTime, sourceLabel);
+    
+    // Close the dialog
+    setRecommendationDialog(null);
   };
 
   /**
@@ -380,7 +448,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
    * @param {'fridge' | 'pantry'} targetSection - Target storage section
    * @param {number} [targetIndex] - Optional target index for insertion
    */
-  const handleDrop = (e: React.DragEvent, targetSection: 'fridge' | 'pantry', targetIndex?: number) => {
+  const handleDrop = async (e: React.DragEvent, targetSection: 'fridge' | 'pantry', targetIndex?: number) => {
     e.preventDefault();
     
     if (!draggedItem) {
@@ -413,36 +481,113 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     }
     
 
-    // Remove the item from source section
-    newStorageRecs[sourceSection].splice(sourceIndex, 1);
-    
-    // If targetIndex is undefined, append to the end of the target section
-    const insertIndex = targetIndex !== undefined ? targetIndex : newStorageRecs[targetSection].length;
-    
-    // Insert the item at the destination
-    newStorageRecs[targetSection].splice(insertIndex, 0, movedItem);
-    
-    // Update the local state first
-    onUpdateStorageRecs(newStorageRecs);
-
-    // Update the Zustand store
+    // Get the item name without storage time info
     const itemName = movedItem.name?.split(' (')[0] || '';
-    const daysMatch = movedItem.name?.match(/\((\d+) days\)/);
-    const days = daysMatch ? parseInt(daysMatch[1]) : 7;
-    const location = targetSection === 'fridge' ? 'refrigerator' : 'pantry';
     
-    // Find the item in the inventory store
-    const existingItem = items.find(item => 
-      item.name.toLowerCase() === itemName.toLowerCase() && 
-      item.location === (sourceSection === 'fridge' ? 'refrigerator' : 'pantry')
-    );
-
-    if (existingItem) {
-      // Update the item's location and expiry date
-      updateItem(existingItem.id, {
-        location: location,
-        expiryDate: new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
+    try {
+      // Get the correct storage time for the target location from the API
+      const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
+        food_type: itemName
       });
+      
+      // Determine the new storage time based on the target location
+      let newStorageTime: number; 
+      let sourceLabel = '';
+      
+      if (response.data) {
+        // Get storage times from API response
+        const fridgeTime = Number(response.data.fridge) || 7;
+        const pantryTime = Number(response.data.pantry) || 14;
+        
+        // Use the correct time based on target location
+        newStorageTime = targetSection === 'fridge' ? fridgeTime : pantryTime;
+        
+        // Add source label if available
+        sourceLabel = response.data.source ? `, ${response.data.source}` : '';
+      } else {
+        // Fallback if API fails
+        newStorageTime = targetSection === 'fridge' ? 7 : 14;
+        sourceLabel = ', default';
+      }
+      
+      console.log(`Moving ${itemName} to ${targetSection}:`, {
+        targetSection,
+        newStorageTime,
+        sourceLabel
+      });
+      
+      // Remove the item from source section
+      newStorageRecs[sourceSection].splice(sourceIndex, 1);
+      
+      // If targetIndex is undefined, append to the end of the target section
+      const insertIndex = targetIndex !== undefined ? targetIndex : newStorageRecs[targetSection].length;
+      
+      // Update the item with new storage time before inserting
+      const updatedItem = {
+        ...movedItem,
+        name: `${itemName} (${newStorageTime} days${sourceLabel})`
+      };
+      
+      // Insert the updated item at the destination
+      newStorageRecs[targetSection].splice(insertIndex, 0, updatedItem);
+      
+      // Update the local state
+      onUpdateStorageRecs(newStorageRecs);
+
+      // Update the inventory store
+      const sourceLocation = sourceSection === 'fridge' ? 'refrigerator' : 'pantry';
+      const targetLocation = targetSection === 'fridge' ? 'refrigerator' : 'pantry';
+      
+      // Find the item in the inventory store
+      const existingItem = items.find(item => 
+        item.name.toLowerCase() === itemName.toLowerCase() && 
+        item.location === sourceLocation
+      );
+
+      if (existingItem) {
+        // Update the item's location and expiry date with the correct storage time
+        updateItem(existingItem.id, {
+          location: targetLocation,
+          expiryDate: new Date(Date.now() + newStorageTime * 24 * 60 * 60 * 1000).toISOString(),
+          daysLeft: newStorageTime
+        });
+      }
+      
+    } catch (error) {
+      console.error(`Error getting storage advice for ${itemName}:`, error);
+      
+      // Fall back to simpler approach if API fails
+      // Remove the item from source section
+      newStorageRecs[sourceSection].splice(sourceIndex, 1);
+      
+      // If targetIndex is undefined, append to the end of the target section
+      const insertIndex = targetIndex !== undefined ? targetIndex : newStorageRecs[targetSection].length;
+      
+      // Insert the item at the destination
+      newStorageRecs[targetSection].splice(insertIndex, 0, movedItem);
+      
+      // Update the local state first
+      onUpdateStorageRecs(newStorageRecs);
+
+      // Update the Zustand store with default values
+      const defaultDays = targetSection === 'fridge' ? 7 : 14;
+      const sourceLocation = sourceSection === 'fridge' ? 'refrigerator' : 'pantry';
+      const targetLocation = targetSection === 'fridge' ? 'refrigerator' : 'pantry';
+      
+      // Find the item in the inventory store
+      const existingItem = items.find(item => 
+        item.name.toLowerCase() === itemName.toLowerCase() && 
+        item.location === sourceLocation
+      );
+
+      if (existingItem) {
+        // Update the item's location and expiry date
+        updateItem(existingItem.id, {
+          location: targetLocation,
+          expiryDate: new Date(Date.now() + defaultDays * 24 * 60 * 60 * 1000).toISOString(),
+          daysLeft: defaultDays
+        });
+      }
     }
     
     // Reset dragged item
@@ -469,8 +614,14 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
             return null;
           }
 
-          const days = item.name.match(/\((\d+) days\)/)?.[1] || '';
-          const itemName = item.name.replace(/ \(\d+ days\)/, '');
+          // Extract the item details with updated regex to handle source as well
+          const detailsMatch = item.name.match(/\((\d+) days(?:, (\w+))?\)/);
+          const days = detailsMatch ? detailsMatch[1] : '7';
+          const source = detailsMatch && detailsMatch[2] ? detailsMatch[2] : '';
+          const itemName = item.name.split(' (')[0];
+          
+          // Storage label with source if available
+          const storageLabel = source ? `${days} days, ${source}` : `${days} days`;
           
           if (editingItem?.index === index && editingItem?.section === section) {
             return (
@@ -513,7 +664,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
               <div className="grid grid-cols-3 w-full items-center">
                 <div className="text-left">{itemName}</div>
                 <div className="text-center text-gray-600">Qty: {item.quantity}</div>
-                <div className="text-right text-gray-600">Storage: {days} days</div>
+                <div className="text-right text-gray-600">Storage: {storageLabel}</div>
               </div>
               <div className="flex gap-2 ml-4">
                 <button onClick={() => handleEdit(index, section)} className="text-blue-500">
@@ -532,6 +683,65 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
 
   return (
     <div className="flex flex-col md:grid md:grid-cols-2 gap-8">
+      {/* Recommendation Dialog */}
+      <Modal 
+        isOpen={recommendationDialog !== null} 
+        onClose={() => setRecommendationDialog(null)}
+        size="md"
+      >
+        <ModalContent>
+          <ModalHeader className="flex flex-col gap-1">
+            <h3 className="text-xl font-semibold text-darkgreen">Storage Recommendation</h3>
+          </ModalHeader>
+          <ModalBody>
+            {recommendationDialog && (
+              <div className="space-y-4">
+                <p>
+                  <span className="font-semibold">{recommendationDialog.itemName}</span> is recommended 
+                  to be stored in the <span className="font-semibold text-amber-700">
+                    {recommendationDialog.recommendedSection === 'fridge' ? 'refrigerator' : 'pantry'}
+                  </span>.
+                </p>
+                
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="border border-blue-200 bg-blue-50 p-4 rounded-lg text-center">
+                    <p className="font-semibold text-blue-700">Refrigerator</p>
+                    <p className="mt-2 text-blue-700 text-lg font-bold">{recommendationDialog.fridgeTime} days</p>
+                    <p className="text-sm text-blue-600">storage time</p>
+                  </div>
+                  
+                  <div className="border border-amber-200 bg-amber-50 p-4 rounded-lg text-center">
+                    <p className="font-semibold text-amber-700">Pantry</p>
+                    <p className="mt-2 text-amber-700 text-lg font-bold">{recommendationDialog.pantryTime} days</p>
+                    <p className="text-sm text-amber-600">storage time</p>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-gray-600 mt-2">
+                  Would you like to use the recommended storage location or continue with your selection?
+                </p>
+              </div>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button 
+              variant="light" 
+              onPress={() => handleRecommendationConfirm(false)}
+              className="mr-2"
+            >
+              Use My Selection
+            </Button>
+            <Button 
+              color="primary"
+              onPress={() => handleRecommendationConfirm(true)}
+              className="bg-darkgreen hover:bg-darkgreen/90"
+            >
+              Use Recommendation
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
       {noItemsDetected && (
         <div className="col-span-2 bg-amber-100/50 border-l-4 border-amber-500 text-amber-700 p-4 mb-4 rounded">
           <p className="font-bold">No Items in Inventory!</p>
