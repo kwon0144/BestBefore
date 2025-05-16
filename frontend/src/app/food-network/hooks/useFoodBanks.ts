@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { Foodbank, FoodbankResponse } from "@/app/food-network/interfaces/Foodbank";
 
 /**
@@ -36,15 +37,10 @@ export function useFoodBanks(): {
         const fetchFoodbanks = async () => {
             try {
                 const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                const response = await fetch(`${backendUrl}/api/foodbanks/`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch foodbanks');
-                }
-                const responseData: FoodbankResponse = await response.json();
-                setFoodbanks(responseData.data);
+                const response = await axios.get<FoodbankResponse>(`${backendUrl}/api/foodbanks/`);
+                setFoodbanks(response.data.data);
             } catch (error) {
                 setError(`Error fetching foodbanks: ${error}`);
-
             } finally {
                 setLoading(false);
             }
@@ -87,14 +83,10 @@ export function useFoodBankById(selectedEnd: string | null): {
 
             try {
                 const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                const response = await fetch(`${backendUrl}/api/foodbanks/`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch foodbank data');
-                }
-                const responseData: FoodbankResponse = await response.json();
+                const response = await axios.get<FoodbankResponse>(`${backendUrl}/api/foodbanks/`);
 
                 // Find the foodbank with matching ID
-                const selectedFoodbank = responseData.data.find(
+                const selectedFoodbank = response.data.data.find(
                     (bank: Foodbank) => bank.id === parseInt(selectedEnd)
                 );
                 setFoodbank(selectedFoodbank || null);

@@ -16,8 +16,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Title from "../(components)/Title"
-import { useGroceryPlanner } from "@/hooks/useGroceryPlanner";
-import { useSignatureDishes } from "@/hooks/useSignatureDishes";
+import { useGroceryPlanner } from "@/app/eco-grocery/hooks/useGroceryPlanner";
+import { useSignatureDishes } from "@/app/eco-grocery/hooks/useSignatureDishes";
 import { PantrySummary } from "../(components)/Inventory";
 import { MealChoice as MealChoiceType, SignatureDish } from "@/app/eco-grocery/interfaces/MealChoice";
 import Search from "./Search";
