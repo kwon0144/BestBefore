@@ -32,9 +32,9 @@ import {
 } from './interfaces';
 import Title from "../(components)/Title";
 import StorageAssistantStepper from "./StorageAssistantStepper";
-import { addToast, Button, ToastProvider } from "@heroui/react";
+import { addToast, Button, ToastProvider, Tooltip } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faBell, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faBell, faCalendarAlt, faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import useInventoryStore from "@/store/useInventoryStore";
 
 /**
@@ -451,24 +451,68 @@ const FoodStorageAssistant: React.FC = () => {
             {/* Step 1: Camera and Photo Capture */}
             {currentStep === 0 ? (
               <div className="border-green border-2 rounded-lg p-10 mb-8">
-                <h2 className="text-2xl font-semibold text-darkgreen mb-2">
-                  Step 1: Scan your Groceries
-                </h2>
+                <div className="flex justify-between">
+                  <h2 className="text-2xl font-semibold text-darkgreen mb-2">
+                    Step 1: Scan your Groceries
+                  </h2>
+                  <Tooltip
+                    showArrow
+                    classNames={{
+                      base: [
+                        "before:bg-white before:border-b before:border-r before:border-green-200",
+                      ],
+                      content: [
+                        "py-4 px-5 shadow-lg",
+                        "text-darkgreen bg-white",
+                        "rounded-lg border border-green-200",
+                        "max-w-[280px] w-[280px]"
+                      ],
+                    }}
+                    content={
+                      <div className="text-xs max-w-xs">
+                        <div className="flex items-center mb-3 pb-2 border-b border-green-200 text-sm">
+                          <FontAwesomeIcon icon={faCircleExclamation} className="text-green-600 mr-2" />
+                          <p className="font-semibold text-sm text-darkgreen">Camera Usage Disclaimer</p>
+                        </div>
+                        <ul className="space-y-3">
+                          <li className="flex items-start">
+                            <span className="text-green-600 mr-2 font-bold text-sm">•</span>
+                            <span className="leading-snug">Photos taken are processed only on your device and our secure server</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-green-600 mr-2 font-bold text-sm">•</span>
+                            <span className="leading-snug">Images are not permanently stored and are deleted after analysis</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-green-600 mr-2 font-bold text-sm">•</span>
+                            <span className="leading-snug">No personal information is gathered through the camera feature</span>
+                          </li>
+                          <li className="flex items-start">
+                            <span className="text-green-600 mr-2 font-bold text-sm">•</span>
+                            <span className="leading-snug">You may need to grant camera permissions in your browser settings</span>
+                          </li>
+                        </ul>
+                        <div className="mt-3 pt-2 border-t border-green-200 text-[10px] text-green-700 italic">
+                          Your privacy is our priority
+                        </div>
+                      </div>
+                    }
+                    placement="left-start"
+                  >
+                    <div
+                      className="w-6 h-6 rounded-full bg-green-100 text-darkgreen flex items-center justify-center hover:bg-green-200 transition-colors cursor-help"
+                      role="button"
+                      aria-label="Disclaimer"
+                      tabIndex={-1}
+                    >
+                      <FontAwesomeIcon icon={faCircleExclamation} className="text-xl" />
+                    </div>
+                  </Tooltip>
+                </div>
                 <p className="text-md text-gray-700 mb-10">
                   Take photos of your groceries to get personalised storage recommendations.
                 </p>
                 <Camera state={state} setState={setState} submitPhotos={submitPhotos} handleReset={handleReset} />
-                
-                {/* Camera disclaimer */}
-                <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-600">
-                  <p className="font-medium mb-1">Camera Usage Disclaimer:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Photos taken are processed only on your device and our secure server</li>
-                    <li>Images are not permanently stored and are deleted after analysis</li>
-                    <li>No personal information is gathered through the camera feature</li>
-                    <li>You may need to grant camera permissions in your browser settings</li>
-                  </ul>
-                </div>
               </div>
             ) : (
               <>
@@ -586,19 +630,6 @@ const FoodStorageAssistant: React.FC = () => {
                 imageAlt="Eco Grocery"
               />
             )}
-          </div>
-            
-          {/* Footer disclaimer for all pages */}
-          <div className="max-w-7xl mx-auto px-10 py-6 mb-10 border-t border-gray-200">
-            <div className="text-center text-sm text-gray-600">
-              <p className="font-medium mb-2">BestBefore Privacy & Data Usage Notice:</p>
-              <p className="mb-2">
-                This application processes and stores food inventory data locally in your browser. No personal data is 
-                shared with third parties. Food detection and storage recommendations are handled by our AI algorithms 
-                using anonymized data. For any questions about data handling, please contact our support team.
-              </p>
-              <p className="text-xs">© {new Date().getFullYear()} BestBefore. All rights reserved.</p>
-            </div>
           </div>
       </div>  
   );
