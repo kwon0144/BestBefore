@@ -378,7 +378,7 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
 
   return (
     <div ref={ref} className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex justify-between">
+        <div className="flex flex-row gap-2">
           <h2 className="text-2xl font-semibold text-darkgreen">
             Grocery List
           </h2>
@@ -390,7 +390,7 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
             ]}
             header="For Reference Only"
             footerText="Recommendations for reference only"
-            placement="left-start"
+            placement="right-start"
             icon={faCircleExclamation}
             ariaLabel="Disclaimer"
           />
