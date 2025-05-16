@@ -12,7 +12,7 @@
 
 import { Button } from "@heroui/react";
 import { SetStateAction, Dispatch } from "react";
-import { useFoodBankById } from "@/hooks/useFoodBank";
+import { useFoodBankById } from "@/hooks/useFoodBanks";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faMapMarkerAlt, 

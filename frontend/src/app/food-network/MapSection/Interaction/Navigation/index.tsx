@@ -14,7 +14,7 @@ import LocationInput from "./LocationInput";
 import SubmitButton from "./SubmitButton";
 import { Dispatch, SetStateAction, useState } from "react";
 import CurrentLocationButton from "./CurrentLocationButton";
-import { useFoodBankById } from "@/hooks/useFoodBank";
+import { useFoodBankById } from "@/hooks/useFoodBanks";
 import TravelModeSelection from "./TravelModeSelection";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

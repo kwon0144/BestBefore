@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect, useMemo, SetStateAction, Dispatch } from 'react';
 import { Input, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Pagination, Select, SelectItem } from "@heroui/react";
-import { useFoodBanks } from '@/hooks/useFoodBank';
+import { useFoodBanks } from '@/hooks/useFoodBanks';
 import { Foodbank } from '@/interfaces/Foodbank';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';

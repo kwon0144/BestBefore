@@ -12,7 +12,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { Button } from "@heroui/react";
 import { faRoute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useFoodBankById } from "@/hooks/useFoodBank";
+import { useFoodBankById } from "@/hooks/useFoodBanks";
 import { MapSectionState } from "@/app/food-network/interfaces";
 
 /**

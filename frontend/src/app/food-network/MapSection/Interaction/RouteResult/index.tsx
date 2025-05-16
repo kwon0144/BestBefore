@@ -6,7 +6,7 @@
  * Users can navigate back to the previous view or choose a different destination.
  */
 
-import { useFoodBankById } from "@/hooks/useFoodBank";
+import { useFoodBankById } from "@/hooks/useFoodBanks";
 import { useGeocoding } from "@/hooks/useGeocoding";
 import { Button } from "@heroui/react";
 import { Dispatch, SetStateAction } from "react";

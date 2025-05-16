@@ -15,7 +15,7 @@ import Markers from "./Markers";
 import Directions from "./Directions";
 import StartMarker from "./StartMarker";
 import { Dispatch, SetStateAction, useEffect, forwardRef, useImperativeHandle, useState } from "react";
-import { useFoodBanks } from "@/hooks/useFoodBank";
+import { useFoodBanks } from "@/hooks/useFoodBanks";
 import { Foodbank, OperationSchedule } from "@/interfaces/Foodbank";
 import WhereAmIButton from "./WhereAmIButton";
 import { MapSectionState } from "@/app/food-network/interfaces";
