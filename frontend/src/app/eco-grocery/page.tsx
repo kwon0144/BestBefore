@@ -17,9 +17,9 @@
 import { useState, useEffect, useRef } from "react";
 import Title from "../(components)/Title"
 import { useGroceryPlanner } from "@/hooks/useGroceryPlanner";
+import { useSignatureDishes } from "@/hooks/useSignatureDishes";
 import { PantrySummary } from "../(components)/Inventory";
-import { MealChoice as MealChoiceType, SignatureDish } from "./interfaces";
-import axios from 'axios';
+import { MealChoice as MealChoiceType, SignatureDish } from "@/interfaces/MealChoice";
 import { config } from '@/config';
 import Search from "./Search";
 import PopularMeal from "./PopularMeal";
@@ -39,8 +39,6 @@ export default function EcoGrocery() {
     const selectedMealRef = useRef<HTMLDivElement>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
-    const [signatureDishes, setSignatureDishes] = useState<SignatureDish[]>([]);
-    const [isLoadingSignatureDishes, setIsLoadingSignatureDishes] = useState(false);
     
     // Use the grocery planner hook
     const {
@@ -56,6 +54,22 @@ export default function EcoGrocery() {
         generateGroceryList,
         getGroceryItemsByCategory
     } = useGroceryPlanner();
+    
+    // Use the signature dishes hook
+    const {
+        signatureDishes,
+        loading: isLoadingSignatureDishes,
+        error: signatureDishesError,
+        fetchDishes
+    } = useSignatureDishes({
+        apiUrl: config.apiUrl,
+        initialCuisine: null
+    });
+    
+    // Update signature dishes when cuisine changes
+    useEffect(() => {
+        fetchDishes(selectedCuisine);
+    }, [selectedCuisine, fetchDishes]);
 
     const popularMeals = [
         'Chinese Cuisine',
@@ -104,36 +118,6 @@ export default function EcoGrocery() {
             cuisine: 'Mediterranean'
         }
     ];
-    
-    /**
-     * Fetches signature dishes from the API when a cuisine is selected
-     */
-    useEffect(() => {
-        if (!selectedCuisine) {
-            setSignatureDishes([]);
-            return;
-        }
-
-        const fetchSignatureDishes = async () => {
-            setIsLoadingSignatureDishes(true);
-            try {
-                const apiUrl = `${config.apiUrl}/api/signature-dishes/`;
-                
-                const response = await axios.get<SignatureDish[]>(apiUrl, {
-                    params: { cuisine: selectedCuisine }
-                });
-                
-                setSignatureDishes(response.data);
-            } catch (error) {
-                console.error('Error fetching signature dishes:', error);
-                setSignatureDishes([]);
-            } finally {
-                setIsLoadingSignatureDishes(false);
-            }
-        };
-
-        fetchSignatureDishes();
-    }, [selectedCuisine]);
     
     /**
      * Filters meals based on selected cuisine

@@ -2,29 +2,8 @@ import { useState, useCallback } from 'react';
 import useInventoryStore from '@/store/useInventoryStore';
 import axios from 'axios';
 import { config } from '@/config';
-
-// Type for grocery list API response
-export type GroceryListResponse = {
-  success: boolean;
-  dishes?: string[];
-  items_by_category?: Record<string, GroceryItem[]>;
-  pantry_items?: Array<{ name: string; quantity: string }>;
-  error?: string;
-};
-
-// Type for grocery item
-export type GroceryItem = {
-  name: string;
-  quantity: string;
-  category: string;
-};
-
-// Type for meal
-export type Meal = {
-  id: number;
-  name: string;
-  quantity: number;
-};
+import { GroceryItem, GroceryListResponse } from '@/interfaces/GroceryItem';
+import { Meal } from '@/interfaces/MealChoice';
 
 export const useGroceryPlanner = () => {
   const [selectedMeals, setSelectedMeals] = useState<Meal[]>([]);
@@ -104,10 +83,6 @@ export const useGroceryPlanner = () => {
     setError(null);
 
     try {
-      // Add a log to see what's being sent
-      console.log("Sending request with meals:", selectedMeals);
-      console.log("Sending inventory data:", inventoryItems);
-
       const response = await axios.post(`${config.apiUrl}/api/search-dishes/`, {
         selected_meals: selectedMeals,
         inventory: inventoryItems.map(item => ({
@@ -122,9 +97,6 @@ export const useGroceryPlanner = () => {
         },
         withCredentials: false
       });
-
-      console.log("Response status:", response.status);
-      console.log("Response data:", response.data);
 
       if (response.status !== 200) {
         throw new Error(`API error: ${response.status}`);
@@ -164,7 +136,6 @@ export const useGroceryPlanner = () => {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       setError(errorMessage);
-      console.error('Error generating grocery list:', err);
     } finally {
       setLoading(false);
     }

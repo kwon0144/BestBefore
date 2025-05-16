@@ -6,7 +6,7 @@
  * user's pantry and marks them accordingly to prevent unnecessary purchases.
  */
 import { forwardRef, useState } from "react";
-import { GroceryListProps } from "../interfaces";
+import { GroceryListProps } from "@/interfaces/GroceryItem";
 import { Skeleton, Button, Input } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faEdit, faCheck, faTimes, faPlus, faPen, faCircleExclamation } from "@fortawesome/free-solid-svg-icons";

@@ -7,9 +7,10 @@
  */
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faSpinner, faUtensils } from "@fortawesome/free-solid-svg-icons";
-import { MealChoicesProps } from "../interfaces";
+import { faPlus, faSpinner, faUtensils, faImage } from "@fortawesome/free-solid-svg-icons";
+import { MealChoicesProps } from "@/interfaces/MealChoice";
 import Image from "next/image";
+import { useState } from "react";
 
 /**
  * Renders a grid of meal choices for user selection
@@ -30,6 +31,17 @@ export default function MealChoice({
   // Determine the title based on whether signature dishes are being shown
   const title = selectedCuisine ? `Signature Dishes from ${selectedCuisine}` : "Choices of Meals";
 
+  // Track image loading errors
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+
+  // Handle image load error
+  const handleImageError = (mealId: number) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [mealId]: true
+    }));
+  };
+
   return (
     <div className="flex flex-col h-full">
       <h2 className="text-2xl font-semibold text-darkgreen mb-4">
@@ -49,13 +61,15 @@ export default function MealChoice({
             {filteredMealChoices.map((meal) => (
               <div key={meal.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="relative h-32 overflow-hidden">
-                  {meal.imageUrl ? (
+                  {meal.imageUrl && !imageErrors[meal.id] ? (
                     <Image
                       src={meal.imageUrl}
                       alt={meal.name}
                       className="object-cover object-top"
                       fill
                       sizes="(max-width: 768px) 100vw, 300px"
+                      onError={() => handleImageError(meal.id)}
+                      unoptimized={meal.imageUrl.startsWith('https://s3-')}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-200">
