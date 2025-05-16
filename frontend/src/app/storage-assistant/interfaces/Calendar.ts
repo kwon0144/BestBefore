@@ -15,11 +15,3 @@ export interface CalendarSelection {
     reminderDays: number;
     reminderTime: string;
 }
-
-/**
- * Interface for calendar API response
- */
-export interface CalendarResponse {
-    calendar_url: string;
-    success?: boolean; // Make success optional
-} 

@@ -70,17 +70,6 @@ export interface SelectedMealsProps {
 }
 
 /**
- * Props for the SelectedMeal component with generate button
- */
-export interface SelectedMealWithButtonProps {
-    selectedMeals: Meal[];
-    adjustQuantity: (id: number, change: number) => void;
-    removeMeal: (id: number) => void;
-    onGenerate: () => void;
-    loading: boolean;
-}
-
-/**
  * Interface for selected meals in the planner
  */
 export interface Meal {
