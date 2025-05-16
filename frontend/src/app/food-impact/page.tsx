@@ -7,6 +7,7 @@ import { useRef, useState, useEffect } from "react";
 import * as echarts from "echarts";
 import { Slider } from "@heroui/react";
 import { motion, AnimatePresence, useScroll, useTransform, useAnimation, useInView, Variants } from "framer-motion";
+import GradientText from "../(components)/Gradient Text";
 
 export default function FoodImpact() {
     const chartRef = useRef<HTMLDivElement>(null);
@@ -290,88 +291,80 @@ export default function FoodImpact() {
     
     return (
         <div>
-            {/* Title */}
-            <div className="py-12">
-                <Title heading="Food Impact" 
-                description="Explore the impact of food on the environment and how we can reduce waste and improve sustainability." 
-                background="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/foodimpact-titlebg.jpeg"
-                />
-            </div>
-
-            {/* Vertical Progress Bar */}
-            <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-50">
+            {/* Vertical Progress Bar - Updated for better mobile responsiveness */}
+            <div className="fixed right-4 md:right-6 top-1/2 transform -translate-y-1/2 z-50">
                 <div className="flex flex-col items-center">
                     {/* Progress Line */}
                     <div className="absolute h-full w-0.5 bg-gray-300 left-1/2 transform -translate-x-1/2 z-0"></div>
                     
                     {/* Australia Waste Section */}
                     <div 
-                        className={`relative z-10 mb-6 cursor-pointer group`}
+                        className={`relative z-10 mb-4 md:mb-6 cursor-pointer group`}
                         onClick={() => scrollToSection('australia-waste')}
                     >
                         <div 
-                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                            className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300
                                 ${activeSection === 'australia-waste' 
                                     ? 'bg-green text-white' 
                                     : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-100'}`}
                         >
-                            <FontAwesomeIcon icon={faAppleWhole} className="text-lg" />
+                            <FontAwesomeIcon icon={faAppleWhole} className="text-sm md:text-lg" />
                         </div>
-                        <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-sm py-1 px-3 rounded">
+                        <div className="absolute right-full mr-2 md:mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-xs md:text-sm py-1 px-2 md:px-3 rounded">
                             Australia Waste
                         </div>
                     </div>
                     
                     {/* Economic Loss Section */}
                     <div 
-                        className={`relative z-10 mb-6 cursor-pointer group`}
+                        className={`relative z-10 mb-4 md:mb-6 cursor-pointer group`}
                         onClick={() => scrollToSection('economic-loss')}
                     >
                         <div 
-                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                            className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300
                                 ${activeSection === 'economic-loss' 
                                     ? 'bg-green text-white' 
                                     : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-100'}`}
                         >
-                            <FontAwesomeIcon icon={faMoneyBill} className="text-lg" />
+                            <FontAwesomeIcon icon={faMoneyBill} className="text-sm md:text-lg" />
                         </div>
-                        <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-sm py-1 px-3 rounded">
+                        <div className="absolute right-full mr-2 md:mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-xs md:text-sm py-1 px-2 md:px-3 rounded">
                             Economic Loss
                         </div>
                     </div>
                     
                     {/* Environmental Impact Section */}
                     <div 
-                        className={`relative z-10 mb-6 cursor-pointer group`}
+                        className={`relative z-10 mb-4 md:mb-6 cursor-pointer group`}
                         onClick={() => scrollToSection('environmental-impact')}
                     >
                         <div 
-                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                            className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300
                                 ${activeSection === 'environmental-impact' 
                                     ? 'bg-green text-white' 
                                     : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-100'}`}
                         >
-                            <FontAwesomeIcon icon={faLeaf} className="text-lg" />
+                            <FontAwesomeIcon icon={faLeaf} className="text-sm md:text-lg" />
                         </div>
-                        <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-sm py-1 px-3 rounded">
+                        <div className="absolute right-full mr-2 md:mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-xs md:text-sm py-1 px-2 md:px-3 rounded">
                             Environmental Impact
                         </div>
                     </div>
                     
                     {/* Around the World Section */}
                     <div 
-                        className={`relative z-10 mb-6 cursor-pointer group`}
+                        className={`relative z-10 mb-4 md:mb-6 cursor-pointer group`}
                         onClick={() => scrollToSection('around-world')}
                     >
                         <div 
-                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                            className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300
                                 ${activeSection === 'around-world' 
                                     ? 'bg-green text-white' 
                                     : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-100'}`}
                         >
-                            <FontAwesomeIcon icon={faEarthAmericas} className="text-lg" />
+                            <FontAwesomeIcon icon={faEarthAmericas} className="text-sm md:text-lg" />
                         </div>
-                        <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-sm py-1 px-3 rounded">
+                        <div className="absolute right-full mr-2 md:mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-xs md:text-sm py-1 px-2 md:px-3 rounded">
                             Around the World
                         </div>
                     </div>
@@ -382,51 +375,19 @@ export default function FoodImpact() {
                         onClick={() => scrollToSection('sources')}
                     >
                         <div 
-                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                            className={`w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all duration-300
                                 ${activeSection === 'sources' 
                                     ? 'bg-green text-white' 
                                     : 'bg-white text-gray-500 border border-gray-300 hover:bg-gray-100'}`}
                         >
-                            <FontAwesomeIcon icon={faBookOpen} className="text-lg" />
+                            <FontAwesomeIcon icon={faBookOpen} className="text-sm md:text-lg" />
                         </div>
-                        <div className="absolute right-full mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-sm py-1 px-3 rounded">
+                        <div className="absolute right-full mr-2 md:mr-3 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-green text-white text-xs md:text-sm py-1 px-2 md:px-3 rounded">
                             Sources
                         </div>
                     </div>
                 </div>
             </div>
-
-            {/* Quote Section */} 
-            <motion.div 
-                ref={quoteRef}
-                initial="hidden"
-                whileInView="visible" 
-                viewport={{ once: false, amount: 0.3 }}
-                variants={staggerContainerVariant}
-                className="max-w-7xl mx-auto px-10 mt-8 mb-20"
-            >
-                <div className="max-w-4xl mx-auto px-6">
-                    <motion.div variants={scaleInVariant}>
-                        <FontAwesomeIcon icon={faQuoteLeft} className="text-darkgreen text-4xl font-semibold leading-tight mb-8" />
-                    </motion.div>
-                    <motion.p 
-                        variants={fadeInUpVariant}
-                        className="text-darkgreen text-4xl font-semibold leading-tight mb-8"
-                    >
-                        "Food waste is not just about economics and hunger. It's about
-                        climate, environment, and sustainability."
-                    </motion.p>
-                    <motion.div 
-                        variants={fadeInVariant}
-                        className="flex items-center"
-                    >
-                        <div className="w-12 h-0.5 bg-darkgreen mr-4"></div>
-                        <p className="text-darkgreen text-lg">
-                            Tristram Stuart
-                        </p>
-                    </motion.div>
-                </div>
-            </motion.div>
 
             {/* Australia's Food Waste Section */}
             <motion.div 
@@ -447,13 +408,14 @@ export default function FoodImpact() {
                     backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url(https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/aus_food_waste.jpg)', 
                     backgroundSize: 'cover', 
                     backgroundPosition: 'center',
-                    height: '500px' 
+                    height: '400px',
+                    minHeight: '300px'
                 }}
             >
-                <div className="max-w-6xl mx-auto h-full flex flex-col justify-end pb-4">
+                <div className="max-w-6xl mx-auto h-full flex flex-col justify-end pb-4 px-4 md:px-6">
                     <motion.p 
                         variants={fadeInUpVariant}
-                        className="text-darkgreen text-2xl font-bold"
+                        className="text-darkgreen text-xl md:text-2xl font-bold"
                     >
                         Each year, Australians waste food across the supply chain in a total of
                     </motion.p>
@@ -470,9 +432,9 @@ export default function FoodImpact() {
                                 }
                             }
                         }}
-                        className="text-darkgreen text-9xl font-bold leading-tight"
+                        className="text-darkgreen text-5xl sm:text-6xl md:text-7xl lg:text-9xl font-bold leading-tight"
                     >
-                        7.6 million tonnes<sup className="text-2xl align-super ml-4">1</sup>
+                        7.6 million tonnes<sup className="text-lg md:text-2xl align-super ml-2 md:ml-4">1</sup>
                     </motion.h2>
                 </div>
             </motion.div>
@@ -484,118 +446,118 @@ export default function FoodImpact() {
                 whileInView="visible"
                 viewport={{ once: false, amount: 0.3 }}
                 variants={staggerContainerVariant}
-                className="max-w-6xl mx-auto py-20 px-6"
+                className="max-w-6xl mx-auto py-10 md:py-20 px-4 md:px-6"
             >
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
                     {/* Text Section */}
                     <motion.div 
                         variants={fadeInUpVariant}
                         className="flex flex-col justify-center h-full"
                     >
-                        <h2 className="text-3xl font-bold text-darkgreen mb-6">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-darkgreen mb-4 md:mb-6">
                             What's in Our Food Waste?
                         </h2>
-                        <p className="text-gray-700 mb-8">
+                        <p className="text-gray-700 mb-6 md:mb-8">
                             Food waste varies significantly across different stages of the
                             supply chain. Understanding its composition helps target reduction
                             efforts more effectively.
                         </p>
-                        <div className="space-y-4">
+                        <div className="space-y-3 md:space-y-4">
                             <motion.div 
                                 variants={fadeInVariant}
                                 transition={{ delay: 0.1 }}
                                 className="flex items-center"
                             >
-                                <div className="w-4 h-4 rounded-full bg-red-400 mr-3"></div>
-                                <span className="text-gray-700">Stage 1</span>
+                                <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-red-400 mr-2 md:mr-3"></div>
+                                <span className="text-sm md:text-base text-gray-700">Stage 1</span>
                             </motion.div>
                             <motion.div 
                                 variants={fadeInVariant}
                                 transition={{ delay: 0.2 }}
                                 className="flex items-center"
                             >
-                                <div className="w-4 h-4 rounded-full bg-yellow-300 mr-3"></div>
-                                <span className="text-gray-700">Stage 2</span>
+                                <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-yellow-300 mr-2 md:mr-3"></div>
+                                <span className="text-sm md:text-base text-gray-700">Stage 2</span>
                             </motion.div>
                             <motion.div 
                                 variants={fadeInVariant}
                                 transition={{ delay: 0.3 }}
                                 className="flex items-center"
                             >
-                                <div className="w-4 h-4 rounded-full bg-green-400 mr-3"></div>
-                                <span className="text-gray-700">Stage 3</span>
+                                <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-green-400 mr-2 md:mr-3"></div>
+                                <span className="text-sm md:text-base text-gray-700">Stage 3</span>
                             </motion.div>
                             <motion.div 
                                 variants={fadeInVariant}
                                 transition={{ delay: 0.4 }}
                                 className="flex items-center"
                             >
-                                <div className="w-4 h-4 rounded-full bg-blue-500 mr-3"></div>
-                                <span className="text-gray-700">Stage 4</span>
+                                <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-blue-500 mr-2 md:mr-3"></div>
+                                <span className="text-sm md:text-base text-gray-700">Stage 4</span>
                             </motion.div>
                             <motion.div 
                                 variants={fadeInVariant}
                                 transition={{ delay: 0.5 }}
                                 className="flex items-center"
                             >
-                                <div className="w-4 h-4 rounded-full bg-blue-900 mr-3"></div>
-                                <span className="text-gray-700">Stage 5</span>
+                                <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-blue-900 mr-2 md:mr-3"></div>
+                                <span className="text-sm md:text-base text-gray-700">Stage 5</span>
                             </motion.div>
                         </div>
                     </motion.div>
                     {/* Supply Chain */}
                     <motion.div variants={fadeInUpVariant}>
-                        {/* Replace animated supply chain with static version */}
-                        <div className="flex justify-center items-center space-x-2 mb-12">
-                            <div className="flex flex-col items-center">
-                                <div className="bg-amber-300 rounded-full p-4 mb-2">
-                                    <FontAwesomeIcon icon={faSeedling} className="text-2xl text-gray-800" />
+                        {/* Supply chain icons - made responsive for small screens */}
+                        <div className="flex flex-wrap justify-center items-center mb-8 md:mb-12 overflow-x-auto">
+                            <div className="flex flex-col items-center mx-1 md:mx-2">
+                                <div className="bg-amber-300 rounded-full p-2 md:p-4 mb-2">
+                                    <FontAwesomeIcon icon={faSeedling} className="text-lg md:text-2xl text-gray-800" />
                                 </div>
-                                <span className="text-xs text-gray-600">PRODUCTION</span>
+                                <span className="text-[10px] md:text-xs text-gray-600 text-center">PRODUCTION</span>
                             </div>
-                            <div>
-                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
+                            <div className="mx-1">
+                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400 text-sm md:text-base" />
                             </div>
-                            <div className="flex flex-col items-center">
-                                <div className="bg-amber-300 rounded-full p-4 mb-2">
-                                    <FontAwesomeIcon icon={faIndustry} className="text-2xl text-gray-800" />
+                            <div className="flex flex-col items-center mx-1 md:mx-2">
+                                <div className="bg-amber-300 rounded-full p-2 md:p-4 mb-2">
+                                    <FontAwesomeIcon icon={faIndustry} className="text-lg md:text-2xl text-gray-800" />
                                 </div>
-                                <span className="text-xs text-gray-600 text-center">
-                                    PROCESSING & MANUFACTURING
+                                <span className="text-[10px] md:text-xs text-gray-600 text-center max-w-[60px] md:max-w-none">
+                                    PROCESSING
                                 </span>
                             </div>
-                            <div>
-                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
+                            <div className="mx-1">
+                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400 text-sm md:text-base" />
                             </div>
-                            <div className="flex flex-col items-center">
-                                <div className="bg-amber-300 rounded-full p-4 mb-2">
-                                    <FontAwesomeIcon icon={faTruck} className="text-2xl text-gray-800" />
+                            <div className="flex flex-col items-center mx-1 md:mx-2">
+                                <div className="bg-amber-300 rounded-full p-2 md:p-4 mb-2">
+                                    <FontAwesomeIcon icon={faTruck} className="text-lg md:text-2xl text-gray-800" />
                                 </div>
-                                <span className="text-xs text-gray-600 text-center">
-                                    DISTRIBUTION & LOGISTICS
+                                <span className="text-[10px] md:text-xs text-gray-600 text-center max-w-[60px] md:max-w-none">
+                                    DISTRIBUTION
                                 </span>
                             </div>
-                            <div>
-                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
+                            <div className="mx-1">
+                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400 text-sm md:text-base" />
                             </div>
-                            <div className="flex flex-col items-center">
-                                <div className="bg-amber-300 rounded-full p-4 mb-2">
-                                    <FontAwesomeIcon icon={faShoppingCart} className="text-2xl text-gray-800" />
+                            <div className="flex flex-col items-center mx-1 md:mx-2">
+                                <div className="bg-amber-300 rounded-full p-2 md:p-4 mb-2">
+                                    <FontAwesomeIcon icon={faShoppingCart} className="text-lg md:text-2xl text-gray-800" />
                                 </div>
-                                <span className="text-xs text-gray-600">RETAIL</span>
+                                <span className="text-[10px] md:text-xs text-gray-600 text-center">RETAIL</span>
                             </div>
-                            <div>
-                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400" />
+                            <div className="mx-1">
+                                <FontAwesomeIcon icon={faArrowRight} className="text-amber-400 text-sm md:text-base" />
                             </div>
-                            <div className="flex flex-col items-center">
-                                <div className="bg-amber-300 rounded-full p-4 mb-2">
-                                    <FontAwesomeIcon icon={faAppleAlt} className="text-2xl text-gray-800" />
+                            <div className="flex flex-col items-center mx-1 md:mx-2">
+                                <div className="bg-amber-300 rounded-full p-2 md:p-4 mb-2">
+                                    <FontAwesomeIcon icon={faAppleAlt} className="text-lg md:text-2xl text-gray-800" />
                                 </div>
-                                <span className="text-xs text-gray-600">CONSUMPTION</span>
+                                <span className="text-[10px] md:text-xs text-gray-600 text-center">CONSUMPTION</span>
                             </div>
                         </div>
                         {/* Separate the chart from motion animations */}
-                        <div ref={chartRef} className="w-full h-80"></div>
+                        <div ref={chartRef} className="w-full h-60 md:h-80"></div>
                     </motion.div>
                 </div>
             </motion.div>
@@ -608,11 +570,11 @@ export default function FoodImpact() {
                 whileInView="visible"
                 viewport={{ once: false, amount: 0.3 }}
                 variants={staggerContainerVariant}
-                className="flex flex-col md:flex-row items-center"
+                className="flex flex-col md:flex-row items-center px-0"
             >
                 <div className="w-full space-y-2">
                     <motion.div 
-                        className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                        className="w-3/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
                         variants={{
                             hidden: { width: 0 },
                             visible: { 
@@ -621,19 +583,19 @@ export default function FoodImpact() {
                             }
                         }}
                     ></motion.div>
-                    <div className="w-full flex flex-row items-center gap-12">
+                    <div className="w-full flex flex-row items-center gap-4 md:gap-12">
                         <motion.div 
-                            className="w-2/5 h-24 bg-darkgreen overflow-hidden"
+                            className="w-1/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
                             variants={{
                                 hidden: { width: 0 },
                                 visible: { 
-                                    width: "40%",
+                                    width: "20%",
                                     transition: { duration: 0.8, delay: 0.2 }
                                 }
                             }}
                         ></motion.div>
                         <motion.h2 
-                            className="text-9xl font-black text-darkgreen tracking-tight"
+                            className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl  font-black text-darkgreen tracking-tight"
                             variants={{
                                 hidden: { 
                                     opacity: 0,
@@ -653,7 +615,7 @@ export default function FoodImpact() {
                         </motion.h2> 
                     </div>
                     <motion.div 
-                        className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                        className="w-3/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
                         variants={{
                             hidden: { width: 0 },
                             visible: { 
@@ -673,7 +635,8 @@ export default function FoodImpact() {
                         backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url(https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/aus_food_waste.jpg)', 
                         backgroundSize: 'cover', 
                         backgroundPosition: 'center',
-                        height: '500px' 
+                        height: '400px',
+                        minHeight: '300px'
                     }}
                     initial={{ opacity: 0 }}
                     whileInView={{ 
@@ -684,9 +647,9 @@ export default function FoodImpact() {
                     }}
                     viewport={{ once: false, amount: 0.3 }}
                 >
-                    <div className="max-w-6xl mx-auto h-full flex flex-col justify-end pb-4">
+                    <div className="max-w-6xl mx-auto h-full flex flex-col justify-end pb-4 px-4 md:px-6">
                         <motion.p 
-                            className="text-darkgreen text-2xl font-bold"
+                            className="text-darkgreen text-xl md:text-2xl font-bold"
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ 
                                 opacity: 1,
@@ -701,7 +664,7 @@ export default function FoodImpact() {
                             The cost of food waste to Australian economy in a year is
                         </motion.p>
                         <motion.h2 
-                            className="text-darkgreen text-9xl font-bold leading-tight"
+                            className="text-darkgreen text-5xl sm:text-6xl md:text-7xl lg:text-9xl font-bold leading-tight"
                             initial={{ opacity: 0, scale: 0.9 }}
                             whileInView={{ 
                                 opacity: 1,
@@ -715,7 +678,7 @@ export default function FoodImpact() {
                             }}
                             viewport={{ once: false, amount: 0.3 }}
                         >
-                            $36.6 billion<sup className="text-2xl align-super ml-4">2</sup>
+                            $36.6 billion<sup className="text-lg md:text-2xl align-super ml-2 md:ml-4">2</sup>
                         </motion.h2>
                     </div>
                 </motion.div>
@@ -747,7 +710,7 @@ export default function FoodImpact() {
                         viewport={{ once: false, amount: 0.3 }}
                     >
                         <motion.div 
-                            className="text-3xl font-bold leading-tight mb-4"
+                            className="text-3xl font-bold leading-tight mb-4 px-4"
                         >
                             <motion.span 
                                 className="bg-green text-white text-3xl font-bold px-4 py-2 inline-block"
@@ -820,7 +783,7 @@ export default function FoodImpact() {
                             >$2,500 per household.</motion.span>
                         </motion.div>
                         <motion.div 
-                            className="text-lg font-bold leading-tight"
+                            className="text-lg font-bold leading-tight px-4"
                             initial={{ opacity: 0 }}
                             whileInView={{ 
                                 opacity: 1,
@@ -907,7 +870,7 @@ export default function FoodImpact() {
 
             {/* Interactive Food Waste Impact */}
             <div 
-                className="py-20 mb-20"
+                className="py-12 md:py-20 mb-12 md:mb-20 px-4"
                 style={{
                     backgroundImage: `url('https://readdy.ai/api/search-image?query=Stack%20of%20money%20and%20gold%20coins%20showing%20financial%20prosperity%20with%20dramatic%20lighting%20and%20professional%20composition%20against%20dark%20elegant%20background%20with%20green%20accents%20showing%20sustainable%20investment%20concept&width=1440&height=800&seq=9&orientation=landscape')`,
                     backgroundSize: 'cover',
@@ -946,27 +909,27 @@ export default function FoodImpact() {
                 />
                 
                 {/* Interactive Section */}
-                <div className="max-w-4xl mx-auto text-center bg-white bg-opacity-60 p-10 rounded-2xl backdrop-blur-sm">
-                    <h2 className="bg-green text-white text-3xl font-bold px-4 py-2 inline-block mb-4">
+                <div className="max-w-4xl mx-auto text-center bg-white bg-opacity-60 p-4 sm:p-6 md:p-10 rounded-xl md:rounded-2xl backdrop-blur-sm m-4 md:m-auto">
+                    <h2 className="bg-green text-white text-xl sm:text-2xl md:text-3xl font-bold px-3 py-1 sm:px-4 sm:py-2 inline-block mb-3 md:mb-4">
                         Your actions today can create a better tomorrow.
                     </h2>
-                    <p className="text-darkgreen font-bold text-lg mb-12 leading-relaxed max-w-3xl mx-auto">
+                    <p className="text-darkgreen font-bold text-base md:text-lg mb-6 md:mb-12 leading-relaxed max-w-3xl mx-auto px-2">
                         By reducing food waste, you're not just saving money - you're contributing to a
                         more sustainable future. Slide to see how your choices can make a
                         difference.
                     </p>
                     {/* Slider */}
                     <div className="flex flex-col items-center">
-                    <div className="w-full max-w-2xl mb-10">
-                        <div className="flex items-center justify-between gap-4">
+                    <div className="w-full max-w-2xl mb-6 md:mb-10 px-4">
+                        <div className="flex items-center justify-between gap-2 md:gap-4">
                             <div className="text-center">
-                            <div className="w-12 h-12 rounded-full bg-teal-500 flex items-center justify-center mx-auto mb-2 shadow-md">
-                                <FontAwesomeIcon icon={faRecycle} className="text-white text-xl" />
+                            <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-teal-500 flex items-center justify-center mx-auto mb-1 md:mb-2 shadow-md">
+                                <FontAwesomeIcon icon={faRecycle} className="text-white text-sm md:text-xl" />
                             </div>
-                            <p className="font-medium text-teal-700">Less Waste</p>
+                            <p className="font-medium text-xs md:text-sm text-teal-700">Less Waste</p>
                             </div>
                             
-                            <div className="flex-1 mx-4">
+                            <div className="flex-1 mx-2 md:mx-4">
                                 <Slider
                                     className="w-full"
                                     color="primary"
@@ -1001,10 +964,10 @@ export default function FoodImpact() {
                             </div>
                             
                             <div className="text-center">
-                            <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center mx-auto mb-2 shadow-md">
-                                <FontAwesomeIcon icon={faTrash} className="text-white text-xl" />
+                            <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-red-500 flex items-center justify-center mx-auto mb-1 md:mb-2 shadow-md">
+                                <FontAwesomeIcon icon={faTrash} className="text-white text-sm md:text-xl" />
                             </div>
-                            <p className="font-medium text-red-700">More Waste</p>
+                            <p className="font-medium text-xs md:text-sm text-red-700">More Waste</p>
                             </div>
                         </div>
                     </div>
@@ -1017,14 +980,14 @@ export default function FoodImpact() {
                         whileInView="visible"
                         viewport={{ once: false, amount: 0.3 }}
                         variants={staggerContainerVariant}
-                        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6"
+                        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6"
                     >
                         {/* Annual Cost */}
                         <motion.div
-                            className="bg-white rounded-xl p-6 shadow-md border border-gray-100"
+                            className="bg-white rounded-lg md:rounded-xl p-3 md:p-6 shadow-md border border-gray-100"
                             variants={scaleInVariant}
                             whileHover={{ 
-                                scale: 1.05,
+                                scale: 1.03,
                                 boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
                                 transition: { 
                                     duration: 0.2 
@@ -1032,14 +995,14 @@ export default function FoodImpact() {
                             }}
                             whileTap={{ scale: 0.98 }}
                         >
-                            <div className="flex items-center justify-start mb-4">
-                                <FontAwesomeIcon icon={faDollarSign} className="mr-1 text-teal-500 text-xl" />
-                                <h3 className="text-gray-500 font-medium">Annual Cost</h3>
+                            <div className="flex items-center justify-start mb-2 md:mb-4">
+                                <FontAwesomeIcon icon={faDollarSign} className="mr-1 text-teal-500 text-base md:text-xl" />
+                                <h3 className="text-gray-500 text-sm md:text-base font-medium">Annual Cost</h3>
                             </div>
                             <div className="flex items-end justify-start">
-                                <span className="text-3xl font-bold text-teal-600">$</span>
+                                <span className="text-xl md:text-3xl font-bold text-teal-600">$</span>
                                 <motion.span
-                                    className="text-4xl font-bold text-teal-600"
+                                    className="text-2xl md:text-4xl font-bold text-teal-600"
                                     initial={{ opacity: 0 }}
                                     whileInView={{
                                         opacity: 1,
@@ -1052,14 +1015,14 @@ export default function FoodImpact() {
                                 >
                                     36.6
                                 </motion.span>
-                                <span className="text-3xl font-bold text-teal-600">B</span>
+                                <span className="text-xl md:text-3xl font-bold text-teal-600">B</span>
                             </div>
-                            <div className="mt-2 text-sm text-gray-500 text-left">
+                            <div className="mt-1 md:mt-2 text-xs md:text-sm text-gray-500 text-left">
                                 <span className="inline-flex items-center text-green">
                                     <FontAwesomeIcon icon={faArrowDown} className="mr-1 text-green" /> 2.3% from last year
                                 </span>
                             </div>
-                            <div className="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
+                            <div className="h-1 w-full bg-gray-100 mt-2 md:mt-4 rounded-full overflow-hidden">
                                 <motion.div
                                     className="h-full bg-teal-500 rounded-full"
                                     initial={{ width: 0 }}
@@ -1077,10 +1040,10 @@ export default function FoodImpact() {
 
                         {/* Tonnes Wasted */}
                         <motion.div
-                            className="bg-white rounded-xl p-6 shadow-md border border-gray-100"
+                            className="bg-white rounded-lg md:rounded-xl p-3 md:p-6 shadow-md border border-gray-100"
                             variants={scaleInVariant}
                             whileHover={{ 
-                                scale: 1.05,
+                                scale: 1.03,
                                 boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
                                 transition: { 
                                     duration: 0.2 
@@ -1088,13 +1051,13 @@ export default function FoodImpact() {
                             }}
                             whileTap={{ scale: 0.98 }}
                         >
-                            <div className="flex items-center justify-start mb-4">
-                                <FontAwesomeIcon icon={faWeightHanging} className="mr-1 text-blue-500 text-xl" />
-                                <h3 className="text-gray-500 font-medium">Tonnes Wasted</h3>
+                            <div className="flex items-center justify-start mb-2 md:mb-4">
+                                <FontAwesomeIcon icon={faWeightHanging} className="mr-1 text-blue-500 text-base md:text-xl" />
+                                <h3 className="text-gray-500 text-sm md:text-base font-medium">Tonnes Wasted</h3>
                             </div>
                             <div className="flex items-end justify-start">
                                 <motion.span
-                                    className="text-4xl font-bold text-blue-600"
+                                    className="text-2xl md:text-4xl font-bold text-blue-600"
                                     initial={{ opacity: 0 }}
                                     whileInView={{
                                         opacity: 1,
@@ -1107,14 +1070,14 @@ export default function FoodImpact() {
                                 >
                                     7.6
                                 </motion.span>
-                                <span className="text-3xl font-bold text-blue-600">M</span>
+                                <span className="text-xl md:text-3xl font-bold text-blue-600">M</span>
                             </div>
-                            <div className="mt-2 text-sm text-gray-500 text-left">
+                            <div className="mt-1 md:mt-2 text-xs md:text-sm text-gray-500 text-left">
                                 <span className="inline-flex items-center text-green">
                                     <FontAwesomeIcon icon={faArrowDown} className="mr-1" /> 1.8% from last year
                                 </span>
                             </div>
-                            <div className="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
+                            <div className="h-1 w-full bg-gray-100 mt-2 md:mt-4 rounded-full overflow-hidden">
                                 <motion.div
                                     className="h-full bg-blue-500 rounded-full"
                                     initial={{ width: 0 }}
@@ -1132,10 +1095,10 @@ export default function FoodImpact() {
 
                         {/* Household Waste */}
                         <motion.div
-                            className="bg-white rounded-xl p-6 shadow-md border border-gray-100"
+                            className="bg-white rounded-lg md:rounded-xl p-3 md:p-6 shadow-md border border-gray-100 sm:col-span-2 md:col-span-1"
                             variants={scaleInVariant}
                             whileHover={{ 
-                                scale: 1.05,
+                                scale: 1.03,
                                 boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
                                 transition: { 
                                     duration: 0.2 
@@ -1143,13 +1106,13 @@ export default function FoodImpact() {
                             }}
                             whileTap={{ scale: 0.98 }}
                         >
-                            <div className="flex items-center justify-start mb-4">
-                                <FontAwesomeIcon icon={faHome} className="mr-1 text-amber-500 text-xl" />
-                                <h3 className="text-gray-500 font-medium">Household Waste</h3>
+                            <div className="flex items-center justify-start mb-2 md:mb-4">
+                                <FontAwesomeIcon icon={faHome} className="mr-1 text-amber-500 text-base md:text-xl" />
+                                <h3 className="text-gray-500 text-sm md:text-base font-medium">Household Waste</h3>
                             </div>
                             <div className="flex items-end justify-start">
                                 <motion.span
-                                    className="text-4xl font-bold text-amber-600"
+                                    className="text-2xl md:text-4xl font-bold text-amber-600"
                                     initial={{ opacity: 0 }}
                                     whileInView={{
                                         opacity: 1,
@@ -1162,14 +1125,14 @@ export default function FoodImpact() {
                                 >
                                     52.7
                                 </motion.span>
-                                <span className="text-3xl font-bold text-amber-600">%</span>
+                                <span className="text-xl md:text-3xl font-bold text-amber-600">%</span>
                             </div>
-                            <div className="mt-2 text-sm text-gray-500 text-left">
+                            <div className="mt-1 md:mt-2 text-xs md:text-sm text-gray-500 text-left">
                                 <span className="inline-flex items-center text-red-600">
                                     <FontAwesomeIcon icon={faArrowUp} className="mr-1" /> 0.5% from last year
                                 </span>
                             </div>
-                            <div className="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
+                            <div className="h-1 w-full bg-gray-100 mt-2 md:mt-4 rounded-full overflow-hidden">
                                 <motion.div
                                     className="h-full bg-amber-500 rounded-full"
                                     initial={{ width: 0 }}
@@ -1185,18 +1148,21 @@ export default function FoodImpact() {
                             </div>
                         </motion.div>
                     </motion.div>
+                    <div id="impactText" className="text-sm md:text-base text-darkgreen font-semibold mt-2 min-h-[48px]">
+                        Moderate food waste reduction still provides substantial benefits
+                    </div>
                 </div>
             </div>
 
             {/* Environmental Impact Section with Scrolling Effect */}
-            <div className="h-[250vh]" ref={scrollContainerRef}>
-                {/* Sticky Container */}
-                <div className="sticky top-0 left-0 w-full h-screen flex flex-col">
+            <div className="h-auto lg:h-[250vh]" ref={scrollContainerRef}>
+                {/* Sticky Container - only sticky on large screens */}
+                <div className="w-full lg:sticky lg:top-0 lg:left-0 lg:h-screen flex flex-col">
                     {/* Environmental Impact Title */}
-                    <div className="py-8" ref={environmentalImpactRef} id="environmental-impact">
+                    <div className="py-4 md:py-8 px-0" ref={environmentalImpactRef} id="environmental-impact">
                         <div className="w-full space-y-2">
                             <motion.div 
-                                className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                                className="w-3/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
                                 initial={{ width: 0 }}
                                 whileInView={{ 
                                     width: "60%",
@@ -1204,18 +1170,18 @@ export default function FoodImpact() {
                                 }}
                                 viewport={{ once: false, amount: 0.3 }}
                             ></motion.div>
-                            <div className="w-full flex flex-row items-center gap-12">
+                            <div className="w-full flex flex-row items-center gap-4 md:gap-12">
                                 <motion.div 
-                                    className="w-1/5 h-24 bg-darkgreen overflow-hidden"
+                                    className="w-1/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
                                     initial={{ width: 0 }}
                                     whileInView={{ 
-                                        width: "20%",
+                                        width: "10%",
                                         transition: { duration: 0.8, delay: 0.2 }
                                     }}
                                     viewport={{ once: false, amount: 0.3 }}
                                 ></motion.div>
                                 <motion.h2 
-                                    className="text-7xl md:text-9xl font-black text-darkgreen tracking-tight"
+                                    className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-darkgreen tracking-tight"
                                     initial={{ opacity: 0, x: 50 }}
                                     whileInView={{ 
                                         opacity: 1, 
@@ -1231,7 +1197,7 @@ export default function FoodImpact() {
                                 </motion.h2> 
                             </div>
                             <motion.div 
-                                className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                                className="w-3/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
                                 initial={{ width: 0 }}
                                 whileInView={{ 
                                     width: "60%",
@@ -1244,91 +1210,176 @@ export default function FoodImpact() {
                 
                     {/* Impact of Food Emission on Environment */}
                     <div className="flex-grow flex items-center justify-center py-4">
-                        <div className="container mx-auto px-8 max-w-6xl">
-                            <div className="flex flex-col lg:flex-row gap-10 h-full">
+                        <div className="container mx-auto px-4 md:px-8 max-w-6xl">
+                            <div className="flex flex-col lg:flex-row gap-6 md:gap-10 h-full">
                                 {/* Earth Image */}
                                 <div className="w-full lg:w-1/2 flex items-center justify-center" ref={earthSectionRef}>
                                     <img
                                         src="https://readdy.ai/api/search-image?query=Planet%20Earth%20from%20space%20showing%20atmospheric%20effects%20and%20climate%20change%20with%20dramatic%20cloud%20formations%20and%20visible%20pollution%20effects%20professional%20space%20photography%20with%20high%20detail%20and%20environmental%20storytelling&width=600&height=600&seq=11&orientation=squarish"
                                         alt="Earth climate impact"
-                                        className="w-full h-[400px] object-cover rounded-xl shadow-xl"
+                                        className="w-full h-[300px] md:h-[400px] object-cover rounded-xl shadow-xl"
                                     />
                                 </div>
 
                                 {/* Impact Cards Container */}
-                                <div className="w-full lg:w-1/2 flex flex-col justify-center">
-                                    <AnimatePresence mode="wait">
+                                <div className="w-full lg:w-1/2 flex flex-col justify-center pt-4 lg:pt-0">
+                                    {/* For mobile/tablet: show all cards stacked */}
+                                    <div className="lg:hidden space-y-6">
                                         {/* Card 1 - CO₂ Generation */}
-                                        {activeCardIndex === 0 && (
-                                            <motion.div 
-                                                key="card1"
-                                                className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-red-500 hover:shadow-xl"
-                                                initial="enter"
-                                                animate="center"
-                                                exit="exit"
-                                                variants={cardVariants}
-                                            >
-                                                <div className="flex flex-col items-start">
-                                                    <div className="p-4 bg-red-100 rounded-full mb-4">
-                                                        <FontAwesomeIcon icon={faIndustry} className="text-red-500 text-2xl" />
-                                                    </div>
-                                                    <div className="text-start">
-                                                        <div className="text-2xl font-semibold leading-tight mb-4">
-                                                            <p><span className="bg-red-500 text-white text-2xl font-bold px-4 py-2 inline-block">17.5 million tonnes</span> of CO₂ generated from the production and disposal
-                                                            of food that is wasted in Australia (excluding exports).<sup className="text-xs align-super ml-1">1</sup></p>
-                                                        </div>
+                                        <motion.div 
+                                            className="bg-white p-4 md:p-8 rounded-xl shadow-lg border-l-4 border-red-500 hover:shadow-xl"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            whileInView={{ 
+                                                opacity: 1, 
+                                                y: 0,
+                                                transition: {
+                                                    duration: 0.5
+                                                }
+                                            }}
+                                            viewport={{ once: false, amount: 0.3 }}
+                                        >
+                                            <div className="flex flex-col items-start">
+                                                <div className="p-3 md:p-4 bg-red-100 rounded-full mb-4">
+                                                    <FontAwesomeIcon icon={faIndustry} className="text-red-500 text-xl md:text-2xl" />
+                                                </div>
+                                                <div className="text-start">
+                                                    <div className="text-base md:text-2xl font-semibold leading-tight mb-4">
+                                                        <p><span className="bg-red-500 text-white text-lg md:text-2xl font-bold px-2 py-1 md:px-4 md:py-2 inline-block">17.5 million tonnes</span> of CO₂ generated from the production and disposal
+                                                        of food that is wasted in Australia (excluding exports).<sup className="text-xs align-super ml-1">1</sup></p>
                                                     </div>
                                                 </div>
-                                            </motion.div>
-                                        )}
+                                            </div>
+                                        </motion.div>
                                         
                                         {/* Card 2 - Temperature Impact */}
-                                        {activeCardIndex === 1 && (
-                                            <motion.div 
-                                                key="card2"
-                                                className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-amber-500 hover:shadow-xl"
-                                                initial="enter"
-                                                animate="center"
-                                                exit="exit"
-                                                variants={cardVariants}
-                                            >
-                                                <div className="flex flex-col items-start">
-                                                    <div className="p-4 bg-amber-100 rounded-full mb-4">
-                                                        <FontAwesomeIcon icon={faArrowUp} className="text-amber-500 text-2xl" />
-                                                    </div>
-                                                    <div className="text-start">
-                                                        <div className="text-2xl font-semibold leading-tight mb-4">
-                                                            <p>Emissions from food waste alone would push global temperatures beyond <span className="bg-amber-500 text-white text-2xl font-bold px-4 py-2 inline-block">1.5°C or 2°C</span> this century if left unchecked.<sup className="text-xs align-super ml-1">3</sup></p>
-                                                        </div>
+                                        <motion.div 
+                                            className="bg-white p-4 md:p-8 rounded-xl shadow-lg border-l-4 border-amber-500 hover:shadow-xl"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            whileInView={{ 
+                                                opacity: 1, 
+                                                y: 0,
+                                                transition: {
+                                                    duration: 0.5,
+                                                    delay: 0.2
+                                                }
+                                            }}
+                                            viewport={{ once: false, amount: 0.3 }}
+                                        >
+                                            <div className="flex flex-col items-start">
+                                                <div className="p-3 md:p-4 bg-amber-100 rounded-full mb-4">
+                                                    <FontAwesomeIcon icon={faArrowUp} className="text-amber-500 text-xl md:text-2xl" />
+                                                </div>
+                                                <div className="text-start">
+                                                    <div className="text-base md:text-2xl font-semibold leading-tight mb-4">
+                                                        <p>Emissions from food waste alone would push global temperatures beyond <span className="bg-amber-500 text-white text-lg md:text-2xl font-bold px-2 py-1 md:px-4 md:py-2 inline-block">1.5°C or 2°C</span> this century if left unchecked.<sup className="text-xs align-super ml-1">3</sup></p>
                                                     </div>
                                                 </div>
-                                            </motion.div>
-                                        )}
+                                            </div>
+                                        </motion.div>
                                         
                                         {/* Card 3 - Global Impact */}
-                                        {activeCardIndex === 2 && (
-                                            <motion.div 
-                                                key="card3"
-                                                className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-green hover:shadow-xl"
-                                                initial="enter"
-                                                animate="center"
-                                                exit="exit"
-                                                variants={cardVariants}
-                                            >
-                                                <div className="flex flex-col items-start">
-                                                    <div className="p-4 bg-green bg-opacity-20 rounded-full mb-4">
-                                                        <FontAwesomeIcon icon={faGlobe} className="text-green text-2xl" />
-                                                    </div>
-                                                    <div className="text-start">
-                                                        <div className="text-2xl font-semibold leading-tight mb-4">
-                                                            <p>Around <span className="bg-green text-2xl text-white font-bold px-4 py-2 inline-block">25-30%</span> 
-                                                                of global greenhouse gas emissions come from food systems, <span className="bg-green text-2xl text-white font-bold px-4 py-2 inline-block">increasing to one-third</span> when including all agricultural products.<sup className="text-xs align-super ml-1">3</sup></p>
-                                                        </div>
+                                        <motion.div 
+                                            className="bg-white p-4 md:p-8 rounded-xl shadow-lg border-l-4 border-green hover:shadow-xl"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            whileInView={{ 
+                                                opacity: 1, 
+                                                y: 0,
+                                                transition: {
+                                                    duration: 0.5,
+                                                    delay: 0.4
+                                                }
+                                            }}
+                                            viewport={{ once: false, amount: 0.3 }}
+                                        >
+                                            <div className="flex flex-col items-start">
+                                                <div className="p-3 md:p-4 bg-green bg-opacity-20 rounded-full mb-4">
+                                                    <FontAwesomeIcon icon={faGlobe} className="text-green text-xl md:text-2xl" />
+                                                </div>
+                                                <div className="text-start">
+                                                    <div className="text-base md:text-2xl font-semibold leading-tight mb-4">
+                                                        <p>Around <span className="bg-green text-lg md:text-2xl text-white font-bold px-2 py-1 md:px-4 md:py-2 inline-block">25-30%</span> 
+                                                            of global greenhouse gas emissions come from food systems, <span className="bg-green text-lg md:text-2xl text-white font-bold px-2 py-1 md:px-4 md:py-2 inline-block">increasing to one-third</span> when including all agricultural products.<sup className="text-xs align-super ml-1">3</sup></p>
                                                     </div>
                                                 </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                            </div>
+                                        </motion.div>
+                                    </div>
+                                    
+                                    {/* For desktop: show animated cards based on scroll */}
+                                    <div className="hidden lg:block">
+                                        <AnimatePresence mode="wait">
+                                            {/* Card 1 - CO₂ Generation */}
+                                            {activeCardIndex === 0 && (
+                                                <motion.div 
+                                                    key="card1"
+                                                    className="bg-white p-4 md:p-8 rounded-xl shadow-lg border-l-4 border-red-500 hover:shadow-xl"
+                                                    initial="enter"
+                                                    animate="center"
+                                                    exit="exit"
+                                                    variants={cardVariants}
+                                                >
+                                                    <div className="flex flex-col items-start">
+                                                        <div className="p-3 md:p-4 bg-red-100 rounded-full mb-4">
+                                                            <FontAwesomeIcon icon={faIndustry} className="text-red-500 text-xl md:text-2xl" />
+                                                        </div>
+                                                        <div className="text-start">
+                                                            <div className="text-base md:text-2xl font-semibold leading-tight mb-4">
+                                                                <p><span className="bg-red-500 text-white text-lg md:text-2xl font-bold px-2 py-1 md:px-4 md:py-2 inline-block">17.5 million tonnes</span> of CO₂ generated from the production and disposal
+                                                                of food that is wasted in Australia (excluding exports).<sup className="text-xs align-super ml-1">1</sup></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                            
+                                            {/* Card 2 - Temperature Impact */}
+                                            {activeCardIndex === 1 && (
+                                                <motion.div 
+                                                    key="card2"
+                                                    className="bg-white p-4 md:p-8 rounded-xl shadow-lg border-l-4 border-amber-500 hover:shadow-xl"
+                                                    initial="enter"
+                                                    animate="center"
+                                                    exit="exit"
+                                                    variants={cardVariants}
+                                                >
+                                                    <div className="flex flex-col items-start">
+                                                        <div className="p-3 md:p-4 bg-amber-100 rounded-full mb-4">
+                                                            <FontAwesomeIcon icon={faArrowUp} className="text-amber-500 text-xl md:text-2xl" />
+                                                        </div>
+                                                        <div className="text-start">
+                                                            <div className="text-base md:text-2xl font-semibold leading-tight mb-4">
+                                                                <p>Emissions from food waste alone would push global temperatures beyond <span className="bg-amber-500 text-white text-lg md:text-2xl font-bold px-2 py-1 md:px-4 md:py-2 inline-block">1.5°C or 2°C</span> this century if left unchecked.<sup className="text-xs align-super ml-1">3</sup></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                            
+                                            {/* Card 3 - Global Impact */}
+                                            {activeCardIndex === 2 && (
+                                                <motion.div 
+                                                    key="card3"
+                                                    className="bg-white p-4 md:p-8 rounded-xl shadow-lg border-l-4 border-green hover:shadow-xl"
+                                                    initial="enter"
+                                                    animate="center"
+                                                    exit="exit"
+                                                    variants={cardVariants}
+                                                >
+                                                    <div className="flex flex-col items-start">
+                                                        <div className="p-3 md:p-4 bg-green bg-opacity-20 rounded-full mb-4">
+                                                            <FontAwesomeIcon icon={faGlobe} className="text-green text-xl md:text-2xl" />
+                                                        </div>
+                                                        <div className="text-start">
+                                                            <div className="text-base md:text-2xl font-semibold leading-tight mb-4">
+                                                                <p>Around <span className="bg-green text-lg md:text-2xl text-white font-bold px-2 py-1 md:px-4 md:py-2 inline-block">25-30%</span> 
+                                                                    of global greenhouse gas emissions come from food systems, <span className="bg-green text-lg md:text-2xl text-white font-bold px-2 py-1 md:px-4 md:py-2 inline-block">increasing to one-third</span> when including all agricultural products.<sup className="text-xs align-super ml-1">3</sup></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1337,12 +1388,12 @@ export default function FoodImpact() {
             </div>
 
             {/* Emissions Chart */}
-            <div className="bg-green-50 py-16">
+            <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0">
                 <div className="max-w-6xl mx-auto">
-                    <h2 className="text-5xl font-bold text-darkgreen mb-4">
+                    <h2 className="text-3xl md:text-5xl font-bold text-darkgreen mb-3 md:mb-4">
                         Top 5 Greenhouse Gas Emissions Food Items{" "}
                     </h2>
-                    <h2 className="text-4xl font-bold text-darkgreen mb-8">
+                    <h2 className="text-2xl md:text-4xl font-bold text-darkgreen mb-6 md:mb-8">
                         per kilogram of food waste <sup className="text-sm align-super ml-1">4</sup>
                     </h2>
                     
@@ -1371,7 +1422,7 @@ export default function FoodImpact() {
                         ].map((item, index) => (
                             <div className="relative mb-3" key={index}>
                                 <motion.div 
-                                    className="p-3 h-12" 
+                                    className="p-2 md:p-3 h-8 md:h-12" 
                                     style={{ 
                                         backgroundColor: item.color, 
                                         originX: 0
@@ -1414,8 +1465,8 @@ export default function FoodImpact() {
                                     }}
                                     style={{ left: `${item.percentage}%` }}
                                 >
-                                    <span className="mr-2 font-bold">{item.country}</span>
-                                    <span>{item.value}</span>
+                                    <span className="mr-2 font-bold text-xs md:text-base">{item.country}</span>
+                                    <span className="text-xs md:text-base">{item.value}</span>
                                 </motion.div>
                             </div>
                         ))}
@@ -1435,7 +1486,7 @@ export default function FoodImpact() {
             >
                 <div className="w-full space-y-2">
                     <motion.div 
-                        className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                        className="w-3/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
                         initial={{ width: 0 }}
                         whileInView={{ 
                             width: "60%",
@@ -1443,18 +1494,18 @@ export default function FoodImpact() {
                         }}
                         viewport={{ once: false, amount: 0.3 }}
                     ></motion.div>
-                    <div className="w-full flex flex-row items-center gap-12">
+                    <div className="w-full flex flex-row items-center gap-4 md:gap-12">
                         <motion.div 
-                            className="w-2/5 h-24 bg-darkgreen overflow-hidden"
+                            className="w-1/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
                             initial={{ width: 0 }}
                             whileInView={{ 
-                                width: "40%",
+                                width: "20%",
                                 transition: { duration: 0.8, delay: 0.2 }
                             }}
                             viewport={{ once: false, amount: 0.3 }}
                         ></motion.div>
                         <motion.h2 
-                            className="text-9xl font-black text-darkgreen tracking-tight"
+                            className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-darkgreen tracking-tight"
                             initial={{ opacity: 0, x: 50 }}
                             whileInView={{ 
                                 opacity: 1,
@@ -1470,7 +1521,7 @@ export default function FoodImpact() {
                         </motion.h2> 
                     </div>
                     <motion.div 
-                        className="w-3/5 h-24 bg-darkgreen overflow-hidden"
+                        className="w-3/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
                         initial={{ width: 0 }}
                         whileInView={{ 
                             width: "60%",
@@ -1482,17 +1533,17 @@ export default function FoodImpact() {
             </motion.div>
 
             {/* Map Section */}
-            <div className="py-16">
+            <div className="py-8 md:py-16">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-4xl font-bold text-darkgreen mb-6">
+                    <h2 className="text-2xl md:text-4xl font-bold text-darkgreen mb-4 md:mb-6">
                         Global Food Waste Distribution
                     </h2>
-                    <p className="text-gray-700 mb-10">
+                    <p className="text-gray-700 mb-6 md:mb-10">
                         Food waste is a global issue with varying impacts across different regions.
                     </p>
                     {/* Map visualization to be added here */}
-                    <div className="h-[500px] w-full bg-gray-100 flex items-center justify-center border border-gray-200 rounded-lg">
-                        <p className="text-gray-500 text-xl">Interactive map visualization will be added here</p>
+                    <div className="h-[300px] md:h-[500px] w-full bg-gray-100 flex items-center justify-center border border-gray-200 rounded-lg">
+                        <p className="text-gray-500 text-base md:text-xl">Interactive map visualization will be added here</p>
                     </div>
                 </div>
             </div>
@@ -1504,48 +1555,56 @@ export default function FoodImpact() {
                 whileInView="visible"
                 viewport={{ once: false, amount: 0.3 }}
                 variants={staggerContainerVariant}
-                className="max-w-6xl mx-auto flex flex-col md:flex-row items-center mb-16"
+                className="max-w-6xl mx-auto px-4 xl:px-0 flex flex-col md:flex-row items-center mb-8 md:mb-16"
             >
-                <div className="w-full flex flex-row items-center">
-                    <div className="w-1/3">
+                <div className="w-full flex flex-col md:flex-row items-center">
+                    <div className="w-full md:w-1/3 mb-6 md:mb-0">
                         <motion.div 
-                            className="w-3/5 h-16 bg-darkgreen overflow-hidden mb-4"
+                            className="w-3/5 h-8 md:h-16 bg-darkgreen overflow-hidden mb-4"
                             variants={{
                                 hidden: { width: 0 },
                                 visible: { 
-                                    width: "60%",
+                                    width: "90%",
                                     transition: { duration: 0.6, delay: 0.1 }
                                 }
                             }}
                         ></motion.div>
                         <motion.div 
-                            className="w-2/5 h-16 bg-darkgreen overflow-hidden mb-4"
+                            className="w-2/5 h-8 md:h-16 bg-darkgreen overflow-hidden mb-4"
                             variants={{
                                 hidden: { width: 0 },
                                 visible: { 
-                                    width: "40%",
+                                    width: "60%",
                                     transition: { duration: 0.6, delay: 0.3 }
                                 }
                             }}
                         ></motion.div>
                         <motion.div 
-                            className="w-3/5 h-16 bg-darkgreen overflow-hidden mb-4"
+                            className="w-3/5 h-8 md:h-16 bg-darkgreen overflow-hidden mb-4"
                             variants={{
                                 hidden: { width: 0 },
                                 visible: { 
-                                    width: "60%",
+                                    width: "90%",
                                     transition: { duration: 0.6, delay: 0.5 }
                                 }
                             }}
                         ></motion.div>
                     </div>
                     <motion.div 
-                        className="w-2/3"
+                        className="w-full md:w-2/3 flex flex-col gap-4 justify-center items-center"
                         variants={fadeInUpVariant}
                     >
-                        <h2 className="text-5xl font-black text-darkgreen tracking-tight">
-                            Together, we can make a difference to stop food waste.
-                        </h2> 
+                        <GradientText
+                            colors={["#2D5A4B", "#6FCF97",  "#2D5A4B", "#6FCF97", "#2D5A4B"]}
+                            animationSpeed={15}
+                            showBorder={false}
+                            className="text-3xl sm:text-4xl md:text-5xl xl:text-7xl text-darkgreen mb-6"
+                            fontWeight="black"
+                            textAlign="center"
+                        >
+                            With BestBefore,<br />
+                            Make Melbourne More Sustainable.
+                        </GradientText>
                     </motion.div>
                 </div>
             </motion.div>
@@ -1554,7 +1613,7 @@ export default function FoodImpact() {
             <motion.div 
                 ref={sourcesRef}
                 id="sources"
-                className="bg-green-50 py-16"
+                className="bg-green-50 py-8 md:py-16"
                 initial={{ opacity: 0, y: 50 }}
                 whileInView={{ 
                     opacity: 1,
@@ -1563,9 +1622,9 @@ export default function FoodImpact() {
                 }}
                 viewport={{ once: false, amount: 0.1 }}
             >
-                <div className="max-w-6xl mx-auto pt-4 border-t border-darkgreen sm:px-6 lg:px-8">
+                <div className="max-w-6xl mx-auto pt-4 border-t border-darkgreen px-4 sm:px-6 lg:px-8">
                     <motion.h2 
-                        className="text-3xl font-bold text-darkgreen mb-8"
+                        className="text-2xl md:text-3xl font-bold text-darkgreen mb-6 md:mb-8"
                         initial={{ opacity: 0, x: -20 }}
                         whileInView={{ 
                             opacity: 1,
@@ -1581,7 +1640,7 @@ export default function FoodImpact() {
                     </motion.h2>
                     
                     <motion.div 
-                        className="space-y-4 text-gray-700"
+                        className="space-y-3 md:space-y-4 text-gray-700"
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: false, amount: 0.3 }}
@@ -1610,14 +1669,16 @@ export default function FoodImpact() {
                                     }
                                 }}
                             >
-                                <span className="font-bold mr-4 text-darkgreen">{num}.</span>
-                                {num === 1 && <p>National Food Waste Strategy Feasibility Study (Source: Australian Government)</p>}
-                                {num === 2 && <p>Food waste costs Australian economy $36.6 billion annually (Source: Rabobank Food Waste Report 2023)</p>}
-                                {num === 3 && <p>Global greenhouse gas emissions from food systems (Source: UN FAO, Climate Watch)</p>}
-                                {num === 4 && <p>GHG emissions per kg of different food products (Source: Our World in Data based on Poore & Nemecek 2018)</p>}
-                                {num === 5 && <p>Company emissions: Scopes 1 & 2 – operational control, Scope 3 – category 11, upstream production only, 2021 (Source: company reporting)</p>}
-                                {num === 6 && <p>2023 Domestic GHG emissions only (Source: EDGAR Community GHG Database)</p>}
-                                {num === 7 && <p>Global food waste reduction initiatives and impact measurements (Source: UN Environment Programme)</p>}
+                                <span className="font-bold mr-2 md:mr-4 text-darkgreen">{num}.</span>
+                                <p className="text-sm md:text-base">
+                                {num === 1 && "National Food Waste Strategy Feasibility Study (Source: Australian Government)"}
+                                {num === 2 && "Food waste costs Australian economy $36.6 billion annually (Source: Rabobank Food Waste Report 2023)"}
+                                {num === 3 && "Global greenhouse gas emissions from food systems (Source: UN FAO, Climate Watch)"}
+                                {num === 4 && "GHG emissions per kg of different food products (Source: Our World in Data based on Poore & Nemecek 2018)"}
+                                {num === 5 && "Company emissions: Scopes 1 & 2 – operational control, Scope 3 – category 11, upstream production only, 2021 (Source: company reporting)"}
+                                {num === 6 && "2023 Domestic GHG emissions only (Source: EDGAR Community GHG Database)"}
+                                {num === 7 && "Global food waste reduction initiatives and impact measurements (Source: UN Environment Programme)"}
+                                </p>
                             </motion.div>
                         ))}
                     </motion.div>
