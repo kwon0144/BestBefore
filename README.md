@@ -1,6 +1,8 @@
-# BestBefore
+![logo.png](https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo.png)
 
-![BestBefore Logo](logo.png)
+## 🌐 Live Demo
+
+Visit our live application: [BestBefore - Iteration 1](https://tp22-bestbefore.com/iteration1)
 
 ## 📋 Project Overview
 
