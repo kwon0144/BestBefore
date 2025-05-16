@@ -32,10 +32,11 @@ import {
 } from './interfaces';
 import Title from "../(components)/Title";
 import StorageAssistantStepper from "./StorageAssistantStepper";
-import { addToast, Button, ToastProvider, Tooltip } from "@heroui/react";
+import { addToast, Button, ToastProvider } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faBell, faCalendarAlt, faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import useInventoryStore from "@/store/useInventoryStore";
+import InfoTooltip from "../(components)/InfoTooltip";
 
 /**
  * Main component for the Food Storage Assistant feature
@@ -455,59 +456,19 @@ const FoodStorageAssistant: React.FC = () => {
                   <h2 className="text-2xl font-semibold text-darkgreen mb-2">
                     Step 1: Scan your Groceries
                   </h2>
-                  <Tooltip
-                    showArrow
-                    classNames={{
-                      base: [
-                        "before:bg-white before:border-b before:border-r before:border-green-200",
-                      ],
-                      content: [
-                        "py-4 px-5 shadow-lg",
-                        "text-darkgreen bg-white",
-                        "rounded-lg border border-green-200",
-                        "max-w-[280px] w-[280px]"
-                      ],
-                    }}
-                    content={
-                      <div className="text-xs max-w-xs">
-                        <div className="flex items-center mb-3 pb-2 border-b border-green-200 text-sm">
-                          <FontAwesomeIcon icon={faCircleExclamation} className="text-green-600 mr-2" />
-                          <p className="font-semibold text-sm text-darkgreen">Camera Usage Disclaimer</p>
-                        </div>
-                        <ul className="space-y-3">
-                          <li className="flex items-start">
-                            <span className="text-green-600 mr-2 font-bold text-sm">•</span>
-                            <span className="leading-snug">Photos taken are processed only on your device and our secure server</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-green-600 mr-2 font-bold text-sm">•</span>
-                            <span className="leading-snug">Images are not permanently stored and are deleted after analysis</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-green-600 mr-2 font-bold text-sm">•</span>
-                            <span className="leading-snug">No personal information is gathered through the camera feature</span>
-                          </li>
-                          <li className="flex items-start">
-                            <span className="text-green-600 mr-2 font-bold text-sm">•</span>
-                            <span className="leading-snug">You may need to grant camera permissions in your browser settings</span>
-                          </li>
-                        </ul>
-                        <div className="mt-3 pt-2 border-t border-green-200 text-[10px] text-green-700 italic">
-                          Your privacy is our priority
-                        </div>
-                      </div>
-                    }
+                  <InfoTooltip 
+                    contentItems={[
+                      "Photos taken are processed only on your device and our secure server",
+                      "Images are not permanently stored and are deleted after analysis",
+                      "No personal information is gathered through the camera feature",
+                      "You may need to grant camera permissions in your browser settings"
+                    ]}
+                    header="Camera Usage Disclaimer"
+                    footerText="Your privacy is our priority"
                     placement="left-start"
-                  >
-                    <div
-                      className="w-6 h-6 rounded-full bg-green-100 text-darkgreen flex items-center justify-center hover:bg-green-200 transition-colors cursor-help"
-                      role="button"
-                      aria-label="Disclaimer"
-                      tabIndex={-1}
-                    >
-                      <FontAwesomeIcon icon={faCircleExclamation} className="text-xl" />
-                    </div>
-                  </Tooltip>
+                    icon={faCircleExclamation}
+                    ariaLabel="Disclaimer"
+                  />
                 </div>
                 <p className="text-md text-gray-700 mb-10">
                   Take photos of your groceries to get personalised storage recommendations.
@@ -527,9 +488,23 @@ const FoodStorageAssistant: React.FC = () => {
                       <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
                       Back to Camera
                     </Button>
-                    <h2 className="text-2xl font-semibold text-darkgreen mb-2">
-                      Step 2: Storage Recommendations
-                    </h2>
+                    <div className="flex justify-between">
+                      <h2 className="text-2xl font-semibold text-darkgreen mb-2">
+                        Step 2: Storage Recommendations
+                      </h2>
+                      <InfoTooltip 
+                        contentItems={[
+                          "Food detection and storage recommendations are handled by our AI algorithms and open data sources using anonymized data",
+                          "Recommendations are provided for reference only and may not be accurate for all food items or storage conditions",
+                          "Users should always use their own judgment when assessing food safety and storage",
+                        ]}
+                        header="For Reference Only"
+                        footerText="Recommendations for reference only"
+                        placement="left-start"
+                        icon={faCircleExclamation}
+                        ariaLabel="Disclaimer"
+                      />
+                    </div>
                     <p className="text-md text-gray-700 mb-10">
                       Review your grocery items with the storage recommendations and estimated expiration time.
                     </p>
