@@ -12,7 +12,6 @@ import axios from 'axios';
 import { SignatureDish } from '@/interfaces/MealChoice';
 
 interface UseSignatureDishesProps {
-    apiUrl: string;
     initialCuisine?: string | null;
 }
 
@@ -31,7 +30,6 @@ interface UseSignatureDishesResult {
  * @returns Object containing signature dishes, loading state, error state, and fetch function
  */
 export function useSignatureDishes({
-    apiUrl,
     initialCuisine = null
 }: UseSignatureDishesProps): UseSignatureDishesResult {
     const [signatureDishes, setSignatureDishes] = useState<SignatureDish[]>([]);
@@ -55,7 +53,8 @@ export function useSignatureDishes({
 
         setLoading(true);
         try {
-            const endpoint = `${apiUrl}/api/signature-dishes/`;
+            const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const endpoint = `${backendUrl}/api/signature-dishes/`;
 
             const response = await axios.get<SignatureDish[]>(endpoint, {
                 params: { cuisine }
@@ -70,7 +69,7 @@ export function useSignatureDishes({
         } finally {
             setLoading(false);
         }
-    }, [apiUrl]);
+    }, []);
 
     // Fetch dishes when the current cuisine changes
     useEffect(() => {

@@ -20,7 +20,6 @@ import { useGroceryPlanner } from "@/hooks/useGroceryPlanner";
 import { useSignatureDishes } from "@/hooks/useSignatureDishes";
 import { PantrySummary } from "../(components)/Inventory";
 import { MealChoice as MealChoiceType, SignatureDish } from "@/interfaces/MealChoice";
-import { config } from '@/config';
 import Search from "./Search";
 import PopularMeal from "./PopularMeal";
 import MealChoice from "./MealChoice";
@@ -62,7 +61,6 @@ export default function EcoGrocery() {
         error: signatureDishesError,
         fetchDishes
     } = useSignatureDishes({
-        apiUrl: config.apiUrl,
         initialCuisine: null
     });
     
@@ -340,6 +338,7 @@ export default function EcoGrocery() {
                                 addMeal={addMeal}
                                 isLoading={isLoadingSignatureDishes && selectedCuisine !== null}
                                 selectedCuisine={selectedCuisine}
+                                error={signatureDishesError}
                             />
                         </div>
                         

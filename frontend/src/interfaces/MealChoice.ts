@@ -57,6 +57,7 @@ export interface MealChoicesProps {
     addMeal: (meal: { id: number; name: string }) => void;
     isLoading?: boolean;
     selectedCuisine?: string | null;
+    error?: string | null;
 }
 
 /**
