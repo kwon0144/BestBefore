@@ -1,11 +1,12 @@
 /**
  * ItemsGrid Component for Second Life
  * 
- * This component displays a grid of repurposing ideas with pagination.
+ * This component displays a grid of food waste repurposing ideas,
+ * with pagination and loading states.
  */
 import { forwardRef } from "react";
 import { Pagination, Skeleton } from "@heroui/react";
-import { ItemsGridProps } from "../interfaces";
+import { ItemsGridProps } from "@/interfaces/SecondLifeItem";
 import Image from 'next/image';
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import InfoTooltip from "@/app/(components)/InfoTooltip";

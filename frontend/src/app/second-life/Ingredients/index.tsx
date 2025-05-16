@@ -8,7 +8,7 @@ import { useState } from "react";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
-import { IngredientsProps } from "../interfaces";
+import { IngredientsProps } from "@/interfaces/SecondLifeItem";
 
 /**
  * Renders a grid of common food scraps that users can select

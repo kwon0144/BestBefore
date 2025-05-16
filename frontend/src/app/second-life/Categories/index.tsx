@@ -1,12 +1,12 @@
 /**
  * Categories Component for Second Life
  * 
- * This component displays category filters for the Second Life page,
- * allowing users to filter repurposing ideas by category.
+ * This component displays category filters for different types of
+ * food waste repurposing ideas (craft, beauty, food, etc.).
  */
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { CategoriesProps } from "../interfaces";
+import { CategoriesProps } from "@/interfaces/SecondLifeItem";
 import { forwardRef } from "react";
 
 /**
