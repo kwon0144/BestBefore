@@ -1,6 +1,28 @@
+/**
+ * Foodbank Custom Hooks
+ * 
+ * This file provides React hooks for fetching and managing foodbank data from the backend API.
+ * These hooks abstract away the data fetching logic, providing components with clean interfaces
+ * to access foodbank data while handling loading states and errors.
+ * 
+ * The hooks fetch data directly from the backend API rather than via Next.js API routes,
+ * using the environment variable NEXT_PUBLIC_API_URL or falling back to localhost:8000.
+ */
+
 import { useState, useEffect } from "react";
 import { Foodbank, FoodbankResponse } from "@/interfaces/Foodbank";
 
+/**
+ * Hook to fetch all foodbanks
+ * 
+ * Provides a list of all foodbanks with loading and error states.
+ * Used for displaying lists, maps, and other components that need the full dataset.
+ * 
+ * @returns Object containing:
+ *   - foodbanks: Array of Foodbank objects
+ *   - loading: Boolean indicating if data is being fetched
+ *   - error: Error message or null if no error
+ */
 export function useFoodBanks(): {
     foodbanks: Foodbank[];
     loading: boolean;
@@ -34,6 +56,18 @@ export function useFoodBanks(): {
     return { foodbanks, loading, error };
 }
 
+/**
+ * Hook to fetch a single foodbank by ID
+ * 
+ * Provides data for a specific foodbank based on the provided ID.
+ * Used for detail views, information panels, and navigation purposes.
+ * 
+ * @param selectedEnd - String ID of the foodbank to fetch, or null if no selection
+ * @returns Object containing:
+ *   - foodbank: The found Foodbank object or null if not found/no selection
+ *   - loading: Boolean indicating if data is being fetched
+ *   - error: Error message or null if no error
+ */
 export function useFoodBankById(selectedEnd: string | null): {
     foodbank: Foodbank | null;
     loading: boolean;
