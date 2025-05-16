@@ -14,8 +14,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import { config } from '@/config';
 import Camera from './Camera';
 import StorageRecommendations from './StorageRecommendation';
 import CalendarExport from './CalendarExport';
@@ -27,9 +25,9 @@ import {
   ProduceDetections, 
   StorageRecommendation, 
   CalendarSelection,
-  StorageAdviceResponse,
-  CalendarResponse
 } from './interfaces';
+
+
 import Title from "../(components)/Title";
 import StorageAssistantStepper from "./StorageAssistantStepper";
 import { addToast, Button, ToastProvider } from "@heroui/react";
@@ -94,7 +92,7 @@ const FoodStorageAssistant: React.FC = () => {
   const addItem = useInventoryStore((state) => state.addItem);
   
   // Use our new custom hook for produce detection
-  const { submitPhotos: detectProduce, loading: isDetecting } = useProduceDetection();
+  const { submitPhotos: detectProduce} = useProduceDetection();
   
   // Use our new custom hook for storage advice, but don't destructure getStorageAdvice
   // to avoid recreating it on every render
