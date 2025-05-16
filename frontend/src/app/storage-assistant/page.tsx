@@ -37,6 +37,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faBell, faCalendarAlt, faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import useInventoryStore from "@/store/useInventoryStore";
 import InfoTooltip from "../(components)/InfoTooltip";
+import { useProduceDetection } from "./hooks/useProduceDetection";
+import { useStorageAdvice } from "./hooks/useStorageAdvice";
+import { useCalendarGeneration } from "./hooks/useCalendarGeneration";
 
 /**
  * Main component for the Food Storage Assistant feature
@@ -90,6 +93,16 @@ const FoodStorageAssistant: React.FC = () => {
   const addIdentifiedItem = useInventoryStore((state) => state.addIdentifiedItem);
   const addItem = useInventoryStore((state) => state.addItem);
   
+  // Use our new custom hook for produce detection
+  const { submitPhotos: detectProduce, loading: isDetecting } = useProduceDetection();
+  
+  // Use our new custom hook for storage advice, but don't destructure getStorageAdvice
+  // to avoid recreating it on every render
+  const storageAdviceHook = useStorageAdvice();
+  
+  // Use our custom hooks
+  const calendarGenerationHook = useCalendarGeneration();
+  
   // State to track if items were added to inventory
   const [itemsAddedToInventory, setItemsAddedToInventory] = useState(false);
   
@@ -101,14 +114,15 @@ const FoodStorageAssistant: React.FC = () => {
   const submitPhotos = async () => {
     if (state.photos.length === 0) return;
 
-    console.log('API URL:', config.apiUrl);
     setState(prev => ({ ...prev, isAnalyzing: true, error: null }));
 
     try {
-      // Call API endpoint for produce detection with all photos
-      const response = await axios.post(`${config.apiUrl}/api/detect-produce/`, {
-        images: state.photos // Send array of photos
-      });
+      // Use our custom hook instead of direct axios call
+      const detectionResult = await detectProduce(state.photos);
+      
+      if (!detectionResult) {
+        throw new Error("Failed to analyze photos");
+      }
 
       // Stop the camera stream
       if (state.stream) {
@@ -118,7 +132,7 @@ const FoodStorageAssistant: React.FC = () => {
       setState(prev => ({
         ...prev,
         stream: null,
-        detections: response.data as ProduceDetections,
+        detections: detectionResult as unknown as ProduceDetections,
         isAnalyzing: false,
         submittedPhotos: [...prev.photos] // Store submitted photos
       }));
@@ -127,7 +141,7 @@ const FoodStorageAssistant: React.FC = () => {
       setCurrentStep(1);
 
       // After submission, fetch storage recommendations
-      fetchStorageRecommendations((response.data as ProduceDetections).produce_counts);
+      fetchStorageRecommendations((detectionResult as unknown as ProduceDetections).produce_counts);
     } catch (err) {
       setState(prev => ({
         ...prev,
@@ -175,42 +189,17 @@ const FoodStorageAssistant: React.FC = () => {
       
       for (const item of allItems) {
         try {
-          // Call the storage-advice endpoint (handles database and Claude fallback)
-          const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-            food_type: item
-          });
+          // Use the hook method without recreating the function reference
+          const advice = await storageAdviceHook.getStorageAdvice(item);
           
-          const recommendation = response.data;
-          const quantity = produceCounts[item] || 1;
-          
-          // Properly handle different API response formats
-          let fridgeStorageTime = 7; // Default fridge time
-          let pantryStorageTime = 14; // Default pantry time
-          let recommendedMethod = 'pantry'; // Default method
-          
-          // Extract storage times from the recommendation based on response format
-          if (typeof recommendation.method === 'number') {
-            // Database response format - method is a number (1=fridge, 2=pantry)
-            recommendedMethod = recommendation.method === 1 ? 'fridge' : 'pantry';
-            fridgeStorageTime = Number(recommendation.fridge) || fridgeStorageTime;
-            pantryStorageTime = Number(recommendation.pantry) || pantryStorageTime;
-          } else if (typeof recommendation.method === 'string') {
-            // Claude response format - method is a string ('fridge' or 'pantry')
-            recommendedMethod = recommendation.method;
-            // Claude might only provide one storage time in the 'days' field
-            const providedDays = Number(recommendation.days) || 7;
-            if (recommendedMethod === 'fridge') {
-              fridgeStorageTime = providedDays;
-            } else {
-              pantryStorageTime = providedDays;
-            }
+          if (!advice) {
+            throw new Error(`Failed to get storage advice for ${item}`);
           }
           
-          console.log(`Storage recommendation for ${item}:`, { 
-            fridgeTime: fridgeStorageTime, 
-            pantryTime: pantryStorageTime,
-            recommendedMethod 
-          });
+          const quantity = produceCounts[item] || 1;
+          
+          // Use normalized storage advice from our hook
+          const { fridgeStorageTime, pantryStorageTime, recommendedMethod, source } = advice;
           
           // Determine where to put the item based on recommendation
           // This is an initial recommendation but user can change later
@@ -238,9 +227,7 @@ const FoodStorageAssistant: React.FC = () => {
           }
 
           // Create label for display
-          const sourceLabel = recommendation.source 
-            ? `, ${recommendation.source}` 
-            : '';
+          const sourceLabel = source ? `, ${source}` : '';
               
           // Add to UI display lists
           if (isRecommendedForFridge) {
@@ -291,7 +278,7 @@ const FoodStorageAssistant: React.FC = () => {
     } catch (err) {
       console.error('Error in fetchStorageRecommendations:', err);
     }
-  }, [addIdentifiedItem, addItem]);
+  }, [addIdentifiedItem, addItem, storageAdviceHook]); // Use storageAdviceHook as a stable reference
 
   /**
    * Updates storage recommendations state
@@ -364,20 +351,22 @@ const FoodStorageAssistant: React.FC = () => {
     }
   
     try {
-      const response = await axios.post<CalendarResponse>(`${config.apiUrl}/api/generate_calendar/`, {
-        items: calendarSelection.selectedItems.map(item => ({
-          ...item,
-          expiry_date: item.expiry_date,
-          reminder_days: calendarSelection.reminderDays,
-          reminder_time: calendarSelection.reminderTime
-        })),
-        reminder_days: calendarSelection.reminderDays,
-        reminder_time: calendarSelection.reminderTime
-      });
-  
+      // Call calendar generation hook
+      const calendarUrl = await calendarGenerationHook.generateCalendar(
+        calendarSelection.selectedItems,
+        {
+          reminderDays: calendarSelection.reminderDays,
+          reminderTime: calendarSelection.reminderTime
+        }
+      );
+      
+      if (!calendarUrl) {
+        throw new Error("Failed to generate calendar");
+      }
+
       setCalendarSelection(prev => ({
         ...prev,
-        calendarLink: response.data.calendar_url
+        calendarLink: calendarUrl
       }));
       
       // Move to step 4
@@ -406,16 +395,21 @@ const FoodStorageAssistant: React.FC = () => {
 
   // Initialize with storage recommendations on mount
   useEffect(() => {
-    // Initialize from the inventory store
-    const inventoryItems = useInventoryStore.getState().items;
-    if (inventoryItems.length > 0) {
-      // Only fetch new recommendations if we don't already have items from store
-      // This prevents overwriting existing inventory data
-      fetchStorageRecommendations();
-    } else {
-      // Otherwise just prepare an empty structure
-      fetchStorageRecommendations({});
-    }
+    // Only run this effect once on mount
+    const initializeStorageRecs = async () => {
+      // Initialize from the inventory store
+      const inventoryItems = useInventoryStore.getState().items;
+      if (inventoryItems.length > 0) {
+        // Only fetch new recommendations if we don't already have items from store
+        // This prevents overwriting existing inventory data
+        await fetchStorageRecommendations();
+      } else {
+        // Otherwise just prepare an empty structure
+        await fetchStorageRecommendations({});
+      }
+    };
+    
+    initializeStorageRecs();
     
     // Clean up camera stream on unmount
     return () => {
@@ -423,7 +417,7 @@ const FoodStorageAssistant: React.FC = () => {
         state.stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [fetchStorageRecommendations, state.stream]);
+  }, []); // Empty dependency array, only run on mount and unmount
 
   return (
       <div>

@@ -59,14 +59,15 @@ export interface StorageAdviceResponse {
     pantry?: number;
     fridge?: number;
     method?: number | string; // 0=pantry, 1=fridge or 'pantry'/'fridge'
-    
+
     // Claude-style response
     days?: number;
-    
+
     // Common fields
     source?: 'database' | 'claude' | 'database_default'; // Source of the recommendation
 }
 
 export interface CalendarResponse {
     calendar_url: string;
+    success?: boolean; // Make success optional
 } 
