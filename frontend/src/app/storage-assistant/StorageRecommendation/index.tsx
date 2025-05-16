@@ -13,13 +13,11 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { StorageRecommendation, StorageAdviceResponse } from '../interfaces';
+import { StorageRecommendation } from '../interfaces/Storage';
 import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import axios from 'axios';
-import { config } from '@/config';
 import { addToast, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
-import useInventoryStore, { FoodItem } from '@/store/useInventoryStore';
+import useInventoryStore from '@/store/useInventoryStore';
 import { useStorageAdvice } from '../hooks/useStorageAdvice';
 
 /**

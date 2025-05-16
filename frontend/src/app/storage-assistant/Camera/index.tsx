@@ -8,7 +8,7 @@
  * - Error handling for camera access
  */
 import React, { useRef } from 'react';
-import { CameraState } from '../interfaces';
+import { CameraState } from '../interfaces/Camera';
 import { Button } from '@heroui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCamera, faImage, faTrash, faTimes, faStop } from '@fortawesome/free-solid-svg-icons';

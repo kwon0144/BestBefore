@@ -19,15 +19,9 @@ import StorageRecommendations from './StorageRecommendation';
 import CalendarExport from './CalendarExport';
 import CalendarImport from './CalendarImport';
 import ComingUp from "../(components)/ComingUp";
-
-import { 
-  CameraState, 
-  ProduceDetections, 
-  StorageRecommendation, 
-  CalendarSelection,
-} from './interfaces';
-
-
+import { CameraState, ProduceDetections } from "./interfaces/Camera";
+import { StorageRecommendation } from "./interfaces/Storage";
+import { CalendarSelection } from "./interfaces/Calendar";
 import Title from "../(components)/Title";
 import StorageAssistantStepper from "./StorageAssistantStepper";
 import { addToast, Button, ToastProvider } from "@heroui/react";
