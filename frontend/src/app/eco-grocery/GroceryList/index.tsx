@@ -9,7 +9,8 @@ import { forwardRef, useState } from "react";
 import { GroceryListProps } from "../interfaces";
 import { Skeleton, Button, Input } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faEdit, faCheck, faTimes, faPlus, faPen } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faEdit, faCheck, faTimes, faPlus, faPen, faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
+import InfoTooltip from "@/app/(components)/InfoTooltip";
 
 /**
  * Renders a categorized list of grocery items needed for selected meals
@@ -377,10 +378,24 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
 
   return (
     <div ref={ref} className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex justify-between">
+          <h2 className="text-2xl font-semibold text-darkgreen">
+            Grocery List
+          </h2>
+          <InfoTooltip 
+            contentItems={[
+              "The meal recommendations and grocery suggestions provided are based on general information and AI-generated content",
+              "Ingredient quantities may vary based on recipe variations and actual quantities needed",
+              "Always check for specific dietary requirements and food allergies before preparation"
+            ]}
+            header="For Reference Only"
+            footerText="Recommendations for reference only"
+            placement="left-start"
+            icon={faCircleExclamation}
+            ariaLabel="Disclaimer"
+          />
+        </div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold text-darkgreen">
-          Grocery List
-        </h2>
         {!loading && !error && selectedMeals.length > 0 && (
           <Button
             size="md"

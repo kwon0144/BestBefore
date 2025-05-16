@@ -494,7 +494,7 @@ const FoodStorageAssistant: React.FC = () => {
                       </h2>
                       <InfoTooltip 
                         contentItems={[
-                          "Food detection and storage recommendations are handled by our AI algorithms and open data sources using anonymized data",
+                          "Food detection and storage recommendations are handled by our AI algorithms and open data sources.",
                           "Recommendations are provided for reference only and may not be accurate for all food items or storage conditions",
                           "Users should always use their own judgment when assessing food safety and storage",
                         ]}

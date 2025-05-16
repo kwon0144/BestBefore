@@ -404,20 +404,6 @@ export default function EcoGrocery() {
                         imageAlt="Seond Life"
                     />
                 </div>
-                
-                {/* Footer disclaimer */}
-                <div className="max-w-7xl mx-auto px-10 py-6 mb-10 border-t border-gray-200">
-                    <div className="text-center text-sm text-gray-600">
-                        <p className="font-medium mb-2">Eco Grocery Information Disclaimer:</p>
-                        <p className="mb-2">
-                            The meal recommendations and grocery suggestions provided are based on general information and AI-generated 
-                            content. Ingredient quantities may vary based on recipe variations and actual quantities needed. 
-                            Always check for specific dietary requirements and food allergies before preparation. 
-                            BestBefore does not guarantee the accuracy of all food storage recommendations.
-                        </p>
-                        <p className="text-xs">© {new Date().getFullYear()} BestBefore. All rights reserved.</p>
-                    </div>
-                </div>
             </div>
         </div>
     );
