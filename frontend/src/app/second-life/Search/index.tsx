@@ -6,7 +6,7 @@
 import { Input, Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
-import { SearchProps } from "@/interfaces/SecondLifeItem";
+import { SearchProps } from "@/app/second-life/interfaces/SecondLifeItem";
 
 /**
  * Renders a search input field for the Second Life page

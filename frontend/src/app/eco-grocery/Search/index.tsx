@@ -12,7 +12,7 @@
 import { Input, Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faUtensils } from "@fortawesome/free-solid-svg-icons";
-import { SearchBarProps } from "@/interfaces/MealChoice";
+import { SearchBarProps } from "@/app/eco-grocery/interfaces/MealChoice";
 import Image from "next/image";
 
 /**

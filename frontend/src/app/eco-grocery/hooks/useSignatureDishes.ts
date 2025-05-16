@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 // Import the SignatureDish interface from the specific interface file
-import { SignatureDish } from '@/interfaces/MealChoice';
+import { SignatureDish } from '@/app/eco-grocery/interfaces/MealChoice';
 
 interface UseSignatureDishesProps {
     initialCuisine?: string | null;

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import Title from "../(components)/Title"
 import { faPaintBrush, faUtensils, faSpa, faHome, faBowlFood, faKitMedical } from "@fortawesome/free-solid-svg-icons";
 import { config } from "@/config";
-import { SecondLifeItem } from "@/interfaces/SecondLifeItem";
+import { SecondLifeItem } from "@/app/second-life/interfaces/SecondLifeItem";
 import ComingUp from "../(components)/ComingUp";
 import { useSecondLifeItems } from "@/hooks/useSecondLifeItems";
 

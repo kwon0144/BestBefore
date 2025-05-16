@@ -6,7 +6,7 @@
  */
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { CategoriesProps } from "@/interfaces/SecondLifeItem";
+import { CategoriesProps } from "@/app/second-life/interfaces/SecondLifeItem";
 import { forwardRef } from "react";
 
 /**

@@ -9,7 +9,7 @@
 import { useMap } from "@vis.gl/react-google-maps";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { Dispatch, SetStateAction, useEffect, useState, useRef } from "react";
-import { MapSectionState } from "@/app/food-network/interfaces";
+import { MapSectionState } from "@/app/food-network/interfaces/State";
 
 /**
  * Props interface for the Directions component

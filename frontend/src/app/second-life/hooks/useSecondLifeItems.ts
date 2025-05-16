@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { SecondLifeItem } from '@/interfaces/SecondLifeItem';
+import { SecondLifeItem } from '@/app/second-life/interfaces/SecondLifeItem';
 
 interface UseSecondLifeItemsProps {
     itemsPerPage: number;

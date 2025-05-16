@@ -6,14 +6,14 @@
  * Users can navigate back to the previous view or choose a different destination.
  */
 
-import { useFoodBankById } from "@/hooks/useFoodBanks";
-import { useGeocoding } from "@/hooks/useGeocoding";
+import { useFoodBankById } from "@/app/food-network/hooks/useFoodBanks";
+import { useGeocoding } from "@/app/food-network/hooks/useGeocoding";
 import { Button } from "@heroui/react";
 import { Dispatch, SetStateAction } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 import { faRoad, faClock, faMapPin, faWalking, faBicycle, faBus, faCar, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { MapSectionState } from "@/app/food-network/interfaces";
+import { MapSectionState } from "@/app/food-network/interfaces/State";
 
 /**
  * Props interface for the RouteResult component

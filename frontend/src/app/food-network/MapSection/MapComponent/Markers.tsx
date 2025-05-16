@@ -10,7 +10,7 @@ import { useMap, AdvancedMarker, Pin } from "@vis.gl/react-google-maps";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import type { Marker } from "@googlemaps/markerclusterer";
 import { useEffect, useState, useRef, SetStateAction, Dispatch } from "react";
-import { MapSectionState } from "@/app/food-network/interfaces";
+import { MapSectionState } from "@/app/food-network/interfaces/State";
 
 /**
  * Point interface for map markers

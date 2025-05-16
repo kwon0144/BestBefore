@@ -12,7 +12,7 @@
 
 import { Button } from "@heroui/react";
 import { SetStateAction, Dispatch } from "react";
-import { useFoodBankById } from "@/hooks/useFoodBanks";
+import { useFoodBankById } from "@/app/food-network/hooks/useFoodBanks";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faMapMarkerAlt, 
@@ -20,7 +20,7 @@ import {
     faDirections,
     faCircleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
-import { MapSectionState, ViewState } from "../../../interfaces";
+import { MapSectionState, ViewState } from "../../../interfaces/State";
 import InfoTooltip from "@/app/(components)/InfoTooltip";
 
 // Props interface for the Information component

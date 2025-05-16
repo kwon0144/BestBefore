@@ -6,7 +6,7 @@
  */
 import { forwardRef } from "react";
 import { Pagination, Skeleton } from "@heroui/react";
-import { ItemsGridProps } from "@/interfaces/SecondLifeItem";
+import { ItemsGridProps } from "@/app/second-life/interfaces/SecondLifeItem";
 import Image from 'next/image';
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import InfoTooltip from "@/app/(components)/InfoTooltip";

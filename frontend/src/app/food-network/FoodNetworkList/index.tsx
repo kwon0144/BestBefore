@@ -13,11 +13,11 @@
 
 import React, { useState, useEffect, useMemo, SetStateAction, Dispatch } from 'react';
 import { Input, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Pagination, Select, SelectItem } from "@heroui/react";
-import { useFoodBanks } from '@/hooks/useFoodBanks';
-import { Foodbank } from '@/interfaces/Foodbank';
+import { useFoodBanks } from '@/app/food-network/hooks/useFoodBanks';
+import { Foodbank } from '@/app/food-network/interfaces/Foodbank';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
-import { ViewState, MapSectionState } from '../interfaces';
+import { ViewState, MapSectionState } from '../interfaces/State';
 
 /**
  * Props interface for the FoodNetworkList component

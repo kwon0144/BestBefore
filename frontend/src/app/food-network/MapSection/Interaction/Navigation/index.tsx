@@ -14,13 +14,13 @@ import LocationInput from "./LocationInput";
 import SubmitButton from "./SubmitButton";
 import { Dispatch, SetStateAction, useState } from "react";
 import CurrentLocationButton from "./CurrentLocationButton";
-import { useFoodBankById } from "@/hooks/useFoodBanks";
+import { useFoodBankById } from "@/app/food-network/hooks/useFoodBanks";
 import TravelModeSelection from "./TravelModeSelection";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faMapPin } from '@fortawesome/free-solid-svg-icons';
 import { useMap } from "@vis.gl/react-google-maps";
-import { MapSectionState } from "../../../interfaces";
+import { MapSectionState } from "../../../interfaces/State";
 
 /**
  * Props for the Navigation component

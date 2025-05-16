@@ -8,7 +8,7 @@
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faSpinner, faUtensils, faImage, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
-import { MealChoicesProps } from "@/interfaces/MealChoice";
+import { MealChoicesProps } from "@/app/eco-grocery/interfaces/MealChoice";
 import Image from "next/image";
 import { useState } from "react";
 

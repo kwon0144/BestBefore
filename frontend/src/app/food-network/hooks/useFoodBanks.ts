@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { Foodbank, FoodbankResponse } from "@/interfaces/Foodbank";
+import { Foodbank, FoodbankResponse } from "@/app/food-network/interfaces/Foodbank";
 
 /**
  * Hook to fetch all foodbanks

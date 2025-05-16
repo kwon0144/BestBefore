@@ -20,8 +20,8 @@ import { useState, useCallback } from 'react';
 import useInventoryStore from '@/store/useInventoryStore';
 import axios from 'axios';
 import { config } from '@/config';
-import { GroceryItem, GroceryListResponse } from '@/interfaces/GroceryItem';
-import { Meal } from '@/interfaces/MealChoice';
+import { GroceryItem, GroceryListResponse } from '@/app/eco-grocery/interfaces/GroceryItem';
+import { Meal } from '@/app/eco-grocery/interfaces/MealChoice';
 
 /**
  * Hook for managing meal planning and grocery list generation

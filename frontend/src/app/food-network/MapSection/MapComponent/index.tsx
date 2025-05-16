@@ -15,10 +15,10 @@ import Markers from "./Markers";
 import Directions from "./Directions";
 import StartMarker from "./StartMarker";
 import { Dispatch, SetStateAction, useEffect, forwardRef, useImperativeHandle, useState } from "react";
-import { useFoodBanks } from "@/hooks/useFoodBanks";
-import { Foodbank, OperationSchedule } from "@/interfaces/Foodbank";
+import { useFoodBanks } from "@/app/food-network/hooks/useFoodBanks";
+import { Foodbank, OperationSchedule } from "@/app/food-network/interfaces/Foodbank";
 import WhereAmIButton from "./WhereAmIButton";
-import { MapSectionState } from "@/app/food-network/interfaces";
+import { MapSectionState } from "@/app/food-network/interfaces/State";
 
 /**
  * Point interface for map markers
