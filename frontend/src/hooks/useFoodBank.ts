@@ -76,36 +76,3 @@ export function useFoodBankById(selectedEnd: string | null): {
 
     return { foodbank, loading, error };
 }
-
-// export function useFoodBankNameById(selectedEnd: string | null): string {
-//     const [selectedFoodBank, setSelectedFoodBank] = useState<Foodbank | null>(null);
-//     const [foodBanks, setFoodBanks] = useState<Foodbank[]>([]);
-
-//     useEffect(() => {
-//         const fetchFoodBanks = async () => {
-//             try {
-//                 const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-//                 const response = await fetch(`${backendUrl}/api/foodbanks/`);
-//                 if (!response.ok) {
-//                     throw new Error('Failed to fetch foodbanks');
-//                 }
-//                 const responseData: FoodbankResponse = await response.json();
-//                 setFoodBanks(responseData.data);
-//             } catch (error) {
-//                 console.error('Error fetching foodbanks:', error);
-//             }
-//         };
-
-//         fetchFoodBanks();
-//     }, []);
-
-//     useEffect(() => {
-//         if (foodBanks.length > 0) {
-//             setSelectedFoodBank(
-//                 foodBanks.find((bank: Foodbank) => bank.id === parseInt(selectedEnd || "1")) || null
-//             );
-//         }
-//     }, [selectedEnd, foodBanks]);
-
-//     return selectedFoodBank?.name || "Not Found";
-// }
