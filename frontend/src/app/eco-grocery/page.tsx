@@ -397,7 +397,7 @@ export default function EcoGrocery() {
                     <ComingUp
                         message="Great Job in Preventing Food Waste!"
                         title="Even with best practices, unwanted food could still pile up"
-                        description="Expore creative DIY ideas to reuse leftovers, revive produce, and reduce waste in fun and practical ways."
+                        description="Explore creative DIY ideas to reuse leftovers, revive produce, and reduce waste in fun and practical ways."
                         buttonText="Give Food a Second Life"
                         buttonLink="/second-life"
                         imageSrc="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/eco-grocery-next.png"
