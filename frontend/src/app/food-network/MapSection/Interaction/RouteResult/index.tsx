@@ -6,7 +6,7 @@
  * Users can navigate back to the previous view or choose a different destination.
  */
 
-import { useFoodBank } from "@/hooks/useFoodBank";
+import { useFoodBankById } from "@/hooks/useFoodBank";
 import { useGeocoding } from "@/hooks/useGeocoding";
 import { Button } from "@heroui/react";
 import { Dispatch, SetStateAction } from "react";
@@ -37,7 +37,7 @@ export default function RouteResult({
     // Get the formatted address for the starting point
     const startAddress = useGeocoding(mapSectionState.selectedStart);
     // Get the selected food bank details
-    const { foodbank: selectedFoodBank } = useFoodBank(mapSectionState.selectedEnd);
+    const { foodbank: selectedFoodBank } = useFoodBankById(mapSectionState.selectedEnd);
 
     // Handle click to return to information view and reset map
     const handleClick = () => {

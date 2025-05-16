@@ -12,7 +12,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { Button } from "@heroui/react";
 import { faRoute } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useFoodBank } from "@/hooks/useFoodBank";
+import { useFoodBankById } from "@/hooks/useFoodBank";
 import { MapSectionState } from "@/app/food-network/interfaces";
 
 /**
@@ -40,7 +40,7 @@ interface SubmitButtonProps {
  */
 export default function SubmitButton({ mapSectionState, setMapSectionState, setViewState, setError }: SubmitButtonProps) {
     // Get food bank data for the selected end point
-    const { foodbank } = useFoodBank(mapSectionState.selectedEnd);
+    const { foodbank } = useFoodBankById(mapSectionState.selectedEnd);
     // Add loading state to prevent multiple submissions and flashing
     const [isLoading, setIsLoading] = useState(false);
 

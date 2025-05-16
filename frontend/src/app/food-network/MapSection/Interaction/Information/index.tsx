@@ -12,7 +12,7 @@
 
 import { Button } from "@heroui/react";
 import { SetStateAction, Dispatch } from "react";
-import { useFoodBank } from "@/hooks/useFoodBank";
+import { useFoodBankById } from "@/hooks/useFoodBank";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faMapMarkerAlt, 
@@ -33,7 +33,7 @@ export default function Information({
     mapSectionState, setViewState
 }: InformationProps) {
     // Fetch food bank data using the selected endpoint
-    const { foodbank, loading, error } = useFoodBank(mapSectionState.selectedEnd);
+    const { foodbank, loading, error } = useFoodBankById(mapSectionState.selectedEnd);
     
     // Handle click event for navigation button
     const handleClick = () => {

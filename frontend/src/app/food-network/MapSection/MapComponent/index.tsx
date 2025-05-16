@@ -15,7 +15,8 @@ import Markers from "./Markers";
 import Directions from "./Directions";
 import StartMarker from "./StartMarker";
 import { Dispatch, SetStateAction, useEffect, forwardRef, useImperativeHandle, useState } from "react";
-import type { Foodbank, OperationSchedule } from "@/app/api/foodbanks/route";
+import { useFoodBanks } from "@/hooks/useFoodBank";
+import { Foodbank, OperationSchedule } from "@/interfaces/Foodbank";
 import WhereAmIButton from "./WhereAmIButton";
 import { MapSectionState } from "@/app/food-network/interfaces";
 
@@ -75,7 +76,8 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
     setMap,
 }, ref) => {
   const map = useMap();
-  const [foodBanks, setFoodBanks] = useState<Foodbank[]>([]);
+  const [filteredFoodBanks, setFilteredFoodBanks] = useState<Foodbank[]>([]);
+  const { foodbanks, loading, error } = useFoodBanks();
 
   useImperativeHandle(ref, () => ({
     focusOnLocation: (location: {lat: number, lng: number}) => {
@@ -93,29 +95,36 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   }, [map, setMap]);
 
   useEffect(() => {
-    const fetchFoodBanks = async () => {
-      try {
-        const response = await fetch('/api/foodbanks');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        // Filter based on selectedType
-        const filteredFoodBanks = data.data.filter((foodbank: Foodbank) => 
-          selectedType === "Food Donation Points" 
-            ? foodbank.type === "Food Donation Point"
-            : foodbank.type !== "Food Donation Point"
-        );
-        setFoodBanks(filteredFoodBanks);
-      } catch (err) {
-        console.error('Error fetching food banks:', err);
-      }
-    };
-    fetchFoodBanks();
-  }, [selectedType]);
+    if (foodbanks.length > 0) {
+      // Filter based on selectedType
+      const filtered = foodbanks.filter((foodbank: Foodbank) => 
+        selectedType === "Food Donation Points" 
+          ? foodbank.type === "Food Donation Point"
+          : foodbank.type !== "Food Donation Point"
+      );
+      setFilteredFoodBanks(filtered);
+    }
+  }, [foodbanks, selectedType]);
+
+  if (loading) {
+    // You could add a loading indicator here if needed
+    return (
+      <Map
+        defaultCenter={{lat: -37.8136, lng: 144.9631}}
+        defaultZoom={12}
+        mapId={process.env.NEXT_PUBLIC_MAP_ID}
+        gestureHandling="greedy"
+        disableDefaultUI={false}
+      />
+    );
+  }
+
+  if (error) {
+    console.error('Error loading foodbanks:', error);
+  }
   
   // Transform food banks into points for the Markers component
-  const points: Point[] = foodBanks.map(foodbank => ({
+  const points: Point[] = filteredFoodBanks.map(foodbank => ({
     lat: foodbank.latitude,
     lng: foodbank.longitude,
     key: foodbank.id.toString(),

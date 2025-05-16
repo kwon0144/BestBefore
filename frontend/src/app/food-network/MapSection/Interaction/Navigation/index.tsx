@@ -14,7 +14,7 @@ import LocationInput from "./LocationInput";
 import SubmitButton from "./SubmitButton";
 import { Dispatch, SetStateAction, useState } from "react";
 import CurrentLocationButton from "./CurrentLocationButton";
-import { useFoodBank } from "@/hooks/useFoodBank";
+import { useFoodBankById } from "@/hooks/useFoodBank";
 import TravelModeSelection from "./TravelModeSelection";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -38,7 +38,7 @@ export default function Navigation({
     mapSectionState, setMapSectionState, setViewState
 }: NavigationProps) {
     // Get food bank data for the selected destination
-    const { foodbank } = useFoodBank(mapSectionState.selectedEnd);
+    const { foodbank } = useFoodBankById(mapSectionState.selectedEnd);
     // State for handling error messages
     const [error, setError] = useState<string>("");
 

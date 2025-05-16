@@ -13,7 +13,8 @@
 
 import React, { useState, useEffect, useMemo, SetStateAction, Dispatch } from 'react';
 import { Input, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Pagination, Select, SelectItem } from "@heroui/react";
-import { Foodbank } from '@/app/api/foodbanks/route';
+import { useFoodBanks } from '@/hooks/useFoodBank';
+import { Foodbank } from '@/interfaces/Foodbank';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { ViewState, MapSectionState } from '../interfaces';
@@ -63,46 +64,29 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
   setViewState,
   scrollToMapSection
 }) => {
-  const [foodbanks, setFoodbanks] = useState<Foodbank[]>([]);
+  const [processedFoodbanks, setProcessedFoodbanks] = useState<Foodbank[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState("all");
   const rowsPerPage = 10;
+  
+  // Use the hook to fetch foodbanks
+  const { foodbanks, loading, error } = useFoodBanks();
 
+  // Process the foodbanks data once it's loaded
   useEffect(() => {
-    const fetchFoodbanks = async () => {
-      try {
-        const response = await fetch('/api/foodbanks');
-        if (!response.ok) {
-          throw new Error('Failed to fetch foodbanks');
-        }
-        const data = await response.json();
-        
-        if (data.status === 'success' && Array.isArray(data.data)) {
-          const processedData = data.data.map((item: Foodbank) => ({
-            ...item,
-            address: item.address || `Coordinates: ${item.latitude}, ${item.longitude}`
-          }));
-          
-          setFoodbanks(processedData);
-        } else {
-          throw new Error('Invalid response format');
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
-        console.error('Error fetching foodbanks:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchFoodbanks();
-  }, []);
+    if (foodbanks.length > 0) {
+      const processedData = foodbanks.map((item: Foodbank) => ({
+        ...item,
+        address: item.address || `Coordinates: ${item.latitude}, ${item.longitude}`
+      }));
+      
+      setProcessedFoodbanks(processedData);
+    }
+  }, [foodbanks]);
 
   const filteredFoodbanks = useMemo(() => {
-    let filtered = foodbanks;
+    let filtered = processedFoodbanks;
 
     // Apply type filter
     if (typeFilter !== "all") {
@@ -128,7 +112,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
     }
 
     return filtered;
-  }, [searchTerm, foodbanks, typeFilter]);
+  }, [searchTerm, processedFoodbanks, typeFilter]);
 
   const pages = Math.ceil(filteredFoodbanks.length / rowsPerPage);
   const items = useMemo(() => {
