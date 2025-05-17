@@ -38,7 +38,6 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
   const [impactData, setImpactData] = useState<HouseholdImpactData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentYearData, setCurrentYearData] = useState<any>(null);
-  const [activeMetric, setActiveMetric] = useState<string | null>(null);
 
   // Fetch data from API
   useEffect(() => {
@@ -64,14 +63,14 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
     fetchData();
   }, []);
 
-  // Create interactive visualization
+  // Create visualization
   useEffect(() => {
     if (!chartRef.current || !currentYearData) return;
 
-    createInteractiveVisualization();
-  }, [currentYearData, activeMetric]);
+    createVisualization();
+  }, [currentYearData]);
 
-  const createInteractiveVisualization = () => {
+  const createVisualization = () => {
     if (!chartRef.current || !currentYearData) return;
 
     // Clear existing chart
@@ -149,8 +148,7 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
 
       const gaugeGroup = g.append("g")
         .attr("transform", `translate(${x}, ${y})`)
-        .attr("class", "gauge-group")
-        .style("cursor", "pointer");
+        .attr("class", "gauge-group");
 
       // Add background arc
       gaugeGroup.append("path")
@@ -162,7 +160,7 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
       const foreground = gaugeGroup.append("path")
         .attr("d", arc as any)
         .attr("fill", metric.color)
-        .attr("opacity", activeMetric === metric.id || activeMetric === null ? 1 : 0.6)
+        .attr("opacity", 1)
         .attr("filter", "drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.2))");
 
       // Animate the arc on creation
@@ -210,34 +208,6 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
         .attr("font-size", "13px")
         .attr("fill", "#4A5568")
         .text(metric.label);
-
-      // Add interaction
-      gaugeGroup
-        .on("mouseover", () => {
-          setActiveMetric(metric.id);
-          gaugeGroup.selectAll("text").transition().duration(200).attr("font-weight", "bold");
-          gaugeGroup.transition().duration(200).attr("transform", `translate(${x}, ${y - 10})`);
-        })
-        .on("mouseout", () => {
-          setActiveMetric(null);
-          gaugeGroup.selectAll("text").transition().duration(200).attr("font-weight", null);
-          gaugeGroup.transition().duration(200).attr("transform", `translate(${x}, ${y})`);
-        })
-        .on("click", () => {
-          // Trigger a bounce animation on click
-          gaugeGroup.transition()
-            .duration(100)
-            .attr("transform", `translate(${x}, ${y - 15})`)
-            .transition()
-            .duration(100)
-            .attr("transform", `translate(${x}, ${y})`)
-            .transition()
-            .duration(100)
-            .attr("transform", `translate(${x}, ${y - 7})`)
-            .transition()
-            .duration(100)
-            .attr("transform", `translate(${x}, ${y})`);
-        });
     });
 
     // Add year display
