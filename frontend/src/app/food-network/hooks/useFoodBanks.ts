@@ -37,8 +37,14 @@ export function useFoodBanks(): {
         const fetchFoodbanks = async () => {
             try {
                 const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                const response = await axios.get<FoodbankResponse>(`${backendUrl}/api/foodbanks/`);
-                setFoodbanks(response.data.data);
+                const response = await fetch(`${backendUrl}/api/foodbanks/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const data = await response.json();
+                setFoodbanks(data.data);
             } catch (error) {
                 setError(`Error fetching foodbanks: ${error}`);
             } finally {
@@ -83,10 +89,18 @@ export function useFoodBankById(selectedEnd: string | null): {
 
             try {
                 const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                const response = await axios.get<FoodbankResponse>(`${backendUrl}/api/foodbanks/`);
+                const response = await fetch(`${backendUrl}/api/foodbanks/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    mode: 'cors', // Explicitly request CORS mode
+                    credentials: 'include', // Include credentials like cookies if needed
+                });
+                const data = await response.json();
 
                 // Find the foodbank with matching ID
-                const selectedFoodbank = response.data.data.find(
+                const selectedFoodbank = data.data.find(
                     (bank: Foodbank) => bank.id === parseInt(selectedEnd)
                 );
                 setFoodbank(selectedFoodbank || null);
