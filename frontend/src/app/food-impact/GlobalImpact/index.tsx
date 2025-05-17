@@ -77,32 +77,44 @@ const versor = (() => {
   return versor;
 })();
 
-const YEARS = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
 const INDICATORS = [
   { id: 'total_waste', name: 'Total Waste (tonnes)', colorScale: d3.scaleSequential(d3.interpolateGreens) },
   { id: 'total_economic_loss', name: 'Economic Loss ($M)', colorScale: d3.scaleSequential(d3.interpolateYlOrBr) },
   { id: 'household_waste_percentage', name: 'Household Waste (%)', colorScale: d3.scaleSequential(d3.interpolatePurples) }
 ];
 
+// Coordinates for China to center the map
+const CHINA_COORDINATES = { lat: 35, lon: 105 };
+
+// Coordinates for Australia
+const AUSTRALIA_COORDINATES = { lat: -25, lon: 135 };
+
+// Midpoint between China and Australia
+const MIDPOINT_COORDINATES = { 
+  lat: (CHINA_COORDINATES.lat + AUSTRALIA_COORDINATES.lat) / 2, 
+  lon: (CHINA_COORDINATES.lon + AUSTRALIA_COORDINATES.lon) / 2 
+};
+
 const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
   const mapRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [wasteData, setWasteData] = useState<GlobalWasteData | null>(null);
-  const [currentYear, setCurrentYear] = useState<number>(2018);
   const [selectedIndicator, setSelectedIndicator] = useState<string>(INDICATORS[0].id);
   
   // Reference to store world data for re-renders
   const worldDataRef = useRef<any>(null);
   
-  // Keep track of current globe rotation
-  const rotationRef = useRef<[number, number, number]>([0, 0, 0]);
+  // Keep track of current globe rotation - initially centered between China and Australia
+  const rotationRef = useRef<[number, number, number]>([-MIDPOINT_COORDINATES.lon, -MIDPOINT_COORDINATES.lat, 0]);
 
-  // Fetch world map GeoJSON and waste data
+  // Fetch world map GeoJSON and waste data for 2024 only
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch waste data using axios with config.apiUrl
-        const response = await axios.get<GlobalWasteData>(`${config.apiUrl}/api/economic-impact/`);
+        // Fetch waste data for 2024 using axios with config.apiUrl
+        const response = await axios.get<GlobalWasteData>(`${config.apiUrl}/api/economic-impact/`, {
+          params: { year: 2024 }
+        });
         
         // Process data to include Taiwan as part of China
         if (response.data && response.data.countries) {
@@ -159,30 +171,6 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     fetchData();
   }, []);
 
-  // Re-render map when selected indicator or year changes
-  useEffect(() => {
-    if (wasteData && mapRef.current) {
-      // Re-fetch the data for the current year
-      axios.get<GlobalWasteData>(`${config.apiUrl}/api/economic-impact/`, {
-        params: { year: currentYear }
-      })
-        .then(response => {
-          const data = response.data;
-          // Check if data has countries - if not, it might be empty for this year
-          if (data && data.countries && data.countries.length > 0) {
-            setWasteData(data);
-          } else {
-            console.warn(`No data available for year ${currentYear}, using most recent data instead`);
-            // Keep using the existing data if no data for this year
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching year data:', error);
-          // Keep using the existing data if there's an error
-        });
-    }
-  }, [currentYear]);
-
   useEffect(() => {
     if (wasteData && mapRef.current) {
       d3.select(mapRef.current).selectAll('*').remove();
@@ -226,7 +214,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           .attr('text-anchor', 'middle')
           .attr('font-size', '16px')
           .attr('fill', '#666')
-          .text('Loading data or no data available for the selected year...');
+          .text('Loading data or no data available for 2024...');
       }
       return;
     }
@@ -268,7 +256,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .attr('stroke', '#ccc')
       .attr('stroke-width', 0.5);
 
-    // Create orthographic projection
+    // Create orthographic projection centered on China
     const projection = geoOrthographic()
       .scale(radius)
       .translate([0, 0])
@@ -452,8 +440,9 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .on('mouseout', function() {
         // Reset country highlight
         d3.select(this)
-          .attr('stroke', '#fff')
-          .attr('stroke-width', 0.2);
+          .attr('stroke', '#4a78a1')
+          .attr('stroke-width', 0.2)
+          .style('filter', 'none');
         
         // Hide the info panel
         infoPanel.transition()
@@ -498,26 +487,16 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       
     svg.call(dragBehavior);
 
-    // Add indicator title at the top
-    svg.append('text')
-      .attr('x', width / 2)
-      .attr('y', 30)
-      .attr('text-anchor', 'middle')
-      .attr('font-size', '18px')
-      .attr('font-weight', 'bold')
-      .text(`Global Food Waste: ${selectedIndicatorObj.name}`);
-      
     // Add instructions
     svg.append('text')
       .attr('x', width / 2)
       .attr('y', height - 20)
       .attr('text-anchor', 'middle')
       .attr('font-size', '14px')
-      .attr('fill', '#666')
-      .text('Hover over countries to see details. Drag to rotate the globe in any direction.');
+      .attr('fill', '#666');
   };
 
-  // Re-render with rotation when indicator or year changes
+  // Re-render with rotation when indicator changes
   useEffect(() => {
     if (wasteData && worldDataRef.current && mapRef.current) {
       renderMap(worldDataRef.current, wasteData);
@@ -586,15 +565,15 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       {/* Map Section */}
       <div className="py-8 md:py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-4xl font-bold text-darkgreen mb-4 md:mb-6">
-            Global Food Waste Distribution
+          <h2 className="text-2xl md:text-4xl font-bold text-darkgreen mb-4 md:mb-6 text-left">
+            Global Food Waste Distribution 2024
           </h2>
-          <p className="text-gray-700 mb-6 md:mb-10">
+          <p className="text-gray-700 mb-6 md:mb-10 text-left">
             Food waste is a global issue with varying impacts across different regions.
           </p>
           
-          {/* Controls */}
-          <div className="mb-6 flex flex-wrap gap-4 items-center">
+          {/* Controls - Moved to the right */}
+          <div className="mb-6 flex flex-wrap justify-end gap-4 items-center">
             <div className="w-full md:w-1/3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Select Indicator</label>
               <select
@@ -609,34 +588,11 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
                 ))}
               </select>
             </div>
-            
-            <div className="w-full md:w-2/3">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Year: {currentYear}
-              </label>
-              <div className="flex flex-col md:flex-row items-center gap-2">
-                <input
-                  type="range"
-                  min={YEARS[0]}
-                  max={YEARS[YEARS.length - 1]}
-                  value={currentYear}
-                  onChange={(e) => setCurrentYear(parseInt(e.target.value))}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-                
-                <div className="flex justify-between w-full text-xs text-gray-500 mt-1">
-                  {YEARS.map(year => (
-                    <button 
-                      key={year}
-                      onClick={() => setCurrentYear(year)}
-                      className={`px-2 py-1 rounded ${currentYear === year ? 'bg-darkgreen text-white' : 'hover:bg-gray-100'}`}
-                    >
-                      {year}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+          </div>
+          
+          {/* Caption above the map */}
+          <div className="mb-4 text-xl font-semibold text-darkgreen text-left">
+            Global Food Waste 2024: {INDICATORS.find(ind => ind.id === selectedIndicator)?.name || 'Total Waste (tonnes)'}
           </div>
           
           {/* Map visualization - increase the height */}
@@ -649,7 +605,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           </div>
           
           <div className="mt-6 text-sm text-gray-500">
-            Note: Data visualization shows the global distribution of food waste based on available data.
+            Note: Data visualization shows the global distribution of food waste based on 2024 data.
             Some countries may have incomplete or estimated data.
           </div>
         </div>
