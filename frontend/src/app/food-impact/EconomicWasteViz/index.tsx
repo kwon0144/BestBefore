@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { MetricCardProps } from '../interfaces';
@@ -13,6 +13,15 @@ import {
   faTrash
 } from '@fortawesome/free-solid-svg-icons';
 import { Slider } from "@heroui/react";
+
+// Linear Regression Model Constants
+const MODEL_SLOPE = 1.0002;
+const MODEL_INTERCEPT = -26.6881;
+
+// Calculate economic loss based on total waste using the linear regression model
+const calculateEconomicLoss = (totalWaste: number): number => {
+  return MODEL_INTERCEPT + (MODEL_SLOPE * totalWaste * 1000);
+};
 
 interface EconomicWasteVizProps {
   setMetricCardsRef: (node: HTMLDivElement | null) => void;
@@ -107,6 +116,22 @@ const MetricCard: React.FC<MetricCardProps> = ({
 };
 
 const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }) => {
+  // Base values at 50% slider position
+  const baseWasteAmount = 7.6; // M tonnes
+  const [wasteAmount, setWasteAmount] = useState(baseWasteAmount);
+  const [economicLoss, setEconomicLoss] = useState(36.6); // B dollars
+  const [householdWaste, setHouseholdWaste] = useState(52.7); // %
+  
+  // Percentage changes - will be dynamically updated
+  const [costPercentChange, setCostPercentChange] = useState(2.3);
+  const [wastePercentChange, setWastePercentChange] = useState(1.8);
+  const [householdPercentChange, setHouseholdPercentChange] = useState(0.5);
+  
+  // Track if values are increasing or decreasing
+  const [isCostIncreasing, setIsCostIncreasing] = useState(false);
+  const [isWasteIncreasing, setIsWasteIncreasing] = useState(false);
+  const [isHouseholdIncreasing, setIsHouseholdIncreasing] = useState(true);
+  
   return (
     <div 
       className="py-12 md:py-20 mb-12 md:mb-20 px-4 relative"
@@ -194,8 +219,41 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
                       overlayElement.style.opacity = opacity.toString();
                     }
                     
+                    // Calculate new waste amount based on slider position
+                    // 0% = 50% of base waste, 100% = 150% of base waste
+                    const scaleFactor = 0.5 + (numericValue / 100);
+                    const newWasteAmount = parseFloat((baseWasteAmount * scaleFactor).toFixed(1));
+                    setWasteAmount(newWasteAmount);
+                    
+                    // Calculate economic loss using linear regression model
+                    // Convert to billions by dividing by 1000
+                    const newEconomicLoss = parseFloat((calculateEconomicLoss(newWasteAmount) / 1000).toFixed(1));
+                    setEconomicLoss(newEconomicLoss);
+                    
+                    // Update household waste (scaled slightly differently)
+                    const newHouseholdWaste = parseFloat((52.7 * (0.8 + (numericValue / 250))).toFixed(1));
+                    setHouseholdWaste(newHouseholdWaste);
+                    
+                    // Update percentage changes based on slider position
+                    // For cost: ranges from -5% to +8% (low waste = decrease, high waste = increase)
+                    const newCostPercentChange = parseFloat((numericValue / 20 - 2.5).toFixed(1));
+                    setCostPercentChange(Math.abs(newCostPercentChange));
+                    setIsCostIncreasing(newCostPercentChange > 0);
+                    
+                    // For waste amount: ranges from -4% to +6%
+                    const newWastePercentChange = parseFloat((numericValue / 25 - 2).toFixed(1));
+                    setWastePercentChange(Math.abs(newWastePercentChange));
+                    setIsWasteIncreasing(newWastePercentChange > 0);
+                    
+                    // For household percentage: ranges from -1% to +3%
+                    const newHouseholdPercentChange = parseFloat((numericValue / 50 - 1).toFixed(1));
+                    setHouseholdPercentChange(Math.abs(newHouseholdPercentChange));
+                    setIsHouseholdIncreasing(newHouseholdPercentChange > 0);
+                    
                     // Update impact text based on slider value
                     const impactText = document.getElementById("impactText");
+                    const modelText = document.getElementById("modelText");
+                    
                     if (impactText) {
                       if (numericValue < 25) {
                         impactText.textContent = "Minimal food waste leads to significant economic and environmental benefits";
@@ -206,6 +264,10 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
                       } else {
                         impactText.textContent = "Heavy food waste creates severe financial and environmental impact";
                       }
+                    }
+                    
+                    if (modelText) {
+                      modelText.textContent = `Economic Loss (Billion $) = ${(MODEL_INTERCEPT/1000).toFixed(4)} + ${(MODEL_SLOPE/1000).toFixed(6)} × Total Waste (Tons)`;
                     }
                   }}
                 />
@@ -234,10 +296,10 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
           <MetricCard 
             icon={faDollarSign}
             title="Annual Cost"
-            value={36.6}
+            value={economicLoss}
             unit="B"
-            changePercent={2.3}
-            isIncrease={false}
+            changePercent={costPercentChange}
+            isIncrease={isCostIncreasing}
             fillPercent={70}
             color="teal"
           />
@@ -246,10 +308,10 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
           <MetricCard 
             icon={faWeightHanging}
             title="Tonnes Wasted"
-            value={7.6}
+            value={wasteAmount}
             unit="M"
-            changePercent={1.8}
-            isIncrease={false}
+            changePercent={wastePercentChange}
+            isIncrease={isWasteIncreasing}
             fillPercent={60}
             color="blue"
           />
@@ -258,16 +320,19 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
           <MetricCard 
             icon={faHome}
             title="Household Waste"
-            value={52.7}
+            value={householdWaste}
             unit="%"
-            changePercent={0.5}
-            isIncrease={true}
-            fillPercent={52.7}
+            changePercent={householdPercentChange}
+            isIncrease={isHouseholdIncreasing}
+            fillPercent={householdWaste}
             color="amber"
           />
         </motion.div>
-        <div id="impactText" className="text-sm md:text-base text-darkgreen font-semibold mt-2 min-h-[48px]">
+        <div id="impactText" className="text-sm md:text-base text-darkgreen font-semibold mt-2 min-h-[24px]">
           Moderate food waste reduction still provides substantial benefits
+        </div>
+        <div id="modelText" className="text-xs text-gray-600 italic mt-2 min-h-[24px]">
+          Economic Loss (Billion $) = -0.0267 + 0.000001 × Total Waste (Tons)
         </div>
       </div>
     </div>
