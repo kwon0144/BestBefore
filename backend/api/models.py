@@ -107,4 +107,24 @@ class FoodWasteComposition(models.Model):
     
     def __str__(self):
         return f"{self.type} - {self.quantity} tonnes"
+
+class GlobalFoodWastageDataset(models.Model):
+    """
+    Model representing global food wastage data by country, year and food category.
+    Contains economic impact metrics as well as waste quantities.
+    """
+    country = models.CharField(max_length=100)
+    year = models.IntegerField()
+    food_category = models.CharField(max_length=100)
+    total_waste = models.FloatField()
+    economic_loss = models.FloatField()
+    waste_capita = models.FloatField() 
+    population = models.FloatField()
+    household_waste = models.FloatField()
     
+    class Meta:
+        db_table = 'global_food_wastage_dataset'
+        managed = False  # Since we're connecting to an existing table
+        
+    def __str__(self):
+        return f"{self.country} - {self.year} - {self.food_category}"

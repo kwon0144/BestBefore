@@ -5,6 +5,7 @@ import * as d3 from 'd3';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSeedling, faShoppingCart, faTruck, faAppleAlt, faIndustry, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { fadeInUpVariant, fadeInVariant, staggerContainerVariant } from '../interfaces';
+import { config } from '@/config';
 
 interface WasteData {
   name: string;
@@ -34,20 +35,12 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<WasteCompositionResponse>('/api/waste-composition/');
+        const apiUrl = `${config.apiUrl}/api/waste-composition/`;
+        const response = await axios.get<WasteCompositionResponse>(apiUrl);
         setWasteData(response.data.data);
         setTotalTonnes(response.data.total_tonnes);
       } catch (error) {
         console.error("Error fetching waste composition data:", error);
-        // Fallback data in case API fails
-        setWasteData([
-          { name: "Consumer", value: 3931370.0, percentage: 51.22 },
-          { name: "Primary", value: 1683430.0, percentage: 21.93 },
-          { name: "Manufacturing", value: 1276250.0, percentage: 16.63 },
-          { name: "Retail", value: 526623.0, percentage: 6.86 },
-          { name: "Distribution", value: 258462.0, percentage: 3.37 }
-        ]);
-        setTotalTonnes(7676128.0);
       }
     };
 
