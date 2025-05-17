@@ -7,8 +7,18 @@
 import { Modal, ModalContent, ModalHeader, ModalBody, Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import { ItemDetailProps } from "@/app/second-life/interfaces/SecondLifeItem";
+import { SecondLifeItem } from "../interfaces/SecondLifeItem";
 import Image from 'next/image';
+
+/**
+ * Props for the ItemDetail component
+ * Used to display detailed information about a Second Life item
+ */
+export interface ItemDetailProps {
+  isOpen: boolean;
+  onClose: () => void;
+  item: SecondLifeItem | null;
+} 
 
 /**
  * Renders a modal with detailed information about a repurposing idea

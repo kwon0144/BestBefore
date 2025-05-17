@@ -11,12 +11,20 @@ import axios from 'axios';
 import { SecondLifeItem } from '@/app/second-life/interfaces/SecondLifeItem';
 import { config } from '@/config';
 
+/**
+ * Props for the useSecondLifeItems hook
+ * Used to manage the state of Second Life items
+ */
 interface UseSecondLifeItemsProps {
     itemsPerPage: number;
     initialSearchQuery?: string;
     initialIngredient?: string;
 }
 
+/**
+ * Result type for the useSecondLifeItems hook
+ * Contains the items, loading state, error state, total pages, and fetch function
+ */
 interface UseSecondLifeItemsResult {
     items: SecondLifeItem[];
     loading: boolean;
