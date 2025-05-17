@@ -414,7 +414,7 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
             <Button
               size="md"
               variant="light"
-              className="text-[#2F5233] hover:bg-green-50 flex items-center gap-1.5 px-3 py-1.5"
+              className="text-[#2F5233] bg-lightgreen/20 flex items-center gap-1.5 px-3 py-1.5"
               onPress={() => {
                 if (!editMode) {
                   initializeEditableList();
