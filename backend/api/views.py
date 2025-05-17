@@ -3,7 +3,7 @@ from django.db import connection
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-
+from django.db.models import Sum
 # Django REST framework imports
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, action
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 from .service.db_service import get_storage_recommendations, get_all_food_types
 from .service.dish_ingre_service import DishIngredientService
 from .service.hours_parser_service import parse_operating_hours
-from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources
+from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources, FoodWasteComposition
 from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
 from .game_core import start_new_game, update_game_state, end_game_session, prepare_game_food_items
 from .game_validators import get_top_scores, validate_pickup, validate_action
@@ -740,3 +740,44 @@ def get_game_resources(request):
             {'error': 'Failed to fetch game resources'}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+    
+
+#-----------------------------------------------------------------------
+# Food Waste Composition APIs
+#-----------------------------------------------------------------------
+
+@api_view(['GET'])
+def get_waste_composition(request):
+    """
+    Get food waste composition data with calculated percentages
+    for visualization purposes using Django ORM.
+    """
+    try:
+        # Query the data using ORM
+        waste_data = FoodWasteComposition.objects.all().order_by('-quantity')
+        
+        # Calculate total quantity
+        total_quantity = FoodWasteComposition.objects.aggregate(
+            total=Sum('quantity')
+        )['total'] or 0
+        
+        # Format the data with percentages - without colors
+        formatted_data = []
+        for item in waste_data:
+            percentage = (item.quantity / total_quantity) * 100 if total_quantity > 0 else 0
+            formatted_data.append({
+                'name': item.type,
+                'value': item.quantity,
+                'percentage': round(percentage, 2)
+            })
+        
+        return Response({
+            'total_tonnes': round(total_quantity, 2),
+            'data': formatted_data,
+            'updated_at': timezone.now().isoformat()
+        })
+    
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

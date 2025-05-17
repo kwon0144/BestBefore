@@ -1,9 +1,21 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion } from "framer-motion";
+import axios from 'axios';
+import * as d3 from 'd3';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSeedling, faShoppingCart, faTruck, faAppleAlt, faIndustry, faArrowRight } from '@fortawesome/free-solid-svg-icons';
-import * as echarts from "echarts";
 import { fadeInUpVariant, fadeInVariant, staggerContainerVariant } from '../interfaces';
+
+interface WasteData {
+  name: string;
+  value: number;
+  percentage: number;
+}
+
+interface WasteCompositionResponse {
+  total_tonnes: number;
+  data: WasteData[];
+}
 
 interface SupplyChainProps {
   setRef: (node: HTMLDivElement | null) => void;
@@ -11,68 +23,295 @@ interface SupplyChainProps {
 
 const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
   const chartRef = useRef<HTMLDivElement>(null);
+  const [wasteData, setWasteData] = useState<WasteData[]>([]);
+  const [totalTonnes, setTotalTonnes] = useState<number>(0);
+  const [hoveredValue, setHoveredValue] = useState<string>("");
+  const [hoveredName, setHoveredName] = useState<string>("");
+  const [hoveredSegment, setHoveredSegment] = useState<string>("");
+  const [tooltipPosition, setTooltipPosition] = useState<{x: number, y: number} | null>(null);
 
-  // ECharts setup for pie chart
+  // Fetch data from API
   useEffect(() => {
-    if (chartRef.current) {
-      // Dispose any existing chart
-      echarts.dispose(chartRef.current);
+    const fetchData = async () => {
+      try {
+        const response = await axios.get<WasteCompositionResponse>('/api/waste-composition/');
+        setWasteData(response.data.data);
+        setTotalTonnes(response.data.total_tonnes);
+      } catch (error) {
+        console.error("Error fetching waste composition data:", error);
+        // Fallback data in case API fails
+        setWasteData([
+          { name: "Consumer", value: 3931370.0, percentage: 51.22 },
+          { name: "Primary", value: 1683430.0, percentage: 21.93 },
+          { name: "Manufacturing", value: 1276250.0, percentage: 16.63 },
+          { name: "Retail", value: 526623.0, percentage: 6.86 },
+          { name: "Distribution", value: 258462.0, percentage: 3.37 }
+        ]);
+        setTotalTonnes(7676128.0);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // D3.js setup for donut chart
+  useEffect(() => {
+    if (chartRef.current && wasteData.length > 0) {
+      // Clear existing SVG
+      d3.select(chartRef.current).selectAll("*").remove();
       
-      // Create a new chart
-      const chart = echarts.init(chartRef.current);
+      // Chart dimensions
+      const width = chartRef.current.clientWidth;
+      const height = Math.min(width, 400); // Max height of 400px
+      const margin = 10;
+      const radius = Math.min(width, height) / 2 - margin;
+      const innerRadius = radius * 0.4; // Reduced from 0.6 to 0.4 to make donut wider
       
-      // Simple configuration without animations
-      const option = {
-        animation: false,
-        backgroundColor: 'transparent',
-        tooltip: {
-          trigger: "item",
-          formatter: "{b}: {c} ({d}%)"
-        },
-        series: [
-          {
-            name: "Food Waste Stages",
-            type: "pie",
-            radius: "65%",
-            center: ['50%', '50%'],
-            data: [
-              { value: 28, name: "Stage 1", itemStyle: { color: "#ff6b6b" } },
-              { value: 22, name: "Stage 2", itemStyle: { color: "#ffd166" } },
-              { value: 20, name: "Stage 3", itemStyle: { color: "#06d6a0" } },
-              { value: 18, name: "Stage 4", itemStyle: { color: "#118ab2" } },
-              { value: 12, name: "Stage 5", itemStyle: { color: "#073b4c" } },
-            ],
-            itemStyle: {
-              borderRadius: 4,
-              borderColor: '#fff',
-              borderWidth: 1
-            },
-            label: {
-              show: true,
-              formatter: '{b}: {d}%',
-              fontSize: 14
-            }
-          }
-        ]
+      // Color scale
+      const colorScale = d3.scaleOrdinal<string>()
+        .domain(wasteData.map(d => d.name))
+        .range([
+          '#3D8361', // Consumer - dark green
+          '#FFB84C', // Primary - amber
+          '#579BB1', // Manufacturing - teal blue
+          '#F16767', // Retail - soft red
+          '#7F669D'  // Distribution - purple
+        ]);
+      
+      // Create SVG
+      const svg = d3.select(chartRef.current)
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .append('g')
+        .attr('transform', `translate(${width / 2}, ${height / 2})`);
+      
+      // Add shadow filter for 3D effect
+      const defs = svg.append("defs");
+      const filter = defs.append("filter")
+        .attr("id", "drop-shadow")
+        .attr("height", "130%");
+      
+      filter.append("feGaussianBlur")
+        .attr("in", "SourceAlpha")
+        .attr("stdDeviation", 3)
+        .attr("result", "blur");
+      
+      filter.append("feOffset")
+        .attr("in", "blur")
+        .attr("dx", 2)
+        .attr("dy", 2)
+        .attr("result", "offsetBlur");
+      
+      const feComponentTransfer = filter.append("feComponentTransfer")
+        .attr("in", "offsetBlur")
+        .attr("result", "offsetBlur");
+      
+      feComponentTransfer.append("feFuncA")
+        .attr("type", "linear")
+        .attr("slope", 0.5);
+      
+      const feMerge = filter.append("feMerge");
+      feMerge.append("feMergeNode")
+        .attr("in", "offsetBlur");
+      feMerge.append("feMergeNode")
+        .attr("in", "SourceGraphic");
+
+      // Set up pie generator
+      const pie = d3.pie<WasteData>()
+        .value(d => d.value)
+        .sort(null)
+        .padAngle(0.02); // Add padding between segments for a more modern look
+      
+      // Arc generator
+      const arc = d3.arc<d3.PieArcDatum<WasteData>>()
+        .innerRadius(innerRadius)
+        .outerRadius(radius)
+        .cornerRadius(4); // Rounded corners for a more friendly look
+      
+      // Create arcs
+      const arcs = svg.selectAll('.arc')
+        .data(pie(wasteData))
+        .enter()
+        .append('g')
+        .attr('class', 'arc');
+      
+      // Add path
+      arcs.append('path')
+        .attr('d', arc)
+        .attr('fill', d => colorScale(d.data.name) as string)
+        .style('opacity', d => hoveredSegment && hoveredSegment !== d.data.name ? 0.7 : 0.95)
+        .style('filter', 'url(#drop-shadow)') // Add shadow for 3D effect
+        .style('cursor', 'pointer')
+        .on('mouseover', function(event, d) {
+          // Highlight segment
+          d3.select(this)
+            .style('opacity', 1)
+            .transition()
+            .duration(200)
+            .attr('transform', 'translate(' + Math.sin(((d.startAngle + d.endAngle) / 2)) * 10 + ',' + 
+                  (-Math.cos(((d.startAngle + d.endAngle) / 2)) * 10) + ')');
+          
+          // Display value and name in center
+          setHoveredValue(`${d.data.value.toLocaleString()}`);
+          setHoveredName(getStageName(d.data.name));
+          setHoveredSegment(d.data.name);
+          
+          // Remove tooltip calculation and elements - we'll just highlight the legend instead
+          svg.selectAll(".tooltip-text, .tooltip-line").remove();
+        })
+        .on('mouseout', function() {
+          // Restore normal appearance
+          d3.select(this)
+            .style('opacity', 0.95)
+            .transition()
+            .duration(200)
+            .attr('transform', 'translate(0,0)');
+          
+          // Clear values to show default
+          setHoveredValue("");
+          setHoveredName("");
+          setHoveredSegment("");
+          setTooltipPosition(null);
+          
+          // Remove tooltips
+          svg.selectAll(".tooltip-text, .tooltip-line").remove();
+        });
+
+      // Add percentage labels to all segments by default
+      arcs.append('text')
+        .attr('transform', d => {
+          const midAngle = (d.startAngle + d.endAngle) / 2;
+          const labelRadius = radius * 0.8; // Position between inner and outer radius
+          const x = Math.sin(midAngle) * labelRadius;
+          const y = -Math.cos(midAngle) * labelRadius;
+          return `translate(${x}, ${y})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('alignment-baseline', 'middle')
+        .attr('font-size', '14px')
+        .attr('font-weight', 'bold')
+        .attr('fill', 'white')
+        .text(d => `${d.data.percentage}%`);
+        
+      // Function to show percentage on the segment
+      const updatePercentageLabel = (d: d3.PieArcDatum<WasteData>) => {
+        // Remove any existing label
+        svg.select('.percentage-label').remove();
       };
       
-      // Apply the configuration
-      chart.setOption(option);
+      // Center text container with a more visually appealing design
+      const textGroup = svg.append('g')
+        .attr('class', 'center-text');
+      
+      // Background circle with gradient for better visual appeal
+      const gradientId = "centerGradient";
+      const gradient = defs.append("radialGradient")
+        .attr("id", gradientId)
+        .attr("cx", "50%")
+        .attr("cy", "50%")
+        .attr("r", "50%");
+      
+      gradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", "white");
+      
+      gradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", "#f8f8f8");
+      
+      textGroup.append('circle')
+        .attr('r', innerRadius * 0.8) // Smaller inner circle for hover content
+        .attr('fill', `url(#${gradientId})`)
+        .attr('stroke', '#e0e0e0')
+        .attr('stroke-width', 1)
+        .style('filter', 'url(#drop-shadow)');
+      
+      // Value text - slightly smaller font to fit in the reduced inner area
+      textGroup.append('text')
+        .attr('class', 'value-text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '-0.4em') 
+        .attr('font-size', '14px')
+        .attr('font-weight', 'bold')
+        .attr('fill', '#444');
+      
+      // Category text (under value) - slightly smaller
+      textGroup.append('text')
+        .attr('class', 'category-text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '0.8em')
+        .attr('font-size', '12px')
+        .attr('fill', '#666');
+      
+      // Label text (for tonnes) - slightly smaller
+      textGroup.append('text')
+        .attr('class', 'label-text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '2em')
+        .attr('font-size', '10px')
+        .attr('fill', '#888')
+        .text('tonnes');
+      
+      // Update text based on hover status
+      if (hoveredValue) {
+        svg.select('.value-text')
+          .text(hoveredValue);
+        svg.select('.category-text')
+          .text(hoveredName);
+        svg.select('.label-text')
+          .text('tonnes');
+      } else {
+        svg.select('.value-text')
+          .text(totalTonnes.toLocaleString());
+        svg.select('.category-text')
+          .text('Total Food Waste');
+        svg.select('.label-text')
+          .text('tonnes');
+      }
       
       // Handle window resize
       const handleResize = () => {
-        chart.resize();
+        // Redraw chart on window resize
+        if (chartRef.current) {
+          d3.select(chartRef.current).selectAll("*").remove();
+          // This will trigger the useEffect again
+          setWasteData([...wasteData]);
+        }
       };
       
       window.addEventListener('resize', handleResize);
       
       // Cleanup
       return () => {
-        chart.dispose();
         window.removeEventListener('resize', handleResize);
       };
     }
-  }, []);
+  }, [wasteData, hoveredValue, hoveredName, hoveredSegment, tooltipPosition, totalTonnes]);
+
+  // Get stage name based on API data names
+  const getStageName = (name: string): string => {
+    switch (name) {
+      case "Primary": return "Primary";
+      case "Manufacturing": return "Manufacturing";
+      case "Distribution": return "Distribution";
+      case "Retail": return "Retail";
+      case "Consumer": return "Consumer";
+      default: return name;
+    }
+  };
+  
+  // Map API data names to colors
+  const getColorClass = (name: string): string => {
+    switch (name) {
+      case "Consumer": return "bg-red-400";
+      case "Primary": return "bg-yellow-300";
+      case "Manufacturing": return "bg-green-400";
+      case "Retail": return "bg-blue-500";
+      case "Distribution": return "bg-blue-900";
+      default: return "bg-gray-400";
+    }
+  };
 
   return (
     <motion.div 
@@ -97,106 +336,140 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
             supply chain. Understanding its composition helps target reduction
             efforts more effectively.
           </p>
-          <div className="space-y-3 md:space-y-4">
-            <motion.div 
-              variants={fadeInVariant}
-              transition={{ delay: 0.1 }}
-              className="flex items-center"
-            >
-              <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-red-400 mr-2 md:mr-3"></div>
-              <span className="text-sm md:text-base text-gray-700">Stage 1</span>
-            </motion.div>
-            <motion.div 
-              variants={fadeInVariant}
-              transition={{ delay: 0.2 }}
-              className="flex items-center"
-            >
-              <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-yellow-300 mr-2 md:mr-3"></div>
-              <span className="text-sm md:text-base text-gray-700">Stage 2</span>
-            </motion.div>
-            <motion.div 
-              variants={fadeInVariant}
-              transition={{ delay: 0.3 }}
-              className="flex items-center"
-            >
-              <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-green-400 mr-2 md:mr-3"></div>
-              <span className="text-sm md:text-base text-gray-700">Stage 3</span>
-            </motion.div>
-            <motion.div 
-              variants={fadeInVariant}
-              transition={{ delay: 0.4 }}
-              className="flex items-center"
-            >
-              <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-blue-500 mr-2 md:mr-3"></div>
-              <span className="text-sm md:text-base text-gray-700">Stage 4</span>
-            </motion.div>
-            <motion.div 
-              variants={fadeInVariant}
-              transition={{ delay: 0.5 }}
-              className="flex items-center"
-            >
-              <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-blue-900 mr-2 md:mr-3"></div>
-              <span className="text-sm md:text-base text-gray-700">Stage 5</span>
-            </motion.div>
+
+          {/* Categories with icons - vertical layout (replacing the original legend) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            {/* Column 1 */}
+            <div className="space-y-4">
+              {/* Primary */}
+              <div 
+                className={`flex items-center transition-all duration-300 ${
+                  hoveredSegment === "Primary" 
+                    ? "transform scale-110 bg-yellow-50 rounded-lg p-3 -ml-3 shadow-lg border-l-4 border-yellow-400" 
+                    : ""
+                }`}
+              >
+                <div 
+                  style={{ backgroundColor: '#FFB84C' }} 
+                  className={`rounded-full w-12 h-12 mr-3 flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
+                    hoveredSegment === "Primary" ? "animate-pulse" : ""
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faSeedling} className="text-white text-lg" />
+                </div>
+                <div>
+                  <span className={`text-sm font-medium ${hoveredSegment === "Primary" ? "text-yellow-700 font-bold" : "text-gray-800"}`}>Primary</span>
+                  <p className="text-xs text-gray-600">{wasteData.find(d => d.name === "Primary")?.percentage || 0}% of food waste</p>
+                </div>
+              </div>
+              
+              {/* Manufacturing */}
+              <div 
+                className={`flex items-center transition-all duration-300 ${
+                  hoveredSegment === "Manufacturing" 
+                    ? "transform scale-110 bg-blue-50 rounded-lg p-3 -ml-3 shadow-lg border-l-4 border-blue-400" 
+                    : ""
+                }`}
+              >
+                <div 
+                  style={{ backgroundColor: '#579BB1' }} 
+                  className={`rounded-full w-12 h-12 mr-3 flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
+                    hoveredSegment === "Manufacturing" ? "animate-pulse" : ""
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faIndustry} className="text-white text-lg" />
+                </div>
+                <div>
+                  <span className={`text-sm font-medium ${hoveredSegment === "Manufacturing" ? "text-blue-700 font-bold" : "text-gray-800"}`}>Manufacturing</span>
+                  <p className="text-xs text-gray-600">{wasteData.find(d => d.name === "Manufacturing")?.percentage || 0}% of food waste</p>
+                </div>
+              </div>
+              
+              {/* Distribution */}
+              <div 
+                className={`flex items-center transition-all duration-300 ${
+                  hoveredSegment === "Distribution" 
+                    ? "transform scale-110 bg-purple-50 rounded-lg p-3 -ml-3 shadow-lg border-l-4 border-purple-400" 
+                    : ""
+                }`}
+              >
+                <div 
+                  style={{ backgroundColor: '#7F669D' }} 
+                  className={`rounded-full w-12 h-12 mr-3 flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
+                    hoveredSegment === "Distribution" ? "animate-pulse" : ""
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faTruck} className="text-white text-lg" />
+                </div>
+                <div>
+                  <span className={`text-sm font-medium ${hoveredSegment === "Distribution" ? "text-purple-700 font-bold" : "text-gray-800"}`}>Distribution</span>
+                  <p className="text-xs text-gray-600">{wasteData.find(d => d.name === "Distribution")?.percentage || 0}% of food waste</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Column 2 */}
+            <div className="space-y-4">
+              {/* Retail */}
+              <div 
+                className={`flex items-center transition-all duration-300 ${
+                  hoveredSegment === "Retail" 
+                    ? "transform scale-110 bg-red-50 rounded-lg p-3 -ml-3 shadow-lg border-l-4 border-red-400" 
+                    : ""
+                }`}
+              >
+                <div 
+                  style={{ backgroundColor: '#F16767' }} 
+                  className={`rounded-full w-12 h-12 mr-3 flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
+                    hoveredSegment === "Retail" ? "animate-pulse" : ""
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faShoppingCart} className="text-white text-lg" />
+                </div>
+                <div>
+                  <span className={`text-sm font-medium ${hoveredSegment === "Retail" ? "text-red-700 font-bold" : "text-gray-800"}`}>Retail</span>
+                  <p className="text-xs text-gray-600">{wasteData.find(d => d.name === "Retail")?.percentage || 0}% of food waste</p>
+                </div>
+              </div>
+              
+              {/* Consumer */}
+              <div 
+                className={`flex items-center transition-all duration-300 ${
+                  hoveredSegment === "Consumer" 
+                    ? "transform scale-110 bg-green-50 rounded-lg p-3 -ml-3 shadow-lg border-l-4 border-green-400" 
+                    : ""
+                }`}
+              >
+                <div 
+                  style={{ backgroundColor: '#3D8361' }} 
+                  className={`rounded-full w-12 h-12 mr-3 flex-shrink-0 flex items-center justify-center transition-all duration-300 ${
+                    hoveredSegment === "Consumer" ? "animate-pulse" : ""
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faAppleAlt} className="text-white text-lg" />
+                </div>
+                <div>
+                  <span className={`text-sm font-medium ${hoveredSegment === "Consumer" ? "text-green-700 font-bold" : "text-gray-800"}`}>Consumer</span>
+                  <p className="text-xs text-gray-600">{wasteData.find(d => d.name === "Consumer")?.percentage || 0}% of food waste</p>
+                </div>
+              </div>
+            </div>
           </div>
         </motion.div>
-        {/* Supply Chain */}
+        
+        {/* Chart Section */}
         <motion.div variants={fadeInUpVariant}>
-          {/* Supply chain icons - made responsive for small screens */}
-          <div className="flex flex-wrap justify-center items-center mb-8 md:mb-12 overflow-x-auto">
-            <div className="flex flex-col items-center mx-1 md:mx-2">
-              <div className="bg-amber-300 rounded-full p-2 md:p-4 mb-2">
-                <FontAwesomeIcon icon={faSeedling} className="text-lg md:text-2xl text-gray-800" />
-              </div>
-              <span className="text-[10px] md:text-xs text-gray-600 text-center">PRODUCTION</span>
-            </div>
-            <div className="mx-1">
-              <FontAwesomeIcon icon={faArrowRight} className="text-amber-400 text-sm md:text-base" />
-            </div>
-            <div className="flex flex-col items-center mx-1 md:mx-2">
-              <div className="bg-amber-300 rounded-full p-2 md:p-4 mb-2">
-                <FontAwesomeIcon icon={faIndustry} className="text-lg md:text-2xl text-gray-800" />
-              </div>
-              <span className="text-[10px] md:text-xs text-gray-600 text-center max-w-[60px] md:max-w-none">
-                PROCESSING
-              </span>
-            </div>
-            <div className="mx-1">
-              <FontAwesomeIcon icon={faArrowRight} className="text-amber-400 text-sm md:text-base" />
-            </div>
-            <div className="flex flex-col items-center mx-1 md:mx-2">
-              <div className="bg-amber-300 rounded-full p-2 md:p-4 mb-2">
-                <FontAwesomeIcon icon={faTruck} className="text-lg md:text-2xl text-gray-800" />
-              </div>
-              <span className="text-[10px] md:text-xs text-gray-600 text-center max-w-[60px] md:max-w-none">
-                DISTRIBUTION
-              </span>
-            </div>
-            <div className="mx-1">
-              <FontAwesomeIcon icon={faArrowRight} className="text-amber-400 text-sm md:text-base" />
-            </div>
-            <div className="flex flex-col items-center mx-1 md:mx-2">
-              <div className="bg-amber-300 rounded-full p-2 md:p-4 mb-2">
-                <FontAwesomeIcon icon={faShoppingCart} className="text-lg md:text-2xl text-gray-800" />
-              </div>
-              <span className="text-[10px] md:text-xs text-gray-600 text-center">RETAIL</span>
-            </div>
-            <div className="mx-1">
-              <FontAwesomeIcon icon={faArrowRight} className="text-amber-400 text-sm md:text-base" />
-            </div>
-            <div className="flex flex-col items-center mx-1 md:mx-2">
-              <div className="bg-amber-300 rounded-full p-2 md:p-4 mb-2">
-                <FontAwesomeIcon icon={faAppleAlt} className="text-lg md:text-2xl text-gray-800" />
-              </div>
-              <span className="text-[10px] md:text-xs text-gray-600 text-center">CONSUMPTION</span>
-            </div>
-          </div>
-          {/* Separate the chart from motion animations */}
-          <div ref={chartRef} className="w-full h-60 md:h-80"></div>
+          {/* D3.js Chart */}
+          <div 
+            ref={chartRef} 
+            className="w-full h-60 md:h-80"
+            aria-label="Food waste composition donut chart"
+            role="img"
+          ></div>
         </motion.div>
       </div>
     </motion.div>
   );
 };
 
-export default SupplyChain; 
+export default SupplyChain;

@@ -16,7 +16,8 @@ from .views import (
     get_food_items,
     pickup_food,
     perform_action,
-    get_game_resources
+    get_game_resources,
+    get_waste_composition
 )
 from .service import produce_detection_service
 from .service.produce_expiry_date_service import storage_assistant
@@ -45,6 +46,7 @@ urlpatterns = [
     path('game/resources/', get_game_resources, name='get_game_resources'),
     path('second-life/', get_second_life_items, name='get_second_life_items'),
     path('second-life/<int:item_id>/', get_second_life_item_detail, name='get_second_life_item_detail'),
-    path('auth/login/', login, name='login')
+    path('auth/login/', login, name='login'),
+    path('waste-composition/', get_waste_composition, name='get_waste_composition')
 ]
 

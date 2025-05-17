@@ -95,3 +95,16 @@ class Dish(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class FoodWasteComposition(models.Model):
+    type = models.CharField(max_length=100)  # Food waste category
+    quantity = models.FloatField()  # Quantity in tonnes
+    
+    class Meta:
+        db_table = 'food_waste_composition'
+        managed = False  
+    
+    def __str__(self):
+        return f"{self.type} - {self.quantity} tonnes"
+    
