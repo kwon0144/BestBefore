@@ -920,6 +920,7 @@ def get_economic_impact(request):
             if latest_year_item:
                 # Calculate country totals
                 country_loss = country_queryset.aggregate(Sum('economic_loss'))['economic_loss__sum'] or 0
+                country_waste = country_queryset.aggregate(Sum('total_waste'))['total_waste__sum'] or 0
                 
                 # Calculate household impact
                 population_value = latest_year_item.population
@@ -939,11 +940,13 @@ def get_economic_impact(request):
                     'total_economic_loss': country_loss,
                     'population': population_value,
                     'household_waste_percentage': household_waste_pct,
-                    'annual_cost_per_household': round(cost_per_household, 2)
+                    'annual_cost_per_household': round(cost_per_household, 2),
+                    'total_waste': country_waste
                 })
         
         # Sort countries by economic loss
         countries_data.sort(key=lambda x: x['total_economic_loss'], reverse=True)
+        
         
         # Return response
         return Response({
