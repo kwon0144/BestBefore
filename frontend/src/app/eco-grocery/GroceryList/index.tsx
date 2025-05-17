@@ -6,11 +6,23 @@
  * user's pantry and marks them accordingly to prevent unnecessary purchases.
  */
 import { forwardRef, useState } from "react";
-import { GroceryListProps } from "@/app/eco-grocery/interfaces/GroceryItem";
 import { Skeleton, Button, Input } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faEdit, faCheck, faTimes, faPlus, faPen, faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import InfoTooltip from "@/app/(components)/InfoTooltip";
+import { GroceryItem, PantryItem } from "../interfaces/GroceryItem";
+
+/**
+ * Props for the GroceryList component
+ * Used to manage the state of the grocery list
+ */
+interface GroceryListProps {
+  selectedMeals: string[];
+  pantryItems: PantryItem[];
+  error: string | null;
+  getGroceryItemsByCategory: (category: string) => GroceryItem[];
+  loading: boolean;
+}
 
 /**
  * Renders a categorized list of grocery items needed for selected meals
