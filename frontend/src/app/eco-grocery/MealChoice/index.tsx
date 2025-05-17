@@ -7,9 +7,10 @@
  */
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faSpinner, faUtensils } from "@fortawesome/free-solid-svg-icons";
-import { MealChoicesProps } from "../interfaces";
+import { faPlus, faSpinner, faUtensils, faImage, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import { MealChoicesProps } from "@/app/eco-grocery/interfaces/MealChoice";
 import Image from "next/image";
+import { useState } from "react";
 
 /**
  * Renders a grid of meal choices for user selection
@@ -19,16 +20,29 @@ import Image from "next/image";
  * @param {Function} props.addMeal - Function to add a meal to the selected meals list
  * @param {boolean} props.isLoading - Whether signature dishes are being loaded
  * @param {string|null} props.selectedCuisine - Currently selected cuisine category, if any
+ * @param {string|null} props.error - Error message if signature dishes failed to load
  * @returns {JSX.Element} Rendered meal choices component
  */
 export default function MealChoice({ 
   filteredMealChoices, 
   addMeal,
   isLoading = false,
-  selectedCuisine = null
+  selectedCuisine = null,
+  error = null
 }: MealChoicesProps) {
   // Determine the title based on whether signature dishes are being shown
   const title = selectedCuisine ? `Signature Dishes from ${selectedCuisine}` : "Choices of Meals";
+
+  // Track image loading errors
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+
+  // Handle image load error
+  const handleImageError = (mealId: number) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [mealId]: true
+    }));
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -42,6 +56,11 @@ export default function MealChoice({
             <FontAwesomeIcon icon={faSpinner} spin className="text-emerald-500 h-8 w-8" />
             <span className="ml-2 text-gray-600">Loading signature dishes...</span>
           </div>
+        ) : error ? (
+          <div className="flex justify-center items-center h-40 p-6 bg-red-50 rounded-lg">
+            <FontAwesomeIcon icon={faExclamationTriangle} className="text-red-500 h-6 w-6" />
+            <span className="ml-2 text-red-600">{error}</span>
+          </div>
         ) : filteredMealChoices.length === 0 && selectedCuisine ? (
           <p className="text-gray-500 italic">No signature dishes found for {selectedCuisine}</p>
         ) : (
@@ -49,13 +68,15 @@ export default function MealChoice({
             {filteredMealChoices.map((meal) => (
               <div key={meal.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                 <div className="relative h-32 overflow-hidden">
-                  {meal.imageUrl ? (
+                  {meal.imageUrl && !imageErrors[meal.id] ? (
                     <Image
                       src={meal.imageUrl}
                       alt={meal.name}
                       className="object-cover object-top"
                       fill
                       sizes="(max-width: 768px) 100vw, 300px"
+                      onError={() => handleImageError(meal.id)}
+                      unoptimized={meal.imageUrl.startsWith('https://s3-')}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-200">

@@ -450,14 +450,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         // Use the correct storage time based on the new location
         const newStorageTime = newLocation === "refrigerator" ? fridgeTime : pantryTime;
         
-        console.log(`Transferring ${item.name} to ${newLocation}:`, { 
-          fridgeTime: response.data.fridge, 
-          pantryTime: response.data.pantry,
-          recommendedMethod: response.data.method,
-          newLocation,
-          newStorageTime
-        });
-        
         // Calculate new expiry date based on the full recommended storage time for the new location
         const newExpiryDate = new Date();
         newExpiryDate.setDate(newExpiryDate.getDate() + newStorageTime);
@@ -501,14 +493,6 @@ export default function InventoryModal({ isOpen, onClose }: InventoryModalProps)
         
         // Use the correct storage time based on the new location
         const newStorageTime = newLocation === "refrigerator" ? fridgeTime : pantryTime;
-        
-        console.log(`Transferring ${item.name} to ${newLocation}:`, { 
-          fridgeTime: response.data.fridge, 
-          pantryTime: response.data.pantry,
-          recommendedMethod: response.data.method,
-          newLocation,
-          newStorageTime
-        });
         
         // Calculate new expiry date based on the full recommended storage time for the new location
         const newExpiryDate = new Date();
