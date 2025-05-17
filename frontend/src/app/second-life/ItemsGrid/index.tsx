@@ -6,10 +6,26 @@
  */
 import { forwardRef } from "react";
 import { Pagination, Skeleton } from "@heroui/react";
-import { ItemsGridProps } from "@/app/second-life/interfaces/SecondLifeItem";
+import { SecondLifeItem } from "@/app/second-life/interfaces/SecondLifeItem";
 import Image from 'next/image';
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import InfoTooltip from "@/app/(components)/InfoTooltip";
+
+/**
+ * Props for the ItemsGrid component
+ * Used to display grid of Second Life items with pagination
+ */
+export interface ItemsGridProps {
+  items: SecondLifeItem[];
+  allItems: SecondLifeItem[];
+  filteredItemsCount: number;
+  loading: boolean;
+  error: string | null;
+  currentPage: number;
+  totalPages: number;
+  handleCardClick: (item: SecondLifeItem) => void;
+  handlePageChange: (page: number) => void;
+}
 
 /**
  * Renders a grid of repurposing items with pagination
