@@ -13,7 +13,7 @@ import { Button } from '@heroui/react';
 import { Dispatch, SetStateAction } from 'react';
 import { useMap } from "@vis.gl/react-google-maps";
 import { Icon } from '@iconify/react';
-import { MapSectionState } from '../../../interfaces';
+import { MapSectionState } from '../../../interfaces/State';
 
 // Props interface for the CurrentLocationButton component
 interface CurrentLocationButtonProps {

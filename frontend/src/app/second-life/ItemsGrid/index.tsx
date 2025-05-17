@@ -1,12 +1,15 @@
 /**
  * ItemsGrid Component for Second Life
  * 
- * This component displays a grid of repurposing ideas with pagination.
+ * This component displays a grid of food waste repurposing ideas,
+ * with pagination and loading states.
  */
 import { forwardRef } from "react";
 import { Pagination, Skeleton } from "@heroui/react";
-import { ItemsGridProps } from "../interfaces";
+import { ItemsGridProps } from "@/app/second-life/interfaces/SecondLifeItem";
 import Image from 'next/image';
+import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
+import InfoTooltip from "@/app/(components)/InfoTooltip";
 
 /**
  * Renders a grid of repurposing items with pagination
@@ -34,9 +37,23 @@ const ItemsGrid = forwardRef<HTMLDivElement, ItemsGridProps>(({
 }, ref) => {
   return (
     <div ref={ref} className="mt-8 mb-20">
-      <h3 className="text-lg font-medium text-gray-700 mb-4">
-        {filteredItemsCount} DIY idea{filteredItemsCount !== 1 ? 's' : ''} available
-      </h3>
+      <div className="flex justify-between">
+        <h3 className="text-lg font-medium text-gray-700 mb-4">
+          {filteredItemsCount} DIY idea{filteredItemsCount !== 1 ? 's' : ''} available
+        </h3>
+        <InfoTooltip 
+            contentItems={[
+              "DIY ideas provided are based on open data sources and general information",
+              "When using food scraps for DIY projects, ensure they are properly cleaned and safe for the intended purpose",
+              "Always verify ingredient safety, especially when repurposing food items for non-food applications"
+            ]}
+            header="For Reference Only"
+            footerText="Recommendations for reference only"
+            placement="left-start"
+            icon={faCircleExclamation}
+            ariaLabel="Disclaimer"
+          />
+      </div>
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(3)].map((_, index) => (

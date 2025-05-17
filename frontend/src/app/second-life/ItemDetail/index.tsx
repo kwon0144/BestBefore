@@ -7,7 +7,7 @@
 import { Modal, ModalContent, ModalHeader, ModalBody, Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import { ItemDetailProps } from "../interfaces";
+import { ItemDetailProps } from "@/app/second-life/interfaces/SecondLifeItem";
 import Image from 'next/image';
 
 /**

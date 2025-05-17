@@ -13,7 +13,7 @@
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus, faXmark, faSpinner } from "@fortawesome/free-solid-svg-icons";
-import { SelectedMealsProps } from "../interfaces";
+import { SelectedMealsProps } from "@/app/eco-grocery/interfaces/MealChoice";
 
 /**
  * Extended props interface for SelectedMeal component with additional properties

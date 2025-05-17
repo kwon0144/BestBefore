@@ -5,7 +5,7 @@
  * that users can click to quickly filter meal options. It implements a "show more/less"
  * feature to manage screen space while providing access to all available categories.
  */
-import { PopularMealsProps } from "../interfaces";
+import { PopularMealsProps } from "@/app/eco-grocery/interfaces/MealChoice";
 import { useState } from "react";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

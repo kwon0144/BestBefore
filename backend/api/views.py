@@ -29,7 +29,7 @@ from .serializer import FoodBankListSerializer, FoodBankDetailSerializer, Global
 from .game_core import start_new_game, update_game_state, end_game_session, prepare_game_food_items
 from .game_validators import get_top_scores, validate_pickup, validate_action
 from .game_state import games
-
+from .service.produce_expiry_date_service import get_produce_expiry_info_from_claude
 #-----------------------------------------------------------------------
 # Food Storage & Information APIs
 #-----------------------------------------------------------------------
@@ -52,13 +52,31 @@ def get_storage_advice(request):
         if not food_type:
             return Response({'error': 'Food type is required'}, status=status.HTTP_400_BAD_REQUEST)
         
+        # Get recommendation from database
         recommendation = get_storage_recommendations(food_type)
         
-        if not recommendation:
-            return Response({'error': f'No storage recommendation found for {food_type}'}, 
-                           status=status.HTTP_404_NOT_FOUND)
+        # Check if it's a real database entry or just default values
+        # The db_service returns the food_type as the Type, so if they match case-insensitive
+        # and we have default values, we should try Claude instead
+        is_default_value = (recommendation['Type'].lower() == food_type.lower() and 
+                            recommendation['pantry'] == 14 and 
+                            recommendation['fridge'] == 7 and
+                            recommendation['method'] == 1)
         
-        return Response(recommendation)
+        # If we have default values, try Claude API instead
+        if is_default_value:
+            claude_recommendation = get_produce_expiry_info_from_claude(food_type)
+            if claude_recommendation:
+                return Response(claude_recommendation)
+            else:
+                # Claude also failed, so return the default with database source
+                recommendation['source'] = 'database_default'
+                return Response(recommendation)
+        else:
+            # It's a real database entry
+            recommendation['source'] = 'database'
+            return Response(recommendation)
+            
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

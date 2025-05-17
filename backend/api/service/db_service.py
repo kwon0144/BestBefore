@@ -49,20 +49,14 @@ def get_storage_recommendations(food_type):
 
 def get_all_food_types():
     """
-    Get all food types
+    Get all food types using raw SQL
     """
     try:
-        # Try to get data from Django model
-        food_types = FoodStorage.objects.values_list('type', flat=True).distinct()
-        
-        if food_types:
-            return list(food_types)
-        
-        # If no data in Django model, use raw SQL query
+        # Use raw SQL query directly
         with connection.cursor() as cursor:
-            cursor.execute("SELECT DISTINCT type FROM food_storage")
+            cursor.execute("SELECT DISTINCT Type FROM food_storage")
             rows = cursor.fetchall()
-            return [row[0] for row in rows]
+            return [row[0] for row in rows if row[0]]  # Filter out any None values
     except Exception as e:
         print(f"Error fetching food types: {str(e)}")
         return [] 

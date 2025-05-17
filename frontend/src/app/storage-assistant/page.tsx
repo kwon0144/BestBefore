@@ -14,28 +14,24 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import { config } from '@/config';
 import Camera from './Camera';
 import StorageRecommendations from './StorageRecommendation';
 import CalendarExport from './CalendarExport';
 import CalendarImport from './CalendarImport';
 import ComingUp from "../(components)/ComingUp";
-
-import { 
-  CameraState, 
-  ProduceDetections, 
-  StorageRecommendation, 
-  CalendarSelection,
-  StorageAdviceResponse,
-  CalendarResponse
-} from './interfaces';
+import { CameraState, ProduceDetections } from "./interfaces/Camera";
+import { StorageRecommendation } from "./interfaces/Storage";
+import { CalendarSelection } from "./interfaces/Calendar";
 import Title from "../(components)/Title";
 import StorageAssistantStepper from "./StorageAssistantStepper";
 import { addToast, Button, ToastProvider } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faBell, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faBell, faCalendarAlt, faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import useInventoryStore from "@/store/useInventoryStore";
+import InfoTooltip from "../(components)/InfoTooltip";
+import { useProduceDetection } from "./hooks/useProduceDetection";
+import { useStorageAdvice } from "./hooks/useStorageAdvice";
+import { useCalendarGeneration } from "./hooks/useCalendarGeneration";
 
 /**
  * Main component for the Food Storage Assistant feature
@@ -87,6 +83,17 @@ const FoodStorageAssistant: React.FC = () => {
 
   // Get the addIdentifiedItem function from the inventory store
   const addIdentifiedItem = useInventoryStore((state) => state.addIdentifiedItem);
+  const addItem = useInventoryStore((state) => state.addItem);
+  
+  // Use our new custom hook for produce detection
+  const { submitPhotos: detectProduce} = useProduceDetection();
+  
+  // Use our new custom hook for storage advice, but don't destructure getStorageAdvice
+  // to avoid recreating it on every render
+  const storageAdviceHook = useStorageAdvice();
+  
+  // Use our custom hooks
+  const calendarGenerationHook = useCalendarGeneration();
   
   // State to track if items were added to inventory
   const [itemsAddedToInventory, setItemsAddedToInventory] = useState(false);
@@ -99,14 +106,15 @@ const FoodStorageAssistant: React.FC = () => {
   const submitPhotos = async () => {
     if (state.photos.length === 0) return;
 
-    console.log('API URL:', config.apiUrl);
     setState(prev => ({ ...prev, isAnalyzing: true, error: null }));
 
     try {
-      // Call API endpoint for produce detection with all photos
-      const response = await axios.post(`${config.apiUrl}/api/detect-produce/`, {
-        images: state.photos // Send array of photos
-      });
+      // Use our custom hook instead of direct axios call
+      const detectionResult = await detectProduce(state.photos);
+      
+      if (!detectionResult) {
+        throw new Error("Failed to analyze photos");
+      }
 
       // Stop the camera stream
       if (state.stream) {
@@ -116,7 +124,7 @@ const FoodStorageAssistant: React.FC = () => {
       setState(prev => ({
         ...prev,
         stream: null,
-        detections: response.data as ProduceDetections,
+        detections: detectionResult as unknown as ProduceDetections,
         isAnalyzing: false,
         submittedPhotos: [...prev.photos] // Store submitted photos
       }));
@@ -125,7 +133,7 @@ const FoodStorageAssistant: React.FC = () => {
       setCurrentStep(1);
 
       // After submission, fetch storage recommendations
-      fetchStorageRecommendations((response.data as ProduceDetections).produce_counts);
+      fetchStorageRecommendations((detectionResult as unknown as ProduceDetections).produce_counts);
     } catch (err) {
       setState(prev => ({
         ...prev,
@@ -146,51 +154,84 @@ const FoodStorageAssistant: React.FC = () => {
       // Reset the items added flag
       setItemsAddedToInventory(false);
       
-      // If no food detected, use empty array
+      // If no food detected, check if we have inventory items to display
       const allItems = Object.keys(produceCounts).length > 0
         ? Object.keys(produceCounts)
         : [];
+        
+      // If no items detected but we have inventory items, sync with inventory instead
+      if (allItems.length === 0) {
+        const inventoryItems = useInventoryStore.getState().items;
+        
+        if (inventoryItems.length > 0) {
+          // Don't reset storage recommendations if we're just syncing with inventory
+          // The StorageRecommendation component will handle this
+          return;
+        }
+      }
       
       // Get storage advice for each item
       const fridgeItems: Array<{ name: string; quantity: number }> = [];
       const pantryItems: Array<{ name: string; quantity: number }> = [];
       
-      // Only add to inventory if there are items detected
+      // Only add to inventory if there are newly detected items
       if (allItems.length > 0) {
         setItemsAddedToInventory(true);
       }
       
       for (const item of allItems) {
         try {
-          // Call the new storage_assistant endpoint
-          const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage_assistant/`, {
-            produce_name: item
-          });
-
-
-          const recommendation = response.data;
-          const quantity = produceCounts[item] || 1;
-          const storageTime = recommendation.days;
+          // Use the hook method without recreating the function reference
+          const advice = await storageAdviceHook.getStorageAdvice(item);
           
-          // Add the item to inventory store
-          addIdentifiedItem(
-            item,                                     // Item name 
-            `${quantity} item${quantity > 1 ? 's' : ''}`,  // Quantity
-            storageTime                               // Expiry days
-          );
+          if (!advice) {
+            throw new Error(`Failed to get storage advice for ${item}`);
+          }
+          
+          const quantity = produceCounts[item] || 1;
+          
+          // Use normalized storage advice from our hook
+          const { fridgeStorageTime, pantryStorageTime, recommendedMethod, source } = advice;
+          
+          // Determine where to put the item based on recommendation
+          // This is an initial recommendation but user can change later
+          const isRecommendedForFridge = recommendedMethod === 'fridge';
+          
+          // Add the item to inventory store with the CORRECT storage time for the ACTUAL storage location
+          // This is critical - we need to use the appropriate storage time for WHERE the item is being stored
+          if (isRecommendedForFridge) {
+            // Instead of using addIdentifiedItem with 4 parameters, directly use addItem
+            // for more control over the location
+            addItem({
+              name: item,
+              quantity: `${quantity} item${quantity > 1 ? 's' : ''}`,
+              location: 'refrigerator',
+              expiryDate: new Date(Date.now() + fridgeStorageTime * 24 * 60 * 60 * 1000).toISOString()
+            });
+          } else {
+            // Add to pantry with pantry storage time
+            addItem({
+              name: item,
+              quantity: `${quantity} item${quantity > 1 ? 's' : ''}`,
+              location: 'pantry',
+              expiryDate: new Date(Date.now() + pantryStorageTime * 24 * 60 * 60 * 1000).toISOString()
+            });
+          }
 
-
-          if (recommendation.method === 'fridge') {
+          // Create label for display
+          const sourceLabel = source ? `, ${source}` : '';
+              
+          // Add to UI display lists
+          if (isRecommendedForFridge) {
             fridgeItems.push({
-              name: `${item} (${storageTime} days)`,
+              name: `${item} (${fridgeStorageTime} days${sourceLabel})`,
               quantity: quantity
             });
-          } else if (recommendation.method === 'pantry') {
+          } else {
             pantryItems.push({
-              name: `${item} (${storageTime} days)`,
+              name: `${item} (${pantryStorageTime} days${sourceLabel})`,
               quantity: quantity
             });
-
           }
         } catch (err) {
           console.error(`Error fetching storage advice for ${item}:`, err);
@@ -200,21 +241,22 @@ const FoodStorageAssistant: React.FC = () => {
           const isRefrigeratedItem = ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase());
           const defaultStorageTime = isRefrigeratedItem ? 7 : 14;
           
-          // Add to inventory even if there's an error
-          addIdentifiedItem(
-            item,
-            `${quantity} item${quantity > 1 ? 's' : ''}`,
-            defaultStorageTime
-          );
+          // Add to inventory even if there's an error - use addItem instead of addIdentifiedItem
+          addItem({
+            name: item,
+            quantity: `${quantity} item${quantity > 1 ? 's' : ''}`,
+            location: isRefrigeratedItem ? 'refrigerator' : 'pantry',
+            expiryDate: new Date(Date.now() + defaultStorageTime * 24 * 60 * 60 * 1000).toISOString()
+          });
           
           if (isRefrigeratedItem) {
             fridgeItems.push({ 
-              name: `${item} (${defaultStorageTime} days)`, 
+              name: `${item} (${defaultStorageTime} days, default)`, 
               quantity: quantity 
             });
           } else {
             pantryItems.push({ 
-              name: `${item} (${defaultStorageTime} days)`, 
+              name: `${item} (${defaultStorageTime} days, default)`, 
               quantity: quantity 
             });
           }
@@ -227,32 +269,8 @@ const FoodStorageAssistant: React.FC = () => {
       });
     } catch (err) {
       console.error('Error in fetchStorageRecommendations:', err);
-
-      // Use empty arrays instead of default data
-      const allItems = Object.keys(produceCounts).length > 0
-        ? Object.keys(produceCounts)
-        : [];
-      
-      const fridgeItems = allItems
-        .filter(item => ['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase()))
-        .map(item => ({ 
-          name: `${item} (7 days)`, 
-          quantity: produceCounts[item] || 1 
-        }));
-      
-      const pantryItems = allItems
-        .filter(item => !['lettuce', 'berries', 'mushrooms', 'herbs'].includes(item.toLowerCase()))
-        .map(item => ({ 
-          name: `${item} (14 days)`, 
-          quantity: produceCounts[item] || 1 
-        }));
-      
-      setStorageRecs({
-        fridge: fridgeItems,
-        pantry: pantryItems,
-      });
     }
-  }, [addIdentifiedItem]);
+  }, [addIdentifiedItem, addItem, storageAdviceHook]); // Use storageAdviceHook as a stable reference
 
   /**
    * Updates storage recommendations state
@@ -290,10 +308,10 @@ const FoodStorageAssistant: React.FC = () => {
         title: "No Items in Inventory",
         description: "Please add items to your inventory to set up expiry reminders",
         classNames: {
-          base: "bg-amber-100/70",
-          title: "text-amber-700 font-medium font-semibold",
+          base: "bg-amber-500/10 border border-amber-500",
+          title: "text-amber-800 font-semibold",
           description: "text-amber-700",
-          icon: "text-amber-700"
+          icon: "text-amber-600"
         },
         timeout: 3000
       });
@@ -314,10 +332,10 @@ const FoodStorageAssistant: React.FC = () => {
         title: "Calendar Generation Failed",
         description: "Please select at least one item",
         classNames: {
-          base: "bg-amber-100/70",
-          title: "text-amber-700 font-medium font-semibold",
+          base: "bg-amber-500/10 border border-amber-500",
+          title: "text-amber-800 font-semibold",
           description: "text-amber-700",
-          icon: "text-amber-700"
+          icon: "text-amber-600"
         },
         timeout: 3000
       });
@@ -325,20 +343,22 @@ const FoodStorageAssistant: React.FC = () => {
     }
   
     try {
-      const response = await axios.post<CalendarResponse>(`${config.apiUrl}/api/generate_calendar/`, {
-        items: calendarSelection.selectedItems.map(item => ({
-          ...item,
-          expiry_date: item.expiry_date,
-          reminder_days: calendarSelection.reminderDays,
-          reminder_time: calendarSelection.reminderTime
-        })),
-        reminder_days: calendarSelection.reminderDays,
-        reminder_time: calendarSelection.reminderTime
-      });
-  
+      // Call calendar generation hook
+      const calendarUrl = await calendarGenerationHook.generateCalendar(
+        calendarSelection.selectedItems,
+        {
+          reminderDays: calendarSelection.reminderDays,
+          reminderTime: calendarSelection.reminderTime
+        }
+      );
+      
+      if (!calendarUrl) {
+        throw new Error("Failed to generate calendar");
+      }
+
       setCalendarSelection(prev => ({
         ...prev,
-        calendarLink: response.data.calendar_url
+        calendarLink: calendarUrl
       }));
       
       // Move to step 4
@@ -367,14 +387,29 @@ const FoodStorageAssistant: React.FC = () => {
 
   // Initialize with storage recommendations on mount
   useEffect(() => {
-    fetchStorageRecommendations();
+    // Only run this effect once on mount
+    const initializeStorageRecs = async () => {
+      // Initialize from the inventory store
+      const inventoryItems = useInventoryStore.getState().items;
+      if (inventoryItems.length > 0) {
+        // Only fetch new recommendations if we don't already have items from store
+        // This prevents overwriting existing inventory data
+        await fetchStorageRecommendations();
+      } else {
+        // Otherwise just prepare an empty structure
+        await fetchStorageRecommendations({});
+      }
+    };
+    
+    initializeStorageRecs();
+    
     // Clean up camera stream on unmount
     return () => {
       if (state.stream) {
         state.stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [fetchStorageRecommendations, state.stream]);
+  }, []); // Empty dependency array, only run on mount and unmount
 
   return (
       <div>
@@ -403,9 +438,24 @@ const FoodStorageAssistant: React.FC = () => {
             {/* Step 1: Camera and Photo Capture */}
             {currentStep === 0 ? (
               <div className="border-green border-2 rounded-lg p-10 mb-8">
-                <h2 className="text-2xl font-semibold text-darkgreen mb-2">
-                  Step 1: Scan your Groceries
-                </h2>
+                <div className="flex justify-between">
+                  <h2 className="text-2xl font-semibold text-darkgreen mb-2">
+                    Step 1: Scan your Groceries
+                  </h2>
+                  <InfoTooltip 
+                    contentItems={[
+                      "Photos taken are processed only on your device and our secure server",
+                      "Images are not permanently stored and are deleted after analysis",
+                      "No personal information is gathered through the camera feature",
+                      "You may need to grant camera permissions in your browser settings"
+                    ]}
+                    header="Camera Usage Disclaimer"
+                    footerText="Your privacy is our priority"
+                    placement="left-start"
+                    icon={faCircleExclamation}
+                    ariaLabel="Disclaimer"
+                  />
+                </div>
                 <p className="text-md text-gray-700 mb-10">
                   Take photos of your groceries to get personalised storage recommendations.
                 </p>
@@ -424,9 +474,23 @@ const FoodStorageAssistant: React.FC = () => {
                       <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
                       Back to Camera
                     </Button>
-                    <h2 className="text-2xl font-semibold text-darkgreen mb-2">
-                      Step 2: Storage Recommendations
-                    </h2>
+                    <div className="flex justify-between">
+                      <h2 className="text-2xl font-semibold text-darkgreen mb-2">
+                        Step 2: Storage Recommendations
+                      </h2>
+                      <InfoTooltip 
+                        contentItems={[
+                          "Food detection and storage recommendations are handled by our AI algorithms and open data sources.",
+                          "Recommendations are provided for reference only and may not be accurate for all food items or storage conditions",
+                          "Users should always use their own judgment when assessing food safety and storage",
+                        ]}
+                        header="For Reference Only"
+                        footerText="Recommendations for reference only"
+                        placement="left-start"
+                        icon={faCircleExclamation}
+                        ariaLabel="Disclaimer"
+                      />
+                    </div>
                     <p className="text-md text-gray-700 mb-10">
                       Review your grocery items with the storage recommendations and estimated expiration time.
                     </p>

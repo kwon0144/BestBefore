@@ -14,13 +14,13 @@ import LocationInput from "./LocationInput";
 import SubmitButton from "./SubmitButton";
 import { Dispatch, SetStateAction, useState } from "react";
 import CurrentLocationButton from "./CurrentLocationButton";
-import { useFoodBank } from "@/hooks/useFoodBank";
+import { useFoodBankById } from "@/app/food-network/hooks/useFoodBanks";
 import TravelModeSelection from "./TravelModeSelection";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faMapPin } from '@fortawesome/free-solid-svg-icons';
 import { useMap } from "@vis.gl/react-google-maps";
-import { MapSectionState } from "../../../interfaces";
+import { MapSectionState } from "../../../interfaces/State";
 
 /**
  * Props for the Navigation component
@@ -38,7 +38,7 @@ export default function Navigation({
     mapSectionState, setMapSectionState, setViewState
 }: NavigationProps) {
     // Get food bank data for the selected destination
-    const { foodbank } = useFoodBank(mapSectionState.selectedEnd);
+    const { foodbank } = useFoodBankById(mapSectionState.selectedEnd);
     // State for handling error messages
     const [error, setError] = useState<string>("");
 

@@ -11,7 +11,7 @@ import { Dispatch, SetStateAction } from "react";
 import { faWalking, faBus, faBicycle, faCar, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "@heroui/react";
-import { MapSectionState, TravelMode } from "../../../interfaces";
+import { MapSectionState, TravelMode } from "../../../interfaces/State";
 
 interface TravelModeSelectionProps {
     mapSectionState: MapSectionState;

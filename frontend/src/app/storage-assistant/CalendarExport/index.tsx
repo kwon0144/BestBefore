@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { Button, Select, SelectItem } from "@heroui/react";
-import { CalendarSelection } from '../interfaces';
+import { CalendarSelection } from '../interfaces/Calendar';
 import useInventoryStore from '@/store/useInventoryStore';
 
 /**

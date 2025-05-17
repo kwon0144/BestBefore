@@ -11,7 +11,7 @@
 import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import MapComponent from "./MapComponent";
 import Interaction from "./Interaction";
-import { MapSectionState, ViewState } from "@/app/food-network/interfaces";
+import { MapSectionState, ViewState } from "@/app/food-network/interfaces/State";
 
 /**
  * Props interface for the MapSection component
