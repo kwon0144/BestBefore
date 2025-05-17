@@ -214,10 +214,16 @@ export default function GameOver({ score, wasteStats, handleStartGame }: GameOve
   return (
     <div className="min-h-screen py-12">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm rounded-lg p-8 shadow-lg">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-100 backdrop-filter backdrop-blur-md rounded-2xl p-8 shadow-xl border border-green-200">
           <div className="text-center">
-            <h2 className="text-4xl font-bold text-green-600 mb-4">Game Complete!</h2>
-            <p className="text-2xl text-gray-700 mb-6">Your Score: <span className="font-bold text-green-600">{score}</span> points</p>
+            <div className="mb-6 relative">
+              <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-400">
+                <span className="text-3xl">🏆</span>
+              </div>
+              <h2 className="text-4xl font-extrabold text-white mb-2 pt-6 bg-gradient-to-r from-green-600 to-emerald-500 inline-block px-6 py-2 rounded-lg shadow-md">Game Complete!</h2>
+              <div className="w-16 h-1 bg-gradient-to-r from-green-400 to-emerald-300 mx-auto mb-4 rounded-full"></div>
+              <p className="text-2xl text-gray-700 mb-6">Your Score: <span className="font-bold text-white bg-gradient-to-r from-green-600 to-emerald-500 px-3 py-1 rounded-md">{score}</span> points</p>
+            </div>
             
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <button
@@ -263,12 +269,18 @@ export default function GameOver({ score, wasteStats, handleStartGame }: GameOve
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
-              <div className="bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm p-6 rounded-xl border border-green-100">
-                <h5 className="text-xl font-semibold text-green-700 mb-4">✅ Personalized Tips</h5>
+              <div className="bg-white bg-opacity-80 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-green-100 shadow-md transform transition-all hover:shadow-lg">
+                <h5 className="text-xl font-bold text-green-700 mb-4 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  Personalized Tips
+                </h5>
+                <p className="text-gray-600 italic mb-4">{playerLevel.description}</p>
                 <ul className="space-y-3">
                   {playerLevel.tips.map((tip, index) => (
-                    <li key={index} className="flex gap-2">
-                      <span className="text-green-600">●</span>
+                    <li key={index} className="flex gap-3 bg-green-50 bg-opacity-60 p-3 rounded-lg border border-green-100">
+                      <span className="text-green-500 font-bold">✓</span>
                       <span className="text-gray-700">{tip}</span>
                     </li>
                   ))}
@@ -277,13 +289,13 @@ export default function GameOver({ score, wasteStats, handleStartGame }: GameOve
             </div>
             
             <div className="space-y-4">
-              <div className="bg-gradient-to-br from-white to-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-xl shadow-md overflow-hidden border border-gray-100">
-                <div className="p-3 border-b border-gray-100 bg-white bg-opacity-40">
-                  <h5 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-2 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              <div className="bg-gradient-to-br from-white to-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-xl shadow-md overflow-hidden border border-gray-200">
+                <div className="p-3 border-b border-gray-200 bg-white bg-opacity-70">
+                  <h5 className="font-bold text-gray-700 flex items-center border-l-4 border-red-400 pl-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    Wasted Food Items
+                    <span className="bg-gradient-to-r from-gray-700 to-gray-600 bg-clip-text text-transparent text-base">Wasted Food Items</span>
                   </h5>
                   
                   {Object.entries(wasteStats.wastedFoods).length > 0 ? (
@@ -293,9 +305,9 @@ export default function GameOver({ score, wasteStats, handleStartGame }: GameOve
                           key={name}
                           className="px-1 w-1/2 mb-1"
                         >
-                          <div className="flex justify-between items-center bg-white bg-opacity-50 py-0.5 px-2 rounded-full shadow-sm border border-gray-100 text-xs">
+                          <div className="flex justify-between items-center bg-white py-1 px-2 rounded-md shadow-sm border border-gray-100 text-xs">
                             <span className="text-gray-600 truncate pr-1 font-medium">{name}</span>
-                            <span className="text-red-500 whitespace-nowrap bg-red-50 px-1.5 py-0.5 rounded-full">
+                            <span className="text-red-600 whitespace-nowrap bg-red-50 px-1.5 py-0.5 rounded-md">
                               {info.count} kg
                             </span>
                           </div>
@@ -326,7 +338,7 @@ export default function GameOver({ score, wasteStats, handleStartGame }: GameOve
                       />
                     </div>
                   ) : (
-                    <div className="bg-gray-50 bg-opacity-40 h-[160px] flex items-center justify-center">
+                    <div className="bg-gray-50 h-[160px] flex items-center justify-center">
                       <div className="flex flex-col items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-300 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
@@ -337,14 +349,19 @@ export default function GameOver({ score, wasteStats, handleStartGame }: GameOve
                   )}
                 </div>
                 
-                <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 bg-opacity-50">
-                  <div className="flex items-center">
-                    <p className="text-gray-700 text-sm">
+                <div className="p-5 bg-red-50">
+                  <h6 className="text-red-700 font-bold mb-2 border-l-4 border-red-500 pl-3">Environmental Impact</h6>
+                  <div className="flex items-center bg-white p-4 rounded-lg shadow-inner border border-red-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-500 mr-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-gray-700">
                       If everyone in Melbourne wasted food like this, it would produce approximately
-                      <span className="font-bold text-red-600 mx-1">
-                        {Math.round(totalEmissions * MELBOURNE_POPULATION).toLocaleString()}
+                      <br />
+                      <span className="font-extrabold text-red-600 text-xl block mt-1 mb-1">
+                        {Math.round(totalEmissions * MELBOURNE_POPULATION).toLocaleString()} kg
                       </span>
-                      kg of greenhouse gases.
+                      <span className="text-sm">of greenhouse gases.</span>
                     </p>
                   </div>
                 </div>
