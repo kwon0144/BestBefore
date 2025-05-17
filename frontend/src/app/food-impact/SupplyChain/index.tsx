@@ -4,19 +4,10 @@ import axios from 'axios';
 import * as d3 from 'd3';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSeedling, faShoppingCart, faTruck, faAppleAlt, faIndustry, faArrowRight } from '@fortawesome/free-solid-svg-icons';
-import { fadeInUpVariant, fadeInVariant, staggerContainerVariant } from '../interfaces';
+import { fadeInUpVariant, fadeInVariant, staggerContainerVariant } from '../interfaces/AnimationVariants';
+import { FoodWasteItem, FoodWasteCompositionResponse } from '../interfaces/FoodWaste';
+import { SupplyChainStage } from '../interfaces/Components';
 import { config } from '@/config';
-
-interface WasteData {
-  name: string;
-  value: number;
-  percentage: number;
-}
-
-interface WasteCompositionResponse {
-  total_tonnes: number;
-  data: WasteData[];
-}
 
 interface SupplyChainProps {
   setRef: (node: HTMLDivElement | null) => void;
@@ -24,7 +15,7 @@ interface SupplyChainProps {
 
 const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
   const chartRef = useRef<HTMLDivElement>(null);
-  const [wasteData, setWasteData] = useState<WasteData[]>([]);
+  const [wasteData, setWasteData] = useState<FoodWasteItem[]>([]);
   const [totalTonnes, setTotalTonnes] = useState<number>(0);
   const [hoveredValue, setHoveredValue] = useState<string>("");
   const [hoveredName, setHoveredName] = useState<string>("");
@@ -36,7 +27,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
     const fetchData = async () => {
       try {
         const apiUrl = `${config.apiUrl}/api/waste-composition/`;
-        const response = await axios.get<WasteCompositionResponse>(apiUrl);
+        const response = await axios.get<FoodWasteCompositionResponse>(apiUrl);
         setWasteData(response.data.data);
         setTotalTonnes(response.data.total_tonnes);
       } catch (error) {
@@ -111,13 +102,13 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
         .attr("in", "SourceGraphic");
 
       // Set up pie generator
-      const pie = d3.pie<WasteData>()
+      const pie = d3.pie<FoodWasteItem>()
         .value(d => d.value)
         .sort(null)
         .padAngle(0.02); // Add padding between segments for a more modern look
       
       // Arc generator
-      const arc = d3.arc<d3.PieArcDatum<WasteData>>()
+      const arc = d3.arc<d3.PieArcDatum<FoodWasteItem>>()
         .innerRadius(innerRadius)
         .outerRadius(radius)
         .cornerRadius(4); // Rounded corners for a more friendly look
@@ -188,7 +179,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
         .text(d => `${d.data.percentage}%`);
         
       // Function to show percentage on the segment
-      const updatePercentageLabel = (d: d3.PieArcDatum<WasteData>) => {
+      const updatePercentageLabel = (d: d3.PieArcDatum<FoodWasteItem>) => {
         // Remove any existing label
         svg.select('.percentage-label').remove();
       };

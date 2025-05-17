@@ -1098,6 +1098,84 @@ def get_household_impact(request):
         return Response({
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def get_country_yearly_waste(request):
+    """
+    API endpoint that provides yearly waste data for countries.
+    
+    This endpoint returns total waste, economic loss, and household waste percentage
+    data for countries, grouped by year.
+    
+    Query parameters:
+    - country: Filter by specific country (optional)
+    - year: Filter by specific year (optional)
+    
+    Returns:
+    - Yearly data for countries including total waste, economic loss, and household waste percentage
+    """
+    try:
+        # Get query parameters
+        country = request.query_params.get('country')
+        year = request.query_params.get('year')
+        
+        # Start with all data
+        queryset = GlobalFoodWastageDataset.objects.all()
+        
+        # Apply filters if provided
+        if country:
+            queryset = queryset.filter(country__iexact=country)
+        if year:
+            queryset = queryset.filter(year=year)
+            
+        # If no data found
+        if not queryset.exists():
+            return Response({
+                'error': 'No data found for the specified filters'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Group data by year and country
+        result_data = []
+        
+        # Get unique combinations of year and country
+        year_country_pairs = queryset.values('year', 'country').distinct()
+        
+        for pair in year_country_pairs:
+            year_value = pair['year']
+            country_name = pair['country']
+            
+            # Filter for this year and country
+            filtered_queryset = queryset.filter(year=year_value, country=country_name)
+            
+            # Calculate totals for this year and country
+            total_waste = filtered_queryset.aggregate(Sum('total_waste'))['total_waste__sum'] or 0
+            economic_loss = filtered_queryset.aggregate(Sum('economic_loss'))['economic_loss__sum'] or 0
+            
+            # Get representative item for household waste percentage
+            sample_item = filtered_queryset.first()
+            household_waste_pct = sample_item.household_waste if sample_item else 0
+            
+            result_data.append({
+                'year': year_value,
+                'country': country_name,
+                'total_waste': total_waste,
+                'economic_loss': economic_loss,
+                'household_waste_percentage': household_waste_pct
+            })
+        
+        # Sort by year (ascending) and country
+        result_data.sort(key=lambda x: (x['year'], x['country']))
+        
+        return Response({
+            'count': len(result_data),
+            'data': result_data,
+            'updated_at': timezone.now().isoformat()
+        })
+        
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
 #-----------------------------------------------------------------------

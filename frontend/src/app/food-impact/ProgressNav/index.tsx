@@ -1,6 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ProgressNavItemProps } from '../interfaces';
+import { ProgressNavItemProps } from '../interfaces/Components';
 
 const ProgressNavItem: React.FC<ProgressNavItemProps> = ({ icon, section, isActive, onClick }) => {
   return (
