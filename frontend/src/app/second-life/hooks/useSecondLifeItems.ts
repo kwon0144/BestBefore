@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { SecondLifeItem } from '@/app/second-life/interfaces/SecondLifeItem';
+import { config } from '@/config';
 
 interface UseSecondLifeItemsProps {
     itemsPerPage: number;
@@ -59,8 +60,7 @@ export function useSecondLifeItems({
 
         try {
             setLoading(true);
-            const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const response = await axios.get<SecondLifeItem[]>(`${backendUrl}/api/second-life/`, {
+            const response = await axios.get<SecondLifeItem[]>(`${config.apiUrl}/api/second-life/`, {
                 params: {
                     search: queryToUse || ingredientToUse
                 }
@@ -92,7 +92,7 @@ export function useSecondLifeItems({
         } finally {
             setLoading(false);
         }
-    }, [currentSearchQuery, currentIngredient, itemsPerPage]);
+    }, [currentSearchQuery, currentIngredient, itemsPerPage, config.apiUrl]);
 
     // Fetch items on initial render or when dependencies change
     useEffect(() => {
