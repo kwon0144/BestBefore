@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 from .service.db_service import get_storage_recommendations, get_all_food_types
 from .service.dish_ingre_service import DishIngredientService
 from .service.hours_parser_service import parse_operating_hours
-from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources
+from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources, GameResources
 from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
 from .game_core import start_new_game, update_game_state, end_game_session, prepare_game_food_items
 from .game_validators import get_top_scores, validate_pickup, validate_action
@@ -714,26 +714,14 @@ def get_game_resources(request):
     This endpoint retrieves resources used in the game UI.
     """
     try:
-        # Get resources from the database
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT 
-                    id, 
-                    name, 
-                    type, 
-                    description,
-                    image
-                FROM 
-                    game_resources
-                """
-            )
-            # Convert to list of dictionaries
-            columns = [col[0] for col in cursor.description]
-            resources_data = [
-                dict(zip(columns, row))
-                for row in cursor.fetchall()
-            ]
+        # Import the model
+        from .models import GameResources
+        
+        # Query using Django ORM
+        resources = GameResources.objects.all()
+        
+        # Convert to list of dictionaries
+        resources_data = list(resources.values('id', 'name', 'type', 'description', 'image'))
             
         return Response({
             'status': 'success',
