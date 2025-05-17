@@ -12,6 +12,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Foodbank, FoodbankResponse } from "@/app/food-network/interfaces/Foodbank";
+import { config } from "@/config";
 
 /**
  * Hook to fetch all foodbanks
@@ -36,15 +37,12 @@ export function useFoodBanks(): {
     useEffect(() => {
         const fetchFoodbanks = async () => {
             try {
-                const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                const response = await fetch(`${backendUrl}/api/foodbanks/`, {
-                    method: 'GET',
+                const response = await axios.get<FoodbankResponse>(`${config.apiUrl}/api/foodbanks/`, {
                     headers: {
                         'Content-Type': 'application/json',
                     },
                 });
-                const data = await response.json();
-                setFoodbanks(data.data);
+                setFoodbanks(response.data.data);
             } catch (error) {
                 setError(`Error fetching foodbanks: ${error}`);
             } finally {
@@ -89,18 +87,15 @@ export function useFoodBankById(selectedEnd: string | null): {
 
             try {
                 const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                const response = await fetch(`${backendUrl}/api/foodbanks/`, {
-                    method: 'GET',
+                const response = await axios.get<FoodbankResponse>(`${backendUrl}/api/foodbanks/`, {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    mode: 'cors', // Explicitly request CORS mode
-                    credentials: 'include', // Include credentials like cookies if needed
+                    withCredentials: true, // Include credentials like cookies if needed
                 });
-                const data = await response.json();
 
                 // Find the foodbank with matching ID
-                const selectedFoodbank = data.data.find(
+                const selectedFoodbank = response.data.data.find(
                     (bank: Foodbank) => bank.id === parseInt(selectedEnd)
                 );
                 setFoodbank(selectedFoodbank || null);

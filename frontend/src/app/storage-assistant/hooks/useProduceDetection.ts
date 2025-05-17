@@ -13,6 +13,7 @@
 
 import { useState } from "react";
 import axios from "axios";
+import { config } from "@/config";
 
 // Define the response type from the API
 interface DetectionResponse {
@@ -46,8 +47,7 @@ export function useProduceDetection(): UseProduceDetectionReturn {
         setError(null);
 
         try {
-            const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const response = await axios.post<DetectionResponse>(`${backendUrl}/api/detect-produce/`, {
+            const response = await axios.post<DetectionResponse>(`${config.apiUrl}/api/detect-produce/`, {
                 images: photos
             });
 
