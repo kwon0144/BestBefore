@@ -16,7 +16,7 @@ import React, { useState, useEffect } from 'react';
 import { StorageRecommendation } from '../interfaces/Storage';
 import { faSnowflake, faBoxOpen, faPlus, faTrash, faEdit, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { addToast, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
+import { addToast, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input } from '@heroui/react';
 import useInventoryStore from '@/store/useInventoryStore';
 import { useStorageAdvice } from '../hooks/useStorageAdvice';
 
@@ -886,47 +886,53 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
               <FontAwesomeIcon icon={faSnowflake} className="text-gray-400 text-3xl" />
             </div>
             <p className="text-gray-500 italic mb-4">
-              No items recommended for refrigerator
+              No item recommended for refrigerator
             </p>
           </div>
         )}
-        <button
-          onClick={() => setShowAddForm({ section: 'fridge' })}
-          className="mt-4 text-blue-500 flex items-center"
-        >
+        <Button
+          onPress={() => setShowAddForm({ section: 'fridge' })}
+          className="mt-4 text-blue-500 flex items-center bg-transparent border-none"
+        > 
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
           Add Item
-        </button>
+        </Button>
         {showAddForm?.section === 'fridge' && (
           <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <input
+            <Input
+              classNames={{
+                inputWrapper: "bg-white border-1",
+              }}
               type="text"
               placeholder="Item name"
               value={newItem.name}
               onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-              className="w-full mb-2 p-2 rounded"
+              className="w-full mb-2 rounded"
             />
-            <input
+            <Input
+              classNames={{
+                inputWrapper: "bg-white border-1",
+              }}
               type="number"
               placeholder="Quantity"
-              value={newItem.quantity}
+              value={newItem.quantity.toString()}
               onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
-              className="w-full mb-2 p-2 rounded"
+              className="w-full mb-2 rounded"
               min="1"
             />
             <div className="flex justify-end">
-              <button
-                onClick={() => handleAdd('fridge')}
+              <Button
+                onPress={() => handleAdd('fridge')}
                 className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
               >
                 Add
-              </button>
-              <button
-                onClick={() => setShowAddForm(null)}
+              </Button>
+              <Button
+                onPress={() => setShowAddForm(null)}
                 className="bg-gray-500 text-white px-4 py-2 rounded"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -949,47 +955,53 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
               <FontAwesomeIcon icon={faBoxOpen} className="text-gray-400 text-3xl" />
             </div>
             <p className="text-gray-500 italic mb-4">
-              No items recommended for pantry
+              No item recommended for pantry
             </p>
           </div>
         )}
-        <button
-          onClick={() => setShowAddForm({ section: 'pantry' })}
-          className="mt-4 text-amber-700 flex items-center"
+        <Button
+          onPress={() => setShowAddForm({ section: 'pantry' })}
+          className="mt-4 text-amber-700 flex items-center bg-transparent border-none"
         >
           <FontAwesomeIcon icon={faPlus} className="mr-2" />
           Add Item
-        </button>
+        </Button>
         {showAddForm?.section === 'pantry' && (
           <div className="mt-4 p-4 bg-amber-50 rounded-lg">
-            <input
+            <Input
+              classNames={{
+                inputWrapper: "bg-white border-1",
+              }}
               type="text"
               placeholder="Item name"
               value={newItem.name}
               onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-              className="w-full mb-2 p-2 rounded"
+              className="w-full mb-2 rounded"
             />
-            <input
+            <Input
+              classNames={{
+                inputWrapper: "bg-white border-1",
+              }}
               type="number"
               placeholder="Quantity"
-              value={newItem.quantity}
+              value={newItem.quantity.toString()}
               onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 1 })}
-              className="w-full mb-2 p-2 rounded"
+              className="w-full mb-2 rounded"
               min="1"
             />
             <div className="flex justify-end">
-              <button
-                onClick={() => handleAdd('pantry')}
+              <Button
+                onPress={() => handleAdd('pantry')}
                 className="bg-amber-700 text-white px-4 py-2 rounded mr-2"
               >
                 Add
-              </button>
-              <button
-                onClick={() => setShowAddForm(null)}
+              </Button>
+              <Button
+                onPress={() => setShowAddForm(null)}
                 className="bg-gray-500 text-white px-4 py-2 rounded"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         )}
