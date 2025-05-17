@@ -145,7 +145,7 @@ export default function FoodImpact() {
 
             {/* Emissions Chart */}
             <EmissionsChart setRef={(node) => {
-                // Add ref assignment here
+                environmentalImpactRef.current = node;
             }} />
 
             {/* Around the World */}

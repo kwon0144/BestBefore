@@ -10,7 +10,11 @@ interface EmissionData {
   color?: string;
 }
 
-const EmissionsChart: React.FC = () => {
+interface EmissionsChartProps {
+  setRef?: (node: any) => void;
+}
+
+const EmissionsChart: React.FC<EmissionsChartProps> = ({ setRef }) => {
   const [emissionsData, setEmissionsData] = useState<EmissionData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +59,7 @@ const EmissionsChart: React.FC = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0 flex justify-center items-center h-[400px]">
+      <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0 flex justify-center items-center h-[400px]" ref={setRef}>
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green"></div>
       </div>
     );
@@ -64,14 +68,14 @@ const EmissionsChart: React.FC = () => {
   // Error state
   if (error) {
     return (
-      <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0 flex justify-center items-center h-[400px]">
+      <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0 flex justify-center items-center h-[400px]" ref={setRef}>
         <p className="text-red-500">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0">
+    <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0" ref={setRef}>
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl md:text-5xl font-bold text-darkgreen mb-3 md:mb-4">
           Top 5 Greenhouse Gas Emissions Food Items{" "}
