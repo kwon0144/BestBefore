@@ -27,14 +27,6 @@ export default function PreGamePage({
   // Remove trash state since we don't need it anymore
   const [expandedDiy, setExpandedDiy] = useState(false);
   
-  // Debug: log food items to check diy_option values
-  console.log('All food items:', foodItems);
-  console.log('Food items with DIY options:', foodItems.map(item => ({
-    name: item.name,
-    diy_option: item.diy_option,
-    type: typeof item.diy_option
-  })));
-  
   // Group food items by type
   const foodBankItems = foodItems.filter(item => {
     const typeStr = String(item.type || '').toLowerCase().trim();
@@ -46,46 +38,32 @@ export default function PreGamePage({
     return typeStr === 'green waste bin';
   });
 
-  // Simple print of all food items
-  console.log('All food items count:', foodItems.length);
-  
-  // Add more debug information
-  console.log('Raw DIY values:', foodItems.map(item => ({
-    name: item.name,
-    diy_raw: item.diy_option,
-    type: item.type,
-    diy_string: String(item.diy_option),
-    image: item.image
-  })));
-  
   // Group food items that can be DIYed
   const diyItems = foodItems.filter(item => {
     const diyOption = String(item.diy_option).toLowerCase();
     return diyOption === "1" || diyOption === "true";
   });
-  
-  console.log('DIY items found:', diyItems.length);
 
   if (loading) {
     return <div className="text-center py-8">Loading food items...</div>;
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-xl p-8 max-w-4xl mx-auto">
+    <div className="bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm rounded-lg shadow-xl p-8 max-w-4xl mx-auto">
       <h2 className="text-2xl font-bold text-green-800 mb-6">Food Waste Guide</h2>
       
       {/* Food Types Section */}
       <div className="space-y-6">
         {/* Food Bank Items */}
         <div className="border rounded-lg overflow-hidden">
-          <div className="p-4 bg-blue-50">
+          <div className="p-4 bg-blue-50 bg-opacity-70">
             <h4 className="font-bold text-blue-800">Food Bank Items</h4>
             <p className="text-sm text-blue-600">Non-perishable, sealed, and safe to donate</p>
           </div>
-          <div className="p-4 bg-white">
+          <div className="p-4 bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm">
             <div className="grid grid-cols-5 gap-3">
               {foodBankItems.map(item => (
-                <div key={item.id} className="border rounded-lg p-2 bg-gray-50">
+                <div key={item.id} className="border rounded-lg p-2 bg-gray-50 bg-opacity-70">
                   <div className="w-full aspect-square relative mb-1">
                     <Image 
                       src={item.image} 
@@ -104,14 +82,14 @@ export default function PreGamePage({
           
         {/* Green Bin Items */}
         <div className="border rounded-lg overflow-hidden">
-          <div className="p-4 bg-green-50">
+          <div className="p-4 bg-green-50 bg-opacity-70">
             <h4 className="font-bold text-green-800">Green Bin Items</h4>
             <p className="text-sm text-green-600">Compostable food waste and scraps</p>
           </div>
-          <div className="p-4 bg-white">
+          <div className="p-4 bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm">
             <div className="grid grid-cols-5 gap-3">
               {greenBinItems.map(item => (
-                <div key={item.id} className="border rounded-lg p-2 bg-gray-50">
+                <div key={item.id} className="border rounded-lg p-2 bg-gray-50 bg-opacity-70">
                   <div className="w-full aspect-square relative mb-1">
                     <Image 
                       src={item.image} 
@@ -130,14 +108,14 @@ export default function PreGamePage({
           
         {/* DIY Items */}
         <div className="border rounded-lg overflow-hidden">
-          <div className="p-4 bg-yellow-50">
+          <div className="p-4 bg-yellow-50 bg-opacity-70">
             <h4 className="font-bold text-yellow-800">DIY Items</h4>
             <p className="text-sm text-yellow-600">Items that can be repurposed or upcycled</p>
           </div>
-          <div className="p-4 bg-white">
+          <div className="p-4 bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm">
             <div className="grid grid-cols-5 gap-3">
               {diyItems.map(item => (
-                <div key={item.id} className="border rounded-lg p-2 bg-gray-50">
+                <div key={item.id} className="border rounded-lg p-2 bg-gray-50 bg-opacity-70">
                   <div className="w-full aspect-square relative mb-1">
                     <Image 
                       src={item.image} 
@@ -183,7 +161,8 @@ export default function PreGamePage({
       <div className="mt-8 text-center">
         <button
           onClick={handleStartGame}
-          className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white py-4 px-12 rounded-full text-lg font-semibold shadow-lg shadow-purple-200 transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
+          className="bg-[#16a34a] hover:bg-[#15803d] text-white py-4 px-12 rounded-full text-lg font-semibold shadow-lg shadow-green-200 transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
+
         >
           Start Game
         </button>

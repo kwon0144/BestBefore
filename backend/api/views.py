@@ -297,7 +297,7 @@ def get_food_items(request):
         # If a specific food type is requested, filter by that type
         if food_type:
             query = query.filter(type=food_type)
-            food_items = list(query.values('id', 'name', 'type', 'image', 'description', 'diy_option'))
+            food_items = list(query.values('id', 'name', 'type', 'image', 'description', 'diy_option', 'greengas_emession'))
             
             # If we need exactly 5 items of a specific type and have more, randomly select 5
             if len(food_items) > 5:
@@ -306,15 +306,21 @@ def get_food_items(request):
             # Use our balanced food item generator to get 12 items (5-5-2 distribution)
             food_items = prepare_game_food_items(query)
             
-            # If food_items doesn't include diy_option, we need to add it
-            if food_items and 'diy_option' not in food_items[0]:
+            # If food_items doesn't include diy_option or greengas_emession, we need to add them
+            if food_items and ('diy_option' not in food_items[0] or 'greengas_emession' not in food_items[0]):
                 # Get all food IDs
                 food_ids = [item['id'] for item in food_items]
-                # Query the database for diy_option values
-                diy_options = {item.id: item.diy_option for item in GameFoodResources.objects.filter(id__in=food_ids)}
-                # Add diy_option to each item
+                # Query the database for additional values
+                with connection.cursor() as cursor:
+                    ids_str = ','.join(str(id) for id in food_ids)
+                    cursor.execute(f"SELECT id, diy_option, greengas_emession FROM game_foodresources WHERE id IN ({ids_str})")
+                    extra_data = {row[0]: {'diy_option': row[1], 'greengas_emession': row[2]} for row in cursor.fetchall()}
+                
+                # Add values to each item
                 for item in food_items:
-                    item['diy_option'] = diy_options.get(item['id'])
+                    if item['id'] in extra_data:
+                        item['diy_option'] = extra_data[item['id']]['diy_option']
+                        item['greengas_emession'] = extra_data[item['id']]['greengas_emession']
         
         return Response({
             'food_items': food_items,

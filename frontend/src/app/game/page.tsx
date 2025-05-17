@@ -47,18 +47,26 @@ export default function Game() {
 
   // Add state for background image
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [resultBgImage, setResultBgImage] = useState<string | null>(null);
 
   // Load game resources and set background
   useEffect(() => {
     const loadGameResources = async () => {
       try {
         const resources = await getGameResources();
-        console.log('Background resource:', resources.specificResources.background);
         if (resources.specificResources.background?.image) {
           setBackgroundImage(resources.specificResources.background.image);
         }
+        
+        // Load Result_BG for game over screen
+        if (resources.specificResources.result_bg?.image) {
+          setResultBgImage(resources.specificResources.result_bg.image);
+          console.log('Loaded result background:', resources.specificResources.result_bg.image);
+        } else {
+          console.log('Result background not found in resources');
+        }
       } catch (error) {
-        console.error('Failed to load background:', error);
+        console.error('Failed to load background resources:', error);
       }
     };
     loadGameResources();
@@ -131,6 +139,8 @@ export default function Game() {
       setGameOver(true);
       setGameStarted(false);
       
+      console.log('Game over state set:', { gameOver: true, resultBgImage });
+      
       // Play game over sound
       if (soundsLoaded) {
         playSound('gameOver');
@@ -154,7 +164,11 @@ export default function Game() {
     <div 
       className="min-h-screen w-full relative"
       style={{
-        backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'linear-gradient(to bottom, #e0f7fa, #b2ebf2)',
+        backgroundImage: gameOver && resultBgImage 
+          ? `url(${resultBgImage})` 
+          : backgroundImage 
+            ? `url(${backgroundImage})` 
+            : 'linear-gradient(to bottom, #e0f7fa, #b2ebf2)',
         backgroundSize: 'cover',
         backgroundPosition: 'top center',
         backgroundRepeat: 'no-repeat'

@@ -15,14 +15,14 @@ interface HowToPlayProps {
  */
 export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
   return (
-    <div className="bg-gradient-to-br from-white to-green-50 rounded-2xl shadow-2xl p-10 max-w-3xl mx-auto border border-green-100">
+    <div className="bg-gradient-to-br from-white to-green-50 bg-opacity-60 backdrop-filter backdrop-blur-sm rounded-2xl shadow-2xl p-10 max-w-3xl mx-auto border border-green-100">
       <h2 className="text-3xl font-bold text-green-800 mb-8 text-center relative">
         How to Play
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-green-500 rounded-full mt-2"></div>
       </h2>
       
       {/* Game Objective */}
-      <div className="mb-8 transform hover:scale-[1.02] transition-transform duration-300 bg-white p-6 rounded-xl shadow-md">
+      <div className="mb-8 transform hover:scale-[1.02] transition-transform duration-300 bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm p-6 rounded-xl shadow-md">
         <div className="flex items-center mb-3">
           <FontAwesomeIcon icon={faBullseye} className="text-2xl text-green-600 mr-3" />
           <h3 className="text-xl font-semibold text-green-700">Game Objective</h3>
@@ -35,7 +35,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
       </div>
       
       {/* Controls */}
-      <div className="mb-8 transform hover:scale-[1.02] transition-transform duration-300 bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-xl shadow-md">
+      <div className="mb-8 transform hover:scale-[1.02] transition-transform duration-300 bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm p-6 rounded-xl shadow-md">
         <div className="flex items-center mb-3">
           <FontAwesomeIcon icon={faGamepad} className="text-2xl text-blue-600 mr-3" />
           <h3 className="text-xl font-semibold text-blue-700">Controls</h3>
@@ -61,7 +61,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
       </div>
       
       {/* Scoring */}
-      <div className="mb-8 transform hover:scale-[1.02] transition-transform duration-300 bg-white p-6 rounded-xl shadow-md">
+      <div className="mb-8 transform hover:scale-[1.02] transition-transform duration-300 bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm p-6 rounded-xl shadow-md">
         <div className="flex items-center mb-3">
           <FontAwesomeIcon icon={faStar} className="text-2xl text-yellow-500 mr-3" />
           <h3 className="text-xl font-semibold text-yellow-700">Scoring</h3>
@@ -88,7 +88,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
             </div>
           </div>
         </div>
-        <div className="mt-4 bg-yellow-50 p-3 rounded-lg text-center">
+        <div className="mt-4 bg-yellow-50 bg-opacity-60 p-3 rounded-lg text-center">
           <p className="text-yellow-800">
             🏆 Reach <span className="font-bold">100 points</span> to become a food waste sorting expert!
           </p>
@@ -99,7 +99,7 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
       <div className="text-center">
         <button
           onClick={handleStartGame}
-          className="bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600 text-white font-bold py-4 px-12 rounded-full shadow-lg shadow-purple-200 hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-in-out animate-pulse"
+          className="bg-[#16a34a] hover:bg-[#15803d] text-white font-bold py-4 px-12 rounded-full shadow-lg shadow-green-200 hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-in-out animate-pulse"
         >
           Start Game
         </button>

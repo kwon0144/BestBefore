@@ -9,7 +9,7 @@ import { SoundType } from '../interfaces';
  */
 const soundUrls: Record<SoundType, string> = {
   donate: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/donate.mp3',
-  diyFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/donate.mp3', // Reuse donate sound for DIY
+  diyFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/donate.mp3',
   gameStart: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/gameStart.mp3',
   wasteFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/wrongAction.mp3',
   wrongAction: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/wrongAction.mp3',

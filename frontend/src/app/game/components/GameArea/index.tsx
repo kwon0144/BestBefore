@@ -155,7 +155,6 @@ export default function GameArea({
         const randomIndex = Math.floor(Math.random() * gameFoodItems.length);
         const randomFoodType = gameFoodItems[randomIndex];
         
-        console.log('Original food type from API:', randomFoodType.type);
         let foodType: 'food bank' | 'green waste bin' | 'trash';
         
         // Updated type conversion logic to match new database structure
@@ -170,7 +169,6 @@ export default function GameArea({
           foodType = 'trash';
         } else {
           // If type doesn't match any known types, default to food bank as fallback
-          console.warn(`Unknown food type: ${typeStr}, defaulting to 'food bank'`);
           foodType = 'food bank';
         }
         
@@ -185,27 +183,33 @@ export default function GameArea({
           name: randomFoodType.name,
           image: randomFoodType.image,
           segment: 0,  // Track which segment the food is on
-          diy_option: String(randomFoodType.diy_option) === '1'  
+          diy_option: String(randomFoodType.diy_option) === '1',
+          greengas_emession: randomFoodType.greengas_emession  // Include greenhouse gas emission data
         };
         
-        // Debug: output converted type
-        console.log('Converted food type for game:', newFood.type, 'DIY option:', newFood.diy_option);
-        
-        setFoods(prevFoods => [...prevFoods, newFood]);
+        setFoods(prev => [...prev, newFood]);
       }
-    }, getFoodGenerationInterval(difficulty));
-    
+    }, difficulty === 'easy' ? 4000 : difficulty === 'normal' ? 3000 : 2000);
+
     return () => clearInterval(interval);
-  }, [gameId, gameFoodItems, foods.length, difficulty]);
+  }, [gameId, gameFoodItems, difficulty, foods.length, conveyorSegments]);
 
   // Helper function to track wasted food
   const trackWastedFood = useCallback((food: FoodType) => {
     if (food.type === 'trash') return; // Don't track trash items
 
+    // Log the food object to verify if greengas_emession exists
+    console.log('Tracking wasted food with data:', food);
+
     setWasteStats(prev => {
       const newWastedFoods = { ...prev.wastedFoods };
       if (!newWastedFoods[food.name]) {
-        newWastedFoods[food.name] = { name: food.name, count: 0 };
+        // Initialize the wasted food entry with all available properties
+        newWastedFoods[food.name] = { 
+          name: food.name, 
+          count: 0,
+          greengas_emession: food.greengas_emession
+        };
       }
       newWastedFoods[food.name].count++;
 
@@ -333,7 +337,6 @@ export default function GameArea({
     const inDiyZone = isInZone(playerCenterX, playerCenterY, diyZone.x, greenBinZone.y, diyZone.width, diyZone.height);
     
     if (!inFoodBankZone && !inGreenBinZone && !inDiyZone) {
-        console.log('Not in a valid drop zone, still holding food');
         return;
     }
     
@@ -411,7 +414,6 @@ export default function GameArea({
     try {
       // If already holding food, try to drop it in a designated zone
       if (holdingFood) {
-        console.log('Attempting to drop food:', holdingFood.name, holdingFood.type);
         // Using an IIFE to avoid circular dependency
         (async () => {
           await handleAction();
@@ -432,7 +434,6 @@ export default function GameArea({
         
         if (foodIndex >= 0) {
           const pickedFood = foods[foodIndex];
-          console.log('Picking up food:', pickedFood.name, pickedFood.type);
           setHoldingFood(pickedFood);
           setFoods(prev => prev.filter((_, i) => i !== foodIndex));
           // No sound for pickup
@@ -500,61 +501,13 @@ export default function GameArea({
     };
   }, [foods, holdingFood, position, handlePickup, moveSpeed]);
 
-  // Add a useEffect to debug resource values
-  useEffect(() => {
-    if (Object.keys(gameResources).length > 0 && gameResources.resources) {
-      // Find the resources by name directly from the resources array
-      const findResourceByName = (name: string) => {
-        const lowerName = name.toLowerCase();
-        return gameResources.resources.find(
-          r => r.name.toLowerCase() === lowerName || 
-               r.name.toLowerCase().includes(lowerName)
-        );
-      };
-      
-      const foodBankResource = findResourceByName('food bank');
-      const greenBinResource = findResourceByName('green waste bin') || 
-                               findResourceByName('green bin') || 
-                               findResourceByName('compost bin');
-      const diyResource = findResourceByName('diy') || findResourceByName('diy place');
-      
-      const frontPlayerResource = findResourceByName('front_player');
-      const backPlayerResource = findResourceByName('back_player');
-      const leftPlayerResource = findResourceByName('left_player');
-      const rightPlayerResource = findResourceByName('right_player');
-      
-      console.log('Found food bank resource:', foodBankResource);
-      console.log('Found green bin resource:', greenBinResource);
-      console.log('Found DIY resource:', diyResource);
-      console.log('Found character sprite resources:', {
-        front: frontPlayerResource,
-        back: backPlayerResource,
-        left: leftPlayerResource,
-        right: rightPlayerResource
-      });
-      
-      console.log('Specific resources:', gameResources.specificResources);
-    }
-  }, [gameResources]);
-
+  // Remove debug useEffect for resource values
   useEffect(() => {
     // Update conveyor segments
     const segments = conveyorSegments;
     // ... rest of the effect code ...
-  }, [conveyorSegments]); // Add conveyorSegments to dependencies
+  }, [conveyorSegments]);
 
-  useEffect(() => {
-    // Score update effect
-    const segments = conveyorSegments;
-    // Calculate new score based on segments
-    const newScore = score; // Replace with actual score calculation
-    setScore(newScore);
-  }, [conveyorSegments, setScore, score]); // Add score to dependencies
-
-  const handleFoodDrop = useCallback((foodItem: FoodType): void => {
-    // ... existing callback code ...
-  }, [setScore]); // Add setScore to dependencies
-  
   // Game configuration
   const gameSpeed = getConveyorSpeed(difficulty);
   const foodGenerationInterval = getFoodGenerationInterval(difficulty);
@@ -564,7 +517,7 @@ export default function GameArea({
       <Head>
         <title>Food Waste Game - Playing</title>
       </Head>
-      <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+      <div className="bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm rounded-lg shadow-xl overflow-hidden">
         {/* Score Display */}
         <ScoreBoard score={score} time={time} />
         
