@@ -86,8 +86,7 @@ export function useFoodBankById(selectedEnd: string | null): {
             }
 
             try {
-                const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-                const response = await axios.get<FoodbankResponse>(`${backendUrl}/api/foodbanks/`, {
+                const response = await axios.get<FoodbankResponse>(`${config.apiUrl}/api/foodbanks/`, {
                     headers: {
                         'Content-Type': 'application/json',
                     },
