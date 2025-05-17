@@ -13,7 +13,7 @@
 import React, { useState, useEffect } from 'react';
 import { startGame, endGame, getGameResources } from '@/services/gameService';
 import { Difficulty, WasteStats } from './interfaces';
-import { playSound } from './utils/soundEffects';
+import { playSound, stopBackgroundMusic } from './utils/soundEffects';
 
 // Custom hooks
 import useGameState from './hooks/useGameState';
@@ -104,6 +104,8 @@ export default function Game() {
       if (soundsLoaded) {
         console.log('Playing game start sound');
         playSound('gameStart');
+        // Start background music
+        playSound('backgroundMusic');
       }
     } catch (error) {
       console.error('Failed to start game:', error);
@@ -141,13 +143,16 @@ export default function Game() {
       
       console.log('Game over state set:', { gameOver: true, resultBgImage });
       
-      // Play game over sound
+      // Play game over sound and stop background music
       if (soundsLoaded) {
         playSound('gameOver');
+        stopBackgroundMusic();
       }
     } catch (error) {
       console.error('Failed to end game:', error);
       setGameOver(true);
+      // Ensure background music stops even on error
+      stopBackgroundMusic();
     }
   };
 
@@ -174,11 +179,7 @@ export default function Game() {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      <div className="relative z-10 max-w-6xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-center text-green-800 mb-4">Food Waste Sorting Game</h1>
-        <p className="text-lg text-center text-green-700 mb-8">
-          Help reduce food waste in Melbourne by correctly sorting food items!
-        </p>
+      <div className="relative z-10 max-w-6xl mx-auto px-4 pt-20">
         
         {/* Pre-game screen */}
         {!gameStarted && !gameOver && showPreGame && (

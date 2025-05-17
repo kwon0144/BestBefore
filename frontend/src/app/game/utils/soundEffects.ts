@@ -14,7 +14,8 @@ const soundUrls: Record<SoundType, string> = {
   wasteFood: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/wrongAction.mp3',
   wrongAction: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/wrongAction.mp3',
   pickup: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/pickup.mp3',
-  gameOver: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/gameOver.mp3'
+  gameOver: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/gameOver.mp3',
+  backgroundMusic: 'https://s3-tp22.s3.ap-southeast-2.amazonaws.com/Game/others/gameMusic.mp3'
 };
 
 // Volume settings for different sound types
@@ -25,8 +26,12 @@ const soundVolumes: Record<SoundType, number> = {
   wasteFood: 0.05, // Reduced volume
   wrongAction: 0.05, // Reduced volume
   pickup: 0.3,
-  gameOver: 0.3
+  gameOver: 0.3,
+  backgroundMusic: 0.2  // Background music at lower volume
 };
+
+// Singleton instance for background music to enable control
+let backgroundMusicAudio: HTMLAudioElement | null = null;
 
 /**
  * Plays a sound effect for a specific game action
@@ -36,6 +41,26 @@ export const playSound = (type: SoundType): void => {
   if (typeof window === 'undefined') return;
   
   try {
+    // Handle background music with singleton pattern
+    if (type === 'backgroundMusic') {
+      if (backgroundMusicAudio) {
+        backgroundMusicAudio.currentTime = 0;
+        backgroundMusicAudio.play().catch(err => {
+          console.warn('Background music playback failed:', err.message);
+        });
+        return;
+      }
+      
+      backgroundMusicAudio = new Audio(soundUrls[type]);
+      backgroundMusicAudio.volume = soundVolumes[type];
+      backgroundMusicAudio.loop = true; // Enable looping
+      backgroundMusicAudio.play().catch(err => {
+        console.warn('Background music playback failed:', err.message);
+      });
+      return;
+    }
+    
+    // Handle one-shot sound effects
     const audio = new Audio(soundUrls[type]);
     audio.volume = soundVolumes[type]; // Use type-specific volume
     audio.play().catch(err => {
@@ -45,5 +70,15 @@ export const playSound = (type: SoundType): void => {
   } catch (error) {
     // Gracefully handle any errors with sound playback
     console.warn('Error playing sound:', error);
+  }
+};
+
+/**
+ * Stops the background music playback
+ */
+export const stopBackgroundMusic = (): void => {
+  if (backgroundMusicAudio) {
+    backgroundMusicAudio.pause();
+    backgroundMusicAudio.currentTime = 0;
   }
 }; 
