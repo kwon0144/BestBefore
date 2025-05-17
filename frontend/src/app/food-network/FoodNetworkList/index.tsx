@@ -17,7 +17,7 @@ import { Foodbank } from '@/app/api/foodbanks/route';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { ViewState, MapSectionState } from '../interfaces';
-
+import { config } from '@/config';
 /**
  * Props interface for the FoodNetworkList component
  * @interface
@@ -70,8 +70,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
   useEffect(() => {
     const fetchFoodbanks = async () => {
       try {
-        const apiPath = process.env.NEXT_PUBLIC_BRANCH_NAME? `/${process.env.NEXT_PUBLIC_BRANCH_NAME}/api/foodbanks` : '/api/foodbanks';
-        const response = await fetch(apiPath);
+        const response = await fetch(`${config.apiUrl}/api/foodbanks/`);
         if (!response.ok) {
           throw new Error('Failed to fetch foodbanks');
         }

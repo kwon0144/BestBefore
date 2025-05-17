@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Foodbank } from "@/app/api/foodbanks/route";
+import { config } from "@/config";
 
 export function useFoodBank(selectedEnd: string | null) {
     const [foodbank, setFoodbank] = useState<Foodbank | null>(null);
@@ -15,8 +16,12 @@ export function useFoodBank(selectedEnd: string | null) {
             }
 
             try {
-                const apiPath = process.env.NEXT_PUBLIC_BRANCH_NAME ? `/${process.env.NEXT_PUBLIC_BRANCH_NAME}/api/foodbanks` : '/api/foodbanks';
-                const response = await fetch(apiPath);
+                const response = await fetch(`${config.apiUrl}/api/foodbanks/`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
                 if (!response.ok) {
                     throw new Error('Failed to fetch foodbank data');
                 }
@@ -45,8 +50,7 @@ export function useFoodBankName(selectedEnd: string | null) {
     useEffect(() => {
         const fetchFoodBanks = async () => {
             try {
-                const apiPath = process.env.NEXT_PUBLIC_BRANCH_NAME ? `/${process.env.NEXT_PUBLIC_BRANCH_NAME}/api/foodbanks` : '/api/foodbanks';
-                const response = await fetch(apiPath);
+                const response = await fetch(`${config.apiUrl}/api/foodbanks/`);
                 if (!response.ok) {
                     throw new Error('Failed to fetch foodbanks');
                 }

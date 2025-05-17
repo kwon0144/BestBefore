@@ -18,7 +18,7 @@ import { Dispatch, SetStateAction, useEffect, forwardRef, useImperativeHandle, u
 import type { Foodbank, OperationSchedule } from "@/app/api/foodbanks/route";
 import WhereAmIButton from "./WhereAmIButton";
 import { MapSectionState } from "@/app/food-network/interfaces";
-
+import { config } from "@/config";
 /**
  * Point interface for map markers
  * @interface
@@ -95,8 +95,7 @@ const MapComponent = forwardRef<MapComponentRef, MapComponentProps>(({
   useEffect(() => {
     const fetchFoodBanks = async () => {
       try {
-        const apiPath = process.env.NEXT_PUBLIC_BRANCH_NAME? `/${process.env.NEXT_PUBLIC_BRANCH_NAME}/api/foodbanks` : '/api/foodbanks';
-        const response = await fetch(apiPath);
+        const response = await fetch(`${config.apiUrl}/api/foodbanks/`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
