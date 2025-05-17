@@ -13,6 +13,7 @@
 
 import { useState } from "react";
 import axios from "axios";
+import { config } from "@/config";
 
 // Define the response types from the API
 export interface StorageAdviceResponse {
@@ -53,8 +54,7 @@ export function useStorageAdvice(): UseStorageAdviceReturn {
         setError(null);
 
         try {
-            const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const response = await axios.post<StorageAdviceResponse>(`${backendUrl}/api/storage-advice/`, {
+            const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
                 food_type: foodType
             });
 

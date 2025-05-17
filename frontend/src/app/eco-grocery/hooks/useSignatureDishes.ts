@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { config } from '@/config';
 
 // Import the SignatureDish interface from the specific interface file
 import { SignatureDish } from '@/app/eco-grocery/interfaces/MealChoice';
@@ -53,8 +54,7 @@ export function useSignatureDishes({
 
         setLoading(true);
         try {
-            const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const endpoint = `${backendUrl}/api/signature-dishes/`;
+            const endpoint = `${config.apiUrl}/api/signature-dishes/`;
 
             const response = await axios.get<SignatureDish[]>(endpoint, {
                 params: { cuisine }

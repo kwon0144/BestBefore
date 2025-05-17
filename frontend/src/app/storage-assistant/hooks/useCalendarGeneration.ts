@@ -13,7 +13,7 @@
 
 import { useState } from "react";
 import axios from "axios";
-
+import { config } from "@/config";
 // Define the types for the hook
 interface CalendarItem {
     name: string;
@@ -77,7 +77,6 @@ export function useCalendarGeneration(): UseCalendarGenerationReturn {
         setError(null);
 
         try {
-            const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
             const requestData: CalendarRequest = {
                 items: items.map(item => ({
@@ -90,7 +89,7 @@ export function useCalendarGeneration(): UseCalendarGenerationReturn {
             };
 
             const response = await axios.post<CalendarResponse>(
-                `${backendUrl}/api/generate_calendar/`,
+                `${config.apiUrl}/api/generate_calendar/`,
                 requestData
             );
 

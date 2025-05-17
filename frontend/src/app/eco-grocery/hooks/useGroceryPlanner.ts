@@ -157,8 +157,7 @@ export const useGroceryPlanner = () => {
 
     try {
       // Call the API to generate grocery list
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const response = await axios.post(`${backendUrl}/api/search-dishes/`, {
+      const response = await axios.post(`${config.apiUrl}/api/search-dishes/`, {
         selected_meals: selectedMeals,
         // Format inventory items for the API
         inventory: inventoryItems.map(item => ({
