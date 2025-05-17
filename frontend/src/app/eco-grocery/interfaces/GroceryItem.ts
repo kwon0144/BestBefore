@@ -22,27 +22,3 @@ export interface PantryItem {
     name: string;
     quantity: string;
 }
-
-/**
- * Interface for the grocery list API response structure
- */
-export interface GroceryListResponse {
-    success: boolean;
-    dishes?: string[];
-    items_by_category?: Record<string, GroceryItem[]>;
-    pantry_items?: Array<PantryItem>;
-    error?: string;
-}
-
-/**
- * Props for the GroceryList component
- */
-export interface GroceryListProps {
-    selectedMeals: { id: number; name: string; quantity: number }[];
-    groceryItems: GroceryItem[];
-    pantryItems: PantryItem[];
-    loading: boolean;
-    error: string | null;
-    getGroceryItemsByCategory: (category: string) => GroceryItem[];
-    generateGroceryList?: () => void;
-} 

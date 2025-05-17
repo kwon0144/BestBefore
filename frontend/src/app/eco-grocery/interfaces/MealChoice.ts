@@ -29,47 +29,6 @@ export interface SignatureDish {
 }
 
 /**
- * Props for the SearchBar component
- */
-export interface SearchBarProps {
-    searchQuery: string;
-    setSearchQuery: (query: string) => void;
-    addSearchResultMeal: () => void;
-    handleSearchKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-    filteredResults: (MealChoice | SignatureDish)[];
-    onSelectMeal: (meal: MealChoice | SignatureDish) => void;
-}
-
-/**
- * Props for the PopularMeals component
- */
-export interface PopularMealsProps {
-    popularMeals: string[];
-    setSearchQuery: (cuisine: string) => void;
-}
-
-/**
- * Props for the MealChoices component
- */
-export interface MealChoicesProps {
-    mealChoices?: MealChoice[];
-    filteredMealChoices: MealChoice[];
-    addMeal: (meal: { id: number; name: string }) => void;
-    isLoading?: boolean;
-    selectedCuisine?: string | null;
-    error?: string | null;
-}
-
-/**
- * Props for the SelectedMeals component
- */
-export interface SelectedMealsProps {
-    selectedMeals: Meal[];
-    adjustQuantity: (id: number, change: number) => void;
-    removeMeal: (id: number) => void;
-}
-
-/**
  * Interface for selected meals in the planner
  */
 export interface Meal {

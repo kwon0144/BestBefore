@@ -7,10 +7,22 @@
  */
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faSpinner, faUtensils, faImage, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
-import { MealChoicesProps } from "@/app/eco-grocery/interfaces/MealChoice";
+import { faPlus, faSpinner, faUtensils, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import Image from "next/image";
 import { useState } from "react";
+import type { MealChoice } from "../interfaces/MealChoice";
+
+/**
+ * Props for the MealChoices component
+ */
+export interface MealChoicesProps {
+  mealChoices?: MealChoice[];
+  filteredMealChoices: MealChoice[];
+  addMeal: (meal: { id: number; name: string }) => void;
+  isLoading?: boolean;
+  selectedCuisine?: string | null;
+  error?: string | null;
+}
 
 /**
  * Renders a grid of meal choices for user selection
