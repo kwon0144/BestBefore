@@ -3,7 +3,7 @@ from django.db import connection
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-
+from django.db.models import Sum
 # Django REST framework imports
 from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, action
@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 from .service.db_service import get_storage_recommendations, get_all_food_types
 from .service.dish_ingre_service import DishIngredientService
 from .service.hours_parser_service import parse_operating_hours
-from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources
-from .serializer import FoodBankListSerializer, FoodBankDetailSerializer
+from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources, FoodWasteComposition, GlobalFoodWastageDataset, FoodEmissions
+from .serializer import FoodBankListSerializer, FoodBankDetailSerializer, GlobalFoodWastageSerializer, CountryWastageSerializer, FoodCategoryWastageSerializer, EconomicImpactSerializer
 from .game_core import start_new_game, update_game_state, end_game_session, prepare_game_food_items
 from .game_validators import get_top_scores, validate_pickup, validate_action
 from .game_state import games
@@ -758,3 +758,385 @@ def get_game_resources(request):
             {'error': 'Failed to fetch game resources'}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+    
+
+#-----------------------------------------------------------------------
+# Food Waste Composition APIs
+#-----------------------------------------------------------------------
+
+@api_view(['GET'])
+def get_waste_composition(request):
+    """
+    Get food waste composition data with calculated percentages
+    for visualization purposes using Django ORM.
+    """
+    try:
+        # Query the data using ORM
+        waste_data = FoodWasteComposition.objects.all().order_by('-quantity')
+        
+        # Calculate total quantity
+        total_quantity = FoodWasteComposition.objects.aggregate(
+            total=Sum('quantity')
+        )['total'] or 0
+        
+        # Format the data with percentages - without colors
+        formatted_data = []
+        for item in waste_data:
+            percentage = (item.quantity / total_quantity) * 100 if total_quantity > 0 else 0
+            formatted_data.append({
+                'name': item.type,
+                'value': item.quantity,
+                'percentage': round(percentage, 2)
+            })
+        
+        return Response({
+            'total_tonnes': round(total_quantity, 2),
+            'data': formatted_data,
+            'updated_at': timezone.now().isoformat()
+        })
+    
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+#-----------------------------------------------------------------------
+# Global Food Wastage APIs
+#-----------------------------------------------------------------------
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.db.models import Sum, Avg, F, ExpressionWrapper, FloatField
+from django.utils import timezone
+
+from .models import GlobalFoodWastageDataset
+
+@api_view(['GET'])
+def get_food_waste_by_category(request):
+    """
+    API endpoint that provides food waste data grouped by food category.
+    
+    This endpoint aggregates data to show which food categories contribute most
+    to overall waste, both in terms of quantity and economic impact.
+    
+    Query parameters:
+    - year: Filter by specific year
+    - country: Filter by specific country
+    
+    Returns:
+    - A list of food categories with their total waste, economic loss, and percentage of total
+    """
+    try:
+        # Get query parameters
+        year = request.query_params.get('year')
+        country = request.query_params.get('country')
+        
+        # Start with all data
+        queryset = GlobalFoodWastageDataset.objects.all()
+        
+        # Apply filters if provided
+        if year:
+            queryset = queryset.filter(year=year)
+        if country:
+            queryset = queryset.filter(country__iexact=country)
+        
+        # Calculate total waste for percentage calculation
+        total_waste = queryset.aggregate(Sum('total_waste'))['total_waste__sum'] or 0
+        
+        # Get unique food categories
+        categories = queryset.values_list('food_category', flat=True).distinct()
+        
+        # Prepare result data
+        result_data = []
+        for category in categories:
+            # Filter for this category
+            category_queryset = queryset.filter(food_category=category)
+            
+            # Calculate aggregates for this category
+            category_waste = category_queryset.aggregate(Sum('total_waste'))['total_waste__sum'] or 0
+            category_loss = category_queryset.aggregate(Sum('economic_loss'))['economic_loss__sum'] or 0
+            
+            # Calculate percentage of total waste
+            percentage = (category_waste / total_waste * 100) if total_waste > 0 else 0
+            
+            # Add to results
+            result_data.append({
+                'category': category,
+                'total_waste': category_waste,
+                'economic_loss': category_loss,
+                'percentage': round(percentage, 2)
+            })
+        
+        # Sort by waste amount (descending)
+        result_data.sort(key=lambda x: x['total_waste'], reverse=True)
+        
+        return Response({
+            'total_waste': total_waste,
+            'categories': result_data,
+            'filters': {
+                'year': year or 'all',
+                'country': country or 'all'
+            },
+            'updated_at': timezone.now().isoformat()
+        })
+        
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def get_economic_impact(request):
+    """
+    API endpoint that focuses on the economic impact of food waste.
+    
+    This endpoint calculates economic metrics including per-household costs
+    and analyzes how economic loss is distributed across different countries
+    and food categories.
+    
+    Query parameters:
+    - year: Filter by specific year
+    - country: Filter by specific country
+    
+    Returns:
+    - Economic impact summary and breakdowns by country/category
+    """
+    try:
+        # Get query parameters
+        year = request.query_params.get('year')
+        country = request.query_params.get('country')
+        
+        # Start with all data
+        queryset = GlobalFoodWastageDataset.objects.all()
+        
+        # Apply filters if provided
+        if year:
+            queryset = queryset.filter(year=year)
+        if country:
+            queryset = queryset.filter(country__iexact=country)
+        
+        # Calculate overall economic metrics
+        total_economic_loss = queryset.aggregate(Sum('economic_loss'))['economic_loss__sum'] or 0
+        total_waste = queryset.aggregate(Sum('total_waste'))['total_waste__sum'] or 0
+        avg_household_waste = queryset.aggregate(Avg('household_waste'))['household_waste__avg'] or 0
+        
+        # Initialize lists for country and category breakdown
+        countries_data = []
+        
+        # Get unique countries
+        countries = queryset.values_list('country', flat=True).distinct()
+        
+        # Calculate per-country metrics
+        for country_name in countries:
+            country_queryset = queryset.filter(country=country_name)
+            
+            # Get the latest year for this country
+            latest_year_item = country_queryset.order_by('-year').first()
+            
+            if latest_year_item:
+                # Calculate country totals
+                country_loss = country_queryset.aggregate(Sum('economic_loss'))['economic_loss__sum'] or 0
+                country_waste = country_queryset.aggregate(Sum('total_waste'))['total_waste__sum'] or 0
+                
+                # Calculate household impact
+                population_value = latest_year_item.population
+                household_waste_pct = latest_year_item.household_waste
+                
+                # Assume average household size of 2.5 people
+                households = (population_value * 1000000) / 2.5 if population_value > 0 else 0
+                
+                # Calculate economic loss attributable to households
+                household_economic_loss = country_loss * (household_waste_pct / 100)
+                
+                # Calculate per-household cost
+                cost_per_household = (household_economic_loss * 1000000) / households if households > 0 else 0
+                
+                countries_data.append({
+                    'country': country_name,
+                    'total_economic_loss': country_loss,
+                    'population': population_value,
+                    'household_waste_percentage': household_waste_pct,
+                    'annual_cost_per_household': round(cost_per_household, 2),
+                    'total_waste': country_waste
+                })
+        
+        # Sort countries by economic loss
+        countries_data.sort(key=lambda x: x['total_economic_loss'], reverse=True)
+        
+        
+        # Return response
+        return Response({
+            'summary': {
+                'total_economic_loss': total_economic_loss,
+                'total_waste': total_waste,
+                'economic_loss_per_ton': total_economic_loss / total_waste if total_waste > 0 else 0,
+                'avg_household_waste_percentage': avg_household_waste
+            },
+            'countries': countries_data,
+            'updated_at': timezone.now().isoformat()
+        })
+        
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+def get_household_impact(request):
+    """
+    API endpoint that specifically focuses on household-level food waste impact.
+    
+    This endpoint calculates metrics related to household food waste,
+    including economic costs per household and waste per capita.
+    
+    Query parameters:
+    - country: Filter by specific country (required)
+    - year: Filter by specific year (optional)
+    
+    Returns:
+    - Household impact metrics and visualizable data
+    """
+    try:
+        # Get query parameters
+        country = request.query_params.get('country')
+        year = request.query_params.get('year')
+        
+        # Country is required for this endpoint
+        if not country:
+            return Response({
+                'error': 'Country parameter is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Filter by country
+        queryset = GlobalFoodWastageDataset.objects.filter(country__iexact=country)
+        
+        # Apply year filter if provided
+        if year:
+            queryset = queryset.filter(year=year)
+        
+        # If no data found for this country
+        if not queryset.exists():
+            return Response({
+                'error': f'No data found for country: {country}'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Get available years
+        years = queryset.values_list('year', flat=True).distinct().order_by('year')
+        
+        # Calculate yearly metrics
+        yearly_data = []
+        for year_value in years:
+            year_queryset = queryset.filter(year=year_value)
+            
+            # Get a representative item for this year
+            sample_item = year_queryset.first()
+            
+            if sample_item:
+                # Calculate waste metrics for this year
+                year_waste = year_queryset.aggregate(Sum('total_waste'))['total_waste__sum'] or 0
+                year_loss = year_queryset.aggregate(Sum('economic_loss'))['economic_loss__sum'] or 0
+                
+                # Calculate household impact
+                population_value = sample_item.population
+                household_waste_pct = sample_item.household_waste
+                waste_per_capita = sample_item.waste_capita
+                
+                # Assume average household size of 2.5 people
+                households = (population_value * 1000000) / 2.5 if population_value > 0 else 0
+                
+                # Calculate economic loss attributable to households
+                household_economic_loss = year_loss * (household_waste_pct / 100)
+                
+                # Calculate per-household cost
+                cost_per_household = (household_economic_loss * 1000000) / households if households > 0 else 0
+                
+                yearly_data.append({
+                    'year': year_value,
+                    'waste_per_capita': waste_per_capita,
+                    'total_waste': year_waste,
+                    'economic_loss': year_loss,
+                    'population': population_value,
+                    'household_waste_percentage': household_waste_pct,
+                    'annual_cost_per_household': round(cost_per_household, 2),
+                    'household_waste_tons': year_waste * (household_waste_pct / 100)
+                })
+        
+        # Get latest year data for overall metrics
+        latest_year = max(years) if years else None
+        
+        # Calculate overall metrics
+        if latest_year:
+            latest_data = queryset.filter(year=latest_year)
+            latest_item = latest_data.first()
+            
+            overall_metrics = {
+                'latest_year': latest_year,
+                'waste_per_capita': latest_item.waste_capita if latest_item else 0,
+                'household_waste_percentage': latest_item.household_waste if latest_item else 0,
+                'country': country,
+                'population': latest_item.population if latest_item else 0,
+            }
+        else:
+            overall_metrics = {
+                'country': country,
+                'error': 'No data available'
+            }
+        
+        return Response({
+            'overall': overall_metrics,
+            'yearly_data': yearly_data,
+            'potential_savings': {
+                'reduction_50_percent': yearly_data[-1]['annual_cost_per_household'] * 0.5 if yearly_data else 0,
+                'reduction_25_percent': yearly_data[-1]['annual_cost_per_household'] * 0.25 if yearly_data else 0
+            },
+            'updated_at': timezone.now().isoformat()
+        })
+        
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+#-----------------------------------------------------------------------
+# Food Emissions APIs
+#-----------------------------------------------------------------------
+
+@api_view(['GET'])
+def get_food_emissions(request):
+    """
+    API endpoint that provides food emissions data grouped by food type.
+    
+    Query parameters:
+    - food_type: Filter by specific food type (optional)
+    
+    Returns:
+    - A list of food types with their greenhouse gas emissions
+    """
+    try: 
+        # Get query parameters
+        food_type = request.query_params.get('food_type')
+
+        # Start with all data
+        queryset = FoodEmissions.objects.all()
+        
+        # Apply filter if provided
+        if food_type:
+            queryset = queryset.filter(food_type__icontains=food_type)
+        
+        # Format the data for response
+        emissions_data = []
+        for item in queryset:
+            emissions_data.append({
+                'food_type': item.food_type,
+                'ghg': item.ghg
+            })
+        
+        return Response(emissions_data)
+        
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
