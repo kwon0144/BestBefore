@@ -38,6 +38,7 @@ interface GroceryListProps {
  */
 const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateGroceryList'>>(({
   selectedMeals,
+  groceryItems,
   pantryItems,
   error,
   getGroceryItemsByCategory,
@@ -391,42 +392,42 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
 
   return (
     <div ref={ref} className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex flex-row gap-2">
-          <h2 className="text-2xl font-semibold text-darkgreen">
-            Grocery List
-          </h2>
-          <InfoTooltip 
-            contentItems={[
-              "The meal recommendations and grocery suggestions provided are based on general information and AI-generated content",
-              "Ingredient quantities may vary based on recipe variations and actual quantities needed",
-              "Always check for specific dietary requirements and food allergies before preparation"
-            ]}
-            header="For Reference Only"
-            footerText="Recommendations for reference only"
-            placement="right-start"
-            icon={faCircleExclamation}
-            ariaLabel="Disclaimer"
-          />
-        </div>
-      <div className="flex justify-between items-center mb-4">
-        {!loading && !error && selectedMeals.length > 0 && (
-          <Button
-            size="md"
-            variant="light"
-            className="text-[#2F5233] hover:bg-green-50 flex items-center gap-1.5 px-3 py-1.5"
-            onPress={() => {
-              if (!editMode) {
-                initializeEditableList();
-              } else {
-                setEditMode(false);
-              }
-            }}
-          >
-            <span className="font-bold text-base">{editMode ? "Save" : "Edit"}</span>
-            <FontAwesomeIcon icon={editMode ? faCheck : faPen} size="sm" />
-          </Button>
+        <div className="flex justify-between">
+          <div className="flex flex-row gap-2">
+            <h2 className="text-2xl font-semibold text-darkgreen">
+              Grocery List
+            </h2>
+            <InfoTooltip 
+              contentItems={[
+                "The meal recommendations and grocery suggestions provided are based on general information and AI-generated content",
+                "Ingredient quantities may vary based on recipe variations and actual quantities needed",
+                "Always check for specific dietary requirements and food allergies before preparation"
+              ]}
+              header="For Reference Only"
+              footerText="Recommendations for reference only"
+              placement="right-start"
+              icon={faCircleExclamation}
+              ariaLabel="Disclaimer"
+            />
+          </div>
+          {!loading && !error && groceryItems.length > 0 && selectedMeals.length > 0 && (
+            <Button
+              size="md"
+              variant="light"
+              className="text-[#2F5233] hover:bg-green-50 flex items-center gap-1.5 px-3 py-1.5"
+              onPress={() => {
+                if (!editMode) {
+                  initializeEditableList();
+                } else {
+                  setEditMode(false);
+                }
+              }}
+            >
+              <span className="font-bold text-base">{editMode ? "Save" : "Edit"}</span>
+              <FontAwesomeIcon icon={editMode ? faCheck : faPen} size="sm" />
+            </Button>
         )}
-      </div>
+        </div>
         
       {error && <div className="text-red-500 mb-4 p-3 bg-red-50 rounded">
         {error}
@@ -455,7 +456,7 @@ const GroceryList = forwardRef<HTMLDivElement, Omit<GroceryListProps, 'generateG
           ))}
         </div>
       ) : !error ? (
-        selectedMeals.length === 0 ? (
+        groceryItems.length === 0 ? (
           <p className="text-gray-500">Select meals to generate a grocery list</p>
         ) : (
           <>
