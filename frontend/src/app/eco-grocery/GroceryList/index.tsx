@@ -11,13 +11,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faEdit, faCheck, faTimes, faPlus, faPen, faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import InfoTooltip from "@/app/(components)/InfoTooltip";
 import { GroceryItem, PantryItem } from "../interfaces/GroceryItem";
-
+import { Meal } from "../interfaces/MealChoice";
 /**
  * Props for the GroceryList component
  * Used to manage the state of the grocery list
  */
 interface GroceryListProps {
-  selectedMeals: string[];
+  selectedMeals: Meal[];
+  groceryItems: GroceryItem[];
   pantryItems: PantryItem[];
   error: string | null;
   getGroceryItemsByCategory: (category: string) => GroceryItem[];
