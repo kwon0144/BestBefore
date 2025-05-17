@@ -146,6 +146,7 @@ export const useGroceryPlanner = () => {
    */
   const removeMeal = useCallback((id: number) => {
     setSelectedMeals(prev => prev.filter(meal => meal.id !== id));
+    setGroceryItems([]);
   }, []);
 
   /**
