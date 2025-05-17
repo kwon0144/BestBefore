@@ -128,3 +128,17 @@ class GlobalFoodWastageDataset(models.Model):
         
     def __str__(self):
         return f"{self.country} - {self.year} - {self.food_category}"
+    
+class FoodEmissions(models.Model):
+
+    food_type = models.CharField(max_length=100)
+    code = models.CharField(max_length=20)
+    year = models.IntegerField()
+    ghg = models.FloatField()
+
+    class Meta:
+        db_table = 'food_emission'
+        managed = False
+
+    def __str__(self):
+        return f"{self.food_type} - {self.code} - {self.year} - {self.ghg}"

@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 from .service.db_service import get_storage_recommendations, get_all_food_types
 from .service.dish_ingre_service import DishIngredientService
 from .service.hours_parser_service import parse_operating_hours
-from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources, FoodWasteComposition, GlobalFoodWastageDataset
+from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources, FoodWasteComposition, GlobalFoodWastageDataset, FoodEmissions
 from .serializer import FoodBankListSerializer, FoodBankDetailSerializer, GlobalFoodWastageSerializer, CountryWastageSerializer, FoodCategoryWastageSerializer, EconomicImpactSerializer
 from .game_core import start_new_game, update_game_state, end_game_session, prepare_game_food_items
 from .game_validators import get_top_scores, validate_pickup, validate_action
@@ -1072,6 +1072,48 @@ def get_household_impact(request):
             },
             'updated_at': timezone.now().isoformat()
         })
+        
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+#-----------------------------------------------------------------------
+# Food Emissions APIs
+#-----------------------------------------------------------------------
+
+@api_view(['GET'])
+def get_food_emissions(request):
+    """
+    API endpoint that provides food emissions data grouped by food type.
+    
+    Query parameters:
+    - food_type: Filter by specific food type (optional)
+    
+    Returns:
+    - A list of food types with their greenhouse gas emissions
+    """
+    try: 
+        # Get query parameters
+        food_type = request.query_params.get('food_type')
+
+        # Start with all data
+        queryset = FoodEmissions.objects.all()
+        
+        # Apply filter if provided
+        if food_type:
+            queryset = queryset.filter(food_type__icontains=food_type)
+        
+        # Format the data for response
+        emissions_data = []
+        for item in queryset:
+            emissions_data.append({
+                'food_type': item.food_type,
+                'ghg': item.ghg
+            })
+        
+        return Response(emissions_data)
         
     except Exception as e:
         return Response({

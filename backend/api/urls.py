@@ -20,7 +20,8 @@ from .views import (
     get_waste_composition,
     get_food_waste_by_category,
     get_economic_impact,
-    get_household_impact
+    get_household_impact,
+    get_food_emissions
 )
 from .service import produce_detection_service
 from .service.produce_expiry_date_service import storage_assistant
@@ -54,5 +55,6 @@ urlpatterns = [
     path('food-waste-by-category/', get_food_waste_by_category, name='food_waste_by_category'),
     path('economic-impact/', get_economic_impact, name='economic_impact'),
     path('household-impact/', get_household_impact, name='household_impact'),
+    path('food-emissions/', get_food_emissions, name='food_emissions'),
 ]
 

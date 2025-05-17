@@ -1,16 +1,74 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CardInfo } from '../interfaces';
+import axios from 'axios';
+import { config } from '@/config';
+
+interface EmissionData {
+  food_type: string;
+  ghg: number;
+  percentage?: number;
+  color?: string;
+}
 
 const EmissionsChart: React.FC = () => {
-  // Emissions data
-  const emissionsData: CardInfo[] = [
-    { country: "Australia", value: 2213.1, percentage: 100, color: "#2D6A4F" },
-    { country: "Indonesia", value: 1200.2, percentage: 55, color: "#40916C" },
-    { country: "Iran", value: 996.8, percentage: 45, color: "#52B788" },
-    { country: "Canada", value: 747.7, percentage: 34, color: "#74C69D" },
-    { country: "Germany", value: 681.8, percentage: 30, color: "#B7E4C7" }
-  ];
+  const [emissionsData, setEmissionsData] = useState<EmissionData[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchEmissionsData = async () => {
+      try {
+        const response = await axios.get<EmissionData[]>(`${config.apiUrl}/api/food-emissions/`);
+        
+        // Sort data by greenhouse gas emissions (highest first)
+        const sortedData = [...response.data].sort((a, b) => b.ghg - a.ghg);
+        
+        // Take top 5 entries
+        const top5Data = sortedData.slice(0, 5);
+        
+        // Calculate percentages relative to the highest value
+        const highestValue = top5Data[0].ghg;
+        const dataWithPercentages = top5Data.map((item, index) => ({
+          ...item,
+          percentage: Math.round((item.ghg / highestValue) * 80),
+          color: getColor(index) // Assign color based on index
+        }));
+        
+        setEmissionsData(dataWithPercentages);
+      } catch (err) {
+        console.error("Error fetching emissions data:", err);
+        setError("Failed to load emissions data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmissionsData();
+  }, []);
+
+  // Function to get colors based on index
+  const getColor = (index: number): string => {
+    const colors = ["#2D6A4F", "#40916C", "#52B788", "#74C69D", "#B7E4C7"];
+    return colors[index] || colors[0];
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0 flex justify-center items-center h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green"></div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0 flex justify-center items-center h-[400px]">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0">
@@ -43,12 +101,12 @@ const EmissionsChart: React.FC = () => {
               <motion.div 
                 className="p-2 md:p-3 h-8 md:h-12" 
                 style={{ 
-                  backgroundColor: item.color, 
+                  backgroundColor: item.color || getColor(index), 
                   originX: 0
                 }}
                 variants={{
                   visible: { 
-                    width: `${item.percentage}%`,
+                    width: `${item.percentage || 0}%`,
                     transition: { 
                       duration: 0.8,
                       ease: "easeOut"
@@ -82,10 +140,10 @@ const EmissionsChart: React.FC = () => {
                     }
                   }
                 }}
-                style={{ left: `${item.percentage}%` }}
+                style={{ left: `${item.percentage || 0}%` }}
               >
-                <span className="mr-2 font-bold text-xs md:text-base">{item.country}</span>
-                <span className="text-xs md:text-base">{item.value}</span>
+                <span className="mr-2 font-bold text-xs md:text-base">{item.food_type}</span>
+                <span className="text-xs md:text-base">{item.ghg.toFixed(1)}</span>
               </motion.div>
             </div>
           ))}
