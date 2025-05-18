@@ -1128,7 +1128,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       <div className="py-16 md:py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl md:text-4xl font-bold text-darkgreen mb-2 md:mb-4 text-left">
-            <span className="bg-green text-white px-4 py-2 inline-block mr-1">Australia</span> ranks in the <span className="bg-green text-white px-4 py-2 inline-block mr-1">Top 20 Countries</span> for Food Waste
+            <span className="bg-green text-white px-4 py-2 inline-block mr-1">Australia</span> ranks in the <span className="bg-green text-white px-4 py-2 inline-block mr-1">Top 20 Countries</span> for Food Waste <sup className="text-sm font-bold align-super ml-2">5</sup>
           </h2>
           <p className="text-xl font-bold text-gray-700 mb-4 md:mb-12 text-left">
             Food waste is a global issue with varying impacts across different regions.

@@ -357,7 +357,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
           className="flex flex-col justify-center h-full"
         >
           <h2 className="text-2xl sm:text-3xl font-bold text-darkgreen mb-4 md:mb-6">
-            What's in Our Food Waste?
+            What's in Our Food Waste?<sup className="text-sm font-bold align-super ml-2">2</sup>
           </h2>
           <p className="text-gray-700 mb-6 md:mb-8">
             Food waste varies significantly across different stages of the

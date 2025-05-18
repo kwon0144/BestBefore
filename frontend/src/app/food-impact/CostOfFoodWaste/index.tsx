@@ -287,6 +287,7 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
                     <p>
                         <span className="bg-green text-white px-4 py-2 inline-block mr-1">Household food waste</span> 
                         costs up to <span className="bg-green text-white px-4 py-2 inline-block mr-1">${Math.round(currentYearData?.annual_cost_per_household || 12963).toLocaleString()} per household</span> annually.
+                        <sup className="text-sm font-bold align-super ml-2">1</sup>
                     </p>
                 </motion.div>
 
