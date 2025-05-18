@@ -6,6 +6,7 @@ import { feature } from 'topojson-client';
 import axios from 'axios';
 import { config } from '@/config';
 import { Slider } from "@heroui/react";
+import { FoodWasteCompositionResponse, FoodWasteItem, FoodWasteByCategoryResponse } from '../interfaces/FoodWaste';
 
 interface GlobalImpactProps {
   setRef: (node: HTMLDivElement | null) => void;
@@ -53,6 +54,10 @@ interface ApiYearlyResponse {
   count: number;
   data: CountryYearlyData[];
   updated_at: string;
+}
+
+interface CountryCompositionData {
+  [country: string]: FoodWasteCompositionResponse;
 }
 
 // Allow any value for data access since the exact structure may vary
@@ -121,59 +126,9 @@ const MIDPOINT_COORDINATES = {
 };
 
 // Add mock food waste type distribution data for countries
-interface FoodWasteTypeDistribution {
-  [category: string]: { value: number; color: string; };
-}
+// This interface is no longer used - replaced with FoodWasteItem from API response
 
-interface CountryFoodWasteDistribution {
-  [country: string]: FoodWasteTypeDistribution;
-}
-
-// Mock data for food waste composition by category for each country
-const mockFoodWasteDistribution: CountryFoodWasteDistribution = {
-  'Australia': {
-    'Fruits & Vegetables': { value: 35, color: '#22c55e' },
-    'Meat & Dairy': { value: 28, color: '#ef4444' },
-    'Bakery': { value: 19, color: '#eab308' },
-    'Prepared Foods': { value: 12, color: '#3b82f6' },
-    'Other': { value: 6, color: '#a855f7' }
-  },
-  'China': {
-    'Fruits & Vegetables': { value: 31, color: '#22c55e' },
-    'Meat & Dairy': { value: 23, color: '#ef4444' },
-    'Bakery': { value: 17, color: '#eab308' },
-    'Prepared Foods': { value: 15, color: '#3b82f6' },
-    'Other': { value: 14, color: '#a855f7' }
-  },
-  'United States': {
-    'Fruits & Vegetables': { value: 32, color: '#22c55e' },
-    'Meat & Dairy': { value: 30, color: '#ef4444' },
-    'Bakery': { value: 18, color: '#eab308' },
-    'Prepared Foods': { value: 14, color: '#3b82f6' },
-    'Other': { value: 6, color: '#a855f7' }
-  },
-  'India': {
-    'Fruits & Vegetables': { value: 40, color: '#22c55e' },
-    'Meat & Dairy': { value: 15, color: '#ef4444' },
-    'Bakery': { value: 20, color: '#eab308' },
-    'Prepared Foods': { value: 10, color: '#3b82f6' },
-    'Other': { value: 15, color: '#a855f7' }
-  },
-  'Brazil': {
-    'Fruits & Vegetables': { value: 37, color: '#22c55e' },
-    'Meat & Dairy': { value: 22, color: '#ef4444' },
-    'Bakery': { value: 16, color: '#eab308' },
-    'Prepared Foods': { value: 15, color: '#3b82f6' },
-    'Other': { value: 10, color: '#a855f7' }
-  },
-  'Default': {
-    'Fruits & Vegetables': { value: 35, color: '#22c55e' },
-    'Meat & Dairy': { value: 25, color: '#ef4444' },
-    'Bakery': { value: 18, color: '#eab308' },
-    'Prepared Foods': { value: 12, color: '#3b82f6' },
-    'Other': { value: 10, color: '#a855f7' }
-  }
-};
+// This interface is no longer used - replaced with API data
 
 const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
   const mapRef = useRef<SVGSVGElement>(null);
@@ -188,6 +143,11 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
   // Add state to track selected country
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   
+  // Add state to store waste composition data by country
+  const [compositionData, setCompositionData] = useState<CountryCompositionData>({});
+  // Add loading state for composition data
+  const [loadingComposition, setLoadingComposition] = useState<boolean>(false);
+  
   // Available years for the timeline
   const availableYears = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
   
@@ -201,6 +161,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
   useEffect(() => {
     async function fetchYearlyData() {
       try {
+        // This endpoint gets all yearly country data
         const response = await axios.get<ApiYearlyResponse>(`${config.apiUrl}/api/country-yearly-waste/`);
         if (response.data && response.data.data) {
           setCountryYearlyData(response.data.data);
@@ -228,7 +189,6 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         }
       } catch (error) {
         console.error("Error fetching yearly country data:", error);
-        // We'll fall back to the mock data if this API call fails
       }
     }
     
@@ -239,7 +199,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch waste data for the selected year using axios with config.apiUrl
+        // Fetch economic impact data for the selected year
         const response = await axios.get<GlobalWasteData>(`${config.apiUrl}/api/economic-impact/`, {
           params: { year: selectedYear }
         });
@@ -270,66 +230,6 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           setWasteData(response.data);
         }
         
-        // Create mock trend data since the API might not provide historical data
-        if (Object.keys(trendData).length === 0) {
-          console.log("Generating mock trend data");
-          const mockHistoricalData: YearlyCountryData = {};
-          
-          // If we have current data, use it as a base for our mock historical data
-          if (response.data && response.data.countries) {
-            response.data.countries.forEach(country => {
-              // Initialize country if not exists
-              if (!mockHistoricalData[country.country]) {
-                mockHistoricalData[country.country] = {};
-              }
-              
-              // Use current values as a base
-              const baseWaste = country.total_waste || 0;
-              const baseEconomicLoss = country.total_economic_loss;
-              const baseHouseholdPercentage = country.household_waste_percentage;
-              
-              // Generate data for each year with slight variations
-              availableYears.forEach((year, index) => {
-                // Create realistic trends - values generally increase over time
-                const yearFactor = (year - 2018) / 6; // 0 to 1 range
-                const randomVariation = 0.9 + Math.random() * 0.2; // 0.9 to 1.1
-                
-                mockHistoricalData[country.country][year] = {
-                  total_waste: Math.round((baseWaste * (0.8 + yearFactor * 0.4) * randomVariation) * 10) / 10,
-                  total_economic_loss: Math.round(baseEconomicLoss * (0.8 + yearFactor * 0.4) * randomVariation),
-                  household_waste_percentage: Math.round((baseHouseholdPercentage * (0.9 + yearFactor * 0.2) * randomVariation) * 10) / 10
-                };
-              });
-            });
-            
-            // Handle Taiwan/China merging for mock data
-            const taiwanData = response.data.countries.find(c => c.country.toLowerCase() === 'taiwan');
-            const chinaData = response.data.countries.find(c => c.country.toLowerCase() === 'china');
-            
-            if (taiwanData && chinaData && mockHistoricalData['China'] && mockHistoricalData['Taiwan']) {
-              availableYears.forEach(year => {
-                // For each year, merge Taiwan data into China
-                if (mockHistoricalData['China'][year] && mockHistoricalData['Taiwan'][year]) {
-                  mockHistoricalData['China'][year] = {
-                    total_waste: (mockHistoricalData['China'][year].total_waste || 0) + 
-                                (mockHistoricalData['Taiwan'][year].total_waste || 0),
-                    total_economic_loss: mockHistoricalData['China'][year].total_economic_loss + 
-                                        mockHistoricalData['Taiwan'][year].total_economic_loss,
-                    household_waste_percentage: mockHistoricalData['China'][year].household_waste_percentage
-                  };
-                }
-              });
-              
-              // Remove Taiwan from mock data
-              delete mockHistoricalData['Taiwan'];
-            }
-            
-            console.log("Mock trend data generated:", mockHistoricalData);
-            // Set the mock historical trend data
-            setTrendData(mockHistoricalData);
-          }
-        }
-        
         // Fetch world map data
         const worldResponse = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json');
         const worldData = await worldResponse.json();
@@ -345,7 +245,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           const svg = d3.select(mapRef.current);
           svg.selectAll('*').remove();
           
-                  svg.append('text')
+          svg.append('text')
             .attr('x', mapRef.current.clientWidth / 2)
             .attr('y', 250)
             .attr('text-anchor', 'middle')
@@ -357,7 +257,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     }
 
     fetchData();
-  }, [selectedYear, trendData]);
+  }, [selectedYear]);
 
   useEffect(() => {
     if (wasteData && mapRef.current) {
@@ -563,32 +463,133 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     }
   };
 
-  // Update the pie chart creation to add animations
-  const createPieChart = (countryName: string, containerId: string) => {
-    console.log("Creating pie chart for:", countryName);
-    
-    // Get the food waste distribution data for the country
-    let distributionData = mockFoodWasteDistribution[countryName];
-    
-    // If no specific data for this country, use the default
-    if (!distributionData) {
-      // Try case-insensitive search first
-      const countryKey = Object.keys(mockFoodWasteDistribution).find(
-        key => key.toLowerCase() === countryName.toLowerCase()
+  // Add a function to fetch composition data for a country
+  const fetchCompositionData = async (countryName: string) => {
+    if (compositionData[countryName]) {
+      // Data already loaded for this country
+      return;
+    }
+
+    try {
+      setLoadingComposition(true);
+      // Use the full country name instead of a country code
+      console.log(`Fetching waste composition data for ${countryName} (year: ${selectedYear})`);
+      
+      const response = await axios.get<FoodWasteByCategoryResponse>(
+        `${config.apiUrl}/api/food-waste-by-category/`,
+        { 
+          params: { 
+            country: countryName,
+            year: selectedYear 
+          } 
+        }
       );
       
-      if (countryKey) {
-        distributionData = mockFoodWasteDistribution[countryKey];
-        console.log("Found distribution data with case-insensitive match:", countryKey);
-      } else {
-        console.log("Using default distribution data for country:", countryName);
-        distributionData = mockFoodWasteDistribution['Default'];
+      if (response.data) {
+        // Convert the API response format to our expected format
+        const formattedData: FoodWasteCompositionResponse = {
+          total_tonnes: response.data.total_waste,
+          data: response.data.categories.map(category => ({
+            name: category.category,
+            value: category.total_waste,
+            percentage: category.percentage,
+            color: getColorForCategory(category.category)
+          })),
+          updated_at: response.data.updated_at
+        };
+
+        // Store the formatted data in our state
+        setCompositionData(prev => ({
+          ...prev,
+          [countryName]: formattedData
+        }));
+        console.log(`Received composition data for ${countryName}:`, formattedData);
+      }
+    } catch (error) {
+      console.error(`Error fetching composition data for ${countryName}:`, error);
+    } finally {
+      setLoadingComposition(false);
+    }
+  };
+
+  // Helper function to get consistent colors for food categories
+  const getColorForCategory = (category: string): string => {
+    const categoryColors: {[key: string]: string} = {
+      "Fruits & Vegetables": "#22c55e", // Green
+      "Meat & Dairy": "#ef4444",        // Red
+      "Bakery": "#eab308",              // Yellow
+      "Prepared Foods": "#3b82f6",      // Blue
+      "Cereals": "#8b5cf6",             // Purple
+      "Seafood": "#06b6d4",             // Cyan
+      "Beverages": "#f97316",           // Orange
+      "Frozen Food": "#ec4899",         // Pink
+      "Grains": "#a16207",              // Brown
+      "Dairy Products": "#7e22ce",      // Violet
+      "Other": "#6366f1"                // Indigo
+    };
+    
+    // Try to match the category against our predefined colors
+    for (const [key, color] of Object.entries(categoryColors)) {
+      if (category.toLowerCase().includes(key.toLowerCase())) {
+        return color;
       }
     }
     
-    if (!distributionData) {
-      console.warn("No distribution data found for country:", countryName);
-      return `<p class="text-sm text-gray-600">No waste distribution data available</p>`;
+    // Default color if no match found
+    return "#6366f1"; // Indigo
+  };
+
+  // Fetch composition data when a country is selected
+  useEffect(() => {
+    if (selectedCountry) {
+      fetchCompositionData(selectedCountry);
+    }
+  }, [selectedCountry, selectedYear]);
+
+  // Clear composition data cache when year changes
+  useEffect(() => {
+    // When year changes, clear the composition data to force refetching
+    setCompositionData({});
+  }, [selectedYear]);
+
+  // Updated createPieChart to show top 4 categories + "Other"
+  const createPieChart = (countryName: string, containerId: string) => {
+    // Check if we have composition data for this country
+    const countryData = compositionData[countryName];
+    
+    // If still loading, show loading message
+    if (loadingComposition) {
+      return `<p class="text-sm text-gray-600">Loading waste composition data...</p>`;
+    }
+    
+    // If no data available, show message
+    if (!countryData) {
+      return `<p class="text-sm text-gray-600">Food waste composition data not available</p>`;
+    }
+    
+    // Sort data by value (descending) and take top 4
+    let sortedData = [...countryData.data].sort((a, b) => b.value - a.value);
+    
+    // If we have more than 4 items, combine the rest into "Other"
+    let chartData = sortedData;
+    if (sortedData.length > 4) {
+      // Take top 4
+      const top4 = sortedData.slice(0, 4);
+      
+      // Combine the rest into "Other"
+      const otherItems = sortedData.slice(4);
+      const otherValue = otherItems.reduce((sum, item) => sum + item.value, 0);
+      const otherPercentage = otherItems.reduce((sum, item) => sum + item.percentage, 0);
+      
+      // Create "Other" category and append to top 4
+      const otherCategory: FoodWasteItem = {
+        name: "Other",
+        value: otherValue,
+        percentage: otherPercentage,
+        color: "#6366f1" // Indigo color for "Other"
+      };
+      
+      chartData = [...top4, otherCategory];
     }
     
     // Set up SVG dimensions with a side-by-side layout for chart and legend
@@ -601,7 +602,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     const pieY = height / 2;
     
     // Calculate total for percentages
-    const total = Object.values(distributionData).reduce((sum, item) => sum + item.value, 0);
+    const total = countryData.total_tonnes;
     
     // Generate pie chart SVG
     let svgContent = `<svg width="${width}" height="${height}">`;
@@ -611,9 +612,10 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     
     // Create pie segments with animation delays
     let currentAngle = 0;
-    Object.entries(distributionData).forEach(([category, { value, color }], index) => {
-      const percentage = value / total;
+    chartData.forEach((item: FoodWasteItem, index) => {
+      const percentage = item.percentage / 100;
       const angleSize = percentage * 2 * Math.PI;
+      const color = item.color || getColorForCategory(item.name);
       
       // Calculate arc points
       const startX = radius * Math.sin(currentAngle);
@@ -665,14 +667,15 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     
     svgContent += `</g>`;
     
-    // Add legend with animation on the right side
+    // Add legend with animation on the right side (without percentages)
     svgContent += `<g transform="translate(${pieWidth + 5}, 10)">`;
     
     let legendY = 0;
-    Object.entries(distributionData).forEach(([category, { value, color }], index) => {
-      const percentage = Math.round((value / total) * 100);
+    chartData.forEach((item: FoodWasteItem, index) => {
+      const color = item.color || getColorForCategory(item.name);
       const delay = 500 + (index * 100); // Start legend animations after segments
-      const shortCategory = category.length > 14 ? category.substring(0, 14) + '...' : category;
+      // Truncate name if too long without adding percentage
+      const shortCategory = item.name.length > 16 ? item.name.substring(0, 16) + '...' : item.name;
       
       svgContent += `
         <g opacity="0" class="legend-item-${index}" style="cursor: pointer" onmouseover="this.getElementsByTagName('rect')[0].style.opacity='0.8'; this.getElementsByTagName('text')[0].style.fontWeight='bold'" onmouseout="this.getElementsByTagName('rect')[0].style.opacity='1'; this.getElementsByTagName('text')[0].style.fontWeight='normal'">
@@ -685,7 +688,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
             fill="freeze" 
           />
           <rect x="0" y="${legendY}" width="10" height="10" fill="${color}" />
-          <text x="15" y="${legendY + 8}" font-size="9" fill="#333">${shortCategory} (${percentage}%)</text>
+          <text x="15" y="${legendY + 8}" font-size="9" fill="#333">${shortCategory}</text>
         </g>
       `;
       
@@ -826,13 +829,13 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         const svg = d3.select(mapRef.current);
         svg.selectAll('*').remove();
         
-                  svg.append('text')
-            .attr('x', mapRef.current.clientWidth / 2)
-            .attr('y', 250)
-            .attr('text-anchor', 'middle')
-            .attr('font-size', '16px')
-            .attr('fill', '#666')
-            .text(`Loading data or no data available for ${selectedYear}...`);
+        svg.append('text')
+          .attr('x', mapRef.current.clientWidth / 2)
+          .attr('y', 250)
+          .attr('text-anchor', 'middle')
+          .attr('font-size', '16px')
+          .attr('fill', '#666')
+          .text(`Loading data or no data available for ${selectedYear}...`);
       }
       return;
     }
@@ -878,6 +881,43 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .attr('fill', '#D6EFFF')  // Lighter blue for better contrast
       .attr('stroke', '#ccc')
       .attr('stroke-width', 0.5);
+      
+    // Create a glow filter for dragging effect
+    const defs = globeGroup.append("defs");
+    
+    // Define a filter for the glow effect
+    const glowFilter = defs.append("filter")
+      .attr("id", "glow-effect")
+      .attr("width", "300%")
+      .attr("height", "300%")
+      .attr("x", "-100%")
+      .attr("y", "-100%");
+      
+    // Add a blur to create the glow
+    glowFilter.append("feGaussianBlur")
+      .attr("stdDeviation", "6")
+      .attr("result", "blur");
+      
+    // Enhance the glow with a bright overlay
+    glowFilter.append("feFlood")
+      .attr("flood-color", "#4dabf5")
+      .attr("result", "color");
+    
+    glowFilter.append("feComposite")
+      .attr("in", "color")
+      .attr("in2", "blur")
+      .attr("operator", "in")
+      .attr("result", "glow");
+      
+    // Merge the glow with the original
+    const feMerge = glowFilter.append("feMerge");
+    feMerge.append("feMergeNode").attr("in", "glow");
+    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+    
+    // Track zoom level
+    let currentScale = radius;
+    const defaultScale = radius;
+    const zoomedScale = radius * 1.2; // 20% zoom when clicking a country
 
     // Create orthographic projection centered on China
     const projection = geoOrthographic()
@@ -1044,8 +1084,8 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           d3.select(tooltipRef.current).style('display', 'none');
         }
         
-        // Only update instruction frame if no country is selected or if hovering over the selected country
-        if (!selectedCountry || selectedCountry === displayName) {
+        // Only update instruction frame if no country is selected
+        if (!selectedCountry) {
           updateInstructionFrame(displayName, countryData);
         }
       })
@@ -1066,19 +1106,8 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           .duration(200)
           .style('opacity', 0);
           
-        // Only reset instruction frame if no country is selected
-        if (!selectedCountry) {
-          updateInstructionFrame(null);
-        } else {
-          // If a country is selected, but we're not hovering over it anymore,
-          // make sure the selected country's data is displayed
-          const selectedCountryData = wasteData.countries.find(
-            c => c.country.toLowerCase() === selectedCountry.toLowerCase() ||
-               (selectedCountry.toLowerCase() === 'usa' && c.country.toLowerCase() === 'usa') ||
-               (selectedCountry.toLowerCase() === 'uk' && c.country.toLowerCase() === 'uk')
-          );
-          updateInstructionFrame(selectedCountry, selectedCountryData);
-        }
+        // We don't need to reset to selected country on mouseout
+        // because we always update on mouseover now
       })
       .on('click', function(event: MouseEvent, d: any) {
         const countryName = d.properties.name;
@@ -1104,6 +1133,21 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         if (selectedCountry === displayName) {
           setSelectedCountry(null);
           updateInstructionFrame(null);
+          
+          // Zoom out animation
+          d3.transition()
+            .duration(500)
+            .tween("scale", function() {
+              const i = d3.interpolate(currentScale, defaultScale);
+              return function(t: number) {
+                currentScale = i(t);
+                projection.scale(currentScale);
+                
+                // Update all path elements
+                globeGroup.selectAll('path')
+                  .attr('d', pathGenerator as any);
+              };
+            });
         } else {
           // Mark this as selected and apply styling
           d3.select(this)
@@ -1116,6 +1160,21 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
             
           setSelectedCountry(displayName);
           updateInstructionFrame(displayName, countryData);
+          
+          // Zoom in animation
+          d3.transition()
+            .duration(500)
+            .tween("scale", function() {
+              const i = d3.interpolate(currentScale, zoomedScale);
+              return function(t: number) {
+                currentScale = i(t);
+                projection.scale(currentScale);
+                
+                // Update all path elements
+                globeGroup.selectAll('path')
+                  .attr('d', pathGenerator as any);
+              };
+            });
         }
         
         // Prevent event propagation
@@ -1127,6 +1186,27 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .on('click', function() {
         setSelectedCountry(null);
         updateInstructionFrame(null);
+        
+        // Zoom out animation
+        d3.transition()
+          .duration(500)
+          .tween("scale", function() {
+            const i = d3.interpolate(currentScale, defaultScale);
+            return function(t: number) {
+              currentScale = i(t);
+              projection.scale(currentScale);
+              
+              // Update all path elements
+              globeGroup.selectAll('path')
+                .attr('d', pathGenerator as any);
+            };
+          });
+      })
+      .on('mouseout', function() {
+        // When mouse leaves the globe completely, show the default instructions
+        if (!selectedCountry) {
+          updateInstructionFrame(null);
+        }
       });
 
     // Setup dragging behavior with only horizontal rotation
@@ -1137,6 +1217,12 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .on('start', function(event) {
         v0 = [event.x, event.y];
         r0 = projection.rotate();
+        
+        // Add glow effect when dragging starts
+        globeGroup.select('.globe-background')
+          .transition()
+          .duration(300)
+          .style("filter", "url(#glow-effect)");
       })
       .on('drag', function(event) {
         if (!v0) return;
@@ -1162,6 +1248,13 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         // Redraw the map with the new rotation
         globeGroup.selectAll('path')
           .attr('d', pathGenerator as any);
+      })
+      .on('end', function() {
+        // Remove glow effect when dragging ends
+        globeGroup.select('.globe-background')
+          .transition()
+          .duration(500)
+          .style("filter", null);
       });
       
     svg.call(dragBehavior);
@@ -1247,8 +1340,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           setTrendData(apiData);
         }
       } catch (error) {
-        console.error("Error fetching real yearly data:", error);
-        console.log("Using fallback mock trend data");
+        console.error("Error fetching yearly data:", error);
       }
     }
     

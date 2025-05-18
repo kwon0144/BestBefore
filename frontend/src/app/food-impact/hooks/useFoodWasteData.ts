@@ -3,7 +3,10 @@ import { FoodWasteCompositionResponse, FoodWasteByCategoryResponse } from '../in
 import { config } from '@/config';
 import axios from 'axios';
 
-// Mock data to use as fallback when API fails
+/**
+ * Fallback data for food waste composition when API isn't available
+ * This represents the breakdown of food waste by food type (fruits, meat, etc.)
+ */
 const mockCompositionData: FoodWasteCompositionResponse = {
     total_tonnes: 7600000,
     data: [
@@ -16,6 +19,11 @@ const mockCompositionData: FoodWasteCompositionResponse = {
     updated_at: new Date().toISOString()
 };
 
+/**
+ * Fallback data for food waste by sector when API isn't available
+ * This shows how food waste is distributed across different sectors like
+ * households, restaurants, retail stores, etc.
+ */
 const mockCategoryData: FoodWasteByCategoryResponse = {
     total_waste: 7600000,
     categories: [
@@ -32,7 +40,14 @@ const mockCategoryData: FoodWasteByCategoryResponse = {
     updated_at: new Date().toISOString()
 };
 
-export const useFoodWasteData = (countryCode: string = 'au') => {
+/**
+ * Custom hook that fetches food waste data for visualization
+ * 
+ * @param countryName - Country name (default: 'Australia')
+ * @param year - Year to get data for (default: current year)
+ * @returns Object containing composition and category data, loading state, and any errors
+ */
+export const useFoodWasteData = (countryName: string = 'Australia', year: string = new Date().getFullYear().toString()) => {
     const [compositionData, setCompositionData] = useState<FoodWasteCompositionResponse | null>(null);
     const [categoryData, setCategoryData] = useState<FoodWasteByCategoryResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -42,52 +57,66 @@ export const useFoodWasteData = (countryCode: string = 'au') => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                console.log("Fetching food waste data from API:", `${config.apiUrl}/api/food-waste/composition`);
+                console.log(`Fetching food waste data for ${countryName}, year: ${year}`);
                 
-                // Use axios with the config.apiUrl
-                const compositionPromise = axios.get<FoodWasteCompositionResponse>(
-                    `${config.apiUrl}/api/food-waste/composition`, 
-                    { params: { country: countryCode } }
-                );
-                
+                // First API call: food waste by category with country and year params
                 const categoryPromise = axios.get<FoodWasteByCategoryResponse>(
-                    `${config.apiUrl}/api/food-waste/categories`, 
-                    { params: { country: countryCode } }
+                    `${config.apiUrl}/api/food-waste-by-category/`, 
+                    { params: { country: countryName, year: year } }
                 );
                 
-                // Use Promise.allSettled to handle partial failures
-                const [compositionResult, categoryResult] = await Promise.allSettled([
-                    compositionPromise,
-                    categoryPromise
+                // Second API call: also use food-waste-by-category for composition data
+                // We'll transform this data to fit the composition format
+                const compositionPromise = axios.get<FoodWasteByCategoryResponse>(
+                    `${config.apiUrl}/api/food-waste-by-category/`, 
+                    { params: { country: countryName, year: year } }
+                );
+                
+                // Use Promise.allSettled to continue even if one endpoint fails
+                const [categoryResult, compositionResult] = await Promise.allSettled([
+                    categoryPromise,
+                    compositionPromise
                 ]);
                 
-                // Handle composition data
-                if (compositionResult.status === 'fulfilled') {
-                    setCompositionData(compositionResult.value.data);
-                } else {
-                    console.warn("Failed to fetch composition data, using mock data:", compositionResult.reason);
-                    setCompositionData(mockCompositionData);
-                }
-                
-                // Handle category data
+                // Process category data (sectors)
                 if (categoryResult.status === 'fulfilled') {
                     setCategoryData(categoryResult.value.data);
                 } else {
-                    console.warn("Failed to fetch category data, using mock data:", categoryResult.reason);
+                    console.warn("Could not fetch food waste categories, using fallback data:", categoryResult.reason);
                     setCategoryData(mockCategoryData);
                 }
                 
-                // Set error if both failed
+                // Process composition data (food types)
+                // Transform from the category format to the composition format
+                if (compositionResult.status === 'fulfilled') {
+                    // Convert the data format from categories to composition format
+                    const transformedData: FoodWasteCompositionResponse = {
+                        total_tonnes: compositionResult.value.data.total_waste,
+                        data: compositionResult.value.data.categories.map(category => ({
+                            name: category.category,
+                            value: category.total_waste,
+                            percentage: category.percentage,
+                            color: getColorForFoodCategory(category.category)
+                        })),
+                        updated_at: compositionResult.value.data.updated_at
+                    };
+                    setCompositionData(transformedData);
+                } else {
+                    console.warn("Could not fetch food composition data, using fallback data:", compositionResult.reason);
+                    setCompositionData(mockCompositionData);
+                }
+                
+                // Only show an error if both requests failed
                 if (compositionResult.status === 'rejected' && categoryResult.status === 'rejected') {
-                    setError("Failed to fetch food waste data from API. Using mock data instead.");
+                    setError("Could not reach food waste data API. Using backup data instead.");
                 } else {
                     setError(null);
                 }
             } catch (err) {
-                console.error("Error in food waste data fetching:", err);
+                console.error("Error fetching food waste data:", err);
                 setError(err instanceof Error ? err.message : 'Unknown error occurred');
                 
-                // Use mock data as fallback
+                // Use backup data if something went wrong
                 setCompositionData(mockCompositionData);
                 setCategoryData(mockCategoryData);
             } finally {
@@ -96,7 +125,37 @@ export const useFoodWasteData = (countryCode: string = 'au') => {
         };
 
         fetchData();
-    }, [countryCode]);
+    }, [countryName, year]);
 
     return { compositionData, categoryData, loading, error };
-}; 
+};
+
+/**
+ * Helper function to assign consistent colors to food categories
+ */
+function getColorForFoodCategory(category: string): string {
+    const categoryColors: {[key: string]: string} = {
+        "Fruits & Vegetables": "#22c55e",
+        "Meat & Dairy": "#ef4444",
+        "Bakery": "#eab308",
+        "Prepared Foods": "#3b82f6",
+        "Cereals": "#a855f7",
+        "Seafood": "#06b6d4",
+        "Household": "#3b82f6",
+        "Food Service": "#22c55e",
+        "Retail": "#eab308",
+        "Agriculture": "#ef4444",
+        "Manufacturing": "#a855f7",
+        "Other": "#ec4899"
+    };
+    
+    // Try to match the category against our predefined colors
+    for (const [key, color] of Object.entries(categoryColors)) {
+        if (category.toLowerCase().includes(key.toLowerCase())) {
+            return color;
+        }
+    }
+    
+    // Default color if no match found
+    return "#6b7280";
+} 
