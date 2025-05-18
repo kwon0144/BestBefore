@@ -4,7 +4,6 @@
  */
 import React, { useRef, useState, useEffect } from 'react';
 import { WasteStats, ResourcesApiResponse } from '../../interfaces';
-import Image from 'next/image';
 
 interface GameOverProps {
   score: number;
@@ -213,17 +212,17 @@ export default function GameOver({ score, wasteStats, handleStartGame, gameResou
   };
 
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="bg-gradient-to-br from-green-50 to-emerald-100 backdrop-filter backdrop-blur-md rounded-2xl p-8 shadow-xl border border-green-200">
+        <div className="bg-gradient-to-br from-lightgreen/30 to-green/30 backdrop-filter backdrop-blur-md rounded-2xl p-8 shadow-xl border border-green-200 mt-40">
           <div className="text-center">
             <div className="mb-6 relative">
               <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 w-20 h-20 bg-white rounded-full shadow-lg flex items-center justify-center border-4 border-yellow-400">
                 <span className="text-3xl">🏆</span>
               </div>
-              <h2 className="text-4xl font-extrabold text-white mb-2 pt-6 bg-gradient-to-r from-green-600 to-emerald-500 inline-block px-6 py-2 rounded-lg shadow-md">Game Complete!</h2>
+              <h2 className="text-4xl font-extrabold text-white mb-2 pt-6 bg-gradient-to-r from-amber-600 to-amber-500 inline-block px-6 pt-2 pb-6 rounded-lg shadow-md">Game Complete!</h2>
               <div className="w-16 h-1 bg-gradient-to-r from-green-400 to-emerald-300 mx-auto mb-4 rounded-full"></div>
-              <p className="text-2xl text-gray-700 mb-6">Your Score: <span className="font-bold text-white bg-gradient-to-r from-green-600 to-emerald-500 px-3 py-1 rounded-md">{score}</span> points</p>
+              <p className="text-2xl text-gray-700 mb-6">Your Score: <span className="font-bold text-white px-3 py-1 rounded-md">{score}</span> points</p>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
@@ -242,7 +241,7 @@ export default function GameOver({ score, wasteStats, handleStartGame, gameResou
               </button>
             </div>
             
-            <p className="mt-8 text-lg text-gray-600">Please click "View Stats" to see your performance details!</p>
+            <p className="mt-8 text-lg text-gray-800">Please click "View Stats" to see your performance details!</p>
           </div>
         </div>
 

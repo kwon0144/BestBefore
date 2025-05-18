@@ -143,8 +143,6 @@ export default function Game() {
     
     // Scroll to the main content div
     scrollToMainContent();
-    
-    // Remove the sound play here since we're just going back to pre-game
   };
 
   /**
@@ -196,7 +194,7 @@ export default function Game() {
         description="Learn to sort food waste correctly and reduce environmental impact through fun gameplay." 
         />
       </div>
-      <div ref={mainContentRef} className="relative z-10 max-w-6xl mx-auto px-4 pb-20">
+      <div ref={mainContentRef} className="relative z-10 max-w-6xl mx-auto px-4 pb-40">
 
         {/* Pre-game screen */}
         {!gameStarted && !gameOver && showPreGame && (
