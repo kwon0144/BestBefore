@@ -414,16 +414,57 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     // If no country is selected/hovered, show instructions
     if (!countryName) {
       instructionFrame.innerHTML = `
-        <h3 class="text-lg font-medium text-darkgreen mb-2">Map Instructions</h3>
-        <p class="text-sm text-gray-600 mb-2">
-          Hover over any country to see detailed food waste statistics.
-        </p>
-        <p class="text-sm text-gray-600 mb-2">
-          Click on a country to keep its information visible.
-        </p>
-        <p class="text-sm text-gray-600">
-          Drag the globe to rotate and explore different regions.
-        </p>
+         <h3 class="text-xl font-semibold text-darkgreen mb-4 flex items-center">
+           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+           </svg>
+           Map Instructions
+         </h3>
+         
+         <div class="space-y-4 mt-6">
+           <div class="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
+             <div class="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
+               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+               </svg>
+             </div>
+             <div>
+               <h4 class="font-medium text-darkgreen">Hover to Explore</h4>
+               <p class="text-sm text-gray-600 mt-1">
+                 Move your cursor over any country to instantly reveal detailed food waste statistics.
+               </p>
+             </div>
+           </div>
+           
+           <div class="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
+             <div class="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
+               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+               </svg>
+             </div>
+             <div>
+               <h4 class="font-medium text-darkgreen">Click to Focus</h4>
+               <p class="text-sm text-gray-600 mt-1">
+                 Click on any country to pin its information and keep it in view while you explore the map.
+               </p>
+             </div>
+           </div>
+           
+           <div class="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
+             <div class="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
+               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+               </svg>
+             </div>
+             <div>
+               <h4 class="font-medium text-darkgreen">Drag to Rotate</h4>
+               <p class="text-sm text-gray-600 mt-1">
+                 Click and drag anywhere on the globe to rotate and discover food waste data from every region.
+               </p>
+             </div>
+           </div>
+         </div>
       `;
       return;
     }
@@ -1208,7 +1249,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                     </svg>
-                    Interactive Globe Guide
+                    Map Instructions
                   </h3>
                   
                   <div className="space-y-4 mt-6">
