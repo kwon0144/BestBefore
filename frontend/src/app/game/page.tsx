@@ -78,7 +78,7 @@ export default function Game() {
       const response = await startGame(playerId || 'anonymous');
       setGameId(response.game_id);
       setScore(0);
-      setTime(60);
+      setTime(100);
       setGameStarted(true);
       setGameOver(false);
       
