@@ -116,7 +116,7 @@ export default function GameOver({ score, wasteStats, handleStartGame, gameResou
 
   const scrollToStats = () => {
     if (statsRef.current) {
-      const startPosition = window.pageYOffset;
+      const startPosition = window.pageYOffset - 150;
       const targetPosition = statsRef.current.getBoundingClientRect().top + startPosition;
       const distance = targetPosition - startPosition;
       const duration = 2000;
@@ -248,7 +248,7 @@ export default function GameOver({ score, wasteStats, handleStartGame, gameResou
         <div className="h-[1000px]"></div>
 
         <div ref={statsRef} className="bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm rounded-lg p-8 shadow-lg">
-          <h3 className="text-3xl font-bold text-center text-green-600 mb-8">Your Game Results</h3>
+          <h3 className="text-3xl font-bold text-center text-darkgreen mb-8">🌳 Your Game Results 🌳</h3>
           
           <div className="w-full mb-10">
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 bg-opacity-70 rounded-xl border border-green-200 overflow-hidden" style={{ height: "300px" }}>
@@ -269,19 +269,28 @@ export default function GameOver({ score, wasteStats, handleStartGame, gameResou
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
-              <div className="bg-white bg-opacity-80 backdrop-filter backdrop-blur-md p-6 rounded-xl border border-green-100 shadow-md transform transition-all hover:shadow-lg">
-                <h5 className="text-xl font-bold text-green-700 mb-4 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="bg-white bg-opacity-80 backdrop-filter backdrop-blur-md p-4 rounded-xl border border-green-100 shadow-md transform transition-all hover:shadow-lg">
+                <h5 className="text-xl font-bold text-darkgreen mb-4 flex items-center border-l-4 border-darkgreen">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mx-2 text-darkgreen" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                   Personalized Tips
                 </h5>
-                <p className="text-gray-600 italic mb-4">{playerLevel.description}</p>
+                <p className="text-darkgreen italic mb-4 font-semibold">{playerLevel.description}</p>
                 <ul className="space-y-3">
                   {playerLevel.tips.map((tip, index) => (
-                    <li key={index} className="flex gap-3 bg-green-50 bg-opacity-60 p-3 rounded-lg border border-green-100">
+                    <li key={index} className="flex gap-3 bg-lightgreen/30 bg-opacity-60 p-3 rounded-lg border border-green-100">
                       <span className="text-green-500 font-bold">✓</span>
-                      <span className="text-gray-700">{tip}</span>
+                      <p className="text-gray-700 leading-relaxed">
+                          {tip.includes(':') ? (
+                            <>
+                              <span className="font-bold">{tip.split(':')[0]}</span>
+                              :{tip.split(':')[1]}
+                            </>
+                          ) : (
+                            tip
+                          )}
+                        </p>
                     </li>
                   ))}
                 </ul>
@@ -290,12 +299,12 @@ export default function GameOver({ score, wasteStats, handleStartGame, gameResou
             
             <div className="space-y-4">
               <div className="bg-gradient-to-br from-white to-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-xl shadow-md overflow-hidden border border-gray-200">
-                <div className="p-3 border-b border-gray-200 bg-white bg-opacity-70">
-                  <h5 className="font-bold text-gray-700 flex items-center border-l-4 border-red-400 pl-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="p-4 border-b border-gray-200 bg-white bg-opacity-70">
+                  <h5 className="text-xl font-bold text-red-400 mb-4 flex items-center border-l-4 border-red-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mx-2 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    <span className="bg-gradient-to-r from-gray-700 to-gray-600 bg-clip-text text-transparent text-base">Wasted Food Items</span>
+                    Wasted Food Items
                   </h5>
                   
                   {Object.entries(wasteStats.wastedFoods).length > 0 ? (
@@ -350,18 +359,17 @@ export default function GameOver({ score, wasteStats, handleStartGame, gameResou
                 </div>
                 
                 <div className="p-5 bg-red-50">
-                  <h6 className="text-red-700 font-bold mb-2 border-l-4 border-red-500 pl-3">Environmental Impact</h6>
                   <div className="flex items-center bg-white p-4 rounded-lg shadow-inner border border-red-100">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-500 mr-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p className="text-gray-700">
+                    <p className="text-gray-900">
                       If everyone in Melbourne wasted food like this, it would produce approximately
                       <br />
                       <span className="font-extrabold text-red-600 text-xl block mt-1 mb-1">
                         {Math.round(totalEmissions * MELBOURNE_POPULATION).toLocaleString()} kg
                       </span>
-                      <span className="text-sm">of greenhouse gases.</span>
+                      <span>of greenhouse gases.</span>
                     </p>
                   </div>
                 </div>
