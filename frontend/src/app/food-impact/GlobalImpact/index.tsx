@@ -7,58 +7,26 @@ import axios from 'axios';
 import { config } from '@/config';
 import { Slider } from "@heroui/react";
 
-interface GlobalImpactProps {
-  setRef: (node: HTMLDivElement | null) => void;
-}
+// Import interfaces and hooks
+import { 
+  GlobalImpactProps, 
+  CountryData, 
+  GlobalWasteData, 
+  YearlyCountryData, 
+  CountryYearlyData,
+  ApiYearlyResponse, 
+  DataAccessor,
+  IndicatorConfig
+} from '../interfaces/GlobalImpact';
+import { useGlobalImpactData, useCountryYearlyData } from '../hooks';
 
-interface CountryData {
-  country: string;
-  total_economic_loss: number;
-  population: number;
-  household_waste_percentage: number;
-  annual_cost_per_household: number;
-  total_waste?: number;
-}
-
-interface GlobalWasteData {
-  summary: {
-    total_economic_loss: number;
-    total_waste: number;
-    economic_loss_per_ton?: number;
-    avg_household_waste_percentage?: number;
-  };
-  countries: CountryData[];
-  cache?: boolean;
-  updated_at: string;
-}
-
-interface YearlyCountryData {
-  [country: string]: {
-    [year: number]: {
-      total_waste: number;
-      total_economic_loss: number;
-      household_waste_percentage: number;
-    }
-  }
-}
-
-interface CountryYearlyData {
-  year: number;
-  country: string;
-  total_waste: number;
-  economic_loss: number;
-  household_waste_percentage: number;
-}
-
-interface ApiYearlyResponse {
-  count: number;
-  data: CountryYearlyData[];
-  cache?: boolean;
-  updated_at: string;
-}
-
-// Allow any value for data access since the exact structure may vary
-type DataAccessor = (d: CountryData) => number;
+/**
+ * GlobalImpact Component
+ * 
+ * A dynamic interactive globe visualization that displays food waste data
+ * across different countries. Users can select indicators, years, and 
+ * interact with countries to view detailed data and trends.
+ */
 
 // Versor dragging utility functions
 // These help with smooth rotation of the globe
@@ -104,7 +72,11 @@ const versor = (() => {
   return versor;
 })();
 
-const INDICATORS = [
+/**
+ * Available indicators for the globe visualization
+ * Each indicator has a unique ID, display name, and color scale
+ */
+const INDICATORS: IndicatorConfig[] = [
   { id: 'total_waste', name: 'Total Waste (tonnes)', colorScale: d3.scaleSequential(d3.interpolateGreens) },
   { id: 'total_economic_loss', name: 'Economic Loss ($B)', colorScale: d3.scaleSequential(d3.interpolateYlOrBr) },
   { id: 'household_waste_percentage', name: 'Household Waste (%)', colorScale: d3.scaleSequential(d3.interpolatePurples) }
@@ -127,218 +99,83 @@ const MIDPOINT_COORDINATES = {
 
 // This interface is no longer used - replaced with API data
 
+/**
+ * GlobalImpact Component
+ * Renders an interactive globe visualization of food waste data worldwide
+ */
 const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
+  // DOM references
   const mapRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const [wasteData, setWasteData] = useState<GlobalWasteData | null>(null);
+  const worldDataRef = useRef<any>(null);
+  
+  // Track selected options
   const [selectedIndicator, setSelectedIndicator] = useState<string>(INDICATORS[0].id);
   const [indicatorName, setIndicatorName] = useState<string>(INDICATORS[0].name);
   const [selectedYear, setSelectedYear] = useState<number>(2024);
-  const [trendData, setTrendData] = useState<YearlyCountryData>({});
-  const [countryYearlyData, setCountryYearlyData] = useState<CountryYearlyData[]>([]);
-  
-  // Add state to track selected country
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  
+  // Keep track of current globe rotation - initially centered between China and Australia
+  const rotationRef = useRef<[number, number, number]>([-MIDPOINT_COORDINATES.lon, -MIDPOINT_COORDINATES.lat, 0]);
   
   // Available years for the timeline
   const availableYears = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
   
-  // Reference to store world data for re-renders
-  const worldDataRef = useRef<any>(null);
+  // Use custom hooks for data fetching
+  const { 
+    wasteData, 
+    loading: wasteDataLoading, 
+    error: wasteDataError,
+    usingCache,
+    cacheTimestamp
+  } = useGlobalImpactData(selectedYear);
   
-  // Keep track of current globe rotation - initially centered between China and Australia
-  const rotationRef = useRef<[number, number, number]>([-MIDPOINT_COORDINATES.lon, -MIDPOINT_COORDINATES.lat, 0]);
-
-  // Add state to track cache status
-  const [usingCache, setUsingCache] = useState<boolean>(false);
-  const [cacheTimestamp, setCacheTimestamp] = useState<string | null>(null);
-
-  // Fetch country yearly data from API - modified to fetch only when needed
-  useEffect(() => {
-    // Initial empty state - we'll fetch specific country data on demand
-    setTrendData({});
-    
-    // No need to load all countries' data at once anymore - we'll fetch on demand
-  }, []);
+  const {
+    trendData,
+    loading: trendDataLoading,
+    error: trendDataError,
+    fetchCountryData
+  } = useCountryYearlyData();
   
-  // New function to fetch yearly data for a specific country
-  const fetchCountryYearlyData = async (countryName: string) => {
-    // Skip if we already have data for this country
-    if (trendData[countryName] && Object.keys(trendData[countryName]).length > 0) {
-      return;
-    }
-    
-    try {
-      console.log(`Fetching yearly trend data for ${countryName}...`);
-      const startTime = performance.now();
-      
-      // Filter API call to only get the selected country data
-      const response = await axios.get<ApiYearlyResponse>(
-        `${config.apiUrl}/api/country-yearly-waste/`,
-        {
-          params: { country: countryName },
-          timeout: 8000 // 8-second timeout
-        }
-      );
-      
-      const endTime = performance.now();
-      console.log(`Yearly data for ${countryName} loaded in ${(endTime - startTime).toFixed(2)}ms`);
-      
-      // Check if data came from cache
-      if (response.data && response.data.cache !== undefined) {
-        console.log(`Country data ${response.data.cache ? 'retrieved from cache' : 'fetched from database'}`);
-      }
-      
-      if (response.data && response.data.data && response.data.data.length > 0) {
-        console.log(`Received ${response.data.data.length} records for ${countryName}`);
-        
-        // Format the data for this country only
-        const formattedData: YearlyCountryData = {};
-        
-        // Initialize the country entry if needed
-        if (!formattedData[countryName]) {
-          formattedData[countryName] = {};
-        }
-        
-        // Add each year's data
-        response.data.data.forEach((item: CountryYearlyData) => {
-          if (item.country.toLowerCase() === countryName.toLowerCase()) {
-            if (!formattedData[countryName]) {
-              formattedData[countryName] = {};
-            }
-            
-            formattedData[countryName][item.year] = {
-              total_waste: item.total_waste,
-              total_economic_loss: item.economic_loss,
-              household_waste_percentage: item.household_waste_percentage
-            };
-          }
-        });
-        
-        // Update trend data by merging with existing data
-        setTrendData(prev => ({
-          ...prev,
-          ...formattedData
-        }));
-      } else {
-        console.warn(`No yearly data available for ${countryName}`);
-      }
-    } catch (error: any) {
-      console.error(`Error fetching yearly data for ${countryName}:`, error);
-    }
-  };
+  // Local state for yearly data tracking
+  const [countryYearlyData, setCountryYearlyData] = useState<CountryYearlyData[]>([]);
 
-  // Fetch world map GeoJSON and waste data for selected year
+  /**
+   * Fetch country-specific data when a country is selected
+   */
   useEffect(() => {
-    async function fetchData() {
-      const timeoutId = setTimeout(() => {
-        // Show a timeout message if data isn't loaded after 8 seconds
-        if (mapRef.current) {
-          const svg = d3.select(mapRef.current);
-          svg.selectAll('*').remove();
-          
-          svg.append('text')
-            .attr('x', mapRef.current.clientWidth / 2)
-            .attr('y', 250)
-            .attr('text-anchor', 'middle')
-            .attr('font-size', '16px')
-            .attr('fill', '#666')
-            .text('Loading data is taking longer than expected...');
-        }
-      }, 8000);
+    if (selectedCountry) {
+      fetchCountryData(selectedCountry);
+    }
+  }, [selectedCountry, fetchCountryData]);
+
+  /**
+   * Fetch world map data when waste data changes
+   */
+  useEffect(() => {
+    // Reset selected country when indicator changes
+    setSelectedCountry(null);
+    
+    const fetchWorldMap = async () => {
+      if (!wasteData || !mapRef.current) return;
       
       try {
-        // Fetch economic impact data for the selected year
-        console.log(`Fetching economic impact data for ${selectedYear}...`);
-        const startTime = performance.now();
-        
-        const response = await axios.get<GlobalWasteData>(`${config.apiUrl}/api/economic-impact/`, {
-          params: { year: selectedYear },
-          timeout: 10000 // 10-second timeout
-        });
-        
-        const endTime = performance.now();
-        console.log(`Economic impact data loaded in ${(endTime - startTime).toFixed(2)}ms`);
-        
-        // Clear timeout since data loaded successfully
-        clearTimeout(timeoutId);
-        
-        // Check if data came from cache
-        if (response.data && response.data.cache !== undefined) {
-          setUsingCache(response.data.cache);
-          setCacheTimestamp(response.data.updated_at);
-          console.log(`Data ${response.data.cache ? 'retrieved from cache' : 'fetched from database'}`);
-        }
-        
-        // Process data to include Taiwan as part of China
-        if (response.data && response.data.countries) {
-          const processedData = {...response.data};
-          
-          // Find Taiwan and China in the data
-          const taiwanData = processedData.countries.find(c => c.country.toLowerCase() === 'taiwan');
-          const chinaData = processedData.countries.find(c => c.country.toLowerCase() === 'china');
-          
-          // If both exist, merge Taiwan into China
-          if (taiwanData && chinaData) {
-            // Add Taiwan's data to China
-            chinaData.total_waste = (chinaData.total_waste || 0) + (taiwanData.total_waste || 0);
-            chinaData.total_economic_loss += taiwanData.total_economic_loss;
-            
-            // Remove Taiwan from the list
-            processedData.countries = processedData.countries.filter(
-              c => c.country.toLowerCase() !== 'taiwan'
-            );
-          }
-          
-          // Set the processed data
-          setWasteData(processedData);
-        } else {
-          setWasteData(response.data);
-        }
+        // Clear any existing map
+        d3.select(mapRef.current).selectAll('*').remove();
         
         // Fetch world map data
-        try {
-          const worldResponse = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json');
-          const worldData = await worldResponse.json();
-          
-          if (mapRef.current && response.data) {
-            renderMap(worldData, response.data);
-          }
-        } catch (mapError: any) {
-          console.error("Error fetching world map data:", mapError);
-          
-          // Fall back to just showing the data without the map
-          if (mapRef.current) {
-            const svg = d3.select(mapRef.current);
-            svg.selectAll('*').remove();
-            
-            svg.append('text')
-              .attr('x', mapRef.current.clientWidth / 2)
-              .attr('y', 250)
-              .attr('text-anchor', 'middle')
-              .attr('font-size', '16px')
-              .attr('fill', '#666')
-              .text('Error loading map data, but country information is available.');
-          }
-        }
-      } catch (error: any) {
-        console.error("Error fetching economic impact data:", error);
+        const worldResponse = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json');
+        const worldData = await worldResponse.json();
         
-        // Clear the timeout
-        clearTimeout(timeoutId);
+        // Render the map with the fetched data
+        renderMap(worldData, wasteData);
+      } catch (error) {
+        console.error("Error fetching world map data:", error);
         
-        // Show error message in the UI
+        // Show error message in the map area
         if (mapRef.current) {
           const svg = d3.select(mapRef.current);
           svg.selectAll('*').remove();
-          
-          // Show different message depending on error type
-          let errorMessage = 'Error loading data. Please check the API connection.';
-          if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-            errorMessage = 'Request timed out. The API server might be slow or unavailable.';
-          } else if (error.response && error.response.status === 404) {
-            errorMessage = 'API endpoint not found (404). Check that the server is properly configured.';
-          }
           
           svg.append('text')
             .attr('x', mapRef.current.clientWidth / 2)
@@ -346,25 +183,23 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
             .attr('text-anchor', 'middle')
             .attr('font-size', '16px')
             .attr('fill', '#666')
-            .text(errorMessage);
+            .text('Error loading map data, but country information is available.');
         }
       }
-    }
+    };
 
-    fetchData();
-  }, [selectedYear]);
-
-  useEffect(() => {
-    if (wasteData && mapRef.current) {
-      d3.select(mapRef.current).selectAll('*').remove();
-      fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json')
-        .then(res => res.json())
-        .then(worldData => renderMap(worldData, wasteData))
-        .catch(error => console.error('Error fetching world data:', error));
-    }
+    fetchWorldMap();
   }, [wasteData, selectedIndicator]);
 
-  // Helper function to safely access data for coloring countries
+  // This useEffect is now handled by the fetchWorldMap function above
+
+  /**
+   * Helper function to safely access data for coloring countries
+   * Returns a numeric value for the selected indicator, defaulting to 0 if data is missing
+   * 
+   * @param countryData - The country data object to extract value from
+   * @returns The numeric value for the selected indicator
+   */
   const getDataValue = (countryData: CountryData | undefined): number => {
     if (!countryData) return 0;
     
@@ -373,7 +208,14 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     return typeof value === 'number' ? value : 0;
   };
   
-  // Get country data with special handling for Taiwan, USA and UK
+  /**
+   * Get country data with special handling for country name variations
+   * Performs normalization and lookups for countries with multiple common names
+   * 
+   * @param countryName - The name of the country to look up
+   * @param countries - Array of country data to search in
+   * @returns The country data object if found, undefined otherwise
+   */
   const getCountryData = (countryName: string, countries: CountryData[]): CountryData | undefined => {
     // Normalize country names
     let normalizedName = countryName.toLowerCase();
@@ -1158,58 +1000,12 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     }
   }, [selectedIndicator, wasteData, selectedCountry]);
 
-  // In useEffect for initial loading, add code to reset selected country when year changes
+  /**
+   * Reset selected country when year changes
+   */
   useEffect(() => {
-    async function fetchData() {
-      // ... existing code ...
-      
-      // Reset selected country when year changes
-      setSelectedCountry(null);
-      
-      // ... rest of existing code ...
-    }
-    
-    fetchData();
+    setSelectedCountry(null);
   }, [selectedYear]);
-
-  // Update effect for making the real API call for country yearly data
-  useEffect(() => {
-    async function fetchRealYearlyData() {
-      try {
-        const response = await axios.get<ApiYearlyResponse>(`${config.apiUrl}/api/country-yearly-waste/`);
-        if (response.data && response.data.data) {
-          // Convert API data to our YearlyCountryData format
-          const apiData: YearlyCountryData = {};
-          
-          response.data.data.forEach((item: CountryYearlyData) => {
-            if (!apiData[item.country]) {
-              apiData[item.country] = {};
-            }
-            
-            apiData[item.country][item.year] = {
-              total_waste: item.total_waste,
-              total_economic_loss: item.economic_loss,
-              household_waste_percentage: item.household_waste_percentage
-            };
-          });
-          
-          console.log("Real yearly data loaded from API:", response.data.data.length, "records");
-          setTrendData(apiData);
-        }
-      } catch (error) {
-        console.error("Error fetching yearly data:", error);
-      }
-    }
-    
-    fetchRealYearlyData();
-  }, []);
-
-  // Fetch country yearly data when a country is selected
-  useEffect(() => {
-    if (selectedCountry) {
-      fetchCountryYearlyData(selectedCountry);
-    }
-  }, [selectedCountry, selectedYear]);
 
   return (
     <>

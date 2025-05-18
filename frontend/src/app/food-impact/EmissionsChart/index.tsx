@@ -1,60 +1,37 @@
-import React, { useEffect, useState } from 'react';
+/**
+ * EmissionsChart Component
+ * 
+ * Visualizes the top 5 food items that produce the most greenhouse gas emissions
+ * per kilogram of food waste. Uses animated horizontal bars to display the relative
+ * emissions with color-coded visualization to enhance data comprehension.
+ * 
+ * @component
+ */
+import React from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
-import { config } from '@/config';
+import { useEmissionsData, EmissionData } from '../hooks';
 
-interface EmissionData {
-  food_type: string;
-  ghg: number;
-  percentage?: number;
-  color?: string;
-}
-
+/**
+ * Props for the EmissionsChart component
+ * 
+ * @interface EmissionsChartProps
+ * @property {function} [setRef] - Optional function to set the ref of this component for scrolling/visibility tracking
+ */
 interface EmissionsChartProps {
   setRef?: (node: any) => void;
 }
 
+/**
+ * EmissionsChart displays a horizontal bar chart showing greenhouse gas emissions
+ * for different food types. Features animated bars that grow from left to right
+ * when the component enters the viewport.
+ * 
+ * @param {EmissionsChartProps} props - Component props
+ * @returns {JSX.Element} Rendered component
+ */
 const EmissionsChart: React.FC<EmissionsChartProps> = ({ setRef }) => {
-  const [emissionsData, setEmissionsData] = useState<EmissionData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchEmissionsData = async () => {
-      try {
-        const response = await axios.get<EmissionData[]>(`${config.apiUrl}/api/food-emissions/`);
-        
-        // Sort data by greenhouse gas emissions (highest first)
-        const sortedData = [...response.data].sort((a, b) => b.ghg - a.ghg);
-        
-        // Take top 5 entries
-        const top5Data = sortedData.slice(0, 5);
-        
-        // Calculate percentages relative to the highest value
-        const highestValue = top5Data[0].ghg;
-        const dataWithPercentages = top5Data.map((item, index) => ({
-          ...item,
-          percentage: Math.round((item.ghg / highestValue) * 80),
-          color: getColor(index) // Assign color based on index
-        }));
-        
-        setEmissionsData(dataWithPercentages);
-      } catch (err) {
-        console.error("Error fetching emissions data:", err);
-        setError("Failed to load emissions data");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEmissionsData();
-  }, []);
-
-  // Function to get colors based on index
-  const getColor = (index: number): string => {
-    const colors = ["#2D6A4F", "#40916C", "#52B788", "#74C69D", "#B7E4C7"];
-    return colors[index] || colors[0];
-  };
+  // Fetch emissions data using custom hook
+  const { emissionsData, loading, error } = useEmissionsData();
 
   // Loading state
   if (loading) {
@@ -77,6 +54,7 @@ const EmissionsChart: React.FC<EmissionsChartProps> = ({ setRef }) => {
   return (
     <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0" ref={setRef}>
       <div className="max-w-6xl mx-auto">
+        {/* Section title */}
         <h2 className="text-3xl md:text-5xl font-bold text-darkgreen mb-3 md:mb-4">
           Top 5 Greenhouse Gas Emissions Food Items{" "}
         </h2>
@@ -84,7 +62,7 @@ const EmissionsChart: React.FC<EmissionsChartProps> = ({ setRef }) => {
           per kilogram of food waste <sup className="text-sm align-super ml-1">4</sup>
         </h2>
         
-        {/* Chart container with animation */}
+        {/* Chart container with staggered animation for children */}
         <motion.div 
           className="relative pt-4"
           initial="hidden"
@@ -99,13 +77,14 @@ const EmissionsChart: React.FC<EmissionsChartProps> = ({ setRef }) => {
             }
           }}
         >
-          {/* Rendering chart bars */}
+          {/* Mapping through data to render individual chart bars */}
           {emissionsData.map((item, index) => (
             <div className="relative mb-3" key={index}>
+              {/* Animated bar with width based on percentage */}
               <motion.div 
                 className="p-2 md:p-3 h-8 md:h-12" 
                 style={{ 
-                  backgroundColor: item.color || getColor(index), 
+                  backgroundColor: item.color || "#2D6A4F", 
                   originX: 0
                 }}
                 variants={{
@@ -125,6 +104,8 @@ const EmissionsChart: React.FC<EmissionsChartProps> = ({ setRef }) => {
                   }
                 }}
               ></motion.div>
+              
+              {/* Food type and value labels that appear after bar animation */}
               <motion.div 
                 className="absolute top-0 text-darkgreen flex flex-col pl-2"
                 variants={{

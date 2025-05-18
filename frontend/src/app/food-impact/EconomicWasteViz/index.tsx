@@ -1,3 +1,13 @@
+/**
+ * EconomicWasteViz Component
+ * 
+ * An interactive visualization demonstrating the economic impact of food waste.
+ * Features a slider that allows users to see how changes in food waste levels
+ * affect economic metrics, with a dynamic background that visualizes the
+ * transition between economic prosperity and waste.
+ * 
+ * @component
+ */
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -14,20 +24,43 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { Slider } from "@heroui/react";
 
-// Linear Regression Model Constants
+/**
+ * Linear Regression Model Constants
+ * Based on analysis of historical data showing the relationship
+ * between food waste tonnage and economic loss
+ */
 const MODEL_SLOPE = 1.0002;
 const MODEL_INTERCEPT = -26.6881;
 
-// Calculate economic loss based on total waste using the linear regression model
+/**
+ * Calculate economic loss based on total waste using a linear regression model
+ * 
+ * @param {number} totalWaste - Total waste amount in million tonnes
+ * @returns {number} Calculated economic loss
+ */
 const calculateEconomicLoss = (totalWaste: number): number => {
   return MODEL_INTERCEPT + (MODEL_SLOPE * totalWaste * 1000);
 };
 
+/**
+ * Props for the EconomicWasteViz component
+ * 
+ * @interface EconomicWasteVizProps
+ * @property {function} setMetricCardsRef - Function to set the ref of the metric cards container
+ */
 interface EconomicWasteVizProps {
   setMetricCardsRef: (node: HTMLDivElement | null) => void;
 }
 
-// Helper function to get the correct color class
+/**
+ * Helper function to get the correct Tailwind color class
+ * Maps color names and types to appropriate Tailwind class names
+ * 
+ * @param {string} type - Type of style (text, bg, etc.)
+ * @param {string} color - Color name (teal, blue, etc.)
+ * @param {string} [suffix='500'] - Color intensity suffix
+ * @returns {string} The corresponding Tailwind class
+ */
 const getColorClass = (type: string, color: string, suffix: string = '500'): string => {
   // Direct mapping of all possible combinations
   if (type === 'text' && color === 'teal' && suffix === '500') return 'text-teal-500';
@@ -47,6 +80,15 @@ const getColorClass = (type: string, color: string, suffix: string = '500'): str
   return ''; // Default fallback
 };
 
+/**
+ * MetricCard Component
+ * 
+ * Displays a single metric related to food waste with animated visual elements
+ * and interactive hover effects.
+ * 
+ * @param {MetricCardProps} props - Component props from the Components interface
+ * @returns {JSX.Element} Rendered component
+ */
 const MetricCard: React.FC<MetricCardProps> = ({ 
   icon, 
   title, 
@@ -70,10 +112,13 @@ const MetricCard: React.FC<MetricCardProps> = ({
       }}
       whileTap={{ scale: 0.98 }}
     >
+      {/* Card header with icon and title */}
       <div className="flex items-center justify-start mb-2 md:mb-4">
         <FontAwesomeIcon icon={icon} className={`mr-1 ${getColorClass('text', color)} text-base md:text-xl`} />
         <h3 className="text-gray-500 text-sm md:text-base font-medium">{title}</h3>
       </div>
+      
+      {/* Metric value with animation */}
       <div className="flex items-end justify-start">
         {unit === '$' && <span className="text-xl md:text-3xl font-bold text-teal-600">$</span>}
         <motion.span
@@ -92,11 +137,15 @@ const MetricCard: React.FC<MetricCardProps> = ({
         </motion.span>
         <span className={`text-xl md:text-3xl font-bold ${getColorClass('text', color, '600')}`}>{unit !== '$' ? unit : ''}</span>
       </div>
+      
+      {/* Change indicator */}
       <div className="mt-1 md:mt-2 text-xs md:text-sm text-gray-500 text-left">
         <span className={`inline-flex items-center ${isIncrease ? 'text-red-600' : 'text-green'}`}>
           <FontAwesomeIcon icon={isIncrease ? faArrowUp : faArrowDown} className="mr-1" /> {changePercent}% from last year
         </span>
       </div>
+      
+      {/* Progress bar */}
       <div className="h-1 w-full bg-gray-100 mt-2 md:mt-4 rounded-full overflow-hidden">
         <div
           className={`h-full ${getColorClass('bg', color)} rounded-full metric-progress-bar`}
@@ -107,6 +156,15 @@ const MetricCard: React.FC<MetricCardProps> = ({
   );
 };
 
+/**
+ * EconomicWasteViz main component
+ * 
+ * An interactive visualization showing how changes in food waste levels
+ * affect economic metrics like cost, waste tonnage, and household percentage.
+ * 
+ * @param {EconomicWasteVizProps} props - Component props
+ * @returns {JSX.Element} Rendered component
+ */
 const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }) => {
   // Base values at 50% slider position
   const baseWasteAmount = 7.6; // M tonnes
@@ -124,7 +182,9 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
   const [isWasteIncreasing, setIsWasteIncreasing] = useState(false);
   const [isHouseholdIncreasing, setIsHouseholdIncreasing] = useState(true);
   
-  // Add style for progress bars to ensure smooth transitions
+  /**
+   * Add CSS for smooth progress bar transitions
+   */
   React.useEffect(() => {
     // Create a style element
     const style = document.createElement('style');
@@ -141,7 +201,9 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
     };
   }, []);
   
-  // Initialize progress bars on component mount
+  /**
+   * Initialize progress bars on component mount
+   */
   React.useEffect(() => {
     // Give the DOM time to render
     setTimeout(() => {
@@ -198,7 +260,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
         }}
       />
       
-      {/* Interactive Section */}
+      {/* Interactive Section - Card with content */}
       <div 
         className="max-w-4xl mx-auto text-center bg-white bg-opacity-80 p-4 sm:p-6 md:p-10 rounded-xl md:rounded-2xl backdrop-blur-md m-4 md:m-auto relative shadow-xl"
         style={{ zIndex: 10, position: 'relative' }}
@@ -212,10 +274,11 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
           difference.
         </p>
         
-        {/* Slider */}
+        {/* Slider control section */}
         <div className="flex flex-col items-center">
           <div className="w-full max-w-2xl mb-6 md:mb-10 px-4">
             <div className="flex items-center justify-between gap-2 md:gap-4">
+              {/* "Less Waste" icon and label */}
               <div className="text-center">
                 <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-teal-500 flex items-center justify-center mx-auto mb-1 md:mb-2 shadow-md">
                   <FontAwesomeIcon icon={faRecycle} className="text-white text-sm md:text-xl" />
@@ -223,6 +286,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
                 <p className="font-medium text-xs md:text-sm text-teal-700">Less Waste</p>
               </div>
               
+              {/* Interactive slider that updates visualizations */}
               <div className="flex-1 mx-2 md:mx-4">
                 <Slider
                   className="w-full cursor-pointer"
@@ -303,6 +367,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
                 />
               </div>
               
+              {/* "More Waste" icon and label */}
               <div className="text-center">
                 <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-red-500 flex items-center justify-center mx-auto mb-1 md:mb-2 shadow-md">
                   <FontAwesomeIcon icon={faTrash} className="text-white text-sm md:text-xl" />
@@ -313,7 +378,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
           </div>
         </div>
 
-        {/* Metrics Section */}
+        {/* Metrics Cards Section */}
         <motion.div 
           ref={setMetricCardsRef}
           initial="hidden"
@@ -322,7 +387,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
           variants={staggerContainerVariant}
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-6"
         >
-          {/* Annual Cost */}
+          {/* Annual Cost Card */}
           <MetricCard 
             icon={faDollarSign}
             title="Annual Cost"
@@ -334,7 +399,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
             color="teal"
           />
 
-          {/* Tonnes Wasted */}
+          {/* Tonnes Wasted Card */}
           <MetricCard 
             icon={faWeightHanging}
             title="Tonnes Wasted"
@@ -346,7 +411,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
             color="blue"
           />
 
-          {/* Household Waste */}
+          {/* Household Waste Card */}
           <MetricCard 
             icon={faHome}
             title="Household Waste"
@@ -358,9 +423,13 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
             color="amber"
           />
         </motion.div>
+        
+        {/* Impact description text that updates based on slider position */}
         <div id="impactText" className="text-sm md:text-base text-darkgreen font-semibold mt-2 min-h-[24px]">
           Moderate food waste reduction still provides substantial benefits
         </div>
+        
+        {/* Model equation display */}
         <div id="modelText" className="text-xs text-gray-600 italic mt-2 min-h-[24px]">
           Economic Loss (Billion $) = -0.0267 + 0.000001 × Total Waste (Tons)
         </div>

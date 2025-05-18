@@ -1,6 +1,16 @@
 import { Variants } from "framer-motion";
 
-// Animation variants that are shared between components
+/**
+ * Animation variants for food waste visualization components
+ * These predefined animation configurations can be reused across components
+ * for consistent motion effects throughout the application.
+ */
+
+/**
+ * Fade-in with upward movement animation
+ * Used for elements that should appear by fading in while moving up
+ * from their initial position
+ */
 export const fadeInUpVariant: Variants = {
     hidden: { opacity: 0, y: 50 },
     visible: {
@@ -14,6 +24,10 @@ export const fadeInUpVariant: Variants = {
     }
 };
 
+/**
+ * Simple fade-in animation
+ * Used for elements that should appear by fading in without any positional change
+ */
 export const fadeInVariant: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -24,6 +38,11 @@ export const fadeInVariant: Variants = {
     }
 };
 
+/**
+ * Container animation that staggers its children's animations
+ * Use for parent elements whose children should animate sequentially
+ * rather than all at once
+ */
 export const staggerContainerVariant: Variants = {
     hidden: { opacity: 0 },
     visible: {
@@ -35,6 +54,11 @@ export const staggerContainerVariant: Variants = {
     }
 };
 
+/**
+ * Scale-in animation with fade effect
+ * Used for elements that should appear by growing from a smaller size
+ * while also fading in
+ */
 export const scaleInVariant: Variants = {
     hidden: {
         opacity: 0,
@@ -50,6 +74,11 @@ export const scaleInVariant: Variants = {
     }
 };
 
+/**
+ * Card animation with enter, center, and exit states
+ * Used for card elements in carousels or sliders where cards
+ * need to animate in, stay, and animate out
+ */
 export const cardVariants: Variants = {
     enter: {
         opacity: 0,

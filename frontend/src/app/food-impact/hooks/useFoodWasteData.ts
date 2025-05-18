@@ -4,43 +4,6 @@ import { config } from '@/config';
 import axios from 'axios';
 
 /**
- * Fallback data for food waste composition when API isn't available
- * This represents the breakdown of food waste by food type (fruits, meat, etc.)
- */
-const mockCompositionData: FoodWasteCompositionResponse = {
-    total_tonnes: 7600000,
-    data: [
-        { name: "Fruits & Vegetables", value: 2736000, percentage: 36, color: "#22c55e" },
-        { name: "Bakery", value: 1368000, percentage: 18, color: "#eab308" },
-        { name: "Meat & Dairy", value: 1976000, percentage: 26, color: "#ef4444" },
-        { name: "Prepared Foods", value: 912000, percentage: 12, color: "#3b82f6" },
-        { name: "Other", value: 608000, percentage: 8, color: "#a855f7" }
-    ],
-    updated_at: new Date().toISOString()
-};
-
-/**
- * Fallback data for food waste by sector when API isn't available
- * This shows how food waste is distributed across different sectors like
- * households, restaurants, retail stores, etc.
- */
-const mockCategoryData: FoodWasteByCategoryResponse = {
-    total_waste: 7600000,
-    categories: [
-        { category: "Household", total_waste: 4004800, economic_loss: 10800000000, percentage: 52.7, color: "#3b82f6" },
-        { category: "Food Service", total_waste: 1368000, economic_loss: 8900000000, percentage: 18, color: "#22c55e" },
-        { category: "Retail", total_waste: 1064000, economic_loss: 7600000000, percentage: 14, color: "#eab308" },
-        { category: "Agriculture", total_waste: 608000, economic_loss: 5320000000, percentage: 8, color: "#ef4444" },
-        { category: "Manufacturing", total_waste: 555200, economic_loss: 3980000000, percentage: 7.3, color: "#a855f7" }
-    ],
-    filters: {
-        year: "2024",
-        country: "Australia"
-    },
-    updated_at: new Date().toISOString()
-};
-
-/**
  * Custom hook that fetches food waste data for visualization
  * 
  * @param countryName - Country name (default: 'Australia')
@@ -82,8 +45,8 @@ export const useFoodWasteData = (countryName: string = 'Australia', year: string
                 if (categoryResult.status === 'fulfilled') {
                     setCategoryData(categoryResult.value.data);
                 } else {
-                    console.warn("Could not fetch food waste categories, using fallback data:", categoryResult.reason);
-                    setCategoryData(mockCategoryData);
+                    console.warn("Could not fetch food waste categories:", categoryResult.reason);
+                    setError(`Failed to load category data: ${categoryResult.reason}`);
                 }
                 
                 // Process composition data (food types)
@@ -102,23 +65,19 @@ export const useFoodWasteData = (countryName: string = 'Australia', year: string
                     };
                     setCompositionData(transformedData);
                 } else {
-                    console.warn("Could not fetch food composition data, using fallback data:", compositionResult.reason);
-                    setCompositionData(mockCompositionData);
+                    console.warn("Could not fetch food composition data:", compositionResult.reason);
+                    if (!error) { // Don't overwrite category error if it exists
+                        setError(`Failed to load composition data: ${compositionResult.reason}`);
+                    }
                 }
                 
-                // Only show an error if both requests failed
+                // If both requests failed, set a combined error
                 if (compositionResult.status === 'rejected' && categoryResult.status === 'rejected') {
-                    setError("Could not reach food waste data API. Using backup data instead.");
-                } else {
-                    setError(null);
+                    setError("Could not reach food waste data API. Please check your connection or try again later.");
                 }
             } catch (err) {
                 console.error("Error fetching food waste data:", err);
                 setError(err instanceof Error ? err.message : 'Unknown error occurred');
-                
-                // Use backup data if something went wrong
-                setCompositionData(mockCompositionData);
-                setCategoryData(mockCategoryData);
             } finally {
                 setLoading(false);
             }
