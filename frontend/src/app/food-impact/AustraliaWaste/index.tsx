@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion } from "framer-motion";
-import { fadeInUpVariant, fadeInVariant } from '../interfaces';
+import { fadeInUpVariant, fadeInVariant } from '../interfaces/AnimationVariants';
 
 interface AustraliaWasteProps {
   setRef: (node: HTMLDivElement | null) => void;

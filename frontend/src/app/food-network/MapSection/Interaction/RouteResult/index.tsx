@@ -6,14 +6,14 @@
  * Users can navigate back to the previous view or choose a different destination.
  */
 
-import { useFoodBank } from "@/hooks/useFoodBank";
-import { useGeocoding } from "@/hooks/useGeocoding";
+import { useFoodBankById } from "@/app/food-network/hooks/useFoodBanks";
+import { useGeocoding } from "@/app/food-network/hooks/useGeocoding";
 import { Button } from "@heroui/react";
 import { Dispatch, SetStateAction } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 import { faRoad, faClock, faMapPin, faWalking, faBicycle, faBus, faCar, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { MapSectionState } from "@/app/food-network/interfaces";
+import { MapSectionState } from "@/app/food-network/interfaces/State";
 
 /**
  * Props interface for the RouteResult component
@@ -37,7 +37,7 @@ export default function RouteResult({
     // Get the formatted address for the starting point
     const startAddress = useGeocoding(mapSectionState.selectedStart);
     // Get the selected food bank details
-    const { foodbank: selectedFoodBank } = useFoodBank(mapSectionState.selectedEnd);
+    const { foodbank: selectedFoodBank } = useFoodBankById(mapSectionState.selectedEnd);
 
     // Handle click to return to information view and reset map
     const handleClick = () => {

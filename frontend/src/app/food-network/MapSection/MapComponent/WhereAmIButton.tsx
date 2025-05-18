@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
 import { useMap } from "@vis.gl/react-google-maps";
 import { Icon } from '@iconify/react';
 import { Dispatch, SetStateAction } from 'react';
-import { MapSectionState } from "@/app/food-network/interfaces";
+import { MapSectionState } from "@/app/food-network/interfaces/State";
 
 /**
  * Props interface for the WhereAmIButton component

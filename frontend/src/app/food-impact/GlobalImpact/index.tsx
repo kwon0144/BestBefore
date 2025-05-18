@@ -5,6 +5,7 @@ import { geoOrthographic, geoPath, GeoPermissibleObjects } from 'd3-geo';
 import { feature } from 'topojson-client';
 import axios from 'axios';
 import { config } from '@/config';
+import { Slider } from "@heroui/react";
 
 interface GlobalImpactProps {
   setRef: (node: HTMLDivElement | null) => void;
@@ -27,6 +28,32 @@ interface GlobalWasteData {
     avg_household_waste_percentage?: number;
   };
   countries: CountryData[];
+  cache?: boolean;
+  updated_at: string;
+}
+
+interface YearlyCountryData {
+  [country: string]: {
+    [year: number]: {
+      total_waste: number;
+      total_economic_loss: number;
+      household_waste_percentage: number;
+    }
+  }
+}
+
+interface CountryYearlyData {
+  year: number;
+  country: string;
+  total_waste: number;
+  economic_loss: number;
+  household_waste_percentage: number;
+}
+
+interface ApiYearlyResponse {
+  count: number;
+  data: CountryYearlyData[];
+  cache?: boolean;
   updated_at: string;
 }
 
@@ -79,7 +106,7 @@ const versor = (() => {
 
 const INDICATORS = [
   { id: 'total_waste', name: 'Total Waste (tonnes)', colorScale: d3.scaleSequential(d3.interpolateGreens) },
-  { id: 'total_economic_loss', name: 'Economic Loss ($M)', colorScale: d3.scaleSequential(d3.interpolateYlOrBr) },
+  { id: 'total_economic_loss', name: 'Economic Loss ($B)', colorScale: d3.scaleSequential(d3.interpolateYlOrBr) },
   { id: 'household_waste_percentage', name: 'Household Waste (%)', colorScale: d3.scaleSequential(d3.interpolatePurples) }
 ];
 
@@ -95,11 +122,26 @@ const MIDPOINT_COORDINATES = {
   lon: (CHINA_COORDINATES.lon + AUSTRALIA_COORDINATES.lon) / 2 
 };
 
+// Add mock food waste type distribution data for countries
+// This interface is no longer used - replaced with FoodWasteItem from API response
+
+// This interface is no longer used - replaced with API data
+
 const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
   const mapRef = useRef<SVGSVGElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [wasteData, setWasteData] = useState<GlobalWasteData | null>(null);
   const [selectedIndicator, setSelectedIndicator] = useState<string>(INDICATORS[0].id);
+  const [indicatorName, setIndicatorName] = useState<string>(INDICATORS[0].name);
+  const [selectedYear, setSelectedYear] = useState<number>(2024);
+  const [trendData, setTrendData] = useState<YearlyCountryData>({});
+  const [countryYearlyData, setCountryYearlyData] = useState<CountryYearlyData[]>([]);
+  
+  // Add state to track selected country
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  
+  // Available years for the timeline
+  const availableYears = [2018, 2019, 2020, 2021, 2022, 2023, 2024];
   
   // Reference to store world data for re-renders
   const worldDataRef = useRef<any>(null);
@@ -107,14 +149,126 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
   // Keep track of current globe rotation - initially centered between China and Australia
   const rotationRef = useRef<[number, number, number]>([-MIDPOINT_COORDINATES.lon, -MIDPOINT_COORDINATES.lat, 0]);
 
-  // Fetch world map GeoJSON and waste data for 2024 only
+  // Add state to track cache status
+  const [usingCache, setUsingCache] = useState<boolean>(false);
+  const [cacheTimestamp, setCacheTimestamp] = useState<string | null>(null);
+
+  // Fetch country yearly data from API - modified to fetch only when needed
+  useEffect(() => {
+    // Initial empty state - we'll fetch specific country data on demand
+    setTrendData({});
+    
+    // No need to load all countries' data at once anymore - we'll fetch on demand
+  }, []);
+  
+  // New function to fetch yearly data for a specific country
+  const fetchCountryYearlyData = async (countryName: string) => {
+    // Skip if we already have data for this country
+    if (trendData[countryName] && Object.keys(trendData[countryName]).length > 0) {
+      return;
+    }
+    
+    try {
+      console.log(`Fetching yearly trend data for ${countryName}...`);
+      const startTime = performance.now();
+      
+      // Filter API call to only get the selected country data
+      const response = await axios.get<ApiYearlyResponse>(
+        `${config.apiUrl}/api/country-yearly-waste/`,
+        {
+          params: { country: countryName },
+          timeout: 8000 // 8-second timeout
+        }
+      );
+      
+      const endTime = performance.now();
+      console.log(`Yearly data for ${countryName} loaded in ${(endTime - startTime).toFixed(2)}ms`);
+      
+      // Check if data came from cache
+      if (response.data && response.data.cache !== undefined) {
+        console.log(`Country data ${response.data.cache ? 'retrieved from cache' : 'fetched from database'}`);
+      }
+      
+      if (response.data && response.data.data && response.data.data.length > 0) {
+        console.log(`Received ${response.data.data.length} records for ${countryName}`);
+        
+        // Format the data for this country only
+        const formattedData: YearlyCountryData = {};
+        
+        // Initialize the country entry if needed
+        if (!formattedData[countryName]) {
+          formattedData[countryName] = {};
+        }
+        
+        // Add each year's data
+        response.data.data.forEach((item: CountryYearlyData) => {
+          if (item.country.toLowerCase() === countryName.toLowerCase()) {
+            if (!formattedData[countryName]) {
+              formattedData[countryName] = {};
+            }
+            
+            formattedData[countryName][item.year] = {
+              total_waste: item.total_waste,
+              total_economic_loss: item.economic_loss,
+              household_waste_percentage: item.household_waste_percentage
+            };
+          }
+        });
+        
+        // Update trend data by merging with existing data
+        setTrendData(prev => ({
+          ...prev,
+          ...formattedData
+        }));
+      } else {
+        console.warn(`No yearly data available for ${countryName}`);
+      }
+    } catch (error: any) {
+      console.error(`Error fetching yearly data for ${countryName}:`, error);
+    }
+  };
+
+  // Fetch world map GeoJSON and waste data for selected year
   useEffect(() => {
     async function fetchData() {
+      const timeoutId = setTimeout(() => {
+        // Show a timeout message if data isn't loaded after 8 seconds
+        if (mapRef.current) {
+          const svg = d3.select(mapRef.current);
+          svg.selectAll('*').remove();
+          
+          svg.append('text')
+            .attr('x', mapRef.current.clientWidth / 2)
+            .attr('y', 250)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '16px')
+            .attr('fill', '#666')
+            .text('Loading data is taking longer than expected...');
+        }
+      }, 8000);
+      
       try {
-        // Fetch waste data for 2024 using axios with config.apiUrl
+        // Fetch economic impact data for the selected year
+        console.log(`Fetching economic impact data for ${selectedYear}...`);
+        const startTime = performance.now();
+        
         const response = await axios.get<GlobalWasteData>(`${config.apiUrl}/api/economic-impact/`, {
-          params: { year: 2024 }
+          params: { year: selectedYear },
+          timeout: 10000 // 10-second timeout
         });
+        
+        const endTime = performance.now();
+        console.log(`Economic impact data loaded in ${(endTime - startTime).toFixed(2)}ms`);
+        
+        // Clear timeout since data loaded successfully
+        clearTimeout(timeoutId);
+        
+        // Check if data came from cache
+        if (response.data && response.data.cache !== undefined) {
+          setUsingCache(response.data.cache);
+          setCacheTimestamp(response.data.updated_at);
+          console.log(`Data ${response.data.cache ? 'retrieved from cache' : 'fetched from database'}`);
+        }
         
         // Process data to include Taiwan as part of China
         if (response.data && response.data.countries) {
@@ -143,19 +297,48 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         }
         
         // Fetch world map data
-        const worldResponse = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json');
-        const worldData = await worldResponse.json();
-        
-        if (mapRef.current && response.data) {
-          renderMap(worldData, response.data);
+        try {
+          const worldResponse = await fetch('https://unpkg.com/world-atlas@2.0.2/countries-110m.json');
+          const worldData = await worldResponse.json();
+          
+          if (mapRef.current && response.data) {
+            renderMap(worldData, response.data);
+          }
+        } catch (mapError: any) {
+          console.error("Error fetching world map data:", mapError);
+          
+          // Fall back to just showing the data without the map
+          if (mapRef.current) {
+            const svg = d3.select(mapRef.current);
+            svg.selectAll('*').remove();
+            
+            svg.append('text')
+              .attr('x', mapRef.current.clientWidth / 2)
+              .attr('y', 250)
+              .attr('text-anchor', 'middle')
+              .attr('font-size', '16px')
+              .attr('fill', '#666')
+              .text('Error loading map data, but country information is available.');
+          }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching economic impact data:", error);
+        
+        // Clear the timeout
+        clearTimeout(timeoutId);
         
         // Show error message in the UI
         if (mapRef.current) {
           const svg = d3.select(mapRef.current);
           svg.selectAll('*').remove();
+          
+          // Show different message depending on error type
+          let errorMessage = 'Error loading data. Please check the API connection.';
+          if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+            errorMessage = 'Request timed out. The API server might be slow or unavailable.';
+          } else if (error.response && error.response.status === 404) {
+            errorMessage = 'API endpoint not found (404). Check that the server is properly configured.';
+          }
           
           svg.append('text')
             .attr('x', mapRef.current.clientWidth / 2)
@@ -163,13 +346,13 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
             .attr('text-anchor', 'middle')
             .attr('font-size', '16px')
             .attr('fill', '#666')
-            .text('Error loading data. Please check the API connection.');
+            .text(errorMessage);
         }
       }
     }
 
     fetchData();
-  }, []);
+  }, [selectedYear]);
 
   useEffect(() => {
     if (wasteData && mapRef.current) {
@@ -189,16 +372,311 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     const value = countryData[selectedIndicator as keyof CountryData];
     return typeof value === 'number' ? value : 0;
   };
-
-  // Get country data with special handling for Taiwan
+  
+  // Get country data with special handling for Taiwan, USA and UK
   const getCountryData = (countryName: string, countries: CountryData[]): CountryData | undefined => {
-    // If country is Taiwan, return China's data instead
-    if (countryName.toLowerCase() === 'taiwan') {
+    // Normalize country names
+    let normalizedName = countryName.toLowerCase();
+    
+    // Handle special cases
+    if (normalizedName === 'taiwan') {
       return countries.find(c => c.country.toLowerCase() === 'china');
+    } else if (normalizedName === 'united states' || normalizedName === 'united states of america') {
+      return countries.find(c => c.country.toLowerCase() === 'usa');
+    } else if (normalizedName === 'united kingdom') {
+      return countries.find(c => c.country.toLowerCase() === 'uk');
     }
     
-    // Otherwise, return the country's own data
-    return countries.find(c => c.country.toLowerCase() === countryName.toLowerCase());
+    // Handle regular case - try to find an exact match
+    let countryData = countries.find(c => c.country.toLowerCase() === normalizedName);
+    
+    // If no exact match found, try a contains match
+    if (!countryData) {
+      countryData = countries.find(c => 
+        normalizedName.includes(c.country.toLowerCase()) || 
+        c.country.toLowerCase().includes(normalizedName)
+      );
+    }
+    
+    return countryData;
+  };
+
+  // Add function to create a trend chart for a country
+  const createTrendChart = (countryName: string, width: number = 250, height: number = 120) => {
+    // Get country data from our trend data
+    const countryData = trendData[countryName];
+    
+    // If we don't have data yet and it's the selected country (still loading)
+    if ((!countryData || Object.keys(countryData).length === 0) && selectedCountry === countryName) {
+      return `<p class="text-sm text-gray-600">Loading historical data...</p>`;
+    }
+    
+    // If no data is available
+    if (!countryData || Object.keys(countryData).length === 0) {
+      return `<p class="text-sm text-gray-600">No historical data available</p>`;
+    }
+    
+    // Determine which data series to show based on selected indicator
+    const dataKey = selectedIndicator === 'total_waste' ? 'total_waste' : 
+                  (selectedIndicator === 'total_economic_loss' ? 'total_economic_loss' : 'household_waste_percentage');
+    
+    // Format years and values
+    const years = Object.keys(countryData).map(Number).sort((a, b) => a - b);
+    const values = years.map(year => {
+      const yearData = countryData[year];
+      return yearData && yearData[dataKey] !== undefined 
+        ? Number(yearData[dataKey]) 
+        : 0;
+    });
+    
+    if (values.every(v => v === 0)) {
+      return `<p class="text-sm text-gray-600">No historical ${dataKey.replace('_', ' ')} data available</p>`;
+    }
+    
+    // Set margins
+    const margin = { top: 10, right: 20, bottom: 30, left: 40 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+    
+    // Set scales
+    const xScale = d3.scaleLinear()
+      .domain([years[0] || 2018, years[years.length - 1] || 2024])
+      .range([0, innerWidth]);
+      
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+    
+    // Set y-scale domain with padding (10% below min, 10% above max)
+    const yScale = d3.scaleLinear()
+      .domain([minValue * 0.9, maxValue * 1.1])
+      .range([innerHeight, 0]);
+    
+    // Create line generator
+    const line = d3.line<number>()
+      .x((_, i) => xScale(years[i]))
+      .y(d => yScale(d))
+      .curve(d3.curveMonotoneX); // Smoother curve
+    
+    // Create SVG
+    let svgContent = `<svg width="${width}" height="${height}">`;
+    svgContent += `<g transform="translate(${margin.left}, ${margin.top})">`;
+    
+    // Add x-axis
+    svgContent += `<g transform="translate(0, ${innerHeight})" class="x-axis">`;
+    years.forEach(year => {
+      const xPos = xScale(year);
+      svgContent += `
+        <g transform="translate(${xPos},0)">
+          <line y2="6" stroke="#888" stroke-width="1"></line>
+          <text dy="0.71em" y="9" text-anchor="middle" font-size="10" fill="#666">${year}</text>
+        </g>
+      `;
+    });
+    svgContent += `</g>`;
+    
+    // Add y-axis grid lines (subtle)
+    const yTicks = yScale.ticks(5);
+    svgContent += `<g class="y-grid">`;
+    yTicks.forEach(tick => {
+      const yPos = yScale(tick);
+      svgContent += `
+        <line x1="0" y1="${yPos}" x2="${innerWidth}" y2="${yPos}" stroke="#eee" stroke-width="1"></line>
+        <text x="-5" y="${yPos}" dy="0.32em" text-anchor="end" font-size="10" fill="#666">
+          ${formatYAxisValue(tick, dataKey)}
+        </text>
+      `;
+    });
+    svgContent += `</g>`;
+    
+    // Draw the line with animation
+    if (values.length > 1) {
+      // Create path data
+      const pathData = line(values as any);
+      if (pathData) {
+        svgContent += `
+          <path 
+            d="${pathData}" 
+            fill="none" 
+            stroke="${getColorForIndicator(selectedIndicator)}" 
+            stroke-width="3" 
+            stroke-dasharray="500 500" 
+            stroke-dashoffset="500"
+          >
+            <animate attributeName="stroke-dashoffset" from="500" to="0" dur="1s" fill="freeze" />
+          </path>
+        `;
+      }
+    }
+    
+    // Add data points with animations
+    svgContent += `<g class="data-points">`;
+    values.forEach((value, i) => {
+      const xPos = xScale(years[i]);
+      const yPos = yScale(value);
+      const delay = i * 100; // Stagger animation
+      
+      svgContent += `
+        <circle 
+          cx="${xPos}" 
+          cy="${yPos}" 
+          r="0" 
+          fill="${getColorForIndicator(selectedIndicator)}" 
+          stroke="white" 
+          stroke-width="1"
+        >
+          <animate attributeName="r" from="0" to="5" dur="0.3s" begin="${delay}ms" fill="freeze" />
+        </circle>
+      `;
+    });
+    svgContent += `</g>`;
+    
+    // Close SVG
+    svgContent += `</g>`;
+    svgContent += `</svg>`;
+    
+    return svgContent;
+  };
+  
+  // Helper to format y-axis values based on indicator
+  const formatYAxisValue = (value: number, dataKey: string): string => {
+    if (dataKey === 'total_economic_loss') {
+      return `$${value >= 1000 ? (value/1000).toFixed(1) + 'B' : value.toFixed(1) + 'B'}`;
+    } else if (dataKey === 'household_waste_percentage') {
+      return `${value.toFixed(0)}%`;
+    } else {
+      // Format large numbers more compactly
+      return value >= 1000000 ? `${(value/1000000).toFixed(1)}M` : 
+             value >= 1000 ? `${(value/1000).toFixed(0)}K` : value.toFixed(0);
+    }
+  };
+  
+  // Get color for trend line based on indicator
+  const getColorForIndicator = (indicator: string): string => {
+    switch (indicator) {
+      case 'total_waste':
+        return '#22c55e'; // Green
+      case 'total_economic_loss':
+        return '#f59e0b'; // Amber
+      case 'household_waste_percentage':
+        return '#8b5cf6'; // Purple
+      default:
+        return '#3b82f6'; // Blue
+    }
+  };
+
+  // Update the updateInstructionFrame function to remove pie chart
+  const updateInstructionFrame = (countryName: string | null, countryData: CountryData | undefined = undefined) => {
+    const instructionFrame = document.getElementById('map-instruction-frame');
+    if (!instructionFrame) return;
+    
+    // If no country is selected/hovered, show instructions
+    if (!countryName) {
+      instructionFrame.innerHTML = `
+        <h3 class="text-lg font-medium text-darkgreen mb-2">Map Instructions</h3>
+        <p class="text-sm text-gray-600 mb-2">
+          Hover over any country to see detailed food waste statistics.
+        </p>
+        <p class="text-sm text-gray-600 mb-2">
+          Click on a country to keep its information visible.
+        </p>
+        <p class="text-sm text-gray-600">
+          Drag the globe to rotate and explore different regions.
+        </p>
+      `;
+      return;
+    }
+    
+    // Create close button HTML if country is clicked (selected)
+    const closeButtonHtml = selectedCountry === countryName ? 
+      `<button id="close-country-info" aria-label="Close country information" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 transition-colors duration-200 z-10">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+        </svg>
+      </button>` : '';
+    
+    // If country has no data
+    if (!countryData) {
+      instructionFrame.innerHTML = `
+        <div class="relative">
+          ${closeButtonHtml}
+          <h3 class="text-lg font-medium text-darkgreen mb-2">${countryName}</h3>
+          <div class="p-4 bg-gray-50 rounded-md text-center animate-fade-in">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-sm text-gray-700">No data available for ${countryName}.</p>
+          </div>
+        </div>
+      `;
+    } else {
+      // Generate trend chart for country data
+      const trendChartHtml = createTrendChart(countryName);
+      
+      // Get colors and highlighting classes for indicators
+      const wasteColor = '#22c55e'; // Green
+      const economicColor = '#f59e0b'; // Amber
+      const householdColor = '#8b5cf6'; // Purple
+      
+      // Create styled indicator data that highlights the selected indicator
+      const wasteHighlight = selectedIndicator === 'total_waste';
+      const economicHighlight = selectedIndicator === 'total_economic_loss';
+      const householdHighlight = selectedIndicator === 'household_waste_percentage';
+      
+      const wasteData = countryData.total_waste ? countryData.total_waste.toLocaleString() : 'N/A';
+      const economicData = `$${(countryData.total_economic_loss/1000).toFixed(2)}B`;
+      const householdData = `${countryData.household_waste_percentage}%`;
+      const costData = `$${countryData.annual_cost_per_household.toFixed(2)}`;
+      
+      // Show country data with close button if clicked - improved UIUX layout
+      instructionFrame.innerHTML = `
+        <div class="relative animate-fade-in">
+          ${closeButtonHtml}
+          <div class="flex items-center mb-4 pr-7"> <!-- Added right padding to prevent overlap with close button -->
+            <h3 class="text-xl font-semibold text-darkgreen">${countryName}</h3>
+            <div class="text-xs text-gray-500 ml-auto">Data for ${selectedYear}</div>
+          </div>
+          
+          <div class="bg-gray-50 rounded-lg p-4 mb-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="col-span-2 ${wasteHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
+                <span class="text-xs uppercase tracking-wide ${wasteHighlight ? 'text-green-800 font-medium' : 'text-gray-500'}">Total Waste</span>
+                <div class="text-lg ${wasteHighlight ? 'font-bold text-green-600' : 'text-gray-700'}">${wasteData} tonnes</div>
+              </div>
+              
+              <div class="${economicHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
+                <span class="text-xs uppercase tracking-wide ${economicHighlight ? 'text-amber-800 font-medium' : 'text-gray-500'}">Economic Loss</span>
+                <div class="text-lg ${economicHighlight ? 'font-bold text-amber-600' : 'text-gray-700'}">${economicData}</div>
+              </div>
+              
+              <div class="${householdHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
+                <span class="text-xs uppercase tracking-wide ${householdHighlight ? 'text-purple-800 font-medium' : 'text-gray-500'}">Household Waste</span>
+                <div class="text-lg ${householdHighlight ? 'font-bold text-purple-600' : 'text-gray-700'}">${householdData}</div>
+              </div>
+              
+              <div class="col-span-2 mt-2">
+                <span class="text-xs uppercase tracking-wide text-gray-500">Annual Cost per Household</span>
+                <div class="text-lg text-gray-700 font-medium">${costData}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bg-white border border-gray-100 rounded-lg p-4">
+            <div class="text-sm font-medium text-gray-700 mb-2">Historical Trend</div>
+            ${trendChartHtml}
+          </div>
+        </div>
+      `;
+    }
+    
+    // Add event listener to close button
+    const closeButton = document.getElementById('close-country-info');
+    if (closeButton) {
+      closeButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setSelectedCountry(null);
+        updateInstructionFrame(null);
+      });
+    }
   };
 
   const renderMap = (worldData: any, wasteData: GlobalWasteData) => {
@@ -214,7 +692,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           .attr('text-anchor', 'middle')
           .attr('font-size', '16px')
           .attr('fill', '#666')
-          .text('Loading data or no data available for 2024...');
+          .text(`Loading data or no data available for ${selectedYear}...`);
       }
       return;
     }
@@ -223,10 +701,15 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     worldDataRef.current = worldData;
 
     const width = mapRef.current.clientWidth;
-    const height = 600;
-    const lambda = d3.scaleLinear().domain([0, width]).range([-180, 180]);
     
-    // Setup SVG
+    // Keep the large radius for the globe
+    const radius = Math.min(width, 650) / 2 * 0.85; // Calculate radius first
+    
+    // Calculate required height to fit full globe when positioned at top
+    // We need at least enough space for the diameter (2*radius) plus some padding
+    const height = 2 * radius + 100; // Add padding at bottom
+    
+    // Setup SVG with calculated height to ensure full globe visibility
     const svg = d3.select(mapRef.current)
       .attr('width', width)
       .attr('height', height);
@@ -234,27 +717,64 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     // Clear existing content
     svg.selectAll('*').remove();
     
-    // Calculate the radius and position
-    const radius = Math.min(width * 0.25, height * 0.5);
+    // Keep horizontal center but position the globe so its top aligns with the container top
+    const globeX = width / 2;
+    // Position globe so its top sits at the top edge of the visible area
+    const globeY = radius + 30; // Center is radius distance from top + small padding
     
-    // Position the globe on the left third of the container
-    const globeX = width * 0.3;
-    const globeY = height / 2;
+    console.log("Globe dimensions:", {width, height, radius, globeX, globeY});
     
     // Create a group for the globe
     const globeGroup = svg.append('g')
       .attr('class', 'globe-group')
       .attr('transform', `translate(${globeX}, ${globeY})`);
     
-    // Add a background circle for the globe
+    // Change background to a deeper blue for oceans
     globeGroup.append('circle')
       .attr('class', 'globe-background')
       .attr('cx', 0)
       .attr('cy', 0)
       .attr('r', radius)
-      .attr('fill', '#EEF7FF')
+      .attr('fill', '#D6EFFF')  // Lighter blue for better contrast
       .attr('stroke', '#ccc')
       .attr('stroke-width', 0.5);
+      
+    // Create a glow filter for dragging effect
+    const defs = globeGroup.append("defs");
+    
+    // Define a filter for the glow effect
+    const glowFilter = defs.append("filter")
+      .attr("id", "glow-effect")
+      .attr("width", "300%")
+      .attr("height", "300%")
+      .attr("x", "-100%")
+      .attr("y", "-100%");
+      
+    // Add a blur to create the glow
+    glowFilter.append("feGaussianBlur")
+      .attr("stdDeviation", "6")
+      .attr("result", "blur");
+      
+    // Enhance the glow with a bright overlay
+    glowFilter.append("feFlood")
+      .attr("flood-color", "#4dabf5")
+      .attr("result", "color");
+    
+    glowFilter.append("feComposite")
+      .attr("in", "color")
+      .attr("in2", "blur")
+      .attr("operator", "in")
+      .attr("result", "glow");
+      
+    // Merge the glow with the original
+    const feMerge = glowFilter.append("feMerge");
+    feMerge.append("feMergeNode").attr("in", "glow");
+    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+    
+    // Track zoom level
+    let currentScale = radius;
+    const defaultScale = radius;
+    const zoomedScale = radius * 1.2; // 20% zoom when clicking a country
 
     // Create orthographic projection centered on China
     const projection = geoOrthographic()
@@ -290,7 +810,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .attr('x', -10)
       .attr('y', -10)
       .attr('width', width * 0.3)
-      .attr('height', 220)
+      .attr('height', 350) // Increased height to accommodate the trend chart
       .attr('rx', 8)
       .attr('fill', 'rgba(255, 255, 255, 0.9)')
       .attr('stroke', '#ccc')
@@ -341,8 +861,23 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .attr('font-size', '24px')
       .attr('font-weight', 'bold')
       .attr('fill', '#333');
+      
+    // Add a title for the trend chart
+    const trendTitle = infoPanel.append('text')
+      .attr('class', 'trend-title')
+      .attr('x', 0)
+      .attr('y', 210)
+      .attr('font-size', '14px')
+      .attr('font-weight', 'bold')
+      .attr('fill', '#333')
+      .text('Historical Trend:');
     
-    // Draw graticules (coordinate grid lines)
+    // Add container for the trend chart
+    const trendChartGroup = infoPanel.append('g')
+      .attr('class', 'trend-chart')
+      .attr('transform', 'translate(0, 220)');
+    
+    // Update the graticule (grid lines) to be more subtle
     const graticule = d3.geoGraticule();
     
     globeGroup.append('path')
@@ -350,13 +885,13 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .attr('class', 'graticule')
       .attr('d', pathGenerator as any)
       .attr('fill', 'none')
-      .attr('stroke', '#eee')
-      .attr('stroke-width', 0.3);
+      .attr('stroke', '#ddd')  // Lighter color for the grid
+      .attr('stroke-width', 0.2);  // Thinner lines
     
     // Function to format the value based on selected indicator
     const formatValue = (value: number): string => {
       if (selectedIndicator === 'total_economic_loss') {
-        return `$${value.toLocaleString()}M`;
+        return `$${(value/1000).toFixed(2)}B`;
       } else if (selectedIndicator === 'household_waste_percentage') {
         return `${value.toFixed(1)}%`;
       } else {
@@ -364,90 +899,171 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       }
     };
     
-    // Draw countries
+    // Update country mouseover handler with animations
     globeGroup.selectAll('.country')
       .data(countries.features)
       .enter()
       .append('path')
-      .attr('class', 'country')
+      .attr('class', (d: any) => {
+        const countryName = d.properties.name;
+        return `country ${selectedCountry === countryName ? 'selected-country' : ''}`;
+      })
       .attr('d', pathGenerator as any)
       .attr('fill', (d: any) => {
         const countryName = d.properties.name;
-        let displayName = countryName;
-        
-        // Special case for Taiwan
-        if (countryName.toLowerCase() === 'taiwan') {
-          displayName = 'China';
-        }
-        
         const countryData = getCountryData(countryName, wasteData.countries);
         return countryData ? colorScale(getDataValue(countryData)) : '#ccc';
       })
       .attr('stroke', '#fff')
       .attr('stroke-width', 0.2)
+      .attr('cursor', 'pointer')
       .on('mouseover', function(event: MouseEvent, d: any) {
         const countryName = d.properties.name;
         let displayName = countryName;
         
-        // Special case for Taiwan
+        // Special case for Taiwan, map to China
         if (countryName.toLowerCase() === 'taiwan') {
           displayName = 'China';
         }
         
         const countryData = getCountryData(countryName, wasteData.countries);
         
-        // Highlight the country
+        // Highlight the country with smooth animation
         d3.select(this)
+          .transition()
+          .duration(150)
           .attr('stroke', '#333')
-          .attr('stroke-width', 1);
+          .attr('stroke-width', 1)
+          .style('filter', 'drop-shadow(1px 1px 3px rgba(0,0,0,0.3))');
         
         // Hide the tooltip
         if (tooltipRef.current) {
           d3.select(tooltipRef.current).style('display', 'none');
         }
         
-        if (countryData) {
-          // Update the info panel with country data
-          infoTitle.text(displayName);
-          
-          totalWasteText.text(`Total Waste: ${countryData.total_waste ? countryData.total_waste.toLocaleString() : 'N/A'} tonnes`);
-          economicLossText.text(`Economic Loss: $${countryData.total_economic_loss.toLocaleString()}M`);
-          householdWasteText.text(`Household Waste: ${countryData.household_waste_percentage}%`);
-          costPerHouseholdText.text(`Cost per Household: $${countryData.annual_cost_per_household.toFixed(2)}`);
-          
-          // Show highlighted value for current indicator
-          selectedValueText.text(formatValue(getDataValue(countryData)));
-          
-          // Show the info panel with animation
-          infoPanel.transition()
-            .duration(200)
-            .style('opacity', 1);
-        } else {
-          // Update for countries without data
-          infoTitle.text(displayName);
-          totalWasteText.text('No data available');
-          economicLossText.text('');
-          householdWasteText.text('');
-          costPerHouseholdText.text('');
-          selectedValueText.text('');
-          
-          // Show the info panel with animation
-          infoPanel.transition()
-            .duration(200)
-            .style('opacity', 1);
+        // Only update instruction frame if no country is selected
+        if (!selectedCountry) {
+          updateInstructionFrame(displayName, countryData);
         }
       })
       .on('mouseout', function() {
-        // Reset country highlight
-        d3.select(this)
-          .attr('stroke', '#4a78a1')
-          .attr('stroke-width', 0.2)
-          .style('filter', 'none');
+        // Reset country highlight with animation, unless it's the selected country
+        const isSelected = d3.select(this).classed('selected-country');
+        if (!isSelected) {
+          d3.select(this)
+            .transition()
+            .duration(200)
+            .attr('stroke', '#4a78a1')
+            .attr('stroke-width', 0.2)
+            .style('filter', 'none');
+        }
         
         // Hide the info panel
         infoPanel.transition()
           .duration(200)
           .style('opacity', 0);
+          
+        // We don't need to reset to selected country on mouseout
+        // because we always update on mouseover now
+      })
+      .on('click', function(event: MouseEvent, d: any) {
+        const countryName = d.properties.name;
+        let displayName = countryName;
+        
+        // Special case for Taiwan
+        if (countryName.toLowerCase() === 'taiwan') {
+          displayName = 'China';
+        }
+        
+        const countryData = getCountryData(countryName, wasteData.countries);
+        
+        // Reset previous selected country styling
+        d3.selectAll('.country')
+          .classed('selected-country', false)
+          .transition()
+          .duration(200)
+          .attr('stroke', '#4a78a1')
+          .attr('stroke-width', 0.2)
+          .style('filter', 'none');
+        
+        // Toggle selection - if clicking on already selected country, deselect it
+        if (selectedCountry === displayName) {
+          setSelectedCountry(null);
+          updateInstructionFrame(null);
+          
+          // Zoom out animation
+          d3.transition()
+            .duration(500)
+            .tween("scale", function() {
+              const i = d3.interpolate(currentScale, defaultScale);
+              return function(t: number) {
+                currentScale = i(t);
+                projection.scale(currentScale);
+                
+                // Update all path elements
+                globeGroup.selectAll('path')
+                  .attr('d', pathGenerator as any);
+              };
+            });
+        } else {
+          // Mark this as selected and apply styling
+          d3.select(this)
+            .classed('selected-country', true)
+            .transition()
+            .duration(200)
+            .attr('stroke', '#333')
+            .attr('stroke-width', 1.5)
+            .style('filter', 'drop-shadow(2px 2px 4px rgba(0,0,0,0.4))');
+            
+          setSelectedCountry(displayName);
+          updateInstructionFrame(displayName, countryData);
+          
+          // Zoom in animation
+          d3.transition()
+            .duration(500)
+            .tween("scale", function() {
+              const i = d3.interpolate(currentScale, zoomedScale);
+              return function(t: number) {
+                currentScale = i(t);
+                projection.scale(currentScale);
+                
+                // Update all path elements
+                globeGroup.selectAll('path')
+                  .attr('d', pathGenerator as any);
+              };
+            });
+        }
+        
+        // Prevent event propagation
+        event.stopPropagation();
+      });
+
+    // Add click handler to the globe background to clear selection
+    globeGroup.select('.globe-background')
+      .on('click', function() {
+        setSelectedCountry(null);
+        updateInstructionFrame(null);
+        
+        // Zoom out animation
+        d3.transition()
+          .duration(500)
+          .tween("scale", function() {
+            const i = d3.interpolate(currentScale, defaultScale);
+            return function(t: number) {
+              currentScale = i(t);
+              projection.scale(currentScale);
+              
+              // Update all path elements
+              globeGroup.selectAll('path')
+                .attr('d', pathGenerator as any);
+            };
+          });
+      })
+      .on('mouseout', function() {
+        // When mouse leaves the globe completely, show the default instructions
+        if (!selectedCountry) {
+          updateInstructionFrame(null);
+        }
       });
 
     // Setup dragging behavior with only horizontal rotation
@@ -458,6 +1074,12 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .on('start', function(event) {
         v0 = [event.x, event.y];
         r0 = projection.rotate();
+        
+        // Add glow effect when dragging starts
+        globeGroup.select('.globe-background')
+          .transition()
+          .duration(300)
+          .style("filter", "url(#glow-effect)");
       })
       .on('drag', function(event) {
         if (!v0) return;
@@ -483,6 +1105,13 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         // Redraw the map with the new rotation
         globeGroup.selectAll('path')
           .attr('d', pathGenerator as any);
+      })
+      .on('end', function() {
+        // Remove glow effect when dragging ends
+        globeGroup.select('.globe-background')
+          .transition()
+          .duration(500)
+          .style("filter", null);
       });
       
     svg.call(dragBehavior);
@@ -496,12 +1125,91 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .attr('fill', '#666');
   };
 
+  // Update indicator name whenever selection changes
+  useEffect(() => {
+    const selectedName = INDICATORS.find(ind => ind.id === selectedIndicator)?.name || '';
+    setIndicatorName(selectedName);
+    
+    // If a country is currently selected, refresh its detailed frame to reflect the new indicator
+    if (selectedCountry) {
+      const countryData = wasteData?.countries.find(
+        c => c.country.toLowerCase() === selectedCountry.toLowerCase() ||
+           (selectedCountry.toLowerCase() === 'usa' && c.country.toLowerCase() === 'usa') ||
+           (selectedCountry.toLowerCase() === 'uk' && c.country.toLowerCase() === 'uk')
+      );
+      
+      if (countryData) {
+        updateInstructionFrame(selectedCountry, countryData);
+      }
+    }
+  }, [selectedIndicator, wasteData]);
+
   // Re-render with rotation when indicator changes
   useEffect(() => {
     if (wasteData && worldDataRef.current && mapRef.current) {
       renderMap(worldDataRef.current, wasteData);
     }
   }, [selectedIndicator, wasteData]);
+
+  // Update effect to re-render when selected country changes
+  useEffect(() => {
+    if (wasteData && worldDataRef.current && mapRef.current) {
+      renderMap(worldDataRef.current, wasteData);
+    }
+  }, [selectedIndicator, wasteData, selectedCountry]);
+
+  // In useEffect for initial loading, add code to reset selected country when year changes
+  useEffect(() => {
+    async function fetchData() {
+      // ... existing code ...
+      
+      // Reset selected country when year changes
+      setSelectedCountry(null);
+      
+      // ... rest of existing code ...
+    }
+    
+    fetchData();
+  }, [selectedYear]);
+
+  // Update effect for making the real API call for country yearly data
+  useEffect(() => {
+    async function fetchRealYearlyData() {
+      try {
+        const response = await axios.get<ApiYearlyResponse>(`${config.apiUrl}/api/country-yearly-waste/`);
+        if (response.data && response.data.data) {
+          // Convert API data to our YearlyCountryData format
+          const apiData: YearlyCountryData = {};
+          
+          response.data.data.forEach((item: CountryYearlyData) => {
+            if (!apiData[item.country]) {
+              apiData[item.country] = {};
+            }
+            
+            apiData[item.country][item.year] = {
+              total_waste: item.total_waste,
+              total_economic_loss: item.economic_loss,
+              household_waste_percentage: item.household_waste_percentage
+            };
+          });
+          
+          console.log("Real yearly data loaded from API:", response.data.data.length, "records");
+          setTrendData(apiData);
+        }
+      } catch (error) {
+        console.error("Error fetching yearly data:", error);
+      }
+    }
+    
+    fetchRealYearlyData();
+  }, []);
+
+  // Fetch country yearly data when a country is selected
+  useEffect(() => {
+    if (selectedCountry) {
+      fetchCountryYearlyData(selectedCountry);
+    }
+  }, [selectedCountry, selectedYear]);
 
   return (
     <>
@@ -563,23 +1271,32 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       </motion.div>
 
       {/* Map Section */}
-      <div className="py-8 md:py-16">
+      <div className="py-4 md:py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-4xl font-bold text-darkgreen mb-4 md:mb-6 text-left">
+          <h2 className="text-2xl md:text-4xl font-bold text-darkgreen mb-2 md:mb-4 text-left">
             Global Food Waste Distribution 2024
           </h2>
-          <p className="text-gray-700 mb-6 md:mb-10 text-left">
+          <p className="text-gray-700 mb-4 md:mb-6 text-left">
             Food waste is a global issue with varying impacts across different regions.
           </p>
           
-          {/* Controls - Moved to the right */}
-          <div className="mb-6 flex flex-wrap justify-end gap-4 items-center">
+          <div className="mb-2 flex flex-wrap items-center justify-between">
+            <div className="text-xl font-semibold text-darkgreen text-left mb-1 md:mb-0 flex items-center">
+              Global Food Waste {selectedYear}: {indicatorName}
+            </div>
+            
             <div className="w-full md:w-1/3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Select Indicator</label>
               <select
+                aria-label="Select indicator type"
                 value={selectedIndicator}
-                onChange={(e) => setSelectedIndicator(e.target.value)}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+                onChange={(e) => {
+                  const newIndicator = e.target.value;
+                  setSelectedIndicator(newIndicator);
+                  const newName = INDICATORS.find(ind => ind.id === newIndicator)?.name || '';
+                  setIndicatorName(newName);
+                }}
+                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
               >
                 {INDICATORS.map(indicator => (
                   <option key={indicator.id} value={indicator.id}>
@@ -590,26 +1307,81 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
             </div>
           </div>
           
-          {/* Caption above the map */}
-          <div className="mb-4 text-xl font-semibold text-darkgreen text-left">
-            Global Food Waste 2024: {INDICATORS.find(ind => ind.id === selectedIndicator)?.name || 'Total Waste (tonnes)'}
+          <div className="mb-4 flex justify-end">
+            <div className="w-full md:w-1/3">
+              <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
+                <span>2018</span>
+                <span>2024</span>
+              </div>
+              <Slider
+                className="w-full cursor-pointer"
+                color="primary"
+                defaultValue={availableYears.length - 1}
+                minValue={0}
+                maxValue={availableYears.length - 1}
+                step={1}
+                aria-label="Select year"
+                aria-valuemin={2018}
+                aria-valuemax={2024}
+                aria-valuenow={selectedYear}
+                onChange={(value: number | number[]) => {
+                  const numericValue = Array.isArray(value) ? value[0] : value;
+                  const year = availableYears[numericValue];
+                  setSelectedYear(year);
+                }}
+              />
+            </div>
           </div>
           
-          {/* Map visualization - increase the height */}
-          <div className="relative">
-            <svg ref={mapRef} className="w-full h-[400px] md:h-[600px]" />
-            <div 
-              ref={tooltipRef} 
-              className="absolute hidden bg-white p-2 rounded shadow-lg border border-gray-200 text-sm z-10 pointer-events-none"
-            />
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="w-full md:w-2/3 relative">
+              <svg ref={mapRef} className="w-full h-[600px] md:h-[750px]" />
+              <div 
+                ref={tooltipRef} 
+                className="absolute hidden bg-white p-2 rounded shadow-lg border border-gray-200 text-sm z-10 pointer-events-none"
+              />
+            </div>
+            
+            <div className="w-full md:w-1/3">
+              <div className="border border-gray-200 rounded-md p-4 bg-white shadow-sm h-full relative overflow-y-auto md:max-h-[610px]">
+                <div id="map-instruction-frame">
+                  <h3 className="text-lg font-medium text-darkgreen mb-2">Map Instructions</h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Hover over any country to see detailed food waste statistics.
+                  </p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Click on a country to keep its information visible.
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Drag the globe to rotate and explore different regions.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
           
-          <div className="mt-6 text-sm text-gray-500">
-            Note: Data visualization shows the global distribution of food waste based on 2024 data.
+          <div className="mt-4 text-sm text-gray-500">
+            Note: Data visualization shows the global distribution of food waste based on {selectedYear} data.
             Some countries may have incomplete or estimated data.
           </div>
         </div>
       </div>
+
+      {/* Add global style for animations */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .selected-country {
+          filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4));
+        }
+      `}</style>
     </>
   );
 };

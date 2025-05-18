@@ -7,7 +7,7 @@ import Title from "../(components)/Title";
 import MapSection from "./MapSection";
 import DonationDisposalOptions from "./DonationDisposalOptions";
 import FoodNetworkList from "./FoodNetworkList";
-import { MapSectionState, ViewState } from "./interfaces";
+import { MapSectionState, ViewState } from "./interfaces/State";
 
 const GOOGLE_MAPS_LIBRARIES: ("places" | "routes")[] = ["places", "routes"];
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";

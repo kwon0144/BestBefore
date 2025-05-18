@@ -54,6 +54,21 @@ class GameFoodResources(models.Model):
     def __str__(self):
         return f"{self.name} - {self.type}"
 
+# Model for game resources (backgrounds, icons, etc.)
+class GameResources(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=255)
+    type = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    image = models.URLField(max_length=255)
+
+    class Meta:
+        db_table = 'game_resources'  # Match the existing table name
+        managed = False  # Since the table already exists
+
+    def __str__(self):
+        return f"{self.name} - {self.type}"
+
 class SecondLife(models.Model):
     method_id = models.IntegerField(primary_key=True)
     method_name = models.CharField(max_length=100)

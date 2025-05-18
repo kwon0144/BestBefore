@@ -21,7 +21,8 @@ from .views import (
     get_food_waste_by_category,
     get_economic_impact,
     get_household_impact,
-    get_food_emissions
+    get_food_emissions,
+    get_country_yearly_waste
 )
 from .service import produce_detection_service
 from .service.output_calender_service import generate_calendar, generate_ical
@@ -54,5 +55,6 @@ urlpatterns = [
     path('economic-impact/', get_economic_impact, name='economic_impact'),
     path('household-impact/', get_household_impact, name='household_impact'),
     path('food-emissions/', get_food_emissions, name='food_emissions'),
+    path('country-yearly-waste/', get_country_yearly_waste, name='country_yearly_waste'),
 ]
 

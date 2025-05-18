@@ -5,11 +5,18 @@
  * that users can click to quickly filter meal options. It implements a "show more/less"
  * feature to manage screen space while providing access to all available categories.
  */
-import { PopularMealsProps } from "../interfaces";
 import { useState } from "react";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+
+/**
+ * Props for the PopularMeals component
+ */
+export interface PopularMealsProps {
+  popularMeals: string[];
+  setSearchQuery: (cuisine: string) => void;
+}
 
 /**
  * Renders a horizontal scrollable list of cuisine categories

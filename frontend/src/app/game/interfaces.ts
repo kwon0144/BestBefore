@@ -13,6 +13,7 @@ export interface Food {
   image: string;
   segment?: number; // Track which segment of the conveyor belt the food is on
   diy_option?: boolean; // Whether the food can be DIYed
+  greengas_emession?: number; // Greenhouse gas emission value
 }
 
 // Food item from API
@@ -23,6 +24,7 @@ export interface FoodItem {
   image: string;
   description: string;
   diy_option?: boolean; // Whether the food can be DIYed
+  greengas_emession?: number; // Greenhouse gas emission value
 }
 
 // Game resource from API
@@ -79,12 +81,13 @@ export interface GameData {
 }
 
 // Sound types
-export type SoundType = 'donate' | 'diyFood' | 'gameStart' | 'wasteFood' | 'wrongAction' | 'pickup';
+export type SoundType = 'donate' | 'diyFood' | 'gameStart' | 'wasteFood' | 'wrongAction' | 'pickup' | 'gameOver' | 'backgroundMusic';
 
 // Food waste tracking
 export interface WastedFood {
   name: string;
   count: number;
+  greengas_emession?: number; // Greenhouse gas emission value
 }
 
 export interface WasteStats {

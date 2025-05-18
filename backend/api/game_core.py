@@ -192,16 +192,18 @@ def prepare_game_food_items(food_items_query):
         # Get all food IDs
         food_ids = [item['id'] for item in game_items]
         
-        # Get diy_option values for these IDs directly from database
-        diy_options = {}
+        # Get diy_option and greengas_emession values for these IDs directly from database
+        data_values = {}
         with connection.cursor() as cursor:
             ids_str = ','.join(str(id) for id in food_ids)
-            cursor.execute(f"SELECT id, diy_option FROM game_foodresources WHERE id IN ({ids_str})")
+            cursor.execute(f"SELECT id, diy_option, greengas_emession FROM game_foodresources WHERE id IN ({ids_str})")
             for row in cursor.fetchall():
-                diy_options[row[0]] = row[1]
+                data_values[row[0]] = {'diy_option': row[1], 'greengas_emession': row[2]}
         
-        # Add diy_option to each item
+        # Add values to each item
         for item in game_items:
-            item['diy_option'] = diy_options.get(item['id'])
+            if item['id'] in data_values:
+                item['diy_option'] = data_values[item['id']]['diy_option']
+                item['greengas_emession'] = data_values[item['id']]['greengas_emession']
     
     return game_items 

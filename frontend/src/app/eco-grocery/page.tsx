@@ -16,11 +16,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import Title from "../(components)/Title"
-import { useGroceryPlanner } from "@/hooks/useGroceryPlanner";
+import { useGroceryPlanner } from "@/app/eco-grocery/hooks/useGroceryPlanner";
+import { useSignatureDishes } from "@/app/eco-grocery/hooks/useSignatureDishes";
 import { PantrySummary } from "../(components)/Inventory";
-import { MealChoice as MealChoiceType, SignatureDish } from "./interfaces";
-import axios from 'axios';
-import { config } from '@/config';
+import { MealChoice as MealChoiceType, SignatureDish } from "@/app/eco-grocery/interfaces/MealChoice";
 import Search from "./Search";
 import PopularMeal from "./PopularMeal";
 import MealChoice from "./MealChoice";
@@ -39,8 +38,6 @@ export default function EcoGrocery() {
     const selectedMealRef = useRef<HTMLDivElement>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCuisine, setSelectedCuisine] = useState<string | null>(null);
-    const [signatureDishes, setSignatureDishes] = useState<SignatureDish[]>([]);
-    const [isLoadingSignatureDishes, setIsLoadingSignatureDishes] = useState(false);
     
     // Use the grocery planner hook
     const {
@@ -56,6 +53,21 @@ export default function EcoGrocery() {
         generateGroceryList,
         getGroceryItemsByCategory
     } = useGroceryPlanner();
+    
+    // Use the signature dishes hook
+    const {
+        signatureDishes,
+        loading: isLoadingSignatureDishes,
+        error: signatureDishesError,
+        fetchDishes
+    } = useSignatureDishes({
+        initialCuisine: null
+    });
+    
+    // Update signature dishes when cuisine changes
+    useEffect(() => {
+        fetchDishes(selectedCuisine);
+    }, [selectedCuisine, fetchDishes]);
 
     const popularMeals = [
         'Chinese Cuisine',
@@ -104,36 +116,6 @@ export default function EcoGrocery() {
             cuisine: 'Mediterranean'
         }
     ];
-    
-    /**
-     * Fetches signature dishes from the API when a cuisine is selected
-     */
-    useEffect(() => {
-        if (!selectedCuisine) {
-            setSignatureDishes([]);
-            return;
-        }
-
-        const fetchSignatureDishes = async () => {
-            setIsLoadingSignatureDishes(true);
-            try {
-                const apiUrl = `${config.apiUrl}/api/signature-dishes/`;
-                
-                const response = await axios.get<SignatureDish[]>(apiUrl, {
-                    params: { cuisine: selectedCuisine }
-                });
-                
-                setSignatureDishes(response.data);
-            } catch (error) {
-                console.error('Error fetching signature dishes:', error);
-                setSignatureDishes([]);
-            } finally {
-                setIsLoadingSignatureDishes(false);
-            }
-        };
-
-        fetchSignatureDishes();
-    }, [selectedCuisine]);
     
     /**
      * Filters meals based on selected cuisine
@@ -356,6 +338,7 @@ export default function EcoGrocery() {
                                 addMeal={addMeal}
                                 isLoading={isLoadingSignatureDishes && selectedCuisine !== null}
                                 selectedCuisine={selectedCuisine}
+                                error={signatureDishesError}
                             />
                         </div>
                         
@@ -397,26 +380,12 @@ export default function EcoGrocery() {
                     <ComingUp
                         message="Great Job in Preventing Food Waste!"
                         title="Even with best practices, unwanted food could still pile up"
-                        description="Expore creative DIY ideas to reuse leftovers, revive produce, and reduce waste in fun and practical ways."
+                        description="Explore creative DIY ideas to reuse leftovers, revive produce, and reduce waste in fun and practical ways."
                         buttonText="Give Food a Second Life"
                         buttonLink="/second-life"
                         imageSrc="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/eco-grocery-next.png"
                         imageAlt="Seond Life"
                     />
-                </div>
-                
-                {/* Footer disclaimer */}
-                <div className="max-w-7xl mx-auto px-10 py-6 mb-10 border-t border-gray-200">
-                    <div className="text-center text-sm text-gray-600">
-                        <p className="font-medium mb-2">Eco Grocery Information Disclaimer:</p>
-                        <p className="mb-2">
-                            The meal recommendations and grocery suggestions provided are based on general information and AI-generated 
-                            content. Ingredient quantities may vary based on recipe variations and actual quantities needed. 
-                            Always check for specific dietary requirements and food allergies before preparation. 
-                            BestBefore does not guarantee the accuracy of all food storage recommendations.
-                        </p>
-                        <p className="text-xs">© {new Date().getFullYear()} BestBefore. All rights reserved.</p>
-                    </div>
                 </div>
             </div>
         </div>

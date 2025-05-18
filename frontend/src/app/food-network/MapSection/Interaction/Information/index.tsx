@@ -12,14 +12,16 @@
 
 import { Button } from "@heroui/react";
 import { SetStateAction, Dispatch } from "react";
-import { useFoodBank } from "@/hooks/useFoodBank";
+import { useFoodBankById } from "@/app/food-network/hooks/useFoodBanks";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faMapMarkerAlt, 
     faClock,
     faDirections,
+    faCircleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
-import { MapSectionState, ViewState } from "../../../interfaces";
+import { MapSectionState, ViewState } from "../../../interfaces/State";
+import InfoTooltip from "@/app/(components)/InfoTooltip";
 
 // Props interface for the Information component
 interface InformationProps {
@@ -31,7 +33,7 @@ export default function Information({
     mapSectionState, setViewState
 }: InformationProps) {
     // Fetch food bank data using the selected endpoint
-    const { foodbank, loading, error } = useFoodBank(mapSectionState.selectedEnd);
+    const { foodbank, loading, error } = useFoodBankById(mapSectionState.selectedEnd);
     
     // Handle click event for navigation button
     const handleClick = () => {
@@ -101,9 +103,22 @@ export default function Information({
             <div className="h-full flex flex-col">
                 {/* Food Bank Name and Address Section */}
                 <div className="min-h-[180px] flex flex-col justify-center">
-                    <h2 className="text-2xl font-bold text-darkgreen mb-6">
-                        {foodbank.name}
-                    </h2>
+                    <div className="flex justify-between">
+                        <h2 className="text-2xl font-bold text-darkgreen mb-6">
+                            {foodbank.name}
+                        </h2>
+                        <InfoTooltip 
+                            contentItems={[
+                            "Food bank/ Green Waste Bin information is sourced from open data sources and may not be 100% accurate",
+                            "Always verify information before relying on it",
+                            ]}
+                            header="For Reference Only"
+                            footerText="Information for reference only"
+                            placement="left-start"
+                            icon={faCircleExclamation}
+                            ariaLabel="Disclaimer"
+                        />
+                    </div>
                     <div className="mb-6">
                         <div className="flex items-start">
                             <FontAwesomeIcon icon={faMapMarkerAlt} className="text-gray-600 mr-3 w-5 flex-shrink-0" />

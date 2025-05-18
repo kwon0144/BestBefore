@@ -14,28 +14,24 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import { config } from '@/config';
 import Camera from './Camera';
 import StorageRecommendations from './StorageRecommendation';
 import CalendarExport from './CalendarExport';
 import CalendarImport from './CalendarImport';
 import ComingUp from "../(components)/ComingUp";
-
-import { 
-  CameraState, 
-  ProduceDetections, 
-  StorageRecommendation, 
-  CalendarSelection,
-  StorageAdviceResponse,
-  CalendarResponse
-} from './interfaces';
+import { CameraState, ProduceDetections } from "./interfaces/Camera";
+import { StorageRecommendation } from "./interfaces/Storage";
+import { CalendarSelection } from "./interfaces/Calendar";
 import Title from "../(components)/Title";
 import StorageAssistantStepper from "./StorageAssistantStepper";
 import { addToast, Button, ToastProvider } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faBell, faCalendarAlt } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faBell, faCalendarAlt, faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import useInventoryStore from "@/store/useInventoryStore";
+import InfoTooltip from "../(components)/InfoTooltip";
+import { useProduceDetection } from "./hooks/useProduceDetection";
+import { useStorageAdvice } from "./hooks/useStorageAdvice";
+import { useCalendarGeneration } from "./hooks/useCalendarGeneration";
 
 /**
  * Main component for the Food Storage Assistant feature
@@ -89,6 +85,16 @@ const FoodStorageAssistant: React.FC = () => {
   const addIdentifiedItem = useInventoryStore((state) => state.addIdentifiedItem);
   const addItem = useInventoryStore((state) => state.addItem);
   
+  // Use our new custom hook for produce detection
+  const { submitPhotos: detectProduce} = useProduceDetection();
+  
+  // Use our new custom hook for storage advice, but don't destructure getStorageAdvice
+  // to avoid recreating it on every render
+  const storageAdviceHook = useStorageAdvice();
+  
+  // Use our custom hooks
+  const calendarGenerationHook = useCalendarGeneration();
+  
   // State to track if items were added to inventory
   const [itemsAddedToInventory, setItemsAddedToInventory] = useState(false);
   
@@ -100,14 +106,15 @@ const FoodStorageAssistant: React.FC = () => {
   const submitPhotos = async () => {
     if (state.photos.length === 0) return;
 
-    console.log('API URL:', config.apiUrl);
     setState(prev => ({ ...prev, isAnalyzing: true, error: null }));
 
     try {
-      // Call API endpoint for produce detection with all photos
-      const response = await axios.post(`${config.apiUrl}/api/detect-produce/`, {
-        images: state.photos // Send array of photos
-      });
+      // Use our custom hook instead of direct axios call
+      const detectionResult = await detectProduce(state.photos);
+      
+      if (!detectionResult) {
+        throw new Error("Failed to analyze photos");
+      }
 
       // Stop the camera stream
       if (state.stream) {
@@ -117,7 +124,7 @@ const FoodStorageAssistant: React.FC = () => {
       setState(prev => ({
         ...prev,
         stream: null,
-        detections: response.data as ProduceDetections,
+        detections: detectionResult as unknown as ProduceDetections,
         isAnalyzing: false,
         submittedPhotos: [...prev.photos] // Store submitted photos
       }));
@@ -126,7 +133,7 @@ const FoodStorageAssistant: React.FC = () => {
       setCurrentStep(1);
 
       // After submission, fetch storage recommendations
-      fetchStorageRecommendations((response.data as ProduceDetections).produce_counts);
+      fetchStorageRecommendations((detectionResult as unknown as ProduceDetections).produce_counts);
     } catch (err) {
       setState(prev => ({
         ...prev,
@@ -174,42 +181,17 @@ const FoodStorageAssistant: React.FC = () => {
       
       for (const item of allItems) {
         try {
-          // Call the storage-advice endpoint (handles database and Claude fallback)
-          const response = await axios.post<StorageAdviceResponse>(`${config.apiUrl}/api/storage-advice/`, {
-            food_type: item
-          });
+          // Use the hook method without recreating the function reference
+          const advice = await storageAdviceHook.getStorageAdvice(item);
           
-          const recommendation = response.data;
-          const quantity = produceCounts[item] || 1;
-          
-          // Properly handle different API response formats
-          let fridgeStorageTime = 7; // Default fridge time
-          let pantryStorageTime = 14; // Default pantry time
-          let recommendedMethod = 'pantry'; // Default method
-          
-          // Extract storage times from the recommendation based on response format
-          if (typeof recommendation.method === 'number') {
-            // Database response format - method is a number (1=fridge, 2=pantry)
-            recommendedMethod = recommendation.method === 1 ? 'fridge' : 'pantry';
-            fridgeStorageTime = Number(recommendation.fridge) || fridgeStorageTime;
-            pantryStorageTime = Number(recommendation.pantry) || pantryStorageTime;
-          } else if (typeof recommendation.method === 'string') {
-            // Claude response format - method is a string ('fridge' or 'pantry')
-            recommendedMethod = recommendation.method;
-            // Claude might only provide one storage time in the 'days' field
-            const providedDays = Number(recommendation.days) || 7;
-            if (recommendedMethod === 'fridge') {
-              fridgeStorageTime = providedDays;
-            } else {
-              pantryStorageTime = providedDays;
-            }
+          if (!advice) {
+            throw new Error(`Failed to get storage advice for ${item}`);
           }
           
-          console.log(`Storage recommendation for ${item}:`, { 
-            fridgeTime: fridgeStorageTime, 
-            pantryTime: pantryStorageTime,
-            recommendedMethod 
-          });
+          const quantity = produceCounts[item] || 1;
+          
+          // Use normalized storage advice from our hook
+          const { fridgeStorageTime, pantryStorageTime, recommendedMethod, source } = advice;
           
           // Determine where to put the item based on recommendation
           // This is an initial recommendation but user can change later
@@ -237,9 +219,7 @@ const FoodStorageAssistant: React.FC = () => {
           }
 
           // Create label for display
-          const sourceLabel = recommendation.source 
-            ? `, ${recommendation.source}` 
-            : '';
+          const sourceLabel = source ? `, ${source}` : '';
               
           // Add to UI display lists
           if (isRecommendedForFridge) {
@@ -290,7 +270,7 @@ const FoodStorageAssistant: React.FC = () => {
     } catch (err) {
       console.error('Error in fetchStorageRecommendations:', err);
     }
-  }, [addIdentifiedItem, addItem]);
+  }, [addIdentifiedItem, addItem, storageAdviceHook]); // Use storageAdviceHook as a stable reference
 
   /**
    * Updates storage recommendations state
@@ -363,20 +343,22 @@ const FoodStorageAssistant: React.FC = () => {
     }
   
     try {
-      const response = await axios.post<CalendarResponse>(`${config.apiUrl}/api/generate_calendar/`, {
-        items: calendarSelection.selectedItems.map(item => ({
-          ...item,
-          expiry_date: item.expiry_date,
-          reminder_days: calendarSelection.reminderDays,
-          reminder_time: calendarSelection.reminderTime
-        })),
-        reminder_days: calendarSelection.reminderDays,
-        reminder_time: calendarSelection.reminderTime
-      });
-  
+      // Call calendar generation hook
+      const calendarUrl = await calendarGenerationHook.generateCalendar(
+        calendarSelection.selectedItems,
+        {
+          reminderDays: calendarSelection.reminderDays,
+          reminderTime: calendarSelection.reminderTime
+        }
+      );
+      
+      if (!calendarUrl) {
+        throw new Error("Failed to generate calendar");
+      }
+
       setCalendarSelection(prev => ({
         ...prev,
-        calendarLink: response.data.calendar_url
+        calendarLink: calendarUrl
       }));
       
       // Move to step 4
@@ -405,16 +387,21 @@ const FoodStorageAssistant: React.FC = () => {
 
   // Initialize with storage recommendations on mount
   useEffect(() => {
-    // Initialize from the inventory store
-    const inventoryItems = useInventoryStore.getState().items;
-    if (inventoryItems.length > 0) {
-      // Only fetch new recommendations if we don't already have items from store
-      // This prevents overwriting existing inventory data
-      fetchStorageRecommendations();
-    } else {
-      // Otherwise just prepare an empty structure
-      fetchStorageRecommendations({});
-    }
+    // Only run this effect once on mount
+    const initializeStorageRecs = async () => {
+      // Initialize from the inventory store
+      const inventoryItems = useInventoryStore.getState().items;
+      if (inventoryItems.length > 0) {
+        // Only fetch new recommendations if we don't already have items from store
+        // This prevents overwriting existing inventory data
+        await fetchStorageRecommendations();
+      } else {
+        // Otherwise just prepare an empty structure
+        await fetchStorageRecommendations({});
+      }
+    };
+    
+    initializeStorageRecs();
     
     // Clean up camera stream on unmount
     return () => {
@@ -422,7 +409,7 @@ const FoodStorageAssistant: React.FC = () => {
         state.stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [fetchStorageRecommendations, state.stream]);
+  }, []); // Empty dependency array, only run on mount and unmount
 
   return (
       <div>
@@ -451,24 +438,28 @@ const FoodStorageAssistant: React.FC = () => {
             {/* Step 1: Camera and Photo Capture */}
             {currentStep === 0 ? (
               <div className="border-green border-2 rounded-lg p-10 mb-8">
-                <h2 className="text-2xl font-semibold text-darkgreen mb-2">
-                  Step 1: Scan your Groceries
-                </h2>
+                <div className="flex justify-between">
+                  <h2 className="text-2xl font-semibold text-darkgreen mb-2">
+                    Step 1: Scan your Groceries
+                  </h2>
+                  <InfoTooltip 
+                    contentItems={[
+                      "Photos taken are processed only on your device and our secure server",
+                      "Images are not permanently stored and are deleted after analysis",
+                      "No personal information is gathered through the camera feature",
+                      "You may need to grant camera permissions in your browser settings"
+                    ]}
+                    header="Camera Usage Disclaimer"
+                    footerText="Your privacy is our priority"
+                    placement="left-start"
+                    icon={faCircleExclamation}
+                    ariaLabel="Disclaimer"
+                  />
+                </div>
                 <p className="text-md text-gray-700 mb-10">
                   Take photos of your groceries to get personalised storage recommendations.
                 </p>
                 <Camera state={state} setState={setState} submitPhotos={submitPhotos} handleReset={handleReset} />
-                
-                {/* Camera disclaimer */}
-                <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-600">
-                  <p className="font-medium mb-1">Camera Usage Disclaimer:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Photos taken are processed only on your device and our secure server</li>
-                    <li>Images are not permanently stored and are deleted after analysis</li>
-                    <li>No personal information is gathered through the camera feature</li>
-                    <li>You may need to grant camera permissions in your browser settings</li>
-                  </ul>
-                </div>
               </div>
             ) : (
               <>
@@ -483,9 +474,23 @@ const FoodStorageAssistant: React.FC = () => {
                       <FontAwesomeIcon icon={faArrowLeft} className="text-amber-600 mr-2" />
                       Back to Camera
                     </Button>
-                    <h2 className="text-2xl font-semibold text-darkgreen mb-2">
-                      Step 2: Storage Recommendations
-                    </h2>
+                    <div className="flex justify-between">
+                      <h2 className="text-2xl font-semibold text-darkgreen mb-2">
+                        Step 2: Storage Recommendations
+                      </h2>
+                      <InfoTooltip 
+                        contentItems={[
+                          "Food detection and storage recommendations are handled by our AI algorithms and open data sources.",
+                          "Recommendations are provided for reference only and may not be accurate for all food items or storage conditions",
+                          "Users should always use their own judgment when assessing food safety and storage",
+                        ]}
+                        header="For Reference Only"
+                        footerText="Recommendations for reference only"
+                        placement="left-start"
+                        icon={faCircleExclamation}
+                        ariaLabel="Disclaimer"
+                      />
+                    </div>
                     <p className="text-md text-gray-700 mb-10">
                       Review your grocery items with the storage recommendations and estimated expiration time.
                     </p>
@@ -586,19 +591,6 @@ const FoodStorageAssistant: React.FC = () => {
                 imageAlt="Eco Grocery"
               />
             )}
-          </div>
-            
-          {/* Footer disclaimer for all pages */}
-          <div className="max-w-7xl mx-auto px-10 py-6 mb-10 border-t border-gray-200">
-            <div className="text-center text-sm text-gray-600">
-              <p className="font-medium mb-2">BestBefore Privacy & Data Usage Notice:</p>
-              <p className="mb-2">
-                This application processes and stores food inventory data locally in your browser. No personal data is 
-                shared with third parties. Food detection and storage recommendations are handled by our AI algorithms 
-                using anonymized data. For any questions about data handling, please contact our support team.
-              </p>
-              <p className="text-xs">© {new Date().getFullYear()} BestBefore. All rights reserved.</p>
-            </div>
           </div>
       </div>  
   );

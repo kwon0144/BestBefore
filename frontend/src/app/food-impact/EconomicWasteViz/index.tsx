@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { MetricCardProps } from '../interfaces';
-import { scaleInVariant, staggerContainerVariant } from '../interfaces';
+import { MetricCardProps } from '../interfaces/Components';
+import { scaleInVariant, staggerContainerVariant } from '../interfaces/AnimationVariants';
 import { 
   faArrowDown, 
   faArrowUp, 
@@ -98,18 +98,10 @@ const MetricCard: React.FC<MetricCardProps> = ({
         </span>
       </div>
       <div className="h-1 w-full bg-gray-100 mt-2 md:mt-4 rounded-full overflow-hidden">
-        <motion.div
-          className={`h-full ${getColorClass('bg', color)} rounded-full`}
-          initial={{ width: 0 }}
-          whileInView={{ 
-            width: `${fillPercent}%`,
-            transition: {
-              duration: 1,
-              delay: 0.5
-            }
-          }}
-          viewport={{ once: false, amount: 0.8 }}
-        ></motion.div>
+        <div
+          className={`h-full ${getColorClass('bg', color)} rounded-full metric-progress-bar`}
+          style={{ width: `${fillPercent}%` }}
+        ></div>
       </div>
     </motion.div>
   );
@@ -131,6 +123,35 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
   const [isCostIncreasing, setIsCostIncreasing] = useState(false);
   const [isWasteIncreasing, setIsWasteIncreasing] = useState(false);
   const [isHouseholdIncreasing, setIsHouseholdIncreasing] = useState(true);
+  
+  // Add style for progress bars to ensure smooth transitions
+  React.useEffect(() => {
+    // Create a style element
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .metric-progress-bar {
+        transition: width 0.3s ease-in-out;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Clean up on unmount
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+  
+  // Initialize progress bars on component mount
+  React.useEffect(() => {
+    // Give the DOM time to render
+    setTimeout(() => {
+      const progressBars = document.querySelectorAll('.metric-progress-bar');
+      progressBars.forEach(bar => {
+        // Initialize to match the default slider value (50)
+        (bar as HTMLElement).style.width = '50%';
+      });
+    }, 100);
+  }, []);
   
   return (
     <div 
@@ -269,6 +290,15 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
                     if (modelText) {
                       modelText.textContent = `Economic Loss (Billion $) = ${(MODEL_INTERCEPT/1000).toFixed(4)} + ${(MODEL_SLOPE/1000).toFixed(6)} × Total Waste (Tons)`;
                     }
+                    
+                    // Directly update the progress bars
+                    const progressBars = document.querySelectorAll('.metric-progress-bar');
+                    // Use requestAnimationFrame for smoother animation
+                    requestAnimationFrame(() => {
+                      progressBars.forEach(bar => {
+                        (bar as HTMLElement).style.width = `${numericValue}%`;
+                      });
+                    });
                   }}
                 />
               </div>
@@ -300,7 +330,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
             unit="B"
             changePercent={costPercentChange}
             isIncrease={isCostIncreasing}
-            fillPercent={70}
+            fillPercent={50} // Default to match slider initial value
             color="teal"
           />
 
@@ -312,7 +342,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
             unit="M"
             changePercent={wastePercentChange}
             isIncrease={isWasteIncreasing}
-            fillPercent={60}
+            fillPercent={50} // Default to match slider initial value
             color="blue"
           />
 
@@ -324,7 +354,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
             unit="%"
             changePercent={householdPercentChange}
             isIncrease={isHouseholdIncreasing}
-            fillPercent={householdWaste}
+            fillPercent={50} // Default to match slider initial value
             color="amber"
           />
         </motion.div>

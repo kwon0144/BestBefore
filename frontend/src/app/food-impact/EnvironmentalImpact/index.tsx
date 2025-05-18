@@ -2,7 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faIndustry, faArrowUp, faGlobe } from '@fortawesome/free-solid-svg-icons';
-import { cardVariants, EnvironmentalCardProps } from '../interfaces';
+import { cardVariants } from '../interfaces/AnimationVariants';
+import { EnvironmentalCardProps } from '../interfaces/Components';
 
 interface EnvironmentalImpactProps {
   setRef: (node: HTMLDivElement | null) => void;
