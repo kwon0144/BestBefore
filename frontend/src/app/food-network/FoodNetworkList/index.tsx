@@ -16,7 +16,7 @@ import { Input, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
 import { Foodbank } from '../interfaces/Foodbank';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
-import { ViewState, MapSectionState } from '../interfaces';
+import { ViewState, MapSectionState } from '../interfaces/State';
 import { config } from '@/config';
 /**
  * Props interface for the FoodNetworkList component
