@@ -10,7 +10,7 @@
  * - Screen transitions between different game phases
  * - Fullscreen functionality (toggled via button in the bottom-right corner of GameArea)
  */
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { startGame, endGame } from '@/services/gameService';
 import { Difficulty, WasteStats } from './interfaces';
 import { playSound, stopBackgroundMusic } from './utils/soundEffects';
@@ -39,6 +39,9 @@ export default function Game() {
     totalWasted: 0
   });
   
+  // Create ref for the main content div to scroll to
+  const mainContentRef = useRef<HTMLDivElement>(null);
+  
   // Get game state from custom hook
   const { 
     score, setScore, time, setTime, gameId, setGameId,
@@ -56,6 +59,24 @@ export default function Game() {
   }
 
   /**
+   * Scrolls to the main content div
+   */
+  const scrollToMainContent = () => {
+    if (mainContentRef.current) {
+      // Get the position of the element
+      const elementPosition = mainContentRef.current.getBoundingClientRect().top;
+      // Calculate the target position with offset for navbar (20px)
+      const offsetPosition = elementPosition + window.pageYOffset - 100;
+      
+      // Scroll to the element with the offset
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  /**
    * Handles starting the game
    * First click: Shows "How to Play" screen
    * Second click: Starts the actual game
@@ -64,6 +85,8 @@ export default function Game() {
     // First click: Show "How to Play" screen
     if (showPreGame) {
       setShowPreGame(false);
+      // Scroll to the main content div
+      scrollToMainContent();
       return;
     }
 
@@ -83,6 +106,9 @@ export default function Game() {
       setGameStarted(true);
       setGameOver(false);
       
+      // Scroll to the main content div
+      scrollToMainContent();
+      
       // Play game start sound only when actually starting the game
       if (soundsLoaded) {
         playSound('gameStart');
@@ -99,6 +125,8 @@ export default function Game() {
    */
   const handleBack = () => {
     setShowPreGame(true);
+    // Scroll to the main content div
+    scrollToMainContent();
   };
 
   /**
@@ -112,6 +140,9 @@ export default function Game() {
     setShowPreGame(true);
     setScore(0);
     setTime(120);
+    
+    // Scroll to the main content div
+    scrollToMainContent();
     
     // Remove the sound play here since we're just going back to pre-game
   };
@@ -128,6 +159,9 @@ export default function Game() {
       setWasteStats(stats);
       setGameOver(true);
       setGameStarted(false);
+      
+      // Scroll to the main content div
+      scrollToMainContent();
       
       // Play game over sound and stop background music
       if (soundsLoaded) {
@@ -162,8 +196,8 @@ export default function Game() {
         description="Learn to sort food waste correctly and reduce environmental impact through fun gameplay." 
         />
       </div>
-      <div className="relative z-10 max-w-6xl mx-auto px-4 pt-12 pb-20">
-        
+      <div ref={mainContentRef} className="relative z-10 max-w-6xl mx-auto px-4 pb-20">
+
         {/* Pre-game screen */}
         {!gameStarted && !gameOver && showPreGame && (
           <PreGamePage 
