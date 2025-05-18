@@ -31,7 +31,7 @@ export default function HowToPlay({ handleStartGame, handleBack }: HowToPlayProp
       <div className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full bg-blue-100 opacity-30 blur-xl"></div>
       
       <h2 className="text-3xl font-bold text-darkgreen mb-8 text-center relative">
-        <span className="animate-pulse inline-block mr-2">🌳</span> How to Play <span className="animate-pulse inline-block ml-2">🌳</span>
+        🌳 How to Play 🌳
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-green-300 via-green-500 to-green-300 rounded-full mt-2"></div>
       </h2>
       
