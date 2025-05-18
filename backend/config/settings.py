@@ -209,6 +209,7 @@ REST_FRAMEWORK = {
         'economic-impact': '50/minute',
         'food-emissions': '50/minute',
         'household-impact': '50/minute',
-        'food-waste-by-category': '50/minute',
+        'food-waste-by-category': '100/minute',
+        'country-yearly-waste': '100/minute',
     }
 }
