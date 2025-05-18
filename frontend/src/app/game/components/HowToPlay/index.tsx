@@ -4,16 +4,17 @@
  */
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGamepad, faBullseye, faKeyboard, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faGamepad, faBullseye, faKeyboard, faStar, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 interface HowToPlayProps {
   handleStartGame: () => void;
+  handleBack: () => void;
 }
 
 /**
  * How to play instructions and game start button
  */
-export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
+export default function HowToPlay({ handleStartGame, handleBack }: HowToPlayProps) {
   return (
     <div className="bg-gradient-to-br from-white to-green-50 bg-opacity-60 backdrop-filter backdrop-blur-sm rounded-2xl shadow-2xl p-10 max-w-3xl mx-auto border border-green-100">
       <h2 className="text-3xl font-bold text-green-800 mb-8 text-center relative">
@@ -95,8 +96,15 @@ export default function HowToPlay({ handleStartGame }: HowToPlayProps) {
         </div>
       </div>
       
-      {/* Start Game Button */}
-      <div className="text-center">
+      {/* Buttons */}
+      <div className="text-center flex items-center justify-center space-x-4">
+        <button
+          onClick={handleBack}
+          className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-4 px-10 rounded-full shadow-lg shadow-gray-200 hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-in-out flex items-center"
+        >
+          <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
+          Back
+        </button>
         <button
           onClick={handleStartGame}
           className="bg-[#16a34a] hover:bg-[#15803d] text-white font-bold py-4 px-12 rounded-full shadow-lg shadow-green-200 hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-in-out animate-pulse"
