@@ -11,7 +11,7 @@
  * - Fullscreen functionality (toggled via button in the bottom-right corner of GameArea)
  */
 import React, { useState, useEffect } from 'react';
-import { startGame, endGame, getGameResources } from '@/services/gameService';
+import { startGame, endGame } from '@/services/gameService';
 import { Difficulty, WasteStats } from './interfaces';
 import { playSound, stopBackgroundMusic } from './utils/soundEffects';
 
@@ -41,36 +41,18 @@ export default function Game() {
   // Get game state from custom hook
   const { 
     score, setScore, time, setTime, gameId, setGameId,
-    playerId, setPlayerId, foodItems, loading, 
-    soundsLoaded
+    playerId, setPlayerId, foodItems, loading,
+    soundsLoaded, backgroundImage, resultBgImage, gameResources, resourcesLoading
   } = useGameState();
 
-  // Add state for background image
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
-  const [resultBgImage, setResultBgImage] = useState<string | null>(null);
-
-  // Load game resources and set background
-  useEffect(() => {
-    const loadGameResources = async () => {
-      try {
-        const resources = await getGameResources();
-        if (resources.specificResources.background?.image) {
-          setBackgroundImage(resources.specificResources.background.image);
-        }
-        
-        // Load Result_BG for game over screen
-        if (resources.specificResources.result_bg?.image) {
-          setResultBgImage(resources.specificResources.result_bg.image);
-          console.log('Loaded result background:', resources.specificResources.result_bg.image);
-        } else {
-          console.log('Result background not found in resources');
-        }
-      } catch (error) {
-        console.error('Failed to load background resources:', error);
-      }
-    };
-    loadGameResources();
-  }, []);
+  // Loading indicator when resources are loading
+  if (resourcesLoading || loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center">
+        <p className="text-xl text-green-800">Loading game resources...</p>
+      </div>
+    );
+  }
 
   /**
    * Handles starting the game
@@ -156,15 +138,6 @@ export default function Game() {
     }
   };
 
-  // Return early if sounds haven't loaded
-  if (!soundsLoaded) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center">
-        <p className="text-xl text-green-800">Loading game resources...</p>
-      </div>
-    );
-  }
-
   return (
     <div 
       className="min-h-screen w-full relative"
@@ -204,7 +177,8 @@ export default function Game() {
           <GameOver 
             score={score}
             wasteStats={wasteStats}
-            handleStartGame={handleRestartGame} 
+            handleStartGame={handleRestartGame}
+            gameResources={gameResources}
           />
         )}
         
@@ -219,6 +193,7 @@ export default function Game() {
             difficulty={difficulty}
             foodItems={foodItems}
             handleGameOver={handleGameOver}
+            gameResources={gameResources}
           />
         )}
       </div>

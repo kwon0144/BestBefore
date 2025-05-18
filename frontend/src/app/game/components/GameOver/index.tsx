@@ -3,14 +3,14 @@
  * Final screen showing game results and option to play again
  */
 import React, { useRef, useState, useEffect } from 'react';
-import { WasteStats } from '../../interfaces';
-import { getGameResources } from '@/services/gameService';
+import { WasteStats, ResourcesApiResponse } from '../../interfaces';
 import Image from 'next/image';
 
 interface GameOverProps {
   score: number;
   wasteStats: WasteStats;
   handleStartGame: () => void;
+  gameResources: ResourcesApiResponse | null;
 }
 
 // Interface for game resource
@@ -27,7 +27,7 @@ interface GameResource {
 /**
  * Game over component showing final score and play again option
  */
-export default function GameOver({ score, wasteStats, handleStartGame }: GameOverProps) {
+export default function GameOver({ score, wasteStats, handleStartGame, gameResources }: GameOverProps) {
   const statsRef = useRef<HTMLDivElement>(null);
   const [badgeImages, setBadgeImages] = useState<{
     rookie: string | null;
@@ -45,14 +45,15 @@ export default function GameOver({ score, wasteStats, handleStartGame }: GameOve
 
   // Load badge images and environmental card when component mounts
   useEffect(() => {
-    const loadResources = async () => {
+    // Use passed gameResources instead of fetching them again
+    const loadResources = () => {
       try {
-        const resources = await getGameResources();
+        if (!gameResources) return;
         
         // Find badge resources by name
         const findResourceByName = (name: string) => {
           const lowerName = name.toLowerCase();
-          return resources.resources?.find(
+          return gameResources.resources?.find(
             (r: GameResource) => r.name.toLowerCase() === lowerName || 
                  r.name.toLowerCase().includes(lowerName)
           );
@@ -75,7 +76,7 @@ export default function GameOver({ score, wasteStats, handleStartGame }: GameOve
         
         // Collect all food emissions data
         const emissionsData: {[key: string]: number} = {};
-        resources.resources?.forEach((resource: GameResource) => {
+        gameResources.resources?.forEach((resource: GameResource) => {
           // Try different possible property names
           const emission = resource.gamegas_emession || resource.greengas_emession || 0;
           if (emission) {
@@ -112,7 +113,7 @@ export default function GameOver({ score, wasteStats, handleStartGame }: GameOve
     };
     
     loadResources();
-  }, [wasteStats]);
+  }, [wasteStats, gameResources]);
 
   const scrollToStats = () => {
     if (statsRef.current) {

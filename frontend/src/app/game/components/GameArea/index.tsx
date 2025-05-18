@@ -26,6 +26,7 @@ interface GameAreaProps {
   difficulty: Difficulty;
   foodItems: FoodItem[];
   handleGameOver: (wasteStats: WasteStats) => Promise<void>;
+  gameResources: ResourcesApiResponse | null;
 }
 
 // Define proper types for the conveyor segment
@@ -53,7 +54,8 @@ export default function GameArea({
   setTime,
   difficulty,
   foodItems,
-  handleGameOver
+  handleGameOver,
+  gameResources
 }: GameAreaProps) {
   // Game state
   const [position, setPosition] = useState<{ x: number; y: number }>({ x: 200, y: 300 });
@@ -74,9 +76,8 @@ export default function GameArea({
   const [isCharacterMoving, setIsCharacterMoving] = useState<boolean>(false);
   const [lastMoveTime, setLastMoveTime] = useState<number>(0);
   
-  // Game resources state
-  const [gameResources, setGameResources] = useState<ResourcesApiResponse>({ status: '', count: 0, resources: [] });
-  const [isLoadingResources, setIsLoadingResources] = useState<boolean>(true);
+  // Game resources state - use the passed gameResources instead of loading again
+  const [isLoadingResources, setIsLoadingResources] = useState<boolean>(false);
   
   // Refs
   const gameAreaRef = useRef<HTMLDivElement>(null);
@@ -107,25 +108,9 @@ export default function GameArea({
   // Add a state for prepared game food items
   const [gameFoodItems, setGameFoodItems] = useState<FoodItem[]>([]);
   
+  // Remove duplicate game resources loading
   // Load game resources when component mounts
-  useEffect(() => {
-    async function loadGameResources() {
-      try {
-        setIsLoadingResources(true);
-        const resourcesData = await getGameResources();
-        setGameResources(resourcesData);
-        console.log('Loaded game resources:', resourcesData);
-      } catch (error) {
-        console.error('Failed to load game resources:', error);
-      } finally {
-        setIsLoadingResources(false);
-      }
-    }
-    
-    loadGameResources();
-  }, []);
-  
-  // Prepare balanced food items when component mounts
+  // And prepare balanced food items when component mounts
   useEffect(() => {
     if (foodItems && foodItems.length > 0) {
       setGameFoodItems(foodItems);
@@ -526,10 +511,10 @@ export default function GameArea({
           ref={gameAreaRef}
           className="relative w-full overflow-hidden"
           style={{
-            backgroundImage: gameResources.specificResources?.map1?.image 
-              ? `url(${gameResources.specificResources.map1.image})` 
+            backgroundImage: gameResources?.specificResources?.map1?.image 
+              ? `url(${gameResources?.specificResources?.map1?.image})` 
               : 'linear-gradient(to bottom, #e0f7fa, #b2ebf2)',
-            backgroundSize: 'contain',
+            backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
             touchAction: 'none',
@@ -543,12 +528,12 @@ export default function GameArea({
           {/* Drop zones */}
           <DropZones 
             diyCooldown={diyCooldown} 
-            foodBankImage={gameResources.specificResources?.foodbank?.image}
-            greenBinImage={gameResources.specificResources?.greenbin?.image}
-            diyImage={gameResources.specificResources?.diy?.image}
+            foodBankImage={gameResources?.specificResources?.foodbank?.image}
+            greenBinImage={gameResources?.specificResources?.greenbin?.image}
+            diyImage={gameResources?.specificResources?.diy?.image}
           />
           
-          {gameResources.specificResources?.landfill?.image && (
+          {gameResources?.specificResources?.landfill?.image && (
             <div className="absolute bottom-16 right-16 w-20 h-20">
               <img 
                 src={gameResources.specificResources.landfill.image} 
@@ -558,7 +543,7 @@ export default function GameArea({
             </div>
           )}
 
-          {gameResources.specificResources?.bush?.image && (
+          {gameResources?.specificResources?.bush?.image && (
             <div className="absolute bottom-16 left-16 w-20 h-20">
               <img 
                 src={gameResources.specificResources.bush.image} 
@@ -579,10 +564,10 @@ export default function GameArea({
             direction={characterDirection}
             isMoving={isCharacterMoving}
             spriteResources={{
-              front_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'front_player')?.image,
-              back_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'back_player')?.image,
-              left_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'left_player')?.image,
-              right_player: gameResources.resources?.find(r => r.name.toLowerCase() === 'right_player')?.image
+              front_player: gameResources?.resources?.find(r => r.name.toLowerCase() === 'front_player')?.image,
+              back_player: gameResources?.resources?.find(r => r.name.toLowerCase() === 'back_player')?.image,
+              left_player: gameResources?.resources?.find(r => r.name.toLowerCase() === 'left_player')?.image,
+              right_player: gameResources?.resources?.find(r => r.name.toLowerCase() === 'right_player')?.image
             }}
           />
           
