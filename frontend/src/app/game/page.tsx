@@ -94,6 +94,13 @@ export default function Game() {
   };
 
   /**
+   * Handles going back from How to Play to PreGame screen
+   */
+  const handleBack = () => {
+    setShowPreGame(true);
+  };
+
+  /**
    * Handles restart after game over
    * Returns player to the pre-game page instead of directly restarting
    */
@@ -164,6 +171,7 @@ export default function Game() {
         {!gameStarted && !gameOver && !showPreGame && (
           <HowToPlay 
             handleStartGame={handleStartGame} 
+            handleBack={handleBack}
           />
         )}
         
