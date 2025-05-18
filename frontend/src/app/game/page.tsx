@@ -65,7 +65,7 @@ export default function Game() {
     if (mainContentRef.current) {
       // Get the position of the element
       const elementPosition = mainContentRef.current.getBoundingClientRect().top;
-      // Calculate the target position with offset for navbar (20px)
+      // Calculate the target position with offset for navbar (100px)
       const offsetPosition = elementPosition + window.pageYOffset - 100;
       
       // Scroll to the element with the offset
@@ -75,6 +75,22 @@ export default function Game() {
       });
     }
   };
+
+    /**
+   * Scrolls for restart game
+   */
+    const scrollForRestartGame = () => {
+      if (mainContentRef.current) {
+        // Get the position of the element
+        const elementPosition = mainContentRef.current.getBoundingClientRect().top;
+      
+        // Scroll to the element with the offset
+        window.scrollTo({
+          top: elementPosition,
+          behavior: 'smooth'
+        });
+      }
+    };
 
   /**
    * Handles starting the game
@@ -142,7 +158,7 @@ export default function Game() {
     setTime(120);
     
     // Scroll to the main content div
-    scrollToMainContent();
+    scrollForRestartGame();
   };
 
   /**
