@@ -206,8 +206,8 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '30/minute',
         'produce_detection': '10/minute',
-        'economic-impact': '50/minute',
-        'food-emissions': '50/minute',
+        'economic-impact': '100/minute',
+        'food-emissions': '100/minute',
         'household-impact': '50/minute',
         'food-waste-by-category': '100/minute',
         'country-yearly-waste': '100/minute',

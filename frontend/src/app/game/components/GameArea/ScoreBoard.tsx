@@ -14,20 +14,20 @@ interface ScoreBoardProps {
  */
 export default function ScoreBoard({ score, time }: ScoreBoardProps) {
   return (
-    <div className="bg-green-800 bg-opacity-75 backdrop-filter backdrop-blur-sm text-white p-4 flex justify-between items-center">
+    <div className="bg-green-800 bg-opacity-80 backdrop-filter backdrop-blur-sm text-white p-4 flex justify-between items-center">
       <div className="flex items-center">
         <span className="mr-2">⏱️</span>
-        <span className="text-xl font-bold text-yellow-300">{time}s</span>
+        <span className="text-xl font-bold text-amber-600">{time}s</span>
       </div>
       <div className="flex items-center">
         <span className="mr-2">⭐</span>
-        <span className="text-xl font-bold text-yellow-300">{score} points</span>
+        <span className="text-xl font-bold text-amber-600">{score} points</span>
       </div>
       <div className="flex items-center">
-        <span className="text-sm mr-2 text-yellow-300">Goal: 100 points</span>
+        <span className="text-sm mr-2 text-amber-600">Goal: 100 points</span>
         <div className="w-32 bg-gray-300 bg-opacity-50 rounded-full h-4">
           <div
-            className="bg-yellow-400 h-4 rounded-full"
+            className="bg-amber-600 h-4 rounded-full"
             style={{ width: `${Math.min(100, score)}%` }}
           ></div>
         </div>

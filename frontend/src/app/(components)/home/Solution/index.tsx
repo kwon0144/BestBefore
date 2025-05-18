@@ -101,15 +101,15 @@ export default function Solution() {
             description: "Make sustainability fun with challenges",
             buttonText: "Play Now",
             image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/wastegame.jpeg",
-            link: "/"
+            link: "/game"
         },
         {
             icon: 'faChartLine',
             title: "Impact",
-            description: "Measure your environmental and financial savings",
+            description: "Learn about the impact of food waste",
             buttonText: "Calculate Impact",
             image: "https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/impact.jpeg",
-            link: "/"
+            link: "/food-impact"
         },
     ];
 

@@ -86,7 +86,6 @@ export default function GameArea({
   const characterSize = 60;
   const foodSize = 40;
   const moveSpeed = 10;
-  const diyCooldownTime = 5; // 5 seconds cooldown
 
   // Define the conveyor segments with useMemo to prevent recreating on each render
   const conveyorSegments = React.useMemo(() => [
@@ -114,7 +113,6 @@ export default function GameArea({
   useEffect(() => {
     if (foodItems && foodItems.length > 0) {
       setGameFoodItems(foodItems);
-      console.log('Received game food items from API:', foodItems.length);
     }
   }, [foodItems]);
 
@@ -183,9 +181,6 @@ export default function GameArea({
   const trackWastedFood = useCallback((food: FoodType) => {
     if (food.type === 'trash') return; // Don't track trash items
 
-    // Log the food object to verify if greengas_emession exists
-    console.log('Tracking wasted food with data:', food);
-
     setWasteStats(prev => {
       const newWastedFoods = { ...prev.wastedFoods };
       if (!newWastedFoods[food.name]) {
@@ -241,7 +236,7 @@ export default function GameArea({
                       showMessage('-5 points. Food wasted!', 'error');
                       trackWastedFood(food);
                     })
-                    .catch(error => console.error('Failed to update score:', error));
+                    .catch(() => {});
                   keepFood = false;
                 } else if (food.type === 'trash') {
                   keepFood = false;

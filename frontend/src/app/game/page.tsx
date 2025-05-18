@@ -10,7 +10,7 @@
  * - Screen transitions between different game phases
  * - Fullscreen functionality (toggled via button in the bottom-right corner of GameArea)
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { startGame, endGame } from '@/services/gameService';
 import { Difficulty, WasteStats } from './interfaces';
 import { playSound, stopBackgroundMusic } from './utils/soundEffects';
@@ -23,6 +23,7 @@ import PreGamePage from './components/PreGamePage';
 import HowToPlay from './components/HowToPlay';
 import GameArea from './components/GameArea';
 import GameOver from './components/GameOver';
+import Title from '../(components)/Title';
 
 /**
  * Main game page that manages screen transitions and game flow
@@ -38,10 +39,13 @@ export default function Game() {
     totalWasted: 0
   });
   
+  // Create ref for the main content div to scroll to
+  const mainContentRef = useRef<HTMLDivElement>(null);
+  
   // Get game state from custom hook
   const { 
     score, setScore, time, setTime, gameId, setGameId,
-    playerId, setPlayerId, foodItems, loading,
+    playerId, foodItems, loading,
     soundsLoaded, backgroundImage, resultBgImage, gameResources, resourcesLoading
   } = useGameState();
 
@@ -55,6 +59,40 @@ export default function Game() {
   }
 
   /**
+   * Scrolls to the main content div
+   */
+  const scrollToMainContent = () => {
+    if (mainContentRef.current) {
+      // Get the position of the element
+      const elementPosition = mainContentRef.current.getBoundingClientRect().top;
+      // Calculate the target position with offset for navbar (100px)
+      const offsetPosition = elementPosition + window.pageYOffset - 100;
+      
+      // Scroll to the element with the offset
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+    /**
+   * Scrolls for restart game
+   */
+    const scrollForRestartGame = () => {
+      if (mainContentRef.current) {
+        // Get the position of the element
+        const elementPosition = mainContentRef.current.getBoundingClientRect().top;
+      
+        // Scroll to the element with the offset
+        window.scrollTo({
+          top: elementPosition,
+          behavior: 'smooth'
+        });
+      }
+    };
+
+  /**
    * Handles starting the game
    * First click: Shows "How to Play" screen
    * Second click: Starts the actual game
@@ -63,6 +101,8 @@ export default function Game() {
     // First click: Show "How to Play" screen
     if (showPreGame) {
       setShowPreGame(false);
+      // Scroll to the main content div
+      scrollToMainContent();
       return;
     }
 
@@ -78,21 +118,31 @@ export default function Game() {
       const response = await startGame(playerId || 'anonymous');
       setGameId(response.game_id);
       setScore(0);
-      setTime(60);
+      setTime(100);
       setGameStarted(true);
       setGameOver(false);
       
+      // Scroll to the main content div
+      scrollToMainContent();
+      
       // Play game start sound only when actually starting the game
       if (soundsLoaded) {
-        console.log('Playing game start sound');
         playSound('gameStart');
         // Start background music
         playSound('backgroundMusic');
       }
     } catch (error) {
-      console.error('Failed to start game:', error);
       alert('Failed to start game. Please try again.');
     }
+  };
+
+  /**
+   * Handles going back from How to Play to PreGame screen
+   */
+  const handleBack = () => {
+    setShowPreGame(true);
+    // Scroll to the main content div
+    scrollToMainContent();
   };
 
   /**
@@ -107,7 +157,8 @@ export default function Game() {
     setScore(0);
     setTime(120);
     
-    // Remove the sound play here since we're just going back to pre-game
+    // Scroll to the main content div
+    scrollForRestartGame();
   };
 
   /**
@@ -123,7 +174,8 @@ export default function Game() {
       setGameOver(true);
       setGameStarted(false);
       
-      console.log('Game over state set:', { gameOver: true, resultBgImage });
+      // Scroll to the main content div
+      scrollToMainContent();
       
       // Play game over sound and stop background music
       if (soundsLoaded) {
@@ -131,7 +183,6 @@ export default function Game() {
         stopBackgroundMusic();
       }
     } catch (error) {
-      console.error('Failed to end game:', error);
       setGameOver(true);
       // Ensure background music stops even on error
       stopBackgroundMusic();
@@ -152,8 +203,15 @@ export default function Game() {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      <div className="relative z-10 max-w-6xl mx-auto px-4 pt-20">
-        
+      {/* Page header with title and background image */}
+      <div className="py-12">
+        <Title 
+        heading="Food Waste Game" 
+        description="Learn to sort food waste correctly and reduce environmental impact through fun gameplay." 
+        />
+      </div>
+      <div ref={mainContentRef} className="relative z-10 max-w-6xl mx-auto px-4 pb-40">
+
         {/* Pre-game screen */}
         {!gameStarted && !gameOver && showPreGame && (
           <PreGamePage 
@@ -169,6 +227,7 @@ export default function Game() {
         {!gameStarted && !gameOver && !showPreGame && (
           <HowToPlay 
             handleStartGame={handleStartGame} 
+            handleBack={handleBack}
           />
         )}
         

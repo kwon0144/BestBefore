@@ -1,13 +1,33 @@
+/**
+ * CostOfFoodWaste Component
+ * 
+ * Visualizes the economic impact of food waste on households in Australia.
+ * Features interactive gauge charts showing key metrics like waste per capita,
+ * economic loss, household waste percentage, and annual cost per household.
+ * 
+ * @component
+ */
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import * as d3 from 'd3';
 import { config } from '@/config';
 
+/**
+ * Props for the CostOfFoodWaste component
+ * 
+ * @interface CostOfFoodWasteProps
+ * @property {function} [setRef] - Optional function to set the ref of this component for scrolling/visibility tracking
+ */
 interface CostOfFoodWasteProps {
   setRef?: (node: HTMLDivElement | null) => void;
 }
 
+/**
+ * Interface representing household food waste impact data from the API
+ * 
+ * @interface HouseholdImpactData
+ */
 interface HouseholdImpactData {
   overall: {
     latest_year: number;
@@ -33,13 +53,26 @@ interface HouseholdImpactData {
   updated_at: string;
 }
 
+/**
+ * CostOfFoodWaste displays the economic impact of food waste on households
+ * using animated gauge charts created with D3.js and textual explanations.
+ * 
+ * @param {CostOfFoodWasteProps} props - Component props
+ * @returns {JSX.Element} Rendered component
+ */
 const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
+  // Reference for the D3 chart container
   const chartRef = useRef<HTMLDivElement>(null);
+  // State for storing the API data
   const [impactData, setImpactData] = useState<HouseholdImpactData | null>(null);
+  // Loading state for the API request
   const [loading, setLoading] = useState<boolean>(true);
+  // State for the current year's data to display
   const [currentYearData, setCurrentYearData] = useState<any>(null);
 
-  // Fetch data from API
+  /**
+   * Fetch household impact data from the API
+   */
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -63,13 +96,19 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
     fetchData();
   }, []);
 
-  // Create visualization
+  /**
+   * Create the D3 visualization when data is available
+   */
   useEffect(() => {
     if (!chartRef.current || !currentYearData) return;
 
     createVisualization();
   }, [currentYearData]);
 
+  /**
+   * Creates the D3 gauge charts visualization
+   * Each gauge represents a different metric related to food waste
+   */
   const createVisualization = () => {
     if (!chartRef.current || !currentYearData) return;
 
@@ -103,9 +142,6 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
 
     // Calculate positions for the gauge charts
     const gaugeRadius = Math.min(innerWidth, innerHeight) / 4.5;
-    const centerX = innerWidth / 2;
-    const centerY = innerHeight / 2;
-    const gaugeWidth = gaugeRadius * 2.5;
     
     // Change from a single row to 2 rows of 2 metrics each
     const numRows = 2;
@@ -221,7 +257,7 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
   };
 
   return (
-    <div className="py-20" ref={setRef}>
+    <div className="py-32" ref={setRef}>
       <motion.div 
         className="max-w-6xl mx-auto"
         initial={{ opacity: 0 }}
@@ -232,6 +268,7 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
         viewport={{ once: false, amount: 0.2 }}
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
+            {/* Left column with text content */}
             <div className="px-4">
                 <motion.div
                     initial={{ opacity: 0, x: -50 }}
@@ -250,6 +287,7 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
                     <p>
                         <span className="bg-green text-white px-4 py-2 inline-block mr-1">Household food waste</span> 
                         costs up to <span className="bg-green text-white px-4 py-2 inline-block mr-1">${Math.round(currentYearData?.annual_cost_per_household || 12963).toLocaleString()} per household</span> annually.
+                        <sup className="text-sm font-bold align-super ml-2">1</sup>
                     </p>
                 </motion.div>
 
@@ -269,6 +307,7 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
                 </motion.p>
             </div>
 
+            {/* Right column with D3 gauge charts */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ 
@@ -288,7 +327,7 @@ const CostOfFoodWaste: React.FC<CostOfFoodWasteProps> = ({ setRef }) => {
                   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green"></div>
                 </div>
               ) : currentYearData ? (
-                <div className="h-[400px]" ref={chartRef}></div>
+                <div className="h-[270px]" ref={chartRef}></div>
               ) : (
                 <div className="flex justify-center items-center h-[400px]">
                   <p className="text-gray-600">Error loading data</p>

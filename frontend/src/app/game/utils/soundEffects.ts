@@ -45,8 +45,8 @@ export const playSound = (type: SoundType): void => {
     if (type === 'backgroundMusic') {
       if (backgroundMusicAudio) {
         backgroundMusicAudio.currentTime = 0;
-        backgroundMusicAudio.play().catch(err => {
-          console.warn('Background music playback failed:', err.message);
+        backgroundMusicAudio.play().catch(() => {
+          // Auto-play may be blocked by browser policy
         });
         return;
       }
@@ -54,8 +54,8 @@ export const playSound = (type: SoundType): void => {
       backgroundMusicAudio = new Audio(soundUrls[type]);
       backgroundMusicAudio.volume = soundVolumes[type];
       backgroundMusicAudio.loop = true; // Enable looping
-      backgroundMusicAudio.play().catch(err => {
-        console.warn('Background music playback failed:', err.message);
+      backgroundMusicAudio.play().catch(() => {
+        // Auto-play may be blocked by browser policy
       });
       return;
     }
@@ -63,13 +63,11 @@ export const playSound = (type: SoundType): void => {
     // Handle one-shot sound effects
     const audio = new Audio(soundUrls[type]);
     audio.volume = soundVolumes[type]; // Use type-specific volume
-    audio.play().catch(err => {
-      // Silently fail on autoplay restrictions
-      console.warn('Sound playback failed:', err.message);
+    audio.play().catch(() => {
+      // Auto-play may be blocked by browser policy
     });
   } catch (error) {
-    // Gracefully handle any errors with sound playback
-    console.warn('Error playing sound:', error);
+    // Continue execution if sound playback fails
   }
 };
 

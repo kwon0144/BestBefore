@@ -39,8 +39,8 @@ const menuItems = [
   { path: "/storage-assistant", label: "Storage Assistant" },
   { path: "/eco-grocery", label: "Eco Grocery" },
   { path: "/second-life", label: "Second Life" },
-  { path: "/game", label: "Waste Game" },
   { path: "/food-network", label: "Food Network" },
+  { path: "/game", label: "Waste Game" },
   { path: "/food-impact", label: "Food Impact" },
 ];
 

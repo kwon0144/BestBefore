@@ -1,11 +1,34 @@
+/**
+ * AustraliaWaste Component
+ * 
+ * A visual representation of Australia's annual food waste statistics.
+ * This component features an animated headline with the total tonnage of
+ * food wasted in Australia annually, displayed over a background image
+ * that's subtly faded for better text readability.
+ * 
+ * @component
+ */
 import React, { useRef } from 'react';
 import { motion } from "framer-motion";
 import { fadeInUpVariant, fadeInVariant } from '../interfaces/AnimationVariants';
 
+/**
+ * Props for the AustraliaWaste component
+ * 
+ * @interface AustraliaWasteProps
+ * @property {function} setRef - Function to set the ref of this component for scrolling/visibility tracking
+ */
 interface AustraliaWasteProps {
   setRef: (node: HTMLDivElement | null) => void;
 }
 
+/**
+ * AustraliaWaste component displays the total annual food waste in Australia
+ * using a dramatic, large typography approach with animation effects.
+ * 
+ * @param {AustraliaWasteProps} props - Component props
+ * @returns {JSX.Element} Rendered component
+ */
 const AustraliaWaste: React.FC<AustraliaWasteProps> = ({ setRef }) => {
   return (
     <motion.div 
@@ -25,12 +48,15 @@ const AustraliaWaste: React.FC<AustraliaWasteProps> = ({ setRef }) => {
       }}
     >
       <div className="max-w-6xl mx-auto h-full flex flex-col justify-end pb-4 px-4 md:px-6">
+        {/* Introductory text with fade-in-up animation */}
         <motion.p 
           variants={fadeInUpVariant}
           className="text-darkgreen text-xl md:text-2xl font-bold"
         >
           Each year, Australians waste food across the supply chain in a total of
         </motion.p>
+
+        {/* Main statistic with custom scale animation */}
         <motion.h2 
           variants={{
             hidden: { opacity: 0, scale: 0.9 },

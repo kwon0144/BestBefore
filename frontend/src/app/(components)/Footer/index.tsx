@@ -38,6 +38,16 @@ const menuItems = [
       {name: "Food Bank Network"},
       {name: "Green Waste Bin Network"},
   ]},
+  {name: "Waste Game", link: "/game", section: [
+    {name: "Food Waste Guide"},
+    {name: "Game Play"},
+    {name: "Personalized Tips"},
+  ]},
+  {name: "Food Impact", link: "/food-impact", section: [
+    {name: "Economic Loss"},
+    {name: "Envoirnmental Impact"},
+    {name: "Around the World"},
+  ]},
 ];
 
 /**
@@ -66,7 +76,7 @@ const Footer = () => {
               </p>
             </div>
           </div>
-            <div className="grid grid-cols-2 gap-8 text-sm px-20 ">
+            <div className="grid grid-cols-3 gap-4 text-sm px-20 ">
               {menuItems.map((item) => (
                 <NoScrollLink href={item.link} key={item.name}>
                   <div>
