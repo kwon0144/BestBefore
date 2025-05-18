@@ -52,7 +52,7 @@ const EmissionsChart: React.FC<EmissionsChartProps> = ({ setRef }) => {
   }
 
   return (
-    <div className="bg-green-50 py-10 md:py-16 px-4 lg:px-0" ref={setRef}>
+    <div className="bg-green-50 py-10 md:pb-20 px-4 lg:px-0" ref={setRef}>
       <div className="max-w-6xl mx-auto">
         {/* Section title */}
         <h2 className="text-3xl md:text-5xl font-bold text-darkgreen mb-3 md:mb-4">

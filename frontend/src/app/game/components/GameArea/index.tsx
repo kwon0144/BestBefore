@@ -86,7 +86,6 @@ export default function GameArea({
   const characterSize = 60;
   const foodSize = 40;
   const moveSpeed = 10;
-  const diyCooldownTime = 5; // 5 seconds cooldown
 
   // Define the conveyor segments with useMemo to prevent recreating on each render
   const conveyorSegments = React.useMemo(() => [

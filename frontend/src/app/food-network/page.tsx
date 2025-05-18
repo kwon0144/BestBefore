@@ -8,6 +8,7 @@ import MapSection from "./MapSection";
 import DonationDisposalOptions from "./DonationDisposalOptions";
 import FoodNetworkList from "./FoodNetworkList";
 import { MapSectionState, ViewState } from "./interfaces/State";
+import ComingUp from "../(components)/ComingUp";
 
 const GOOGLE_MAPS_LIBRARIES: ("places" | "routes")[] = ["places", "routes"];
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
@@ -96,7 +97,7 @@ export default function FoodNetwork() {
   };
 
   return (
-    <div>
+    <div className="mb-20">
       {/* Page header with title and background image */}
       <div className="py-12">
         <Title 
@@ -145,6 +146,16 @@ export default function FoodNetwork() {
             </div>
           </APIProvider>
         )}
+        {/* Coming up next section */}
+        <ComingUp
+          message="Ready to test your understanding?"
+          title="Play our interactive game of food waste trivia!"
+          description="Can you tell which items should go to a food bank, into a green waste bin, or be reused through DIY?"
+          buttonText="Play the Game Now"
+          buttonLink="/game"
+          imageSrc="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/food-network-next.png"
+          imageAlt="Waste Game"
+        />
       </div>
     </div>
   );
