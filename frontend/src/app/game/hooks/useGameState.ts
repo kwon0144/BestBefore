@@ -5,7 +5,8 @@
 import { useState, useEffect } from 'react';
 import axios from "axios";
 import { config } from "@/config";
-import { FoodItem, ApiResponse } from '../interfaces';
+import { FoodItem, ApiResponse, ResourcesApiResponse } from '../interfaces';
+import { getGameResources } from '@/services/gameService';
 
 /**
  * Hook for managing game state and food items data
@@ -26,12 +27,49 @@ export default function useGameState() {
   // Sound loading state
   const [soundsLoaded, setSoundsLoaded] = useState(false);
 
+  // Game resources state
+  const [gameResources, setGameResources] = useState<ResourcesApiResponse | null>(null);
+  const [resourcesLoading, setResourcesLoading] = useState(true);
+  const [resourcesError, setResourcesError] = useState<string | null>(null);
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [resultBgImage, setResultBgImage] = useState<string | null>(null);
+
   // Initialize sounds when component mounts
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Set sounds as loaded immediately since we're using direct URLs
       setSoundsLoaded(true);
     }
+  }, []);
+
+  // Centralized game resources loading
+  useEffect(() => {
+    const loadGameResources = async () => {
+      try {
+        setResourcesLoading(true);
+        const resources = await getGameResources();
+        setGameResources(resources);
+        
+        // Extract background images
+        if (resources.specificResources.background?.image) {
+          setBackgroundImage(resources.specificResources.background.image);
+        }
+        
+        // Load Result_BG for game over screen
+        if (resources.specificResources.result_bg?.image) {
+          setResultBgImage(resources.specificResources.result_bg.image);
+        }
+        
+        setResourcesError(null);
+      } catch (error) {
+        console.error('Failed to load game resources:', error);
+        setResourcesError('Failed to load game resources. Please refresh.');
+      } finally {
+        setResourcesLoading(false);
+      }
+    };
+    
+    loadGameResources();
   }, []);
 
   // Fetch food items from API
@@ -70,6 +108,13 @@ export default function useGameState() {
     error,
     
     // Sound state
-    soundsLoaded
+    soundsLoaded,
+    
+    // Resources state
+    gameResources,
+    resourcesLoading,
+    resourcesError,
+    backgroundImage,
+    resultBgImage
   };
 } 

@@ -12,6 +12,11 @@ const api = axios.create({
     withCredentials: true // This is important for CORS
 });
 
+// Cache management for resources
+let resourcesCache = null;
+let lastResourceFetch = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache TTL
+
 export const startGame = async (playerId) => {
     try {
         const response = await api.post('/api/game/start/', { player_id: playerId });
@@ -72,6 +77,14 @@ export const getFoodItems = async () => {
 
 export const getGameResources = async () => {
     try {
+        // Check if we have valid cached resources
+        const now = Date.now();
+        if (resourcesCache && now - lastResourceFetch < CACHE_TTL) {
+            console.log('Using cached game resources');
+            return resourcesCache;
+        }
+        
+        console.log('Fetching fresh game resources');
         const response = await api.get('/api/game/resources/');
         
         // Process resources for easy access
@@ -103,6 +116,10 @@ export const getGameResources = async () => {
         
         // Add the specific resources to the processed data
         processedResources.specificResources = specificResources;
+        
+        // Update cache
+        resourcesCache = processedResources;
+        lastResourceFetch = now;
         
         return processedResources;
     } catch (error) {
