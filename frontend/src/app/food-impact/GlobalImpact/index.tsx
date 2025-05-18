@@ -5,7 +5,7 @@ import { geoOrthographic, geoPath, GeoPermissibleObjects } from 'd3-geo';
 import { feature } from 'topojson-client';
 import axios from 'axios';
 import { config } from '@/config';
-import { Slider } from "@heroui/react";
+import { Slider, Select, SelectItem } from "@heroui/react";
 
 // Import interfaces and hooks
 import { 
@@ -441,12 +441,21 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       instructionFrame.innerHTML = `
         <div class="relative">
           ${closeButtonHtml}
-          <h3 class="text-lg font-medium text-darkgreen mb-2">${countryName}</h3>
-          <div class="p-4 bg-gray-50 rounded-md text-center animate-fade-in">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <h3 class="text-xl font-semibold text-darkgreen mb-2 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <p class="text-sm text-gray-700">No data available for ${countryName}.</p>
+            ${countryName}
+          </h3>
+          <div class="p-5 bg-white/80 backdrop-blur-sm rounded-xl text-center animate-fade-in shadow-md">
+            <div class="bg-gray-50 rounded-full p-4 w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p class="text-gray-700 font-medium">No data available for ${countryName}</p>
+            <p class="text-sm text-gray-500 mt-2">Try selecting another country or changing the year.</p>
           </div>
         </div>
       `;
@@ -473,38 +482,87 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       instructionFrame.innerHTML = `
         <div class="relative animate-fade-in">
           ${closeButtonHtml}
-          <div class="flex items-center mb-4 pr-7"> <!-- Added right padding to prevent overlap with close button -->
-            <h3 class="text-xl font-semibold text-darkgreen">${countryName}</h3>
-            <div class="text-xs text-gray-500 ml-auto">Data for ${selectedYear}</div>
+          
+          <!-- Country Header with Map Pin Icon -->
+          <div class="flex items-center mb-6">
+            <div class="flex items-center">
+              <div class="bg-green/10 p-2 rounded-full mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-darkgreen">${countryName}</h3>
+            </div>
+            <div class="ml-auto px-3 py-1 bg-green/10 rounded-full text-xs font-medium text-green">Data for ${selectedYear}</div>
           </div>
           
-          <div class="bg-gray-50 rounded-lg p-4 mb-4">
+          <!-- Statistics Cards -->
+          <div class="space-y-4 mb-6">
+            <!-- Total Waste Card -->
+            <div class="${wasteHighlight ? 'bg-green/10' : 'bg-green/10'} backdrop-blur-sm rounded-xl p-4 transition-all duration-300 ${wasteHighlight ? 'ring-2 ring-green shadow-md transform scale-[1.02]' : 'shadow-sm'} overflow-hidden relative">
+              ${wasteHighlight ? `<div class="absolute top-0 left-0 w-1 h-full bg-green"></div>` : ''}
+              <div class="flex items-start">
+                <div class="flex-grow">
+                  <div class="flex items-center">
+                    <span class="text-xs uppercase tracking-wide ${wasteHighlight ? 'text-darkgreen font-bold' : 'text-darkgreen font-medium'}">Total Waste</span>
+                  </div>
+                  <div class="text-lg ${wasteHighlight ? 'font-bold text-darkgreen' : 'text-darkgreen font-medium'} mt-1">${wasteData} tonnes</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Economic Loss and Household Waste Cards-->
             <div class="grid grid-cols-2 gap-4">
-              <div class="col-span-2 ${wasteHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                <span class="text-xs uppercase tracking-wide ${wasteHighlight ? 'text-green-800 font-medium' : 'text-gray-500'}">Total Waste</span>
-                <div class="text-lg ${wasteHighlight ? 'font-bold text-green-600' : 'text-gray-700'}">${wasteData} tonnes</div>
+              <!-- Economic Loss Card -->
+              <div class="${economicHighlight ? 'bg-amber-50' : 'bg-amber-50/70'} backdrop-blur-sm rounded-xl p-4 transition-all duration-300 ${economicHighlight ? 'ring-2 ring-amber-500 shadow-md transform scale-[1.02]' : 'shadow-sm'} overflow-hidden relative h-full">
+                ${economicHighlight ? `<div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>` : ''}
+                <div class="flex items-start">
+                  <div class="flex-grow">
+                    <div class="flex items-center flex-wrap">
+                      <span class="text-xs uppercase tracking-wide ${economicHighlight ? 'text-amber-800 font-bold' : 'font-medium text-amber-700'} mr-1">Economic Loss</span>
+                    </div>
+                    <div class="text-lg ${economicHighlight ? 'font-bold text-amber-700' : 'font-medium text-amber-700'} mt-1">${economicData}</div>
+                  </div>
+                </div>
               </div>
               
-              <div class="${economicHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                <span class="text-xs uppercase tracking-wide ${economicHighlight ? 'text-amber-800 font-medium' : 'text-gray-500'}">Economic Loss</span>
-                <div class="text-lg ${economicHighlight ? 'font-bold text-amber-600' : 'text-gray-700'}">${economicData}</div>
+              <!-- Household Waste Card -->
+              <div class="${householdHighlight ? 'bg-purple-50' : 'bg-purple-50/70'} backdrop-blur-sm rounded-xl p-4 transition-all duration-300 ${householdHighlight ? 'ring-2 ring-purple-500 shadow-md transform scale-[1.02]' : 'shadow-sm'} overflow-hidden relative h-full">
+                ${householdHighlight ? `<div class="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>` : ''}
+                <div class="flex items-start">
+                  <div class="flex-grow">
+                    <div class="flex items-center flex-wrap">
+                      <span class="text-xs uppercase tracking-wide ${householdHighlight ? 'text-purple-800 font-bold' : 'font-medium text-purple-700'} mr-1">Household Waste</span>
+                    </div>
+                    <div class="text-lg ${householdHighlight ? 'font-bold text-purple-700' : 'font-medium text-purple-700'} mt-1">${householdData}</div>
+                  </div>
+                </div>
               </div>
-              
-              <div class="${householdHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                <span class="text-xs uppercase tracking-wide ${householdHighlight ? 'text-purple-800 font-medium' : 'text-gray-500'}">Household Waste</span>
-                <div class="text-lg ${householdHighlight ? 'font-bold text-purple-600' : 'text-gray-700'}">${householdData}</div>
-              </div>
-              
-              <div class="col-span-2 mt-2">
-                <span class="text-xs uppercase tracking-wide text-gray-500">Annual Cost per Household</span>
-                <div class="text-lg text-gray-700 font-medium">${costData}</div>
+            </div>
+            
+            <!-- Annual Cost Card -->
+            <div class="bg-blue-50/70 backdrop-blur-sm rounded-xl p-4 shadow-sm overflow-hidden">
+              <div class="flex items-start">
+                <div class="flex-grow">
+                  <span class="text-xs uppercase tracking-wide text-blue-700 font-medium">Annual Cost per Household</span>
+                  <div class="text-lg text-blue-700 font-medium mt-1">${costData}</div>
+                </div>
               </div>
             </div>
           </div>
           
-          <div class="bg-white border border-gray-100 rounded-lg p-4">
-            <div class="text-sm font-medium text-gray-700 mb-2">Historical Trend</div>
-            ${trendChartHtml}
+          <!-- Historical Trend Section with Improved Design -->
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md">
+            <div class="flex items-center mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-darkgreen mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <div class="text-sm font-medium text-darkgreen">Historical Trend</div>
+            </div>
+            <div class="mt-1 overflow-hidden">
+              ${trendChartHtml}
+            </div>
           </div>
         </div>
       `;
@@ -1067,45 +1125,50 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       </motion.div>
 
       {/* Map Section */}
-      <div className="py-4 md:py-8">
+      <div className="py-16 md:py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl md:text-4xl font-bold text-darkgreen mb-2 md:mb-4 text-left">
-            Global Food Waste Distribution 2024
+            <span className="bg-green text-white px-4 py-2 inline-block mr-1">Australia</span> ranks in the <span className="bg-green text-white px-4 py-2 inline-block mr-1">Top 20 Countries</span> for Food Waste
           </h2>
-          <p className="text-gray-700 mb-4 md:mb-6 text-left">
+          <p className="text-xl font-bold text-gray-700 mb-4 md:mb-12 text-left">
             Food waste is a global issue with varying impacts across different regions.
           </p>
           
+          <div className="bg-green/10 px-10 py-8 rounded-lg">
           <div className="mb-2 flex flex-wrap items-center justify-between">
-            <div className="text-xl font-semibold text-darkgreen text-left mb-1 md:mb-0 flex items-center">
+            <div className="text-xl font-bold text-darkgreen text-left mb-1 md:mb-0 flex items-center">
               Global Food Waste {selectedYear}: {indicatorName}
             </div>
             
             <div className="w-full md:w-1/3">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Select Indicator</label>
-              <select
+              <label className="block text-sm font-medium text-gray-700 mb-1 mt-2">Select Indicator</label>
+              <Select
                 aria-label="Select indicator type"
-                value={selectedIndicator}
-                onChange={(e) => {
-                  const newIndicator = e.target.value;
-                  setSelectedIndicator(newIndicator);
-                  const newName = INDICATORS.find(ind => ind.id === newIndicator)?.name || '';
+                selectedKeys={[selectedIndicator]}
+                onSelectionChange={(keys) => {
+                  const selectedKey = Array.from(keys)[0] as string;
+                  setSelectedIndicator(selectedKey);
+                  const newName = INDICATORS.find(ind => ind.id === selectedKey)?.name || '';
                   setIndicatorName(newName);
                 }}
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+                className="w-full"
+                classNames={{
+                  trigger: "bg-white min-h-[48px] border-1",
+                  value: "text-sm",
+                }}
               >
                 {INDICATORS.map(indicator => (
-                  <option key={indicator.id} value={indicator.id}>
+                  <SelectItem key={indicator.id}>
                     {indicator.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </Select>
             </div>
           </div>
           
           <div className="mb-4 flex justify-end">
             <div className="w-full md:w-1/3">
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-1">
+              <div className="flex items-center justify-between text-sm text-gray-500 mb-1 mt-2">
                 <span>2018</span>
                 <span>2024</span>
               </div>
@@ -1131,7 +1194,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           
           <div className="flex flex-col md:flex-row gap-4">
             <div className="w-full md:w-2/3 relative">
-              <svg ref={mapRef} className="w-full h-[600px] md:h-[750px]" />
+              <svg ref={mapRef} className="w-full h-[400px] md:h-[600px]" />
               <div 
                 ref={tooltipRef} 
                 className="absolute hidden bg-white p-2 rounded shadow-lg border border-gray-200 text-sm z-10 pointer-events-none"
@@ -1139,26 +1202,68 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
             </div>
             
             <div className="w-full md:w-1/3">
-              <div className="border border-gray-200 rounded-md p-4 bg-white shadow-sm h-full relative overflow-y-auto md:max-h-[610px]">
+              <div className="border-0 rounded-xl p-5 bg-gray-100 shadow-md h-full relative overflow-y-auto md:max-h-[610px] mt-4">
                 <div id="map-instruction-frame">
-                  <h3 className="text-lg font-medium text-darkgreen mb-2">Map Instructions</h3>
-                  <p className="text-sm text-gray-600 mb-2">
-                    Hover over any country to see detailed food waste statistics.
-                  </p>
-                  <p className="text-sm text-gray-600 mb-2">
-                    Click on a country to keep its information visible.
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Drag the globe to rotate and explore different regions.
-                  </p>
+                  <h3 className="text-xl font-semibold text-darkgreen mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    Interactive Globe Guide
+                  </h3>
+                  
+                  <div className="space-y-4 mt-6">
+                    <div className="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
+                      <div className="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-darkgreen">Hover to Explore</h4>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Move your cursor over any country to instantly reveal detailed food waste statistics.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
+                      <div className="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-darkgreen">Click to Focus</h4>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Click on any country to pin its information and keep it in view while you explore the map.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
+                      <div className="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-darkgreen">Drag to Rotate</h4>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Click and drag anywhere on the globe to rotate and discover food waste data from every region.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           
-          <div className="mt-4 text-sm text-gray-500">
+          <div className="mt-8 text-sm text-gray-500">
             Note: Data visualization shows the global distribution of food waste based on {selectedYear} data.
             Some countries may have incomplete or estimated data.
+          </div>
           </div>
         </div>
       </div>
@@ -1176,6 +1281,28 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         
         .selected-country {
           filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.4));
+        }
+        
+        /* Add pulse animation for instruction cards */
+        @keyframes gentle-pulse {
+          0% { transform: translateY(0); }
+          50% { transform: translateY(-2px); }
+          100% { transform: translateY(0); }
+        }
+        
+        #map-instruction-frame .flex:hover {
+          animation: gentle-pulse 1s ease-in-out;
+        }
+        
+        /* Add subtle pulse animation */
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.8; }
+          100% { opacity: 1; }
+        }
+        
+        .animate-pulse {
+          animation: pulse 1.5s ease-in-out infinite;
         }
       `}</style>
     </>

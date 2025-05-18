@@ -489,7 +489,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
         <motion.div variants={fadeInUpVariant}>
           <div 
             ref={chartRef} 
-            className="w-full h-60 md:h-80"
+            className="w-full"
             aria-label="Food waste composition donut chart"
             role="img"
           ></div>
