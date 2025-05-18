@@ -2,7 +2,7 @@ from django.test import SimpleTestCase, Client
 from django.urls import reverse
 from rest_framework import status
 from unittest.mock import patch, MagicMock
-from .models import SecondLife
+from api.models import SecondLife
 import json
 
 class SecondLifeAPITests(SimpleTestCase):

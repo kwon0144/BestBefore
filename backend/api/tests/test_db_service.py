@@ -1,49 +1,54 @@
 from django.test import TestCase
 from unittest.mock import patch, MagicMock
-from backend.api.service.db_service import get_storage_recommendations, get_all_food_types
+from api.service.db_service import get_storage_recommendations, get_all_food_types
 
 class DBServiceTestCase(TestCase):
-    @patch('api.models.FoodStorage.objects.filter')
-    def test_get_storage_recommendations_success(self, mock_filter):
-        # Setup mock return value for the Django ORM
-        mock_food_item = MagicMock()
-        mock_food_item.type = 'apple'
-        mock_food_item.storage_time = 14
-        mock_food_item.method = 1
-        mock_filter.return_value.first.return_value = mock_food_item
-        
-        # Call the function
-        result = get_storage_recommendations('apple')
-        
-        # Assertions
-        self.assertEqual(result['type'], 'apple')
-        self.assertEqual(result['storage_time'], 14)
-        self.assertEqual(result['method'], 1)
-        mock_filter.assert_called_once()
-    
-    @patch('api.models.FoodStorage.objects.filter')
-    def test_get_storage_recommendations_not_found(self, mock_filter):
-        # Setup mock to return None
-        mock_filter.return_value.first.return_value = None
-        
+    def test_get_storage_recommendations_success(self):
         # Mock the cursor for raw SQL query
         with patch('django.db.connection.cursor') as mock_cursor:
+            # Setup mock to return a successful result
+            mock_execute = MagicMock()
+            mock_cursor.return_value.__enter__.return_value.execute = mock_execute
+            mock_cursor.return_value.__enter__.return_value.fetchone.return_value = ('apple', 14, 7, 1)
+            
+            # Call the function
+            result = get_storage_recommendations('apple')
+            
+            # Assertions
+            self.assertEqual(result['Type'], 'apple')
+            self.assertEqual(result['pantry'], 14)
+            self.assertEqual(result['fridge'], 7)
+            self.assertEqual(result['method'], 1)
+            # Verify the cursor was called with the right query
+            mock_execute.assert_called_once()
+    
+    def test_get_storage_recommendations_not_found(self):
+        # Mock the cursor for raw SQL query
+        with patch('django.db.connection.cursor') as mock_cursor:
+            mock_execute = MagicMock()
+            mock_cursor.return_value.__enter__.return_value.execute = mock_execute
             mock_cursor.return_value.__enter__.return_value.fetchone.return_value = None
             
             # Call the function
             result = get_storage_recommendations('nonexistent_food')
             
-            # Assertions
-            self.assertIsNone(result)
+            # Assertions - function now returns default values instead of None
+            self.assertEqual(result['Type'], 'nonexistent_food')
+            self.assertEqual(result['pantry'], 14)
+            self.assertEqual(result['fridge'], 7)
+            self.assertEqual(result['method'], 1)
     
-    @patch('api.models.FoodStorage.objects.values_list')
-    def test_get_all_food_types_success(self, mock_values_list):
-        # Setup mock return value
-        mock_values_list.return_value.distinct.return_value = ['apple', 'banana', 'orange']
-        
-        # Call the function
-        result = get_all_food_types()
-        
-        # Assertions
-        self.assertEqual(result, ['apple', 'banana', 'orange'])
-        mock_values_list.assert_called_once_with('type', flat=True)
+    def test_get_all_food_types_success(self):
+        # Mock the cursor for raw SQL query
+        with patch('django.db.connection.cursor') as mock_cursor:
+            # Mock the cursor to return food types
+            mock_execute = MagicMock()
+            mock_cursor.return_value.__enter__.return_value.execute = mock_execute
+            mock_cursor.return_value.__enter__.return_value.fetchall.return_value = [
+                ('apple',), ('banana',), ('orange',)
+            ]
+            
+            result = get_all_food_types()
+            
+            # Assertions
+            self.assertEqual(result, ['apple', 'banana', 'orange'])
