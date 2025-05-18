@@ -4,6 +4,7 @@
  */
 import React, { useRef, useState, useEffect } from 'react';
 import { WasteStats, ResourcesApiResponse } from '../../interfaces';
+import ComingUp from '@/app/(components)/ComingUp';
 
 interface GameOverProps {
   score: number;
@@ -377,8 +378,18 @@ export default function GameOver({ score, wasteStats, handleStartGame, gameResou
             </div>
           </div>
         </div>
-        
-        <div className="h-24"></div>
+        {/* Coming up next section */}
+        <div className="mt-20">
+          <ComingUp
+            message="From Simulation to Reality"
+            title="Take a closer look at the real-world impact."
+            description="Food waste affects our environment, our economy, and our communities."
+            buttonText="Understand Food Waste Impact"
+            buttonLink="/food-impact"
+            imageSrc="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/waste-game-next.png"
+            imageAlt="Food Waste Impact"
+          />
+        </div>
       </div>
     </div>
   );
