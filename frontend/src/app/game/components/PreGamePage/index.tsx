@@ -49,7 +49,7 @@ export default function PreGamePage({
 
   return (
     <div className="bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm rounded-lg shadow-xl p-8 max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold text-darkgreen mb-6">How to Play: Food Waste Guide</h2>
+      <h2 className="text-2xl font-bold text-darkgreen mb-6 text-center">🌳 How to Play: Food Waste Guide 🌳</h2>
       
       {/* Food Types Section */}
       <div className="space-y-6">
@@ -143,7 +143,7 @@ export default function PreGamePage({
 
       {/* Difficulty Selection */}
       <div className="mt-8">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Select Difficulty</h3>
+        <h3 className="text-2xl font-bold text-darkgreen mb-8 text-center">🌳 Select Difficulty 🌳</h3>
         <div className="flex gap-4">
           {['Easy', 'Normal', 'Hard'].map((level) => (
             <button
