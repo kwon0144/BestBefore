@@ -49,15 +49,18 @@ export default function PreGamePage({
 
   return (
     <div className="bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm rounded-lg shadow-xl p-8 max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold text-green-800 mb-6">Food Waste Guide</h2>
+      <h2 className="text-2xl font-bold text-darkgreen mb-6">How to Play: Food Waste Guide</h2>
       
       {/* Food Types Section */}
       <div className="space-y-6">
         {/* Food Bank Items */}
         <div className="border rounded-lg overflow-hidden">
-          <div className="p-4 bg-blue-50 bg-opacity-70">
-            <h4 className="font-bold text-blue-800">Food Bank Items</h4>
-            <p className="text-sm text-blue-600">Non-perishable, sealed, and safe to donate</p>
+          <div className="p-3 bg-blue-100 flex items-center border-b border-blue-100">
+              <div className="text-blue-600 text-xl mr-2">🏢</div>
+              <div>
+              <h4 className="font-bold text-blue-800">Food Bank Items</h4>
+              <p className="text-sm text-blue-600">Non-perishable, sealed, and safe to donate</p>
+              </div>
           </div>
           <div className="p-4 bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm">
             <div className="grid grid-cols-5 gap-3">
@@ -81,9 +84,12 @@ export default function PreGamePage({
           
         {/* Green Bin Items */}
         <div className="border rounded-lg overflow-hidden">
-          <div className="p-4 bg-green-50 bg-opacity-70">
-            <h4 className="font-bold text-green-800">Green Bin Items</h4>
-            <p className="text-sm text-green-600">Compostable food waste and scraps</p>
+          <div className="p-3 bg-lime-100 flex items-center border-b border-lime-100">
+              <div className="text-lime-600 text-xl mr-2">♻️</div>
+              <div>
+              <h4 className="font-bold text-darkgreen">Green Bin Items</h4>
+              <p className="text-sm text-darkgreen">Compostable food waste and scraps</p>
+              </div>
           </div>
           <div className="p-4 bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm">
             <div className="grid grid-cols-5 gap-3">
@@ -107,9 +113,12 @@ export default function PreGamePage({
           
         {/* DIY Items */}
         <div className="border rounded-lg overflow-hidden">
-          <div className="p-4 bg-yellow-50 bg-opacity-70">
-            <h4 className="font-bold text-yellow-800">DIY Items</h4>
-            <p className="text-sm text-yellow-600">Items that can be repurposed or upcycled</p>
+          <div className="p-3 bg-amber-100 bg-opacity-80 flex items-center border-b border-amber-100">
+              <div className="text-amber-600 text-xl mr-2">🤲</div>
+              <div>
+                <h4 className="font-bold text-amber-800">DIY Items</h4>
+                <p className="text-sm text-amber-600">Items that can be repurposed or upcycled</p>
+              </div>
           </div>
           <div className="p-4 bg-white bg-opacity-60 backdrop-filter backdrop-blur-sm">
             <div className="grid grid-cols-5 gap-3">
@@ -143,7 +152,7 @@ export default function PreGamePage({
               className={`flex-1 py-3 px-4 rounded-lg text-white font-semibold transition-all duration-300 transform hover:scale-105 ${
                 difficulty === level.toLowerCase()
                   ? level === 'Easy' 
-                    ? 'bg-gradient-to-r from-green-400 to-green-500 shadow-lg shadow-green-200'
+                    ? 'bg-gradient-to-r from-lightgreen to-green shadow-lg shadow-green'
                     : level === 'Normal'
                     ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-lg shadow-yellow-200'
                     : 'bg-gradient-to-r from-red-400 to-red-500 shadow-lg shadow-red-200'
@@ -161,7 +170,6 @@ export default function PreGamePage({
         <button
           onClick={handleStartGame}
           className="bg-[#16a34a] hover:bg-[#15803d] text-white py-4 px-12 rounded-full text-lg font-semibold shadow-lg shadow-green-200 transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
-
         >
           Start Game
         </button>

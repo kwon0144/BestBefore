@@ -162,7 +162,7 @@ export default function Game() {
         description="Learn to sort food waste correctly and reduce environmental impact through fun gameplay." 
         />
       </div>
-      <div className="relative z-10 max-w-6xl mx-auto px-4 pt-20">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 pt-12 pb-20">
         
         {/* Pre-game screen */}
         {!gameStarted && !gameOver && showPreGame && (
