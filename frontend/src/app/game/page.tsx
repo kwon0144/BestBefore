@@ -10,7 +10,7 @@
  * - Screen transitions between different game phases
  * - Fullscreen functionality (toggled via button in the bottom-right corner of GameArea)
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { startGame, endGame } from '@/services/gameService';
 import { Difficulty, WasteStats } from './interfaces';
 import { playSound, stopBackgroundMusic } from './utils/soundEffects';
@@ -23,6 +23,7 @@ import PreGamePage from './components/PreGamePage';
 import HowToPlay from './components/HowToPlay';
 import GameArea from './components/GameArea';
 import GameOver from './components/GameOver';
+import Title from '../(components)/Title';
 
 /**
  * Main game page that manages screen transitions and game flow
@@ -41,7 +42,7 @@ export default function Game() {
   // Get game state from custom hook
   const { 
     score, setScore, time, setTime, gameId, setGameId,
-    playerId, setPlayerId, foodItems, loading,
+    playerId, foodItems, loading,
     soundsLoaded, backgroundImage, resultBgImage, gameResources, resourcesLoading
   } = useGameState();
 
@@ -154,6 +155,13 @@ export default function Game() {
         backgroundRepeat: 'no-repeat'
       }}
     >
+      {/* Page header with title and background image */}
+      <div className="py-12">
+        <Title 
+        heading="Food Waste Game" 
+        description="Learn to sort food waste correctly and reduce environmental impact through fun gameplay." 
+        />
+      </div>
       <div className="relative z-10 max-w-6xl mx-auto px-4 pt-20">
         
         {/* Pre-game screen */}
