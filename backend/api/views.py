@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 from .service.db_service import get_storage_recommendations, get_all_food_types
 from .service.dish_ingre_service import DishIngredientService
 from .service.hours_parser_service import parse_operating_hours
-from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources, FoodWasteComposition, GlobalFoodWastageDataset, FoodEmissions
+from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources, GameResources, FoodWasteComposition, GlobalFoodWastageDataset, FoodEmissions
 from .serializer import FoodBankListSerializer, FoodBankDetailSerializer, GlobalFoodWastageSerializer, CountryWastageSerializer, FoodCategoryWastageSerializer, EconomicImpactSerializer
 from .game_core import start_new_game, update_game_state, end_game_session, prepare_game_food_items
 from .game_validators import get_top_scores, validate_pickup, validate_action
@@ -315,7 +315,7 @@ def get_food_items(request):
         # If a specific food type is requested, filter by that type
         if food_type:
             query = query.filter(type=food_type)
-            food_items = list(query.values('id', 'name', 'type', 'image', 'description', 'diy_option'))
+            food_items = list(query.values('id', 'name', 'type', 'image', 'description', 'diy_option', 'greengas_emession'))
             
             # If we need exactly 5 items of a specific type and have more, randomly select 5
             if len(food_items) > 5:
@@ -324,15 +324,21 @@ def get_food_items(request):
             # Use our balanced food item generator to get 12 items (5-5-2 distribution)
             food_items = prepare_game_food_items(query)
             
-            # If food_items doesn't include diy_option, we need to add it
-            if food_items and 'diy_option' not in food_items[0]:
+            # If food_items doesn't include diy_option or greengas_emession, we need to add them
+            if food_items and ('diy_option' not in food_items[0] or 'greengas_emession' not in food_items[0]):
                 # Get all food IDs
                 food_ids = [item['id'] for item in food_items]
-                # Query the database for diy_option values
-                diy_options = {item.id: item.diy_option for item in GameFoodResources.objects.filter(id__in=food_ids)}
-                # Add diy_option to each item
+                # Query the database for additional values
+                with connection.cursor() as cursor:
+                    ids_str = ','.join(str(id) for id in food_ids)
+                    cursor.execute(f"SELECT id, diy_option, greengas_emession FROM game_foodresources WHERE id IN ({ids_str})")
+                    extra_data = {row[0]: {'diy_option': row[1], 'greengas_emession': row[2]} for row in cursor.fetchall()}
+                
+                # Add values to each item
                 for item in food_items:
-                    item['diy_option'] = diy_options.get(item['id'])
+                    if item['id'] in extra_data:
+                        item['diy_option'] = extra_data[item['id']]['diy_option']
+                        item['greengas_emession'] = extra_data[item['id']]['greengas_emession']
         
         return Response({
             'food_items': food_items,
@@ -726,26 +732,14 @@ def get_game_resources(request):
     This endpoint retrieves resources used in the game UI.
     """
     try:
-        # Get resources from the database
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT 
-                    id, 
-                    name, 
-                    type, 
-                    description,
-                    image
-                FROM 
-                    game_resources
-                """
-            )
-            # Convert to list of dictionaries
-            columns = [col[0] for col in cursor.description]
-            resources_data = [
-                dict(zip(columns, row))
-                for row in cursor.fetchall()
-            ]
+        # Import the model
+        from .models import GameResources
+        
+        # Query using Django ORM
+        resources = GameResources.objects.all()
+        
+        # Convert to list of dictionaries
+        resources_data = list(resources.values('id', 'name', 'type', 'description', 'image'))
             
         return Response({
             'status': 'success',

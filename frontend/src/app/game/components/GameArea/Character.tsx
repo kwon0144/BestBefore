@@ -106,7 +106,7 @@ export default function Character({
         {/* Holding food indicator */}
         {holdingFood && (
           <div 
-            className="absolute -top-10 left-1/2 transform -translate-x-1/2 w-8 h-8 rounded-full bg-white p-0.5 border border-gray-300"
+            className="absolute -top-12 left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-white p-0.5 border border-gray-300"
             style={{ 
               backgroundImage: `url(${holdingFood.image})`,
               backgroundSize: 'cover',
@@ -115,7 +115,7 @@ export default function Character({
           >
             {/* DIY indicator if food can be DIYed */}
             {holdingFood.diy_option === true && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-yellow-600" />
+              <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-yellow-400 rounded-full border border-yellow-600" />
             )}
           </div>
         )}

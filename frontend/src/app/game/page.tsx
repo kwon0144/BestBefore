@@ -10,10 +10,10 @@
  * - Screen transitions between different game phases
  * - Fullscreen functionality (toggled via button in the bottom-right corner of GameArea)
  */
-import React, { useState } from 'react';
-import { startGame, endGame } from '@/services/gameService';
+import React, { useState, useEffect } from 'react';
+import { startGame, endGame, getGameResources } from '@/services/gameService';
 import { Difficulty, WasteStats } from './interfaces';
-import { playSound } from './utils/soundEffects';
+import { playSound, stopBackgroundMusic } from './utils/soundEffects';
 
 // Custom hooks
 import useGameState from './hooks/useGameState';
@@ -45,6 +45,33 @@ export default function Game() {
     soundsLoaded
   } = useGameState();
 
+  // Add state for background image
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [resultBgImage, setResultBgImage] = useState<string | null>(null);
+
+  // Load game resources and set background
+  useEffect(() => {
+    const loadGameResources = async () => {
+      try {
+        const resources = await getGameResources();
+        if (resources.specificResources.background?.image) {
+          setBackgroundImage(resources.specificResources.background.image);
+        }
+        
+        // Load Result_BG for game over screen
+        if (resources.specificResources.result_bg?.image) {
+          setResultBgImage(resources.specificResources.result_bg.image);
+          console.log('Loaded result background:', resources.specificResources.result_bg.image);
+        } else {
+          console.log('Result background not found in resources');
+        }
+      } catch (error) {
+        console.error('Failed to load background resources:', error);
+      }
+    };
+    loadGameResources();
+  }, []);
+
   /**
    * Handles starting the game
    * First click: Shows "How to Play" screen
@@ -57,7 +84,7 @@ export default function Game() {
       return;
     }
 
-    // Second click: Start the game without confirmation
+    // Second click: Start the actual game without confirmation
     try {
       // Reset waste stats
       setWasteStats({
@@ -69,16 +96,16 @@ export default function Game() {
       const response = await startGame(playerId || 'anonymous');
       setGameId(response.game_id);
       setScore(0);
-      setTime(120);
+      setTime(60);
       setGameStarted(true);
       setGameOver(false);
       
-      // Play game start sound
+      // Play game start sound only when actually starting the game
       if (soundsLoaded) {
         console.log('Playing game start sound');
         playSound('gameStart');
-      } else {
-        console.log('Sounds not loaded yet, skipping game start sound');
+        // Start background music
+        playSound('backgroundMusic');
       }
     } catch (error) {
       console.error('Failed to start game:', error);
@@ -98,10 +125,7 @@ export default function Game() {
     setScore(0);
     setTime(120);
     
-    // Optionally play a sound if needed
-    if (soundsLoaded) {
-      playSound('gameStart');
-    }
+    // Remove the sound play here since we're just going back to pre-game
   };
 
   /**
@@ -116,9 +140,19 @@ export default function Game() {
       setWasteStats(stats);
       setGameOver(true);
       setGameStarted(false);
+      
+      console.log('Game over state set:', { gameOver: true, resultBgImage });
+      
+      // Play game over sound and stop background music
+      if (soundsLoaded) {
+        playSound('gameOver');
+        stopBackgroundMusic();
+      }
     } catch (error) {
       console.error('Failed to end game:', error);
       setGameOver(true);
+      // Ensure background music stops even on error
+      stopBackgroundMusic();
     }
   };
 
@@ -132,12 +166,20 @@ export default function Game() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex flex-col items-center py-8">
-      <div className="w-full max-w-6xl px-4">
-        <h1 className="text-4xl font-bold text-center text-green-800 mb-4">Food Waste Sorting Game</h1>
-        <p className="text-lg text-center text-green-700 mb-8">
-          Help reduce food waste in Melbourne by correctly sorting food items!
-        </p>
+    <div 
+      className="min-h-screen w-full relative"
+      style={{
+        backgroundImage: gameOver && resultBgImage 
+          ? `url(${resultBgImage})` 
+          : backgroundImage 
+            ? `url(${backgroundImage})` 
+            : 'linear-gradient(to bottom, #e0f7fa, #b2ebf2)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'top center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="relative z-10 max-w-6xl mx-auto px-4 pt-20">
         
         {/* Pre-game screen */}
         {!gameStarted && !gameOver && showPreGame && (

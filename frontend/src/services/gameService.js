@@ -73,7 +73,6 @@ export const getFoodItems = async () => {
 export const getGameResources = async () => {
     try {
         const response = await api.get('/api/game/resources/');
-        console.log('Game resources fetched:', response.data);
         
         // Process resources for easy access
         const processedResources = response.data;
@@ -84,35 +83,23 @@ export const getGameResources = async () => {
             processedResources.resources = [];
         }
         
-        // Add detailed logging of resource names
-        console.log('All resource names:');
-        processedResources.resources.forEach(resource => {
-            console.log(`Resource: ${resource.name} (id: ${resource.id}, type: ${resource.type})`);
-        });
-        
         // Create processed map with normalized resource names
         const resourcesMap = {};
         processedResources.resources.forEach(resource => {
             resourcesMap[resource.name] = resource;
-            
             resourcesMap[resource.name.toLowerCase()] = resource;
         });
-        const specificResources = {
-            background: resourcesMap["map1"],
-            
-            foodbank: resourcesMap["Food Bank"],
-
-            greenbin: resourcesMap["Green waste bin"],
-            
-            diy: resourcesMap["DIY"],
-
-            landfill: resourcesMap["Landfill"],
-            
-            bush: resourcesMap["Bush"],
-        };
         
-        // Log resolved resources for debugging
-        console.log('Resolved specific resources:', specificResources);
+        const specificResources = {
+            background: resourcesMap["background"], 
+            map1: resourcesMap["map1"] || resourcesMap["Map1"] || resourcesMap["MAP1"],  // Try different cases for map1
+            foodbank: resourcesMap["Food Bank"],
+            greenbin: resourcesMap["Green waste bin"],
+            diy: resourcesMap["DIY"],
+            landfill: resourcesMap["Landfill"],
+            bush: resourcesMap["Bush"],
+            result_bg: resourcesMap["Result_BG"] || resourcesMap["result_bg"] || resourcesMap["Rusult_BG"], 
+        };
         
         // Add the specific resources to the processed data
         processedResources.specificResources = specificResources;
