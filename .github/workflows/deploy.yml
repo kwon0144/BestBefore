@@ -134,14 +134,8 @@ jobs:
           # Transfer .env file to EC2
           scp -o StrictHostKeyChecking=no -i ec2-key.pem .env ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/
           
-          # Transfer docker configuration files
-          scp -o StrictHostKeyChecking=no -i ec2-key.pem docker-compose.yml ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/
+          # Transfer deploy script
+          scp -o StrictHostKeyChecking=no -i ec2-key.pem deploy.sh ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/
           
-          # Create nginx directory and transfer nginx.conf
-          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'mkdir -p /home/${{ env.EC2_USER }}/nginx'
-          scp -o StrictHostKeyChecking=no -i ec2-key.pem nginx/nginx.conf ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/nginx/
-          
-          # Transfer and run deploy script with certificate generation and docker compose
-          scp -o StrictHostKeyChecking=no -i ec2-key.pem deploy.sh generate-certs.sh ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/
-          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'chmod +x /home/${{ env.EC2_USER }}/generate-certs.sh && /home/${{ env.EC2_USER }}/generate-certs.sh'
+          # Run deploy script
           ssh -o StrictHostKeyChecking=no -i ec2-key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'cd /home/${{ env.EC2_USER }}/ && bash /home/${{ env.EC2_USER }}/deploy.sh ${{ github.ref_name }}'

@@ -43,7 +43,9 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
   useEffect(() => {
     const fetchFoodbanks = async () => {
       try {
-        const response = await fetch('/api/foodbanks');
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+        const url = apiUrl.startsWith('http') ? `${apiUrl}/foodbanks` : `${apiUrl}/foodbanks`;
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error('Failed to fetch foodbanks');
         }
