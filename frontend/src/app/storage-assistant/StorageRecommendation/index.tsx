@@ -32,6 +32,19 @@ interface StorageRecommendationsProps {
   onUpdateStorageRecs: (newStorageRecs: StorageRecommendation) => void;
 }
 
+type RecommendationDialog = {
+  isOpen: boolean;
+  itemName: string;
+  recommendedSection: 'fridge' | 'pantry';
+  userSelectedSection: 'fridge' | 'pantry';
+  fridgeTime: number;
+  pantryTime: number;
+  sourceLabel: string;
+  sourceSection?: 'fridge' | 'pantry';
+  sourceIndex?: number;
+  item: { name: string; quantity: number; storageTime?: number };
+} | null;
+
 /**
  * StorageRecommendations Component
  * 
@@ -51,15 +64,7 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   } | null>(null);
   
   // State for recommendation dialog
-  const [recommendationDialog, setRecommendationDialog] = useState<{
-    isOpen: boolean;
-    itemName: string;
-    recommendedSection: 'fridge' | 'pantry';
-    userSelectedSection: 'fridge' | 'pantry';
-    fridgeTime: number;
-    pantryTime: number;
-    sourceLabel: string;
-  } | null>(null);
+  const [recommendationDialog, setRecommendationDialog] = useState<RecommendationDialog>(null);
 
   // Get inventory store functions
   const { items, addItem, updateItem, removeItem } = useInventoryStore();
@@ -378,7 +383,8 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
           userSelectedSection: section,
           fridgeTime,
           pantryTime,
-          sourceLabel
+          sourceLabel,
+          item: { name: newItem.name, quantity: newItem.quantity }
         });
         return; // Wait for user decision via dialog
       }
@@ -520,24 +526,42 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
   /**
    * Handler for recommendation dialog confirmation
    */
-  const handleRecommendationConfirm = (useRecommended: boolean) => {
+  const handleRecommendationConfirm = (selectedSection: 'fridge' | 'pantry') => {
     if (!recommendationDialog) return;
     
-    const { 
-      itemName, 
-      recommendedSection,
-      userSelectedSection,
-      fridgeTime,
-      pantryTime,
-      sourceLabel
-    } = recommendationDialog;
+    const useRecommended = selectedSection === recommendationDialog.recommendedSection;
+    const item = recommendationDialog.item;
     
-    // Use either the recommended location or user's original choice
-    const finalSection = useRecommended ? recommendedSection : userSelectedSection;
-    const storageTime = finalSection === 'fridge' ? fridgeTime : pantryTime;
+    // Get the appropriate storage time based on the selected section
+    const storageTime = selectedSection === 'fridge' 
+      ? recommendationDialog.fridgeTime 
+      : recommendationDialog.pantryTime;
     
-    // Add the item with the chosen location
-    addItemToStorage(itemName, finalSection, storageTime, sourceLabel);
+    // Create a deep copy of the current storage recommendations
+    const newStorageRecs = {
+      fridge: [...storageRecs.fridge],
+      pantry: [...storageRecs.pantry]
+    };
+    
+    // Remove item from both sections to ensure no duplicates
+    const sourceSection = recommendationDialog.sourceSection;
+    const sourceIndex = recommendationDialog.sourceIndex;
+    
+    if (sourceSection && sourceIndex !== undefined) {
+      newStorageRecs[sourceSection].splice(sourceIndex, 1);
+    }
+    
+    // Add to the selected section
+    newStorageRecs[selectedSection].push({
+      name: `${item.name} (${storageTime} days)`,
+      quantity: item.quantity
+    });
+    
+    // Update the storage recommendations
+    onUpdateStorageRecs(newStorageRecs);
+    
+    // Add to inventory - use existing addItemToStorage function
+    addItemToStorage(item.name, selectedSection, storageTime, 'storage_recommendation');
     
     // Close the dialog
     setRecommendationDialog(null);
@@ -855,41 +879,49 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
                 </p>
                 
                 <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="border border-blue-200 bg-blue-50 p-4 rounded-lg text-center">
+                  <button 
+                    onClick={() => handleRecommendationConfirm('fridge')} 
+                    className={`border rounded-lg text-center p-4 transition-all hover:shadow-md ${
+                      recommendationDialog.recommendedSection === 'fridge' 
+                      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500' 
+                      : 'border-blue-200 bg-blue-50'
+                    }`}
+                  >
                     <p className="font-semibold text-blue-700">Refrigerator</p>
                     <p className="mt-2 text-blue-700 text-lg font-bold">{recommendationDialog.fridgeTime} days</p>
                     <p className="text-sm text-blue-600">storage time</p>
-                  </div>
+                    {recommendationDialog.recommendedSection === 'fridge' && (
+                      <div className="mt-2 py-1 bg-blue-100 rounded-full text-xs font-medium text-blue-700">
+                        Recommended
+                      </div>
+                    )}
+                  </button>
                   
-                  <div className="border border-amber-200 bg-amber-50 p-4 rounded-lg text-center">
+                  <button 
+                    onClick={() => handleRecommendationConfirm('pantry')} 
+                    className={`border rounded-lg text-center p-4 transition-all hover:shadow-md ${
+                      recommendationDialog.recommendedSection === 'pantry' 
+                      ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-500' 
+                      : 'border-amber-200 bg-amber-50'
+                    }`}
+                  >
                     <p className="font-semibold text-amber-700">Pantry</p>
                     <p className="mt-2 text-amber-700 text-lg font-bold">{recommendationDialog.pantryTime} days</p>
                     <p className="text-sm text-amber-600">storage time</p>
-                  </div>
+                    {recommendationDialog.recommendedSection === 'pantry' && (
+                      <div className="mt-2 py-1 bg-amber-100 rounded-full text-xs font-medium text-amber-700">
+                        Recommended
+                      </div>
+                    )}
+                  </button>
                 </div>
                 
-                <p className="text-sm text-gray-600 mt-2">
-                  Would you like to use the recommended storage location or continue with your selection?
+                <p className="text-sm text-gray-600 mt-4 text-center">
+                  Click on your preferred storage location
                 </p>
               </div>
             )}
           </ModalBody>
-          <ModalFooter>
-            <Button 
-              variant="light" 
-              onPress={() => handleRecommendationConfirm(false)}
-              className="mr-2"
-            >
-              Use My Selection
-            </Button>
-            <Button 
-              color="primary"
-              onPress={() => handleRecommendationConfirm(true)}
-              className="bg-darkgreen hover:bg-darkgreen/90"
-            >
-              Use Recommendation
-            </Button>
-          </ModalFooter>
         </ModalContent>
       </Modal>
 
