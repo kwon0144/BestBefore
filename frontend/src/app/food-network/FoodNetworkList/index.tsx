@@ -13,12 +13,11 @@
 
 import React, { useState, useEffect, useMemo, SetStateAction, Dispatch } from 'react';
 import { Input, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Pagination, Select, SelectItem } from "@heroui/react";
-import { useFoodBanks } from '@/app/food-network/hooks/useFoodBanks';
-import { Foodbank } from '@/app/food-network/interfaces/Foodbank';
+import { Foodbank } from '../interfaces/Foodbank';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUtensils, faRecycle, faSearch } from '@fortawesome/free-solid-svg-icons';
-import { ViewState, MapSectionState } from '../interfaces/State';
-
+import { ViewState, MapSectionState } from '../interfaces';
+import { config } from '@/config';
 /**
  * Props interface for the FoodNetworkList component
  * @interface
@@ -32,8 +31,6 @@ interface FoodNetworkListProps {
   setSelectedType: Dispatch<SetStateAction<string>>;  
   /** Function to update view state */
   setViewState: Dispatch<SetStateAction<ViewState>>;
-  /** Function to scroll to the map section */
-  scrollToMapSection: () => void;
 }
 
 /**
@@ -54,39 +51,54 @@ const typeOptions = [
  * @param {string} props.selectedType - Currently selected point type
  * @param {Dispatch<SetStateAction<string>>} props.setSelectedType - Function to update selected point type
  * @param {Dispatch<SetStateAction<ViewState>>} props.setViewState - Function to update view state
- * @param {Function} props.scrollToMapSection - Function to scroll to the map section
  * @returns {JSX.Element} Rendered food network list with search and filter capabilities
  */
 const FoodNetworkList: React.FC<FoodNetworkListProps> = ({ 
   setMapSectionState, 
   selectedType,
   setSelectedType,
-  setViewState,
-  scrollToMapSection
+  setViewState
 }) => {
-  const [processedFoodbanks, setProcessedFoodbanks] = useState<Foodbank[]>([]);
+  const [foodbanks, setFoodbanks] = useState<Foodbank[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState("all");
   const rowsPerPage = 10;
-  
-  // Use the hook to fetch foodbanks
-  const { foodbanks, loading, error } = useFoodBanks();
 
-  // Process the foodbanks data once it's loaded
   useEffect(() => {
-    if (foodbanks.length > 0) {
-      const processedData = foodbanks.map((item: Foodbank) => ({
-        ...item,
-        address: item.address || `Coordinates: ${item.latitude}, ${item.longitude}`
-      }));
-      
-      setProcessedFoodbanks(processedData);
-    }
-  }, [foodbanks]);
+    const fetchFoodbanks = async () => {
+      try {
+        const response = await fetch(`${config.apiUrl}/api/foodbanks/`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch foodbanks');
+        }
+        const data = await response.json();
+        
+        if (data.status === 'success' && Array.isArray(data.data)) {
+          const processedData = data.data.map((item: Foodbank) => ({
+            ...item,
+            address: item.address || `Coordinates: ${item.latitude}, ${item.longitude}`
+          }));
+          
+          setFoodbanks(processedData);
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        console.error('Error fetching foodbanks:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFoodbanks();
+  }, []);
 
   const filteredFoodbanks = useMemo(() => {
-    let filtered = processedFoodbanks;
+    let filtered = foodbanks;
 
     // Apply type filter
     if (typeFilter !== "all") {
@@ -112,7 +124,7 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
     }
 
     return filtered;
-  }, [searchTerm, processedFoodbanks, typeFilter]);
+  }, [searchTerm, foodbanks, typeFilter]);
 
   const pages = Math.ceil(filteredFoodbanks.length / rowsPerPage);
   const items = useMemo(() => {
@@ -143,8 +155,8 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
     }
     setMapSectionState(prev => ({...prev, selectedEnd: foodbank.id.toString()}));
 
-    // Scroll to the map section using the provided function
-    scrollToMapSection();
+    // Scroll to top of the page
+    window.scrollTo({ top: 700, behavior: 'smooth' });
     setViewState({ showInformation: true, showNavigation: false, showRouteResult: false});
   };
 
