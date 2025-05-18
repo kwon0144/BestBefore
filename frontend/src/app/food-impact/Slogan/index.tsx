@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from "framer-motion";
 import GradientText from "../../(components)/Gradient Text";
-import { fadeInUpVariant } from '../interfaces';
+import { fadeInUpVariant } from '../interfaces/AnimationVariants';
 
 interface SloganProps {
   setSloganRef: (node: HTMLDivElement | null) => void;

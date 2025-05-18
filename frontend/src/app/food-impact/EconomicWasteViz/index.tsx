@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { MetricCardProps } from '../interfaces';
-import { scaleInVariant, staggerContainerVariant } from '../interfaces';
+import { MetricCardProps } from '../interfaces/Components';
+import { scaleInVariant, staggerContainerVariant } from '../interfaces/AnimationVariants';
 import { 
   faArrowDown, 
   faArrowUp, 
@@ -300,7 +300,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
             unit="B"
             changePercent={costPercentChange}
             isIncrease={isCostIncreasing}
-            fillPercent={70}
+            fillPercent={Math.min((economicLoss / 50) * 100, 100)} // Scale based on max 50B
             color="teal"
           />
 
@@ -312,7 +312,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
             unit="M"
             changePercent={wastePercentChange}
             isIncrease={isWasteIncreasing}
-            fillPercent={60}
+            fillPercent={Math.min((wasteAmount / 11) * 100, 100)} // Scale based on max 11M tonnes
             color="blue"
           />
 
@@ -324,7 +324,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
             unit="%"
             changePercent={householdPercentChange}
             isIncrease={isHouseholdIncreasing}
-            fillPercent={householdWaste}
+            fillPercent={householdWaste} // Already a percentage, so use directly
             color="amber"
           />
         </motion.div>

@@ -13,10 +13,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@heroui/react';
+import { Button, Input } from '@heroui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import RotatingText from '../(components)/RotatingTextRef';
 import { config } from '@/config';
+// Import the eye icons
+import { faEye } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 /**
  * Main component for the login page
@@ -26,6 +30,8 @@ import { config } from '@/config';
 export default function LoginPage() {
   /** Password input state */
   const [password, setPassword] = useState('');
+  /** Password visibility state */
+  const [isVisible, setIsVisible] = useState(false);
   /** Error message state */
   const [error, setError] = useState('');
   /** State for form exit animation */
@@ -35,6 +41,13 @@ export default function LoginPage() {
   /** State for final exit animation */
   const [finalExit, setFinalExit] = useState(false);
   const router = useRouter();
+
+  /**
+   * Toggles password visibility
+   */
+  const toggleVisibility = () => {
+    setIsVisible(!isVisible);
+  };
 
   /**
    * Handles form submission and authentication
@@ -127,15 +140,32 @@ export default function LoginPage() {
                   transition={{ duration: 0.2 }}
                 >
                   <div>
-                    <input
+                    <Input
+                      classNames={{
+                        inputWrapper: "bg-white border-1 min-h-[40px]",
+                      }}
+                      endContent={
+                        <button
+                          aria-label="toggle password visibility"
+                          className="focus:outline-none"
+                          type="button"
+                          onClick={toggleVisibility}
+                        >
+                          {isVisible ? (
+                            <FontAwesomeIcon icon={faEye} className="text-md text-default-400 pointer-events-none" /> 
+                          ) : (
+                            <FontAwesomeIcon icon={faEyeSlash} className="text-md text-default-400 pointer-events-none" />
+                          )}
+                        </button>
+                      }
                       id="password"
                       name="password"
-                      type="password"
+                      type={isVisible ? "text" : "password"}
                       required
-                      className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                       placeholder="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      onPaste={(e) => e.preventDefault()}
                     />
                   </div>
                 </motion.div>

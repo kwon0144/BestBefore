@@ -17,6 +17,9 @@ import Slogan from "./Slogan";
 import Sources from "./Sources";
 import { useInView } from "framer-motion";
 
+// Import from our new structure
+import { useFoodWasteData } from './hooks';
+
 export default function FoodImpact() {
     // Refs for sections
     const australiaWasteRef = useRef<HTMLDivElement>(null);
@@ -30,6 +33,9 @@ export default function FoodImpact() {
     const costOfFoodWasteRef = useRef<HTMLDivElement>(null);
     const metricCardsRef = useRef<HTMLDivElement>(null);
     const sloganRef = useRef<HTMLDivElement>(null);
+    
+    // Use our custom hook to fetch food waste data
+    const { compositionData, categoryData, loading, error } = useFoodWasteData('au');
     
     // Track current active section for the navigation bar
     const [activeSection, setActiveSection] = useState<string>('australia-waste');

@@ -12,7 +12,7 @@ import { Dispatch, SetStateAction } from "react";
 import Navigation from "./Navigation";
 import Information from "./Information";
 import RouteResult from "./RouteResult";
-import { MapSectionState, ViewState } from "../../interfaces";
+import { MapSectionState, ViewState } from "../../interfaces/State";
 
 /**
  * Props interface for the Interaction component
