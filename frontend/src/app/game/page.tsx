@@ -84,13 +84,11 @@ export default function Game() {
       
       // Play game start sound only when actually starting the game
       if (soundsLoaded) {
-        console.log('Playing game start sound');
         playSound('gameStart');
         // Start background music
         playSound('backgroundMusic');
       }
     } catch (error) {
-      console.error('Failed to start game:', error);
       alert('Failed to start game. Please try again.');
     }
   };
@@ -123,15 +121,12 @@ export default function Game() {
       setGameOver(true);
       setGameStarted(false);
       
-      console.log('Game over state set:', { gameOver: true, resultBgImage });
-      
       // Play game over sound and stop background music
       if (soundsLoaded) {
         playSound('gameOver');
         stopBackgroundMusic();
       }
     } catch (error) {
-      console.error('Failed to end game:', error);
       setGameOver(true);
       // Ensure background music stops even on error
       stopBackgroundMusic();
