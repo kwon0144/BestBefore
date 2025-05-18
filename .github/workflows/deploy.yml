@@ -41,20 +41,26 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.set-tag.outputs.tag }}
+      api_url: ${{ steps.set-tag.outputs.api_url }}
     steps:
-      - name: Set tag based on branch
+      - name: Set tag and API URL based on branch
         id: set-tag
         run: |
           if [ "$GITHUB_REF" = "refs/heads/iteration1" ]; then
             echo "tag=iteration1" >> $GITHUB_OUTPUT
+            echo "api_url=${NEXT_PUBLIC_API_URL}/iteration1" >> $GITHUB_OUTPUT
           elif [ "$GITHUB_REF" = "refs/heads/iteration2" ]; then
             echo "tag=iteration2" >> $GITHUB_OUTPUT
+            echo "api_url=${NEXT_PUBLIC_API_URL}/iteration2" >> $GITHUB_OUTPUT
           elif [ "$GITHUB_REF" = "refs/heads/iteration3" ]; then
             echo "tag=iteration3" >> $GITHUB_OUTPUT
+            echo "api_url=${NEXT_PUBLIC_API_URL}/iteration3" >> $GITHUB_OUTPUT
           elif [ "$GITHUB_REF" = "refs/heads/develop" ]; then
             echo "tag=develop" >> $GITHUB_OUTPUT
+            echo "api_url=${NEXT_PUBLIC_API_URL}/develop" >> $GITHUB_OUTPUT
           else
             echo "tag=latest" >> $GITHUB_OUTPUT
+            echo "api_url=${NEXT_PUBLIC_API_URL}" >> $GITHUB_OUTPUT
           fi
 
   build-frontend:
@@ -76,10 +82,8 @@ jobs:
       - name: Build and push frontend Docker image
         run: |
           cd frontend
-          # Note: NEXT_PUBLIC_API_URL is only used at build time and will be overridden
-          # during deployment by the container-specific URL in deploy.sh
           docker buildx build \
-            --build-arg NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
+            --build-arg NEXT_PUBLIC_API_URL=${{ needs.determine-tag.outputs.api_url }} \
             --build-arg NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY} \
             --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} \
             --build-arg NEXT_PUBLIC_MAP_ID=${NEXT_PUBLIC_MAP_ID} \
