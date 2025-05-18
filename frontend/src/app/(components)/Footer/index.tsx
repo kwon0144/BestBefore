@@ -87,8 +87,12 @@ const Footer = () => {
               ))}
             </div>
           </div>
-        <div className="border-t border-gray-300/30 pt-12 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-gray-300 px-20">
+        <div className="border-t border-gray-300/30 pt-12 flex flex-col px-20">
+            {/* Disclaimer */}
+            <div className="text-sm text-gray-300 mb-8">
+              <p>The information provided by BestBefore is intended as general guidance to support better food management. While we strive to offer helpful and accurate support, users are encouraged to use their own judgment and consult official sources when making decisions.</p>
+            </div>
+            <p className="text-sm text-gray-300">
                 © {new Date().getFullYear()} BestBefore. All rights reserved.
             </p>
         </div>

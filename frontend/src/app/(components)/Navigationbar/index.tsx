@@ -41,6 +41,7 @@ const menuItems = [
   { path: "/second-life", label: "Second Life" },
   { path: "/game", label: "Waste Game" },
   { path: "/food-network", label: "Food Network" },
+  { path: "/food-impact", label: "Food Impact" },
 ];
 
 /**

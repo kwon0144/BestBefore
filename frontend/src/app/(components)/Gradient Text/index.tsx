@@ -24,6 +24,10 @@ interface GradientTextProps {
     animationSpeed?: number;
     /** Whether to show a gradient border */
     showBorder?: boolean;
+    /** Font weight for the text */
+    fontWeight?: 'normal' | 'medium' | 'semibold' | 'bold' | 'extrabold' | 'black';
+    /** Text alignment */
+    textAlign?: 'left' | 'center' | 'right' | 'justify';
 }
 
 /**
@@ -35,6 +39,8 @@ interface GradientTextProps {
  * @param {string[]} [props.colors] - Gradient colors
  * @param {number} [props.animationSpeed] - Animation speed in seconds
  * @param {boolean} [props.showBorder] - Whether to show gradient border
+ * @param {string} [props.fontWeight] - Font weight for the text
+ * @param {string} [props.textAlign] - Text alignment (left, center, right, justify)
  * @returns {JSX.Element} Rendered gradient text with animation
  */
 export default function GradientText({
@@ -43,15 +49,27 @@ export default function GradientText({
     colors = ["#ffaa40", "#9c40ff", "#ffaa40"],
     animationSpeed = 8,
     showBorder = false,
+    fontWeight = 'normal',
+    textAlign = 'left',
 }: GradientTextProps) {
     const gradientStyle = {
         backgroundImage: `linear-gradient(to right, ${colors.join(", ")})`,
         animationDuration: `${animationSpeed}s`,
     };
 
+    // Determine font weight class from prop
+    const fontWeightClass = fontWeight !== 'normal' 
+        ? `font-${fontWeight}` 
+        : '';
+    
+    // Determine text alignment class
+    const textAlignClass = textAlign !== 'left'
+        ? `text-${textAlign}`
+        : '';
+
     return (
         <div
-            className={`relative flex flex-row items-center transition-shadow duration-500 overflow-hidden ${className}`}
+            className={`relative flex flex-row items-center transition-shadow duration-500 overflow-hidden ${textAlign === 'center' ? 'justify-center w-full' : ''} ${className}`}
         >
             {showBorder && (
                 <div
@@ -74,7 +92,7 @@ export default function GradientText({
                 </div>
             )}
             <div
-                className="inline-block relative z-2 text-transparent animate-gradient"
+                className={`inline-block relative z-2 text-transparent animate-gradient ${fontWeightClass} ${textAlignClass}`}
                 style={{
                     ...gradientStyle,
                     backgroundClip: "text",

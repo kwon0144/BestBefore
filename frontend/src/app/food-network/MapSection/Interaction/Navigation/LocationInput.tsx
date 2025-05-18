@@ -19,7 +19,7 @@ import { useMap } from "@vis.gl/react-google-maps";
 import { Input } from "@heroui/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { MapSectionState } from "../../../interfaces";
+import { MapSectionState } from "../../../interfaces/State";
 
 /**
  * Props interface for LocationInput component

@@ -12,7 +12,7 @@
 import { Input, Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faUtensils } from "@fortawesome/free-solid-svg-icons";
-import { SearchBarProps } from "../interfaces";
+import { MealChoice, SignatureDish } from "@/app/eco-grocery/interfaces/MealChoice";
 import Image from "next/image";
 
 /**
@@ -32,6 +32,18 @@ const highlightMatch = (text: string, query: string) => {
         part
     );
 };
+
+/**
+ * Props for the SearchBar component
+ */
+export interface SearchBarProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  addSearchResultMeal: () => void;
+  handleSearchKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  filteredResults: (MealChoice | SignatureDish)[];
+  onSelectMeal: (meal: MealChoice | SignatureDish) => void;
+}
 
 /**
  * Renders a search interface with real-time results and custom meal addition

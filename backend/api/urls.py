@@ -16,7 +16,13 @@ from .views import (
     get_food_items,
     pickup_food,
     perform_action,
-    get_game_resources
+    get_game_resources,
+    get_waste_composition,
+    get_food_waste_by_category,
+    get_economic_impact,
+    get_household_impact,
+    get_food_emissions,
+    get_country_yearly_waste
 )
 from .service import produce_detection_service
 from .service.output_calender_service import generate_calendar, generate_ical
@@ -43,6 +49,12 @@ urlpatterns = [
     path('game/resources/', get_game_resources, name='get_game_resources'),
     path('second-life/', get_second_life_items, name='get_second_life_items'),
     path('second-life/<int:item_id>/', get_second_life_item_detail, name='get_second_life_item_detail'),
-    path('auth/login/', login, name='login')
+    path('auth/login/', login, name='login'),
+    path('waste-composition/', get_waste_composition, name='get_waste_composition'),
+    path('food-waste-by-category/', get_food_waste_by_category, name='food_waste_by_category'),
+    path('economic-impact/', get_economic_impact, name='economic_impact'),
+    path('household-impact/', get_household_impact, name='household_impact'),
+    path('food-emissions/', get_food_emissions, name='food_emissions'),
+    path('country-yearly-waste/', get_country_yearly_waste, name='country_yearly_waste'),
 ]
 
