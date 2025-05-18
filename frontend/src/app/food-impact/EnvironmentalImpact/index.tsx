@@ -171,7 +171,7 @@ const EnvironmentalImpact: React.FC<EnvironmentalImpactProps> = ({ setRef }) => 
                 {/* Earth Image Section */}
                 <div className="w-full lg:w-1/2 flex items-center justify-center" ref={earthSectionRef}>
                   <img
-                    src="https://readdy.ai/api/search-image?query=Planet%20Earth%20from%20space%20showing%20atmospheric%20effects%20and%20climate%20change%20with%20dramatic%20cloud%20formations%20and%20visible%20pollution%20effects%20professional%20space%20photography%20with%20high%20detail%20and%20environmental%20storytelling&width=600&height=600&seq=11&orientation=squarish"
+                    src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/earth.jpg"
                     alt="Earth climate impact"
                     className="w-full h-[300px] md:h-[400px] object-cover rounded-xl shadow-xl"
                   />
