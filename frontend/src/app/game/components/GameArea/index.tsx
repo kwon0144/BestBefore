@@ -523,7 +523,7 @@ export default function GameArea({
           }}
         >
           {/* Conveyor belt */}
-          <ConveyorBelt resources={gameResources} />
+          <ConveyorBelt resources={gameResources || undefined} />
           
           {/* Drop zones */}
           <DropZones 
