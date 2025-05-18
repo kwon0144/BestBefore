@@ -1,3 +1,13 @@
+/**
+ * SupplyChain Component
+ * 
+ * Visualizes food waste composition across different stages of the supply chain
+ * using an interactive D3.js donut chart. Each segment of the chart represents 
+ * a different stage (Primary, Manufacturing, Distribution, Retail, Consumer)
+ * with corresponding percentages and quantities.
+ * 
+ * @component
+ */
 import React, { useRef, useEffect, useState } from 'react';
 import { motion } from "framer-motion";
 import axios from 'axios';
@@ -9,12 +19,29 @@ import { FoodWasteItem, FoodWasteCompositionResponse } from '../interfaces/FoodW
 import { SupplyChainStage } from '../interfaces/Components';
 import { config } from '@/config';
 
+/**
+ * Props for the SupplyChain component
+ * 
+ * @interface SupplyChainProps
+ * @property {function} setRef - Function to set the ref of this component for scrolling/visibility tracking
+ */
 interface SupplyChainProps {
   setRef: (node: HTMLDivElement | null) => void;
 }
 
+/**
+ * SupplyChain component displays food waste composition data in an interactive donut chart
+ * alongside a legend with category breakdowns. Supports hover interactions to highlight
+ * different segments of the supply chain.
+ * 
+ * @param {SupplyChainProps} props - Component props
+ * @returns {JSX.Element} Rendered component
+ */
 const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
+  // Reference for D3 chart container
   const chartRef = useRef<HTMLDivElement>(null);
+  
+  // State to store API data and UI interaction states
   const [wasteData, setWasteData] = useState<FoodWasteItem[]>([]);
   const [totalTonnes, setTotalTonnes] = useState<number>(0);
   const [hoveredValue, setHoveredValue] = useState<string>("");
@@ -22,7 +49,9 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
   const [hoveredSegment, setHoveredSegment] = useState<string>("");
   const [tooltipPosition, setTooltipPosition] = useState<{x: number, y: number} | null>(null);
 
-  // Fetch data from API
+  /**
+   * Fetch waste composition data from the API
+   */
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -38,7 +67,10 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
     fetchData();
   }, []);
 
-  // D3.js setup for donut chart
+  /**
+   * Creates and updates the D3.js donut chart visualization
+   * Handles chart creation, animations, and interactive elements
+   */
   useEffect(() => {
     if (chartRef.current && wasteData.length > 0) {
       // Clear existing SVG
@@ -51,7 +83,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
       const radius = Math.min(width, height) / 2 - margin;
       const innerRadius = radius * 0.4; // Reduced from 0.6 to 0.4 to make donut wider
       
-      // Color scale
+      // Color scale - maps segment names to specific colors
       const colorScale = d3.scaleOrdinal<string>()
         .domain(wasteData.map(d => d.name))
         .range([
@@ -62,7 +94,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
           '#7F669D'  // Distribution - purple
         ]);
       
-      // Create SVG
+      // Create SVG container and center the chart
       const svg = d3.select(chartRef.current)
         .append('svg')
         .attr('width', width)
@@ -101,26 +133,26 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
       feMerge.append("feMergeNode")
         .attr("in", "SourceGraphic");
 
-      // Set up pie generator
+      // Set up pie generator to create arc data from values
       const pie = d3.pie<FoodWasteItem>()
         .value(d => d.value)
         .sort(null)
         .padAngle(0.02); // Add padding between segments for a more modern look
       
-      // Arc generator
+      // Arc generator defines segment shapes
       const arc = d3.arc<d3.PieArcDatum<FoodWasteItem>>()
         .innerRadius(innerRadius)
         .outerRadius(radius)
         .cornerRadius(4); // Rounded corners for a more friendly look
       
-      // Create arcs
+      // Create arc groups
       const arcs = svg.selectAll('.arc')
         .data(pie(wasteData))
         .enter()
         .append('g')
         .attr('class', 'arc');
       
-      // Add path
+      // Add paths for each segment with interactive behaviors
       arcs.append('path')
         .attr('d', arc)
         .attr('fill', d => colorScale(d.data.name) as string)
@@ -162,7 +194,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
           svg.selectAll(".tooltip-text, .tooltip-line").remove();
         });
 
-      // Add percentage labels to all segments by default
+      // Add percentage labels to all segments
       arcs.append('text')
         .attr('transform', d => {
           const midAngle = (d.startAngle + d.endAngle) / 2;
@@ -204,6 +236,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
         .attr("offset", "100%")
         .attr("stop-color", "#f8f8f8");
       
+      // Add center circle with shadow effect
       textGroup.append('circle')
         .attr('r', innerRadius * 0.8) // Smaller inner circle for hover content
         .attr('fill', `url(#${gradientId})`)
@@ -273,7 +306,12 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
     }
   }, [wasteData, hoveredValue, hoveredName, hoveredSegment, tooltipPosition, totalTonnes]);
 
-  // Get stage name based on API data names
+  /**
+   * Gets a formatted display name for each supply chain stage
+   * 
+   * @param {string} name - Raw stage name from API
+   * @returns {string} Formatted stage name for display
+   */
   const getStageName = (name: string): string => {
     switch (name) {
       case "Primary": return "Primary";
@@ -285,7 +323,13 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
     }
   };
   
-  // Map API data names to colors
+  /**
+   * Maps API category names to CSS color classes
+   * Note: This function is only used for legacy styling
+   * 
+   * @param {string} name - Category name
+   * @returns {string} CSS class name for background color
+   */
   const getColorClass = (name: string): string => {
     switch (name) {
       case "Consumer": return "bg-red-400";
@@ -307,7 +351,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
       className="max-w-6xl mx-auto py-10 md:py-20 px-4 md:px-6"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
-        {/* Text Section */}
+        {/* Text and Legend Section */}
         <motion.div 
           variants={fadeInUpVariant}
           className="flex flex-col justify-center h-full"
@@ -321,11 +365,11 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
             efforts more effectively.
           </p>
 
-          {/* Categories with icons - vertical layout (replacing the original legend) */}
+          {/* Categories Legend - Arranged in two columns for better layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            {/* Column 1 */}
+            {/* Column 1 - Primary, Manufacturing, Distribution */}
             <div className="space-y-4">
-              {/* Primary */}
+              {/* Primary Production Stage */}
               <div 
                 className={`flex items-center transition-all duration-300 ${
                   hoveredSegment === "Primary" 
@@ -347,7 +391,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
                 </div>
               </div>
               
-              {/* Manufacturing */}
+              {/* Manufacturing Stage */}
               <div 
                 className={`flex items-center transition-all duration-300 ${
                   hoveredSegment === "Manufacturing" 
@@ -369,7 +413,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
                 </div>
               </div>
               
-              {/* Distribution */}
+              {/* Distribution Stage */}
               <div 
                 className={`flex items-center transition-all duration-300 ${
                   hoveredSegment === "Distribution" 
@@ -392,9 +436,9 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
               </div>
             </div>
             
-            {/* Column 2 */}
+            {/* Column 2 - Retail and Consumer */}
             <div className="space-y-4">
-              {/* Retail */}
+              {/* Retail Stage */}
               <div 
                 className={`flex items-center transition-all duration-300 ${
                   hoveredSegment === "Retail" 
@@ -416,7 +460,7 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
                 </div>
               </div>
               
-              {/* Consumer */}
+              {/* Consumer Stage */}
               <div 
                 className={`flex items-center transition-all duration-300 ${
                   hoveredSegment === "Consumer" 
@@ -441,9 +485,8 @@ const SupplyChain: React.FC<SupplyChainProps> = ({ setRef }) => {
           </div>
         </motion.div>
         
-        {/* Chart Section */}
+        {/* D3.js Chart Section */}
         <motion.div variants={fadeInUpVariant}>
-          {/* D3.js Chart */}
           <div 
             ref={chartRef} 
             className="w-full h-60 md:h-80"
