@@ -169,7 +169,7 @@ export default function PreGamePage({
       <div className="mt-8 text-center">
         <button
           onClick={handleStartGame}
-          className="bg-[#16a34a] hover:bg-[#15803d] text-white py-4 px-12 rounded-full text-lg font-semibold shadow-lg shadow-green-200 transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
+          className="bg-[#16a34a] hover:bg-[#15803d] text-white py-4 px-10 rounded-full font-semibold shadow-lg shadow-green-200 transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
         >
           Start Game
         </button>
