@@ -20,8 +20,32 @@ import { useState, useCallback } from 'react';
 import useInventoryStore from '@/store/useInventoryStore';
 import axios from 'axios';
 import { config } from '@/config';
-import { GroceryItem, GroceryListResponse } from '@/app/eco-grocery/interfaces/GroceryItem';
+import { GroceryItem, PantryItem } from '@/app/eco-grocery/interfaces/GroceryItem';
 import { Meal } from '@/app/eco-grocery/interfaces/MealChoice';
+
+/**
+* Props for the GroceryList component
+*/
+export interface GroceryListProps {
+  selectedMeals: { id: number; name: string; quantity: number }[];
+  groceryItems: GroceryItem[];
+  pantryItems: PantryItem[];
+  loading: boolean;
+  error: string | null;
+  getGroceryItemsByCategory: (category: string) => GroceryItem[];
+  generateGroceryList?: () => void;
+}
+
+/**
+ * Interface for the grocery list API response structure
+ */
+export interface GroceryListResponse {
+  success: boolean;
+  dishes?: string[];
+  items_by_category?: Record<string, GroceryItem[]>;
+  pantry_items?: Array<PantryItem>;
+  error?: string;
+}
 
 /**
  * Hook for managing meal planning and grocery list generation
@@ -122,6 +146,7 @@ export const useGroceryPlanner = () => {
    */
   const removeMeal = useCallback((id: number) => {
     setSelectedMeals(prev => prev.filter(meal => meal.id !== id));
+    setGroceryItems([]);
   }, []);
 
   /**

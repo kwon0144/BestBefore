@@ -8,7 +8,16 @@ import { useState } from "react";
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
-import { IngredientsProps } from "@/app/second-life/interfaces/SecondLifeItem";
+
+/**
+ * Props for the Ingredients component
+ * Used to display and manage ingredient quick filters
+ */
+export interface IngredientsProps {
+  ingredients: string[];
+  selectedIngredient: string | null;
+  handleIngredientSelect: (ingredient: string) => void;
+}
 
 /**
  * Renders a grid of common food scraps that users can select

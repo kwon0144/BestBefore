@@ -6,7 +6,17 @@
 import { Input, Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
-import { SearchProps } from "@/app/second-life/interfaces/SecondLifeItem";
+
+/**
+ * Props for the Search component
+ * Used to manage search functionality in the Second Life feature
+ */
+export interface SearchProps {
+  setSearchQuery: (query: string) => void;
+  setSelectedIngredient: (ingredient: string | null) => void;
+  inputValue: string;
+  setInputValue: (value: string) => void;
+}
 
 /**
  * Renders a search input field for the Second Life page

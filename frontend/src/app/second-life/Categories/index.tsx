@@ -6,8 +6,18 @@
  */
 import { Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { CategoriesProps } from "@/app/second-life/interfaces/SecondLifeItem";
 import { forwardRef } from "react";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+
+/**
+ * Props for the Categories component
+ * Used to display and manage category filters
+ */
+export interface CategoriesProps {
+  categories: Array<{ name: string; icon: IconDefinition }>;
+  selectedCategory: string | null;
+  handleCategorySelect: (category: string) => void;
+}
 
 /**
  * Renders category filter buttons

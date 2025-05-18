@@ -12,10 +12,16 @@ import { config } from '@/config';
 // Import the SignatureDish interface from the specific interface file
 import { SignatureDish } from '@/app/eco-grocery/interfaces/MealChoice';
 
+/**
+ * Props for the useSignatureDishes hook
+ */
 interface UseSignatureDishesProps {
     initialCuisine?: string | null;
 }
 
+/**
+ * Return type for the useSignatureDishes hook
+ */
 interface UseSignatureDishesResult {
     signatureDishes: SignatureDish[];
     loading: boolean;
