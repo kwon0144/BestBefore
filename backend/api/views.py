@@ -1,13 +1,12 @@
-# Django imports
-from django.db import connection
-from django.http import JsonResponse
-from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Sum
-# Django REST framework imports
-from rest_framework import status, viewsets
-from rest_framework.decorators import api_view, action
-from rest_framework.response import Response
+"""
+BestBefore API Views
+This file contains all API endpoints and views for the BestBefore application.
+Organized by functional sections for easier navigation and maintenance.
+"""
+
+#-----------------------------------------------------------------------
+# IMPORTS
+#-----------------------------------------------------------------------
 
 # Python standard library imports
 import json
@@ -18,32 +17,254 @@ import logging
 from datetime import datetime, timedelta, date
 import os
 
-logger = logging.getLogger(__name__)
+# Django imports
+from django.db import connection
+from django.http import JsonResponse
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Sum, Avg, F, ExpressionWrapper, FloatField
+
+# Django REST framework imports
+from rest_framework import status, viewsets
+from rest_framework.decorators import api_view, action
+from rest_framework.response import Response
 
 # Local application imports
 from .service.db_service import get_storage_recommendations, get_all_food_types
 from .service.dish_ingre_service import DishIngredientService
 from .service.hours_parser_service import parse_operating_hours
-from .models import Geospatial, SecondLife, Dish, Game, GameFoodResources, FoodWasteComposition, GlobalFoodWastageDataset, FoodEmissions
-from .serializer import FoodBankListSerializer, FoodBankDetailSerializer, GlobalFoodWastageSerializer, CountryWastageSerializer, FoodCategoryWastageSerializer, EconomicImpactSerializer
+from .service.produce_expiry_date_service import get_produce_expiry_info_from_claude
+from .models import (
+    Geospatial, SecondLife, Dish, Game, GameFoodResources, 
+    FoodWasteComposition, GlobalFoodWastageDataset, FoodEmissions
+)
+from .serializer import (
+    FoodBankListSerializer, FoodBankDetailSerializer, GlobalFoodWastageSerializer,
+    CountryWastageSerializer, FoodCategoryWastageSerializer, EconomicImpactSerializer
+)
 from .game_core import start_new_game, update_game_state, end_game_session, prepare_game_food_items
 from .game_validators import get_top_scores, validate_pickup, validate_action
 from .game_state import games
-from .service.produce_expiry_date_service import get_produce_expiry_info_from_claude
+
 #-----------------------------------------------------------------------
-# Food Storage & Information APIs
+# GLOBAL VARIABLES AND CONFIGURATION
 #-----------------------------------------------------------------------
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Global cache for country yearly data
+_country_yearly_data_cache = {}
+_cache_timestamp = None
+
+# Global cache for economic impact data
+_economic_impact_cache = {}
+_economic_impact_timestamp = None
+
+# Initialize dish ingredient service
+dish_service = DishIngredientService()
+
+#-----------------------------------------------------------------------
+# CACHE MANAGEMENT FUNCTIONS
+#-----------------------------------------------------------------------
+
+def load_country_yearly_data():
+    """
+    Preload country yearly data into memory cache to improve API performance.
+    
+    This function aggregates food wastage data by country and year, storing the results
+    in a global cache for faster access. It reduces database load and improves response
+    times for country-specific endpoints.
+    
+    The function should be called during application startup.
+    """
+    global _country_yearly_data_cache, _cache_timestamp
+    
+    try:
+        # Get all data from database
+        queryset = GlobalFoodWastageDataset.objects.all()
+        
+        # Process all unique country-year pairs
+        year_country_pairs = queryset.values('year', 'country').distinct()
+        
+        # Initialize cache
+        country_cache = {}
+        
+        # Process data for each country-year pair
+        for pair in year_country_pairs:
+            year_value = pair['year']
+            country_name = pair['country']
+            
+            # Filter for this year and country
+            filtered_queryset = queryset.filter(year=year_value, country=country_name)
+            
+            # Calculate totals for this year and country
+            total_waste = filtered_queryset.aggregate(Sum('total_waste'))['total_waste__sum'] or 0
+            economic_loss = filtered_queryset.aggregate(Sum('economic_loss'))['economic_loss__sum'] or 0
+            
+            # Get representative item for household waste percentage
+            sample_item = filtered_queryset.first()
+            household_waste_pct = sample_item.household_waste if sample_item else 0
+            
+            # Format the data
+            data_item = {
+                'year': year_value,
+                'country': country_name,
+                'total_waste': total_waste,
+                'economic_loss': economic_loss,
+                'household_waste_percentage': household_waste_pct
+            }
+            
+            # Add to country cache
+            if country_name not in country_cache:
+                country_cache[country_name] = []
+            
+            country_cache[country_name].append(data_item)
+        
+        # Update global cache
+        _country_yearly_data_cache = country_cache
+        _cache_timestamp = timezone.now()
+        
+        logger.info(f"Country yearly data cache loaded with {len(_country_yearly_data_cache)} countries at {_cache_timestamp}")
+        
+    except Exception as e:
+        logger.error(f"Error loading country yearly data cache: {str(e)}")
+        # If cache loading fails, we'll continue with an empty cache and fall back to database queries
+
+def load_economic_impact_data():
+    """
+    Preload economic impact data into memory cache to improve API performance.
+    
+    This function aggregates economic impact metrics by year, calculating:
+    - Global metrics (total loss, waste, household percentages)
+    - Country-specific metrics with per-household economic impacts
+    
+    The cache significantly improves performance for economic impact endpoints by
+    avoiding repeated complex calculations.
+    
+    This function should be called during application startup.
+    """
+    global _economic_impact_cache, _economic_impact_timestamp
+    
+    try:
+        # Get all data from database
+        queryset = GlobalFoodWastageDataset.objects.all()
+        
+        # Process data for available years
+        years = queryset.values_list('year', flat=True).distinct()
+        
+        # Initialize cache by year
+        year_cache = {}
+        
+        for year_value in years:
+            # Filter for this year
+            year_queryset = queryset.filter(year=year_value)
+            
+            # Calculate overall economic metrics for this year
+            total_economic_loss = year_queryset.aggregate(Sum('economic_loss'))['economic_loss__sum'] or 0
+            total_waste = year_queryset.aggregate(Sum('total_waste'))['total_waste__sum'] or 0
+            avg_household_waste = year_queryset.aggregate(Avg('household_waste'))['household_waste__avg'] or 0
+            
+            # Get unique countries for this year
+            countries = year_queryset.values_list('country', flat=True).distinct()
+            
+            # Process countries data for this year
+            countries_data = []
+            
+            for country_name in countries:
+                country_queryset = year_queryset.filter(country=country_name)
+                
+                # Get the latest year item for this country
+                latest_year_item = country_queryset.first()
+                
+                if latest_year_item:
+                    # Calculate country totals
+                    country_loss = country_queryset.aggregate(Sum('economic_loss'))['economic_loss__sum'] or 0
+                    country_waste = country_queryset.aggregate(Sum('total_waste'))['total_waste__sum'] or 0
+                    
+                    # Calculate household impact
+                    population_value = latest_year_item.population
+                    household_waste_pct = latest_year_item.household_waste
+                    
+                    # Assume average household size of 2.5 people
+                    households = (population_value * 1000000) / 2.5 if population_value > 0 else 0
+                    
+                    # Calculate economic loss attributable to households
+                    household_economic_loss = country_loss * (household_waste_pct / 100)
+                    
+                    # Calculate per-household cost
+                    cost_per_household = (household_economic_loss * 1000000) / households if households > 0 else 0
+                    
+                    countries_data.append({
+                        'country': country_name,
+                        'total_economic_loss': country_loss,
+                        'population': population_value,
+                        'household_waste_percentage': household_waste_pct,
+                        'annual_cost_per_household': round(cost_per_household, 2),
+                        'total_waste': country_waste
+                    })
+            
+            # Sort countries by economic loss
+            countries_data.sort(key=lambda x: x['total_economic_loss'], reverse=True)
+            
+            # Build the response for this year
+            year_data = {
+                'summary': {
+                    'total_economic_loss': total_economic_loss,
+                    'total_waste': total_waste,
+                    'economic_loss_per_ton': total_economic_loss / total_waste if total_waste > 0 else 0,
+                    'avg_household_waste_percentage': avg_household_waste
+                },
+                'countries': countries_data
+            }
+            
+            # Add to year cache
+            year_cache[year_value] = year_data
+        
+        # Update global cache
+        _economic_impact_cache = year_cache
+        _economic_impact_timestamp = timezone.now()
+        
+        logger.info(f"Economic impact cache loaded with data for {len(_economic_impact_cache)} years at {_economic_impact_timestamp}")
+        
+    except Exception as e:
+        logger.error(f"Error loading economic impact cache: {str(e)}")
+        # If cache loading fails, we'll continue with an empty cache and fall back to database queries
+
+# Initialize caches when module is imported
+load_country_yearly_data()
+load_economic_impact_data()
+
+#-----------------------------------------------------------------------
+# FOOD STORAGE & INFORMATION APIs
+#-----------------------------------------------------------------------
+"""
+This section contains endpoints related to food storage recommendations and food types.
+Key functionality includes:
+- Retrieving storage advice for specific food types
+- Fallback to Claude AI for recommendations when database lacks information
+- Listing all available food types in the system
+"""
 
 @api_view(['POST'])
 def get_storage_advice(request):
     """
     Get food storage advice based on food type.
     
+    Provides storage recommendations including:
+    - Pantry storage duration (days)
+    - Refrigerator storage duration (days)
+    - Recommended storage method
+    
+    The system first checks the database for recommendations and falls back
+    to Claude AI for food types not in the database.
+    
     Request body:
     - food_type: String (required) - The type of food to get storage advice for
     
     Returns:
     - Storage recommendations for the specified food type
+    - Source of the recommendation (database or AI)
     """
     try:
         data = request.data
@@ -65,11 +286,13 @@ def get_storage_advice(request):
         
         # If we have default values, try Claude API instead
         if is_default_value:
+            logger.info(f"No specific database recommendation found for {food_type}, trying Claude AI")
             claude_recommendation = get_produce_expiry_info_from_claude(food_type)
             if claude_recommendation:
                 return Response(claude_recommendation)
             else:
                 # Claude also failed, so return the default with database source
+                logger.warning(f"Claude AI also failed for {food_type}, returning default values")
                 recommendation['source'] = 'database_default'
                 return Response(recommendation)
         else:
@@ -78,12 +301,17 @@ def get_storage_advice(request):
             return Response(recommendation)
             
     except Exception as e:
+        logger.error(f"Error getting storage advice: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
 def get_food_types(request):
     """
     Get all available food types for storage recommendations.
+    
+    This endpoint returns a list of all food types in the system
+    that have storage recommendations available. Used primarily
+    for populating dropdown menus in the frontend.
     
     Returns:
     - List of all food types in the system
@@ -92,19 +320,30 @@ def get_food_types(request):
         food_types = get_all_food_types()
         return Response({'food_types': food_types})
     except Exception as e:
+        logger.error(f"Error getting food types: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 #-----------------------------------------------------------------------
-# Calendar & Reminder APIs
+# CALENDAR & REMINDER APIs
 #-----------------------------------------------------------------------
+"""
+This section contains endpoints related to calendar generation and reminders.
+Key functionality includes:
+- Generating calendars with food expiration reminders
+- Configuring reminder settings for expiration dates
+"""
 
 @api_view(['POST'])
 def generate_calendar(request):
     """
     Generate calendar with food expiration reminders.
     
+    Creates a downloadable iCalendar file with reminders for food expiration dates.
+    Each food item is added as a calendar event with a configurable reminder.
+    
     Request body:
     - items: Array (required) - List of food items with expiration dates
+                               [{name: string, expiry_date: date_string}, ...]
     - reminder_days: Integer (optional, default=2) - Days before expiration to send reminder
     - reminder_time: String (optional, default='20:00') - Time for reminder in 24h format
     
@@ -124,6 +363,7 @@ def generate_calendar(request):
         calendar_id = str(uuid.uuid4())
         
         # Here you can add logic to save calendar data to database
+        logger.info(f"Generated calendar with ID {calendar_id} for {len(items)} items")
         
         # Return calendar URL
         calendar_url = f"/api/calendar/{calendar_id}.ics"
@@ -135,19 +375,40 @@ def generate_calendar(request):
             'reminder_time': reminder_time
         })
     except Exception as e:
+        logger.error(f"Error generating calendar: {str(e)}")
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 #-----------------------------------------------------------------------
-# Food Bank & Location APIs
+# FOOD BANK & LOCATION APIs
 #-----------------------------------------------------------------------
+"""
+This section contains endpoints related to food banks and donation locations.
+Key functionality includes:
+- Retrieving food bank locations with geographic coordinates
+- Parsing and structuring operating hours for better display
+"""
 
 @api_view(['GET'])
 def get_foodbanks(request):
     """
     Get all food banks with location data and parsed operating hours.
     
+    Retrieves food bank information from the geospatial table and parses
+    the operating hours text into a structured format for better display
+    and filtering in the frontend.
+    
     Returns:
     - List of food banks with their details and structured operation schedules
+      {
+        'id': int,
+        'name': string,
+        'latitude': float,
+        'longitude': float,
+        'type': string,
+        'hours_of_operation': string,
+        'address': string,
+        'operation_schedule': {day: {open: time, close: time}}
+      }
     """
     try:
         # Use raw SQL query to get foodbank data including hours_of_operation
@@ -178,33 +439,47 @@ def get_foodbanks(request):
             hours_text = foodbank.get('hours_of_operation', '')
             foodbank['operation_schedule'] = parse_operating_hours(hours_text)
         
+        logger.info(f"Retrieved {len(foodbanks_data)} food banks")
         return Response({
             'status': 'success',
             'count': len(foodbanks_data),
             'data': foodbanks_data
         })
     except Exception as e:
+        logger.error(f"Error retrieving food banks: {str(e)}")
         return Response({
             'status': 'error',
             'message': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 #-----------------------------------------------------------------------
-# Game APIs
+# GAME APIs
 #-----------------------------------------------------------------------
+"""
+This section contains endpoints related to the food waste educational game.
+Key functionality includes:
+- Starting, updating, and ending game sessions
+- Managing player actions and food item interactions
+- Retrieving game resources and leaderboard data
+
+The game educates users about proper food waste disposal through interactive gameplay.
+"""
 
 @api_view(['POST'])
 def start_game(request):
     """
     Start a new game for a player.
     
+    Initializes a new game session with default settings and returns
+    the initial game state with a unique game ID.
+    
     Expected request data:
     {
-        "player_id": "string"
+        "player_id": "string"  # Unique identifier for the player
     }
     
     Returns:
-        200 OK: Game started successfully
+        200 OK: Game started successfully with initial game state
         400 Bad Request: Invalid player_id
         500 Internal Server Error: Server error
     """
@@ -218,9 +493,11 @@ def start_game(request):
             )
             
         game_data = start_new_game(player_id)
+        logger.info(f"Started new game for player {player_id} with game ID {game_data.get('game_id')}")
         return Response(game_data, status=status.HTTP_200_OK)
         
     except ValueError as e:
+        logger.warning(f"Invalid request to start game: {str(e)}")
         return Response(
             {'error': str(e)}, 
             status=status.HTTP_400_BAD_REQUEST
@@ -237,18 +514,37 @@ def update_game(request):
     """
     Update the game state based on player action.
     
+    Processes a player's action in the game, such as:
+    - Picking up food items
+    - Composting food waste
+    - Donating food items
+    - Creating DIY items from food waste
+    
+    The endpoint updates the game state and returns the new state
+    with updated scores, inventory, and game progress.
+    
     Expected request data:
     {
-        "game_id": "string",
-        "action": "string",
-        "food_type": "string",
-        "diy_option": "string",
-        "character_position": {"x": float, "y": float},
-        "food": {"id": int, "type": string, "name": string, "image": string, "x": float, "y": float}
+        "game_id": "string",              # Unique game session identifier
+        "action": "string",               # Action type: "pickup", "compost", "donate", "diy", "trash"
+        "food_type": "string",            # Type of food being acted upon
+        "diy_option": "string",           # Optional DIY recipe name (for "diy" action)
+        "character_position": {           # Optional player position for validation
+            "x": float, 
+            "y": float
+        },
+        "food": {                         # Optional food item details for validation
+            "id": int, 
+            "type": string, 
+            "name": string, 
+            "image": string, 
+            "x": float, 
+            "y": float
+        }
     }
     
     Returns:
-        200 OK: Game updated successfully
+        200 OK: Game updated successfully with new game state
         400 Bad Request: Missing required parameters
         404 Not Found: Game not found
         500 Internal Server Error: Server error
@@ -261,9 +557,13 @@ def update_game(request):
     food = request.data.get('food')
     
     if not all([game_id, action, food_type]):
+        logger.warning(f"Update game request missing required parameters: game_id={game_id}, action={action}, food_type={food_type}")
         return Response({'error': 'Missing required parameters'}, status=400)
     
     try:
+        # Log the action being attempted
+        logger.info(f"Game {game_id}: Player performing action '{action}' on {food_type}")
+        
         # If character position and food are provided, use them for validation
         if character_position and food:
             game_data = update_game_state(game_id, action, food_type, diy_option, character_position, food)
@@ -272,8 +572,10 @@ def update_game(request):
             
         return Response(game_data)
     except ValueError as e:
+        logger.warning(f"Game {game_id}: Invalid update - {str(e)}")
         return Response({'error': str(e)}, status=404)
     except Exception as e:
+        logger.error(f"Game {game_id}: Error updating game state - {str(e)}")
         return Response({'error': str(e)}, status=500)
 
 @api_view(['POST'])
@@ -485,9 +787,6 @@ def get_second_life_item_detail(request, item_id):
 #-----------------------------------------------------------------------
 # Meal Planning & Grocery List APIs
 #-----------------------------------------------------------------------
-
-# Initialize dish ingredient service
-dish_service = DishIngredientService()
 
 @csrf_exempt
 @api_view(['POST'])
@@ -908,6 +1207,34 @@ def get_economic_impact(request):
         year = request.query_params.get('year')
         country = request.query_params.get('country')
         
+        # Try to use cache if possible
+        if _economic_impact_cache and year and int(year) in _economic_impact_cache:
+            cached_data = _economic_impact_cache[int(year)]
+            
+            # If country filter is applied, filter the cached data
+            if country:
+                filtered_countries = [c for c in cached_data['countries'] 
+                                    if c['country'].lower() == country.lower()]
+                
+                if filtered_countries:
+                    # Create a new response with just the filtered country
+                    response_data = {
+                        'summary': cached_data['summary'],
+                        'countries': filtered_countries,
+                        'cache': True,
+                        'updated_at': _economic_impact_timestamp.isoformat() if _economic_impact_timestamp else timezone.now().isoformat()
+                    }
+                    return Response(response_data)
+            else:
+                # Return the full cached data for this year
+                response_data = {
+                    **cached_data,
+                    'cache': True,
+                    'updated_at': _economic_impact_timestamp.isoformat() if _economic_impact_timestamp else timezone.now().isoformat()
+                }
+                return Response(response_data)
+        
+        # If cache doesn't exist or the requested data isn't in the cache, fall back to database query
         # Start with all data
         queryset = GlobalFoodWastageDataset.objects.all()
         
@@ -975,10 +1302,12 @@ def get_economic_impact(request):
                 'avg_household_waste_percentage': avg_household_waste
             },
             'countries': countries_data,
+            'cache': False,
             'updated_at': timezone.now().isoformat()
         })
         
     except Exception as e:
+        print(f"Error in get_economic_impact: {str(e)}")
         return Response({
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1119,6 +1448,47 @@ def get_country_yearly_waste(request):
         country = request.query_params.get('country')
         year = request.query_params.get('year')
         
+        # Check if we can use the cache
+        if _country_yearly_data_cache:
+            # If country is specified and exists in cache
+            if country and country in _country_yearly_data_cache:
+                country_data = _country_yearly_data_cache[country]
+                
+                # Apply year filter if provided
+                if year:
+                    country_data = [item for item in country_data if item['year'] == int(year)]
+                
+                # If data was found
+                if country_data:
+                    return Response({
+                        'count': len(country_data),
+                        'data': country_data,
+                        'cache': True,
+                        'updated_at': _cache_timestamp.isoformat() if _cache_timestamp else timezone.now().isoformat()
+                    })
+            # If no country specified, return data for all countries
+            elif not country:
+                # Flatten all country data
+                all_data = []
+                for country_items in _country_yearly_data_cache.values():
+                    # Apply year filter if provided
+                    if year:
+                        filtered_items = [item for item in country_items if item['year'] == int(year)]
+                        all_data.extend(filtered_items)
+                    else:
+                        all_data.extend(country_items)
+                
+                # Sort by year and country
+                all_data.sort(key=lambda x: (x['year'], x['country']))
+                
+                return Response({
+                    'count': len(all_data),
+                    'data': all_data,
+                    'cache': True,
+                    'updated_at': _cache_timestamp.isoformat() if _cache_timestamp else timezone.now().isoformat()
+                })
+        
+        # If cache doesn't exist or the requested data isn't in the cache, fall back to database query
         # Start with all data
         queryset = GlobalFoodWastageDataset.objects.all()
         
@@ -1169,10 +1539,12 @@ def get_country_yearly_waste(request):
         return Response({
             'count': len(result_data),
             'data': result_data,
+            'cache': False,
             'updated_at': timezone.now().isoformat()
         })
         
     except Exception as e:
+        print(f"Error in get_country_yearly_waste: {str(e)}")
         return Response({
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
