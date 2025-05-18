@@ -56,6 +56,7 @@ jobs:
           cd frontend
           if [ "$GITHUB_REF" = "refs/heads/iteration1" ]; then
             TAG="iteration1"
+            NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL}/iteration1"
           else
             TAG="latest"
           fi
@@ -134,8 +135,6 @@ jobs:
           # Transfer .env file to EC2
           scp -o StrictHostKeyChecking=no -i ec2-key.pem .env ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/
           
-          # Transfer deploy script
+          # Transfer and run deploy script
           scp -o StrictHostKeyChecking=no -i ec2-key.pem deploy.sh ${{ env.EC2_USER }}@${{ env.EC2_HOST }}:/home/${{ env.EC2_USER }}/
-          
-          # Run deploy script
-          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'cd /home/${{ env.EC2_USER }}/ && bash /home/${{ env.EC2_USER }}/deploy.sh ${{ github.ref_name }}'
+          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ${{ env.EC2_USER }}@${{ env.EC2_HOST }} 'bash /home/${{ env.EC2_USER }}/deploy.sh' ${{ github.ref_name }}
