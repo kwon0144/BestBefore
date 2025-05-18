@@ -62,7 +62,6 @@ export default function useGameState() {
         
         setResourcesError(null);
       } catch (error) {
-        console.error('Failed to load game resources:', error);
         setResourcesError('Failed to load game resources. Please refresh.');
       } finally {
         setResourcesLoading(false);
@@ -82,7 +81,6 @@ export default function useGameState() {
         setError(null);
       } catch (err) {
         setError('Failed to fetch food items');
-        console.error('Error fetching food items:', err);
       } finally {
         setLoading(false);
       }
