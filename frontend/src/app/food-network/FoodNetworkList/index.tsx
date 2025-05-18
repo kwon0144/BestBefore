@@ -31,6 +31,8 @@ interface FoodNetworkListProps {
   setSelectedType: Dispatch<SetStateAction<string>>;  
   /** Function to update view state */
   setViewState: Dispatch<SetStateAction<ViewState>>;
+  /** Function to scroll to the map section */
+  scrollToMapSection: () => void;
 }
 
 /**
@@ -57,7 +59,8 @@ const FoodNetworkList: React.FC<FoodNetworkListProps> = ({
   setMapSectionState, 
   selectedType,
   setSelectedType,
-  setViewState
+  setViewState,
+  scrollToMapSection
 }) => {
   const [foodbanks, setFoodbanks] = useState<Foodbank[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
