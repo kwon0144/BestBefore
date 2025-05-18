@@ -54,13 +54,17 @@ export interface FoodTypesResponse {
 }
 
 export interface StorageAdviceResponse {
-
-
-    days: number;
-    method: string;
-    source?: string;
-
-
+    // Database-style response
+    Type?: string;
+    pantry?: number;
+    fridge?: number;
+    method?: number | string; // 0=pantry, 1=fridge or 'pantry'/'fridge'
+    
+    // Claude-style response
+    days?: number;
+    
+    // Common fields
+    source?: 'database' | 'claude' | 'database_default'; // Source of the recommendation
 }
 
 export interface CalendarResponse {

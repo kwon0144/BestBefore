@@ -61,7 +61,7 @@ export default function MapSection({mapSectionState, setMapSectionState, selecte
         routeDetails: {duration: "", distance: ""}
       }));
     }
-  }, [viewState.showInformation, viewState.showNavigation]);
+  }, [viewState.showInformation, viewState.showNavigation, setMapSectionState]);
 
   const handleTypeSelection = (selection: string) => {
     if (selection !== selectedType) {

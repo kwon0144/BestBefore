@@ -80,7 +80,8 @@ export default function Hero() {
                         colors={["#2D5A4B", "#6FCF97",  "#2D5A4B", "#6FCF97", "#2D5A4B"]}
                         animationSpeed={15}
                         showBorder={false}
-                        className="text-4xl md:text-5xl font-bold text-darkgreen mb-6"
+                        className="text-4xl md:text-5xl xl:text-7xl font-bold text-darkgreen mb-6"
+                        fontWeight="black"
                     >
                         Together for<br />
                         a zero-waste kitchen

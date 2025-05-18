@@ -110,3 +110,50 @@ class Dish(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class FoodWasteComposition(models.Model):
+    type = models.CharField(max_length=100)  # Food waste category
+    quantity = models.FloatField()  # Quantity in tonnes
+    
+    class Meta:
+        db_table = 'food_waste_composition'
+        managed = False  
+    
+    def __str__(self):
+        return f"{self.type} - {self.quantity} tonnes"
+
+class GlobalFoodWastageDataset(models.Model):
+    """
+    Model representing global food wastage data by country, year and food category.
+    Contains economic impact metrics as well as waste quantities.
+    """
+    country = models.CharField(max_length=100)
+    year = models.IntegerField()
+    food_category = models.CharField(max_length=100)
+    total_waste = models.FloatField()
+    economic_loss = models.FloatField()
+    waste_capita = models.FloatField() 
+    population = models.FloatField()
+    household_waste = models.FloatField()
+    
+    class Meta:
+        db_table = 'global_food_wastage_dataset'
+        managed = False  # Since we're connecting to an existing table
+        
+    def __str__(self):
+        return f"{self.country} - {self.year} - {self.food_category}"
+    
+class FoodEmissions(models.Model):
+
+    food_type = models.CharField(max_length=100)
+    code = models.CharField(max_length=20)
+    year = models.IntegerField()
+    ghg = models.FloatField()
+
+    class Meta:
+        db_table = 'food_emission'
+        managed = False
+
+    def __str__(self):
+        return f"{self.food_type} - {self.code} - {self.year} - {self.ghg}"

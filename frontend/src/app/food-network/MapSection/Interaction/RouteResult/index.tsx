@@ -18,20 +18,17 @@ import { MapSectionState } from "@/app/food-network/interfaces";
 /**
  * Props interface for the RouteResult component
  * @property mapSectionState - Current state of the map section
- * @property setMapSectionState - Function to update the map section state
  * @property setViewState - Function to update the view state
  * @property selectedType - Type of destination (Food Donation Points or Green Waste Bins)
  */
 interface RouteResultProps {
     mapSectionState: MapSectionState;
-    setMapSectionState: Dispatch<SetStateAction<MapSectionState>>;
     setViewState: Dispatch<SetStateAction<{showInformation: boolean, showNavigation: boolean, showRouteResult: boolean}>>;
     selectedType: string;
 }
 
 export default function RouteResult({ 
     mapSectionState, 
-    setMapSectionState,
     setViewState,
     selectedType
 }: RouteResultProps) {

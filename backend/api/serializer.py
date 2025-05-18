@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Geospatial, FoodIngredient
+from .models import Geospatial, FoodIngredient, GlobalFoodWastageDataset
 
 class FoodBankListSerializer(serializers.ModelSerializer):
     key = serializers.SerializerMethodField()
@@ -75,3 +75,54 @@ class FoodIngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodIngredient
         fields = ['id', 'dish', 'ingredient']
+
+
+class GlobalFoodWastageSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the GlobalFoodWastageDataset model.
+    """
+    class Meta:
+        model = GlobalFoodWastageDataset
+        fields = '__all__'
+
+class CountryWastageSerializer(serializers.ModelSerializer):
+    """
+    Serializer for country-focused food wastage data.
+    """
+    total_economic_loss = serializers.FloatField(read_only=True)
+    
+    class Meta:
+        model = GlobalFoodWastageDataset
+        fields = ('country', 'year', 'total_waste_tons', 
+                  'economic_loss_millions', 'avg_waste_per_capita', 
+                  'population_millions', 'household_waste_percentage',
+                  'total_economic_loss')
+
+class FoodCategoryWastageSerializer(serializers.ModelSerializer):
+    """
+    Serializer for food category-focused wastage data.
+    """
+    percentage_of_total = serializers.FloatField(read_only=True)
+    
+    class Meta:
+        model = GlobalFoodWastageDataset
+        fields = ('food_category', 'total_waste_tons', 
+                  'economic_loss_millions', 'percentage_of_total')
+
+class EconomicImpactSerializer(serializers.ModelSerializer):
+    """
+    Serializer focused on economic impact data.
+    """
+    cost_per_ton = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = GlobalFoodWastageDataset
+        fields = ('country', 'year', 'food_category', 'total_waste_tons',
+                  'economic_loss_millions', 'cost_per_ton')
+    
+    def get_cost_per_ton(self, obj):
+        """Calculate the cost per ton of food waste"""
+        if obj.total_waste_tons > 0:
+            # Convert millions to absolute value and divide by tons
+            return (obj.economic_loss_millions * 1000000) / obj.total_waste_tons
+        return 0
