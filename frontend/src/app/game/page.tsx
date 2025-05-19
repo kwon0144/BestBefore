@@ -14,6 +14,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { startGame, endGame } from '@/services/gameService';
 import { Difficulty, WasteStats } from './interfaces';
 import { playSound, stopBackgroundMusic } from './utils/soundEffects';
+import { useRouter, usePathname } from 'next/navigation';
 
 // Custom hooks
 import useGameState from './hooks/useGameState';
@@ -67,6 +68,14 @@ export default function Game() {
       document.body.style.overflow = originalStyle;
     };
   }, [gameStarted, gameOver]);
+
+  // Add effect to stop background music when component unmounts
+  useEffect(() => {
+    // Cleanup function to stop background music when navigating away
+    return () => {
+      stopBackgroundMusic();
+    };
+  }, []);
 
   // Loading indicator when resources are loading
   if (resourcesLoading || loading) {
