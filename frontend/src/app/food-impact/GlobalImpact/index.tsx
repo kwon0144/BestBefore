@@ -170,8 +170,6 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         // Render the map with the fetched data
         renderMap(worldData, wasteData);
       } catch (error) {
-        console.error("Error fetching world map data:", error);
-        
         // Show error message in the map area
         if (mapRef.current) {
           const svg = d3.select(mapRef.current);
@@ -586,8 +584,6 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     const globeX = width / 2;
     // Position globe so its top sits at the top edge of the visible area
     const globeY = radius + 30; // Center is radius distance from top + small padding
-    
-    console.log("Globe dimensions:", {width, height, radius, globeX, globeY});
     
     // Create a group for the globe
     const globeGroup = svg.append('g')
@@ -1120,9 +1116,9 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
             </div>
             
             <div className="w-full md:w-1/3">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Select Indicator</label>
+              <label htmlFor="indicator-select" className="block text-sm font-medium text-gray-700 mb-1">Select Indicator</label>
               <select
-                aria-label="Select indicator type"
+                id="indicator-select"
                 value={selectedIndicator}
                 onChange={(e) => {
                   const newIndicator = e.target.value;
@@ -1147,21 +1143,34 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
                 <span>2018</span>
                 <span>2024</span>
               </div>
+              <span id="year-slider-label" className="block text-sm font-medium text-gray-700 mb-1">Select Year</span>
               <Slider
+                aria-labelledby="year-slider-label"
                 className="w-full cursor-pointer"
                 color="primary"
                 defaultValue={availableYears.length - 1}
                 minValue={0}
                 maxValue={availableYears.length - 1}
                 step={1}
-                aria-label="Select year"
                 aria-valuemin={2018}
                 aria-valuemax={2024}
                 aria-valuenow={selectedYear}
-                onChange={(value: number | number[]) => {
-                  const numericValue = Array.isArray(value) ? value[0] : value;
-                  const year = availableYears[numericValue];
-                  setSelectedYear(year);
+                onChange={(value) => {
+                  // Cast to any to avoid TypeScript errors
+                  const valueHandler = value as any;
+                  // Use the recommended on("change") method if available
+                  if (valueHandler && typeof valueHandler.on === 'function') {
+                    valueHandler.on("change", (val: number | number[]) => {
+                      const numericValue = Array.isArray(val) ? val[0] : val;
+                      const year = availableYears[numericValue];
+                      setSelectedYear(year);
+                    });
+                  } else {
+                    // Fallback to direct handling
+                    const numericValue = Array.isArray(value) ? value[0] : value;
+                    const year = availableYears[numericValue];
+                    setSelectedYear(year);
+                  }
                 }}
               />
             </div>
@@ -1169,7 +1178,12 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           
           <div className="flex flex-col md:flex-row gap-4">
             <div className="w-full md:w-2/3 relative">
-              <svg ref={mapRef} className="w-full h-[600px] md:h-[750px]" />
+              <svg 
+                ref={mapRef} 
+                className="w-full h-[600px] md:h-[750px]"
+                aria-label="Interactive globe showing food waste data by country"
+                role="img"
+              />
               <div 
                 ref={tooltipRef} 
                 className="absolute hidden bg-white p-2 rounded shadow-lg border border-gray-200 text-sm z-10 pointer-events-none"
