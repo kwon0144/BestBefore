@@ -1536,17 +1536,34 @@ def get_country_yearly_waste(request):
 #-----------------------------------------------------------------------
 
 @api_view(['GET'])
-def get_food_emissions(request):
+def get_food_emissions(request, id=None):
     """
     API endpoint that provides food emissions data grouped by food type.
     
     Query parameters:
     - food_type: Filter by specific food type (optional)
     
+    Path parameters:
+    - id: Get a specific food emission by ID (optional)
+    
     Returns:
     - A list of food types with their greenhouse gas emissions
+    - Or a single food emission object if ID is provided
     """
     try: 
+        # If ID is provided, return specific emission
+        if id is not None:
+            try:
+                item = FoodEmissions.objects.get(id=id)
+                return Response({
+                    'id': item.id,
+                    'food_type': item.food_type,
+                    'ghg': item.ghg
+                })
+            except FoodEmissions.DoesNotExist:
+                return Response({'error': f'Food emission with ID {id} not found'}, 
+                                status=status.HTTP_404_NOT_FOUND)
+        
         # Get query parameters
         food_type = request.query_params.get('food_type')
 
@@ -1561,6 +1578,7 @@ def get_food_emissions(request):
         emissions_data = []
         for item in queryset:
             emissions_data.append({
+                'id': item.id,
                 'food_type': item.food_type,
                 'ghg': item.ghg
             })
