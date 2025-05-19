@@ -26,6 +26,7 @@ Password: tp22-BestBefore
 - **Framework**: Next.js 15 with React 19
 - **Styling**: Tailwind CSS for responsive design
 - **UI Components**: Material UI, HeroUI
+- **Animations**: Framer Motion
 - **State Management**: Zustand for efficient state handling
 - **Maps Integration**: Google Maps API for location-based services
 - **Data Visualisation**: D3.js for interactive visualisation
