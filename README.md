@@ -1,107 +1,109 @@
 ![logo.png](https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo.png)
 
-## 🌐 Development Branch
-
-This is the development branch for BestBefore, containing the latest features and improvements that will be included in the next release.
-
 ## 📋 Project Overview
 
-BestBefore is a comprehensive food management system designed to help users track their food inventory, reduce waste, and connect with a food network. This application enables users to:
+BestBefore is a comprehensive food management system designed to help users track their food inventory and reduce waste. 
 
-- Monitor food expiration dates
-- Plan storage efficiently
-- Find nearby food sharing opportunities
-- Identify foods using smart detection
-- Generate food usage calendars
+Visit our live application: [https://tp22-bestbefore.com](https://tp22-bestbefore.com)
 
-## 🏗️ Architecture
+Password: tp22-BestBefore
 
-The BestBefore project follows a client-server architecture with two main components:
 
-- **Frontend**: A Next.js application providing the user interface
-- **Backend**: A Django REST API service managing data and business logic
+### Key Features
+
+- **Storage Assistant**: Monitor food expiration dates and receive optimal storage recommendations
+- **Smart Detection**: Identify food items using computer vision technology
+- **Calendar Integration**: Generate food usage calendars with expiration reminders
+- **Eco-Grocery**: Generate eco-friendly shopping list with waste reduction in mind
+- **Second Life**: Find creative ways to repurpose food that would otherwise be wasted
+- **Food Network**: Connect with local food banks and community sharing initiatives
+- **Waste Game**: Learn to sort food waste correctly to Food Bank, Green Bin and DIY through fun gameplay.
+- **Food Waste Impact**: Provide data insight about food waste impact to ecnonomic and envoirnement.
 
 ## 🔧 Tech Stack
 
 ### Frontend
-- Next.js 15 / React 19
-- Tailwind CSS
-- Google Maps integration
-- TypeScript
-- Material UI components
-- D3.js for data visualization
+- **Framework**: Next.js 15 with React 19
+- **Styling**: Tailwind CSS for responsive design
+- **UI Components**: Material UI, HeroUI
+- **State Management**: Zustand for efficient state handling
+- **Maps Integration**: Google Maps API for location-based services
+- **Data Visualisation**: D3.js for interactive visualisation
+- **Language**: TypeScript for type safety
 
 ### Backend
-- Django 5.2 / Django REST Framework
-- SQLite database (development) / MySQL (production)
-- Python 3.11
+- **Framework**: Django 5.2 with Django REST Framework 3.16
+- **Database**: SQLite (development), MySQL (production)
+- **Computer Vision**: Claude API integration for food detection
+- **Language**: Python 3.11
 
-## 🚀 Getting Started
+## 🚀 Getting Started & Development Workflow
 
-To set up the BestBefore project in development mode, you'll need to configure both the frontend and backend components.
+This project consists of a **Next.js frontend** and a **Django backend**, deployed on AWS with CI/CD pipelines and secure architecture.
 
-### Prerequisites
+To set up the development environment and follow the proper development workflow, please refer to the setup guides in each component:
 
-- Node.js 20.x or higher
-- Python 3.11 or higher
-- Git
+- [Frontend Documentation](frontend/README.md)
+- [Backend Documentation](backend/README.md)
+- [API Documentation](backend/api-docs.md)
 
-### Installation
+### Local Development URLs
 
-1. Clone the repository and switch to the development branch
-```bash
-git clone <repository-url>
-cd BestBefore
-git checkout develop
-```
+- Frontend: http://localhost:3000  
+- Backend API: http://localhost:8000  
+- API Docs: http://localhost:8000/api-docs/
 
-2. Set up the Backend
-```bash
-cd backend
+### Development Guidelines
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+1. Create a feature branch from develop (`git checkout -b feature/amazing-feature`)
+2. Commit your changes (`git commit -m 'Add some amazing feature'`)
+3. Push to the branch (`git push origin feature/amazing-feature`)
+4. Open a Pull Request to merge into the develop branch
 
-# Install dependencies
-pip install -r requirements.txt
+## 🏗️ Architecture
 
-# Apply migrations
-python manage.py migrate
+The BestBefore project follows follows a modern client-server architecture:
 
-# Start the backend server
-python manage.py runserver
-```
+- **Frontend**: A Next.js application providing the user interface
+- **Backend**: A Django REST API service managing data and business logic
+- **Database**: SQLite database (development) / MySQL (production)
 
-3. Set up the Frontend
-```bash
-cd ../frontend
+This diagram illustrates the overall architecture of the **BestBefore** web application deployed on AWS Cloud. The system is built using modern DevOps practices, secure networking, and a scalable web application framework.
 
-# Install dependencies
-npm install
+![BestBefore-SystemDiagram](https://github.com/user-attachments/assets/8fc64b92-4531-417c-8245-0c4fdfb961df)
 
-# Start the frontend development server
-npm run dev
-```
+### 📦 Key Components:
 
-4. Access the application
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
+- **Frontend (React)**
+  - Located in the EC2 instance (public subnet).
+  - Handles the user interface, sending requests to the backend and rendering returned data.
 
-## 📝 Development Workflow
+- **Backend (Django)**
+  - Also hosted on the EC2 instance.
+  - Composed of:
+    - **Views**: Handles incoming HTTP requests.
+    - **Models**: Communicates with the database to fetch/store data.
+    - **Templates**: Pass data from Django to the React interface for rendering.
 
-For detailed development workflows, refer to the README files in the respective directories:
+- **Web Server (Nginx)**
+  - Routes requests to the Django backend.
+  - Manages HTTPS encryption using **Let’s Encrypt**.
+  - Delivers static and dynamic content securely.
 
-- [Frontend Development](frontend/README.md)
-- [Backend Development](backend/README.md)
+- **Database (Amazon RDS – MySQL)**
+  - Resides in a **private subnet** for enhanced security.
+  - Accessed through an **SSH Tunnel** to protect database credentials and traffic.
 
-### Typical Workflow
+- **CI/CD Pipeline (GitHub Actions)**
+  - Automatically triggers on code changes.
+  - Builds, tests, and pushes Docker images to DockerHub.
+  - Deploys updates to EC2 using Docker for continuous integration and delivery.
 
-1. Make backend changes (models, views, etc.) in the `backend/` directory
-2. Update frontend components and pages in the `frontend/` directory
-3. Test API endpoints with the backend running
-4. View UI changes with the frontend running
-5. Commit changes to version control
+- **IAM Server**
+  - Controls access and manages permissions across all AWS services used in the architecture.
+
+- **Data Import**
+  - Cleaned CSV files can be securely imported into the database through the backend.
 
 ## 🚢 Deployment
 
@@ -129,69 +131,13 @@ docker run -p 3000:3000 bestbefore-frontend
 
 ### Automated Deployment
 
-You can use the deployment scripts provided in each component:
+For a quick deployment, use the provided script that handles both frontend and backend:
 
 ```bash
 # From the frontend directory
 chmod +x deploy.sh
 ./deploy.sh
 ```
-
-## 🔐 Environment Configuration
-
-Both frontend and backend require environment variables to be set:
-
-- **Frontend**: `.env` file in the `frontend/` directory
-- **Backend**: `.env` file in the `backend/` directory
-
-See the respective README files for detailed environment variable requirements.
-
-## 🧪 Testing
-
-### Backend Tests
-
-Run all backend tests:
-```bash
-cd backend
-python manage.py test
-```
-
-Run tests for a specific app:
-```bash
-cd backend
-python manage.py test api.tests
-```
-
-Run a specific test file:
-```bash
-cd backend
-python manage.py test api.tests.test_game
-```
-
-Run a specific test class:
-```bash
-cd backend
-python manage.py test api.tests.test_dish_service.DishServiceTestCase
-```
-
-### Frontend Tests
-```bash
-cd frontend
-npm run test
-```
-
-## 📚 Documentation
-
-- [Frontend Documentation](frontend/README.md)
-- [Backend Documentation](backend/README.md)
-- [API Documentation](backend/api-docs.md)
-
-### Development Guidelines
-
-1. Create a feature branch from develop (`git checkout -b feature/amazing-feature`)
-2. Commit your changes (`git commit -m 'Add some amazing feature'`)
-3. Push to the branch (`git push origin feature/amazing-feature`)
-4. Open a Pull Request to merge into the develop branch
 
 ## 👥 Team
 
