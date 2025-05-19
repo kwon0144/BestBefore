@@ -471,7 +471,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     
     // Create close button HTML if country is clicked (selected)
     const closeButtonHtml = selectedCountry === countryName ? 
-      `<button id="close-country-info" aria-label="Close country information" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 transition-colors duration-200 z-10">
+      `<button id="close-country-info" aria-label="Close country information" class="text-gray-500 hover:text-gray-700 transition-colors duration-200 z-10">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
           <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
         </svg>
@@ -514,75 +514,160 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       // If this is a hover (not selected), show only the prompt for trend data
       if (selectedCountry !== countryName) {
         instructionFrame.innerHTML = `
-          <div class="relative">
-            <div class="flex items-center mb-4 pr-7">
+          <!-- Country Header with Map Pin Icon -->
+          <div class="flex items-center mb-6">
+            <div class="flex items-center">
+              <div class="bg-green/10 p-2 rounded-full mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
               <h3 class="text-xl font-semibold text-darkgreen">${countryName}</h3>
-              <div class="text-xs text-gray-500 ml-auto">Data for ${selectedYear}</div>
             </div>
-            <div class="bg-gray-50 rounded-lg p-4 mb-4">
-              <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-2 ${wasteHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                  <span class="text-xs uppercase tracking-wide ${wasteHighlight ? 'text-green-800 font-medium' : 'text-gray-500'}">Total Waste</span>
-                  <div class="text-lg ${wasteHighlight ? 'font-bold text-green-600' : 'text-gray-700'}">${wasteData} tonnes</div>
-                </div>
-                <div class="${economicHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                  <span class="text-xs uppercase tracking-wide ${economicHighlight ? 'text-amber-800 font-medium' : 'text-gray-500'}">Economic Loss</span>
-                  <div class="text-lg ${economicHighlight ? 'font-bold text-amber-600' : 'text-gray-700'}">${economicData}</div>
-                </div>
-                <div class="${householdHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                  <span class="text-xs uppercase tracking-wide ${householdHighlight ? 'text-purple-800 font-medium' : 'text-gray-500'}">Household Waste</span>
-                  <div class="text-lg ${householdHighlight ? 'font-bold text-purple-600' : 'text-gray-700'}">${householdData}</div>
-                </div>
-                <div class="col-span-2 mt-2">
-                  <span class="text-xs uppercase tracking-wide text-gray-500">Annual Cost per Household</span>
-                  <div class="text-lg text-gray-700 font-medium">${costData}</div>
-
+            <div class="ml-auto px-3 py-1 bg-green/10 rounded-full text-xs font-medium text-green">Data for ${selectedYear}</div>
+          </div>
+          
+          <!-- Statistics Cards -->
+          <div class="space-y-4 mb-6">
+            <!-- Total Waste Card -->
+            <div class="${wasteHighlight ? 'bg-green/10' : 'bg-green/10'} backdrop-blur-sm rounded-xl p-4 transition-all duration-300 ${wasteHighlight ? 'ring-2 ring-green shadow-md transform scale-[1.02]' : 'shadow-sm'} overflow-hidden relative">
+              ${wasteHighlight ? `<div class="absolute top-0 left-0 w-1 h-full bg-green"></div>` : ''}
+              <div class="flex items-start">
+                <div class="flex-grow">
+                  <div class="flex items-center">
+                    <span class="text-xs uppercase tracking-wide ${wasteHighlight ? 'text-darkgreen font-bold' : 'text-darkgreen font-medium'}">Total Waste</span>
+                  </div>
+                  <div class="text-lg ${wasteHighlight ? 'font-bold text-darkgreen' : 'text-darkgreen font-medium'} mt-1">${wasteData} tonnes</div>
                 </div>
               </div>
             </div>
-            <div class="bg-white border border-gray-100 rounded-lg p-4">
-              <div class="text-sm font-medium text-gray-700 mb-2">Historical Trend</div>
+            
+            <!-- Economic Loss and Household Waste Cards-->
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Economic Loss Card -->
+              <div class="${economicHighlight ? 'bg-amber-50' : 'bg-amber-50/70'} backdrop-blur-sm rounded-xl p-4 transition-all duration-300 ${economicHighlight ? 'ring-2 ring-amber-500 shadow-md transform scale-[1.02]' : 'shadow-sm'} overflow-hidden relative h-full">
+                ${economicHighlight ? `<div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>` : ''}
+                <div class="flex items-start">
+                  <div class="flex-grow">
+                    <div class="flex items-center flex-wrap">
+                      <span class="text-xs uppercase tracking-wide ${economicHighlight ? 'text-amber-800 font-bold' : 'font-medium text-amber-700'} mr-1">Economic Loss</span>
+                    </div>
+                    <div class="text-lg ${economicHighlight ? 'font-bold text-amber-700' : 'font-medium text-amber-700'} mt-1">${economicData}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Household Waste Card -->
+              <div class="${householdHighlight ? 'bg-purple-50' : 'bg-purple-50/70'} backdrop-blur-sm rounded-xl p-4 transition-all duration-300 ${householdHighlight ? 'ring-2 ring-purple-500 shadow-md transform scale-[1.02]' : 'shadow-sm'} overflow-hidden relative h-full">
+                ${householdHighlight ? `<div class="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>` : ''}
+                <div class="flex items-start">
+                  <div class="flex-grow">
+                    <div class="flex items-center flex-wrap">
+                      <span class="text-xs uppercase tracking-wide ${householdHighlight ? 'text-purple-800 font-bold' : 'font-medium text-purple-700'} mr-1">Household Waste</span>
+                    </div>
+                    <div class="text-lg ${householdHighlight ? 'font-bold text-purple-700' : 'font-medium text-purple-700'} mt-1">${householdData}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Historical Trend Section with Improved Design -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md">
+              <div class="flex items-center mb-3">
+                <div class="text-sm font-medium text-darkgreen">Historical Trend</div>
+              </div>
               <div class="text-gray-500 italic">Click to show the trend data</div>
             </div>
-          </div>
 
+          </div>
         `;
       } else {
         // Show country data with trend chart if selected
         const trendChartHtml = createTrendChart(countryName);
-        instructionFrame.innerHTML = `
-          <div class="relative">
-            ${closeButtonHtml}
-            <div class="flex items-center mb-4 pr-7">
+      instructionFrame.innerHTML = `
+        <div class="relative animate-fade-in">
+          
+          <!-- Country Header with Map Pin Icon -->
+          <div class="flex items-center mb-6">
+            <div class="flex items-center">
+              <div class="bg-green/10 p-2 rounded-full mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
               <h3 class="text-xl font-semibold text-darkgreen">${countryName}</h3>
-              <div class="text-xs text-gray-500 ml-auto">Data for ${selectedYear}</div>
             </div>
-            <div class="bg-gray-50 rounded-lg p-4 mb-4">
-              <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-2 ${wasteHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                  <span class="text-xs uppercase tracking-wide ${wasteHighlight ? 'text-green-800 font-medium' : 'text-gray-500'}">Total Waste</span>
-                  <div class="text-lg ${wasteHighlight ? 'font-bold text-green-600' : 'text-gray-700'}">${wasteData} tonnes</div>
-                </div>
-                <div class="${economicHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                  <span class="text-xs uppercase tracking-wide ${economicHighlight ? 'text-amber-800 font-medium' : 'text-gray-500'}">Economic Loss</span>
-                  <div class="text-lg ${economicHighlight ? 'font-bold text-amber-600' : 'text-gray-700'}">${economicData}</div>
-                </div>
-                <div class="${householdHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                  <span class="text-xs uppercase tracking-wide ${householdHighlight ? 'text-purple-800 font-medium' : 'text-gray-500'}">Household Waste</span>
-                  <div class="text-lg ${householdHighlight ? 'font-bold text-purple-600' : 'text-gray-700'}">${householdData}</div>
-                </div>
-                <div class="col-span-2 mt-2">
-                  <span class="text-xs uppercase tracking-wide text-gray-500">Annual Cost per Household</span>
-                  <div class="text-lg text-gray-700 font-medium">${costData}</div>
+            <div class="ml-auto px-3 py-1 bg-green/10 rounded-full text-xs font-medium text-green">Data for ${selectedYear}</div>
+            ${closeButtonHtml}
+          </div>
+          
+          <!-- Statistics Cards -->
+          <div class="space-y-4 mb-6">
+            <!-- Total Waste Card -->
+            <div class="${wasteHighlight ? 'bg-green/10' : 'bg-green/10'} backdrop-blur-sm rounded-xl p-4 transition-all duration-300 ${wasteHighlight ? 'ring-2 ring-green shadow-md transform scale-[1.02]' : 'shadow-sm'} overflow-hidden relative">
+              ${wasteHighlight ? `<div class="absolute top-0 left-0 w-1 h-full bg-green"></div>` : ''}
+              <div class="flex items-start">
+                <div class="flex-grow">
+                  <div class="flex items-center">
+                    <span class="text-xs uppercase tracking-wide ${wasteHighlight ? 'text-darkgreen font-bold' : 'text-darkgreen font-medium'}">Total Waste</span>
+                  </div>
+                  <div class="text-lg ${wasteHighlight ? 'font-bold text-darkgreen' : 'text-darkgreen font-medium'} mt-1">${wasteData} tonnes</div>
                 </div>
               </div>
             </div>
-            <div class="bg-white border border-gray-100 rounded-lg p-4">
-              <div class="text-sm font-medium text-gray-700 mb-2">Historical Trend</div>
-
+            
+            <!-- Economic Loss and Household Waste Cards-->
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Economic Loss Card -->
+              <div class="${economicHighlight ? 'bg-amber-50' : 'bg-amber-50/70'} backdrop-blur-sm rounded-xl p-4 transition-all duration-300 ${economicHighlight ? 'ring-2 ring-amber-500 shadow-md transform scale-[1.02]' : 'shadow-sm'} overflow-hidden relative h-full">
+                ${economicHighlight ? `<div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>` : ''}
+                <div class="flex items-start">
+                  <div class="flex-grow">
+                    <div class="flex items-center flex-wrap">
+                      <span class="text-xs uppercase tracking-wide ${economicHighlight ? 'text-amber-800 font-bold' : 'font-medium text-amber-700'} mr-1">Economic Loss</span>
+                    </div>
+                    <div class="text-lg ${economicHighlight ? 'font-bold text-amber-700' : 'font-medium text-amber-700'} mt-1">${economicData}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Household Waste Card -->
+              <div class="${householdHighlight ? 'bg-purple-50' : 'bg-purple-50/70'} backdrop-blur-sm rounded-xl p-4 transition-all duration-300 ${householdHighlight ? 'ring-2 ring-purple-500 shadow-md transform scale-[1.02]' : 'shadow-sm'} overflow-hidden relative h-full">
+                ${householdHighlight ? `<div class="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>` : ''}
+                <div class="flex items-start">
+                  <div class="flex-grow">
+                    <div class="flex items-center flex-wrap">
+                      <span class="text-xs uppercase tracking-wide ${householdHighlight ? 'text-purple-800 font-bold' : 'font-medium text-purple-700'} mr-1">Household Waste</span>
+                    </div>
+                    <div class="text-lg ${householdHighlight ? 'font-bold text-purple-700' : 'font-medium text-purple-700'} mt-1">${householdData}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Annual Cost Card -->
+            <div class="bg-blue-50/70 backdrop-blur-sm rounded-xl p-4 shadow-sm overflow-hidden">
+              <div class="flex items-start">
+                <div class="flex-grow">
+                  <span class="text-xs uppercase tracking-wide text-blue-700 font-medium">Annual Cost per Household</span>
+                  <div class="text-lg text-blue-700 font-medium mt-1">${costData}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Historical Trend Section with Improved Design -->
+          <div class="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-md">
+            <div class="flex items-center mb-3">
+              <div class="text-sm font-medium text-darkgreen">Historical Trend</div>
+            </div>
+            <div class="mt-1 overflow-hidden">
               ${trendChartHtml}
             </div>
           </div>
+        </div>
         `;
       }
     }
@@ -598,7 +683,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         const instructionFrame = document.getElementById('map-instruction-frame');
         if (instructionFrame) {
           instructionFrame.innerHTML = `
-            <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div>
               <div class="flex items-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-darkgreen" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -1023,7 +1108,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         const instructionFrame = document.getElementById('map-instruction-frame');
         if (instructionFrame) {
           instructionFrame.innerHTML = `
-            <div class="bg-white rounded-lg p-6 shadow-sm">
+            <div>
               <div class="flex items-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-darkgreen" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -1361,7 +1446,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           
           <div className="flex flex-col md:flex-row gap-4">
             <div className="w-full md:w-2/3 relative">
-              <svg ref={mapRef} className="w-full h-[600px] md:h-[750px]" />
+              <svg ref={mapRef} className="w-full h-[400px] md:h-[600px]" />
               <div 
                 ref={tooltipRef} 
                 className="absolute hidden bg-white p-2 rounded shadow-lg border border-gray-200 text-sm z-10 pointer-events-none"
@@ -1429,7 +1514,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
             </div>
           </div>
           
-          <div className="mt-8 text-sm text-gray-500">
+          <div className="mt-12 mb-4 text-sm text-gray-500">
             Note: Data visualization shows the global distribution of food waste based on {selectedYear} data.
             Some countries may have incomplete or estimated data.
           </div>
