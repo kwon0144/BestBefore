@@ -145,7 +145,7 @@ class GlobalFoodWastageDataset(models.Model):
         return f"{self.country} - {self.year} - {self.food_category}"
     
 class FoodEmissions(models.Model):
-
+    id = models.AutoField(primary_key=True)
     food_type = models.CharField(max_length=100)
     ghg = models.FloatField()
 

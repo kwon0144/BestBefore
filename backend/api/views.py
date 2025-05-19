@@ -1561,6 +1561,7 @@ def get_food_emissions(request):
         emissions_data = []
         for item in queryset:
             emissions_data.append({
+                'id': item.id,
                 'food_type': item.food_type,
                 'ghg': item.ghg
             })
