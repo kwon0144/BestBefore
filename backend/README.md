@@ -1,9 +1,7 @@
 # BestBefore Backend
+The backend of BestBefore is built using Django 5.2 and provides a RESTful API for managing food-related data, including ingredients, dishes, food storage information, and sustainability metrics.
 
-## Overview
-The backend of BestBefore is built using Django 5.2 and provides a RESTful API for managing food-related data, including ingredients, dishes, food storage information, and sustainability metrics. The application follows a service-oriented architecture with a clear separation of concerns.
-
-## Tech Stack
+## 🔧 Tech Stack
 - **Framework**: Django 5.2
 - **REST API**: Django REST Framework 3.16.0
 - **Database**: MySQL (configured) / SQLite (development)
@@ -12,7 +10,7 @@ The backend of BestBefore is built using Django 5.2 and provides a RESTful API f
 - **CORS**: Configured for cross-origin requests
 - **Deployment**: Docker containerization
 
-## Directory Structure
+## 📁 Directory Structure
 ```
 backend/
 |-- api/                    # Main API application
@@ -47,7 +45,7 @@ backend/
 |-- manage.py               # Django management script
 ```
 
-## Key Models
+## 🌟 Key Models
 The application includes the following data models:
 
 - **Dish**: Represents food dishes with name, description, cuisine, and URL
@@ -61,7 +59,7 @@ The application includes the following data models:
 - **GlobalFoodWastageDataset**: Global food wastage statistics by country, year, and category
 - **FoodEmissions**: Greenhouse gas emissions data for different food types
 
-## Services
+## ⚙️ Services
 
 ### 1. Ingredient Combiner Service
 - Combines ingredients from multiple dishes
@@ -93,16 +91,7 @@ The application includes the following data models:
 - Provides database operations and utilities
 - Manages data connections and queries
 
-## API Endpoints
-The API provides endpoints for accessing and manipulating data related to:
-- Dishes and ingredients
-- Food storage information
-- DIY food waste repurposing methods
-- Location-based food resources
-- Food waste statistics and environmental impact data
-- Game functionality
-
-## Environment Variables
+## 🔐 Environment Variables
 The application uses the following environment variables:
 - `DJANGO_SECRET_KEY`: Secret key for the Django application
 - `DEBUG`: Enable/disable debug mode (True/False)
@@ -115,11 +104,13 @@ The application uses the following environment variables:
 - `DB_PORT`: Database port (default: 3307)
 - `CLAUDE_API_KEY`: API key for Claude (if used)
 
-## Setup and Installation
+## 🚀 Getting Started
 
-### Local Development
+### Prerequisites
+- Python 3.11 or higher
 
-1. Create a virtual environment:
+### Installation
+1. Create and activate a virtual environment:
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -130,17 +121,7 @@ The application uses the following environment variables:
    pip install -r requirements.txt
    ```
 
-3. Set up environment variables by creating a `.env` file in the project root:
-   ```
-   DJANGO_SECRET_KEY=your_secret_key
-   DEBUG=True
-   DJANGO_API_KEY=your_api_key
-   DB_NAME=bestbefore
-   DB_USER=dbuser
-   DB_PASSWORD=dbpassword
-   DB_HOST=127.0.0.1
-   DB_PORT=3307
-   ```
+3. Create a `.env.local` file with the required environment variables
 
 4. Run migrations:
    ```bash
@@ -152,7 +133,58 @@ The application uses the following environment variables:
    python manage.py runserver
    ```
 
-### Docker Deployment
+6. Access the backend API with [http://localhost:8000](http://localhost:8000)
+
+## 🔗 API Endpoints
+The API provides endpoints for accessing and manipulating data related to:
+- Dishes and ingredients
+- Food storage information
+- DIY food waste repurposing methods
+- Location-based food resources
+- Food waste statistics and environmental impact data
+- Game functionality
+
+## 🧪 Testing
+The application includes comprehensive tests for various components:
+
+1. Run all tests:
+   ```bash
+   python manage.py test
+   ```
+2. Run tests for a specific app:
+   ```bash
+   cd backend
+   python manage.py test api.tests
+   ```
+
+3. Run specific test files:
+   ```bash
+   python manage.py test api.tests.test_dish_service
+   ```
+   
+4. Run a specific test class:
+   ```bash
+   cd backend
+   python manage.py test api.tests.test_dish_service.DishServiceTestCase
+   ```
+
+## 🔄 Development Workflow
+
+1. Make changes to the models
+2. Create migrations: `python manage.py makemigrations`
+3. Apply migrations: `python manage.py migrate`
+4. Test your changes: `python manage.py test`
+5. Run the server: `python manage.py runserver`
+
+## ✅ Best Practices
+1. Follow the service-oriented architecture pattern
+2. Keep business logic in the service layer
+3. Use proper error handling
+4. Maintain comprehensive documentation
+5. Write tests for all functionality
+6. Follow Django best practices for models and views
+   
+## 🚢 Deployment
 
 1. Build the Docker image:
    ```bash
@@ -171,37 +203,10 @@ The application uses the following environment variables:
      bestbefore-backend
    ```
 
-## Testing
-The application includes comprehensive tests for various components:
+## 📚 Learn More
 
-1. Run all tests:
-   ```bash
-   python manage.py test
-   ```
+To learn more about Next.js, take a look at the following resources:
 
-2. Run specific test files:
-   ```bash
-   python manage.py test api.tests.test_dish_service
-   ```
-
-## Authentication
-The API uses key-based authentication. Include the API key in the request header:
-```
-X-API-Key: your_api_key
-```
-
-## CORS Configuration
-The application is configured to allow cross-origin requests from:
-- http://localhost:3000 (Next.js frontend)
-- http://localhost:3001
-- http://localhost:443
-- http://localhost:8000
-- Additional origins specified via environment variables
-
-## Best Practices
-1. Follow the service-oriented architecture pattern
-2. Keep business logic in the service layer
-3. Use proper error handling
-4. Maintain comprehensive documentation
-5. Write tests for all functionality
-6. Follow Django best practices for models and views 
+- [Django Documentation](https://docs.djangoproject.com/)
+- [Django REST Framework Documentation](https://www.django-rest-framework.org/)
+- [Python Documentation](https://docs.python.org/3/)
