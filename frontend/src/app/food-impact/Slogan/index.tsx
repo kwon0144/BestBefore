@@ -46,7 +46,7 @@ const Slogan: React.FC<SloganProps> = ({ setSloganRef }) => {
           }
         }
       }}
-      className="max-w-6xl mx-auto px-4 xl:px-0 flex flex-col md:flex-row items-center mb-8 md:mb-16"
+      className="max-w-6xl mx-auto px-4 xl:px-0 flex flex-col md:flex-row items-center mb-8 md:mb-12 mt-12"
     >
       <div className="w-full flex flex-col md:flex-row items-center">
         {/* Decorative bars section - left side */}

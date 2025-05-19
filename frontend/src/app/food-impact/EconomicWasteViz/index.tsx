@@ -219,7 +219,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
     <div 
       className="py-12 md:py-20 mb-12 md:mb-20 px-4 relative"
       style={{
-        backgroundImage: `url('https://readdy.ai/api/search-image?query=Stack%20of%20money%20and%20gold%20coins%20showing%20financial%20prosperity%20with%20dramatic%20lighting%20and%20professional%20composition%20against%20dark%20elegant%20background%20with%20green%20accents%20showing%20sustainable%20investment%20concept&width=1440&height=800&seq=9&orientation=landscape')`,
+        backgroundImage: `url('https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/low_cost.jpg')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         position: 'relative',
@@ -236,7 +236,7 @@ const EconomicWasteViz: React.FC<EconomicWasteVizProps> = ({ setMetricCardsRef }
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundImage: `url('https://readdy.ai/api/search-image?query=Burning%20and%20torn%20money%20showing%20financial%20loss%20and%20waste%20with%20dramatic%20lighting%20smoke%20effects%20and%20professional%20composition%20against%20dark%20background%20with%20red%20warning%20tones%20representing%20economic%20crisis&width=1440&height=800&seq=10&orientation=landscape')`,
+          backgroundImage: `url('https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/high_cost.jpg')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           opacity: 0.5,
