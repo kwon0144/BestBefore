@@ -7,23 +7,46 @@
  */
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { stopBackgroundMusic } from '@/app/game/utils/soundEffects';
+
+interface NoScrollLinkProps {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+}
 
 /**
- * A Next.js Link wrapper that prevents automatic scrolling on navigation
- * 
- * @param {object} props - Component properties (extends Next.js Link props)
- * @param {React.ReactNode} props.children - Child elements to render
- * @param {React.Ref<HTMLAnchorElement>} ref - Forwarded ref
- * @returns {JSX.Element} Link component with scroll disabled
+ * Custom Link component that enhances the Next.js Link with:
+ * - Prevents automatic scrolling to top on navigation within the same page
+ * - Stops background music when navigating away from the game page
  */
-const NoScrollLink = React.forwardRef<HTMLAnchorElement, React.ComponentPropsWithRef<typeof Link>>(
-  ({ children, ...props }, ref) => (
-    <Link {...props} scroll={false} ref={ref}>
+const NoScrollLink: React.FC<NoScrollLinkProps> = ({ href, children, className, onClick }) => {
+  const pathname = usePathname();
+  
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // If we're on the game page, stop background music
+    if (pathname === '/game') {
+      stopBackgroundMusic();
+    }
+    
+    // Call any additional onClick handler if provided
+    if (onClick) {
+      onClick();
+    }
+  };
+
+  return (
+    <Link 
+      href={href} 
+      className={className}
+      onClick={handleClick}
+      scroll={false} // Prevent automatic scrolling to top
+    >
       {children}
     </Link>
-  )
-);
-
-NoScrollLink.displayName = 'NoScrollLink';
+  );
+};
 
 export default NoScrollLink; 

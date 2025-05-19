@@ -27,6 +27,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion } from 'framer-motion';
 import NoScrollLink from '../NoScrollLink';
+import { stopBackgroundMusic } from '@/app/game/utils/soundEffects';
 
 /**
  * Array of navigation menu items
@@ -74,6 +75,11 @@ const Navigationbar = () => {
 
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
+    
+    // Stop background music when navigating away from the game
+    if (pathname === '/game') {
+      stopBackgroundMusic();
+    }
   };
 
   return (

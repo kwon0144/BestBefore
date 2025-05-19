@@ -11,10 +11,10 @@ import { Difficulty } from '../interfaces';
  */
 export const getConveyorSpeed = (difficulty: Difficulty): number => {
   switch (difficulty) {
-    case 'easy': return 1;
-    case 'normal': return 1.5;
-    case 'hard': return 2;
-    default: return 1.5;
+    case 'easy': return 1.5;
+    case 'normal': return 2;
+    case 'hard': return 3;
+    default: return 2;
   }
 };
 

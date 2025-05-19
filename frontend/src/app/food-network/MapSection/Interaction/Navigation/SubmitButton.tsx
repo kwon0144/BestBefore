@@ -71,7 +71,6 @@ export default function SubmitButton({ mapSectionState, setMapSectionState, setV
         setIsLoading(true);
 
         if (foodbank) {
-            console.log("Selected Food Bank:", foodbank.name);
             
             // Use a short timeout to ensure DOM updates happen in a single batch
             // This helps prevent the map from flashing

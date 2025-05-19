@@ -10,10 +10,11 @@
  * - Screen transitions between different game phases
  * - Fullscreen functionality (toggled via button in the bottom-right corner of GameArea)
  */
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { startGame, endGame } from '@/services/gameService';
 import { Difficulty, WasteStats } from './interfaces';
 import { playSound, stopBackgroundMusic } from './utils/soundEffects';
+import { useRouter, usePathname } from 'next/navigation';
 
 // Custom hooks
 import useGameState from './hooks/useGameState';
@@ -48,6 +49,33 @@ export default function Game() {
     playerId, foodItems, loading,
     soundsLoaded, backgroundImage, resultBgImage, gameResources, resourcesLoading
   } = useGameState();
+
+  // Add effect to disable scrolling when the game is active
+  useEffect(() => {
+    // Save the original overflow style
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    
+    // Disable scrolling when the game is active
+    if (gameStarted && !gameOver) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Re-enable scrolling when game is not active
+      document.body.style.overflow = originalStyle;
+    }
+    
+    // Cleanup: restore original overflow on unmount
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, [gameStarted, gameOver]);
+
+  // Add effect to stop background music when component unmounts
+  useEffect(() => {
+    // Cleanup function to stop background music when navigating away
+    return () => {
+      stopBackgroundMusic();
+    };
+  }, []);
 
   // Loading indicator when resources are loading
   if (resourcesLoading || loading) {

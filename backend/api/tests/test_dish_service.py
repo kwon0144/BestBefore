@@ -1,6 +1,6 @@
 from django.test import TestCase
 from unittest.mock import patch, MagicMock, call
-from backend.api.service.dish_ingre_service import DishIngredientService
+from api.service.dish_ingre_service import DishIngredientService
 
 class DishIngredientServiceTestCase(TestCase):
     def setUp(self):
