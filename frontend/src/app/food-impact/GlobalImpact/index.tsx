@@ -241,13 +241,36 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     return countryData;
   };
 
+  /**
+   * Normalize country name for consistent lookup across the component
+   * 
+   * @param countryName - The name of the country to normalize
+   * @returns Normalized country name
+   */
+  const normalizeCountryName = (countryName: string): string => {
+    const name = countryName.toLowerCase();
+    
+    if (name === 'taiwan') {
+      return 'China';
+    } else if (name === 'united states' || name === 'united states of america') {
+      return 'USA';
+    } else if (name === 'united kingdom') {
+      return 'UK';
+    }
+    
+    return countryName;
+  };
+
   // Add function to create a trend chart for a country
   const createTrendChart = (countryName: string, width: number = 250, height: number = 120) => {
+    // Normalize country name for consistent lookup
+    const normalizedName = normalizeCountryName(countryName);
+    
     // Get country data from our trend data
-    const countryData = trendData[countryName];
+    const countryData = trendData[normalizedName];
     
     // If we don't have data yet and it's the selected country (still loading)
-    if ((!countryData || Object.keys(countryData).length === 0) && selectedCountry === countryName) {
+    if ((!countryData || Object.keys(countryData).length === 0) && selectedCountry === normalizedName) {
       return `<p class="text-sm text-gray-600">Loading historical data...</p>`;
     }
     
@@ -967,7 +990,8 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .append('path')
       .attr('class', (d: any) => {
         const countryName = d.properties.name;
-        return `country ${selectedCountry === countryName ? 'selected-country' : ''}`;
+        const normalizedName = normalizeCountryName(countryName);
+        return `country ${selectedCountry === normalizedName ? 'selected-country' : ''}`;
       })
       .attr('d', pathGenerator as any)
       .attr('fill', (d: any) => {
@@ -980,12 +1004,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       .attr('cursor', 'pointer')
       .on('mouseover', function(event: MouseEvent, d: any) {
         const countryName = d.properties.name;
-        let displayName = countryName;
-        
-        // Special case for Taiwan, map to China
-        if (countryName.toLowerCase() === 'taiwan') {
-          displayName = 'China';
-        }
+        let displayName = normalizeCountryName(countryName);
         
         const countryData = getCountryData(countryName, wasteData.countries);
         
@@ -1029,12 +1048,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
       })
       .on('click', function(event: MouseEvent, d: any) {
         const countryName = d.properties.name;
-        let displayName = countryName;
-        
-        // Special case for Taiwan
-        if (countryName.toLowerCase() === 'taiwan') {
-          displayName = 'China';
-        }
+        let displayName = normalizeCountryName(countryName);
         
         const countryData = getCountryData(countryName, wasteData.countries);
         
@@ -1282,17 +1296,17 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
    * Reset selected country when year changes
    */
   useEffect(() => {
+    // Explicitly reset selected country to null to trigger proper cleanup
     setSelectedCountry(null);
   }, [selectedYear]);
 
   // Add this useEffect to update the instruction frame when trendData or selectedCountry changes
   useEffect(() => {
     if (selectedCountry) {
+      const normalizedCountry = selectedCountry;
       // Find the country data for the selected country
       const countryData = wasteData?.countries.find(
-        c => c.country.toLowerCase() === selectedCountry.toLowerCase() ||
-          (selectedCountry.toLowerCase() === 'usa' && c.country.toLowerCase() === 'usa') ||
-          (selectedCountry.toLowerCase() === 'uk' && c.country.toLowerCase() === 'uk')
+        c => c.country.toLowerCase() === normalizedCountry.toLowerCase()
       );
       updateInstructionFrame(selectedCountry, countryData);
     }
