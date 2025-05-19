@@ -31,12 +31,10 @@ const Sources: React.FC<SourcesProps> = ({ setRef }) => {
   // Source data
   const sources = [
     "National Food Waste Strategy Feasibility Study (Source: Australian Government)",
-    "Food waste costs Australian economy $36.6 billion annually (Source: Rabobank Food Waste Report 2023)",
-    "Global greenhouse gas emissions from food systems (Source: UN FAO, Climate Watch)",
-    "GHG emissions per kg of different food products (Source: Our World in Data based on Poore & Nemecek 2018)",
-    "Company emissions: Scopes 1 & 2 - operational control, Scope 3 - category 11, upstream production only, 2021 (Source: company reporting)",
-    "2023 Domestic GHG emissions only (Source: EDGAR Community GHG Database)",
-    "Global food waste reduction initiatives and impact measurements (Source: UN Environment Programme)"
+    "NFWS Feasibility Study (Source: Food Innovation Australia Ltd)",
+    "Global food system emissions could preclude achieving the 1.5°C and 2°C climate change targets (Source: Our World in Data)",
+    "Greenhouse gas emissions per kilogram (Source: Our World in Data)",
+    "Global Food Wastage Dataset (2018-2024) (Source: Kaggle)",
   ];
 
   return (

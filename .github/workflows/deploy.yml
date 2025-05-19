@@ -76,8 +76,6 @@ jobs:
       - name: Build and push frontend Docker image
         run: |
           cd frontend
-          # Note: NEXT_PUBLIC_API_URL is only used at build time and will be overridden
-          # during deployment by the container-specific URL in deploy.sh
           docker buildx build \
             --build-arg NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
             --build-arg NEXT_PUBLIC_API_KEY=${NEXT_PUBLIC_API_KEY} \

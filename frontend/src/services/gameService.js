@@ -80,11 +80,9 @@ export const getGameResources = async () => {
         // Check if we have valid cached resources
         const now = Date.now();
         if (resourcesCache && now - lastResourceFetch < CACHE_TTL) {
-            console.log('Using cached game resources');
             return resourcesCache;
         }
         
-        console.log('Fetching fresh game resources');
         const response = await api.get('/api/game/resources/');
         
         // Process resources for easy access
@@ -92,7 +90,6 @@ export const getGameResources = async () => {
         
         // Verify resources structure
         if (!processedResources.resources || !Array.isArray(processedResources.resources)) {
-            console.warn('Invalid resources format from API:', processedResources);
             processedResources.resources = [];
         }
         

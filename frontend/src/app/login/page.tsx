@@ -21,6 +21,7 @@ import { config } from '@/config';
 import { faEye } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import Image from 'next/image';
 
 /**
  * Main component for the login page
@@ -110,7 +111,7 @@ export default function LoginPage() {
       {/* Login Form */}
       <div className="absolute inset-0 flex items-center justify-center px-4">
         <div className='flex flex-col items-center'>
-          <motion.img 
+          <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={finalExit ? 
               { scale: 1.5, y: 0, opacity: 0 } : 
@@ -120,10 +121,16 @@ export default function LoginPage() {
               { duration: 1, ease: "easeInOut" } :
               { duration: 1, ease: "easeOut" }
             }
-            src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo.png" 
-            alt="Best Before Logo" 
             className="w-80"
-          />
+          >
+            <Image 
+              src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo.png" 
+              alt="Best Before Logo"
+              width={320}
+              height={120} 
+              priority
+            />
+          </motion.div>
           <AnimatePresence>
             {!isExiting && (
               <motion.form 
