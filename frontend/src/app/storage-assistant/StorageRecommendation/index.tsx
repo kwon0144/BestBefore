@@ -499,6 +499,31 @@ const StorageRecommendations: React.FC<StorageRecommendationsProps> = ({ storage
     onUpdateStorageRecs(newStorageRecs);
     setNewItem({ name: '', quantity: 1 });
     setShowAddForm(null);
+
+    // Rebuild storageRecs from inventory store to ensure sync 
+    // this is for the case where user initially adds an item to the inventory store
+    // and then adds it to the storage recommendations
+    const updatedInventory = useInventoryStore.getState().items;
+    const rebuiltStorageRecs: import('../interfaces/Storage').StorageRecommendation = { fridge: [], pantry: [] };
+    updatedInventory.forEach(item => {
+      const expiryDate = new Date(item.expiryDate);
+      const now = new Date();
+      const diffTime = expiryDate.getTime() - now.getTime();
+      const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const qtyMatch = item.quantity.match(/^\d+/);
+      const quantity = qtyMatch ? parseInt(qtyMatch[0], 10) : 1;
+      const capitalizedName = capitalizeWords(item.name);
+      const storageItem = {
+        name: `${capitalizedName} (${daysLeft > 0 ? daysLeft : 0} days)`,
+        quantity: quantity
+      };
+      if (item.location === 'refrigerator') {
+        rebuiltStorageRecs.fridge.push(storageItem);
+      } else if (item.location === 'pantry') {
+        rebuiltStorageRecs.pantry.push(storageItem);
+      }
+    });
+    onUpdateStorageRecs(rebuiltStorageRecs);
   };
   
   /**
