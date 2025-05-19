@@ -7,6 +7,7 @@ import axios from "axios";
 import { config } from "@/config";
 import { FoodItem, ApiResponse, ResourcesApiResponse } from '../interfaces';
 import { getGameResources } from '@/services/gameService';
+import { initSoundResources } from '../utils/soundEffects';
 
 /**
  * Hook for managing game state and food items data
@@ -49,6 +50,9 @@ export default function useGameState() {
         setResourcesLoading(true);
         const resources = await getGameResources();
         setGameResources(resources);
+        
+        // Initialize sound resources
+        initSoundResources(resources);
         
         // Extract background images
         if (resources.specificResources.background?.image) {
