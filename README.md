@@ -4,7 +4,7 @@
 
 BestBefore is a comprehensive food management system designed to help users track their food inventory and reduce waste. 
 
-Visit our live application: [https://tp22-bestbefore.com](https://tp22-bestbefore.com)
+Visit our live application: [https://tp22-bestbefore.com/develop](https://tp22-bestbefore.com/develop)
 
 Password: tp22-BestBefore
 
