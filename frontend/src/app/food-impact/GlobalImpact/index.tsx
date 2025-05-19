@@ -1007,6 +1007,21 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     setSelectedCountry(null);
   }, [selectedYear]);
 
+  // Add this useEffect to update the instruction frame when trendData or selectedCountry changes
+  useEffect(() => {
+    if (selectedCountry) {
+      // Find the country data for the selected country
+      const countryData = wasteData?.countries.find(
+        c => c.country.toLowerCase() === selectedCountry.toLowerCase() ||
+          (selectedCountry.toLowerCase() === 'usa' && c.country.toLowerCase() === 'usa') ||
+          (selectedCountry.toLowerCase() === 'uk' && c.country.toLowerCase() === 'uk')
+      );
+      updateInstructionFrame(selectedCountry, countryData);
+    }
+    // Only run when trendData or selectedCountry changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trendData, selectedCountry]);
+
   return (
     <>
       <motion.div 
