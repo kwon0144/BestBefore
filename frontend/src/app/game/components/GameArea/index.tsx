@@ -5,7 +5,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { updateGame, getGameResources } from '@/services/gameService';
 import { Food as FoodType, FoodItem, Difficulty, ResourcesApiResponse, WasteStats } from '../../interfaces';
-import { playSound } from '../../utils/soundEffects';
+import { playSound, initSoundResources } from '../../utils/soundEffects';
 import { getConveyorSpeed, getFoodGenerationInterval, isInZone } from '../../utils/gameLogic';
 import Head from 'next/head';
 
@@ -491,6 +491,13 @@ export default function GameArea({
   // Game configuration
   const gameSpeed = getConveyorSpeed(difficulty);
   const foodGenerationInterval = getFoodGenerationInterval(difficulty);
+
+  // Initialize sound resources when gameResources changes
+  useEffect(() => {
+    if (gameResources) {
+      initSoundResources(gameResources);
+    }
+  }, [gameResources]);
 
   return (
     <>

@@ -109,6 +109,14 @@ export const getGameResources = async () => {
             landfill: resourcesMap["Landfill"],
             bush: resourcesMap["Bush"],
             result_bg: resourcesMap["Result_BG"] || resourcesMap["result_bg"] || resourcesMap["Rusult_BG"], 
+            donate: resourcesMap["donate"],
+            diyFood: resourcesMap["diyFood"],
+            gameStart: resourcesMap["gameStart"],
+            wasteFood: resourcesMap["wasteFood"],
+            wrongAction: resourcesMap["wrongAction"],
+            pickup: resourcesMap["pickup"],
+            gameOver: resourcesMap["gameOver"],
+            backgroundMusic: resourcesMap["backgroundMusic"]
         };
         
         // Add the specific resources to the processed data
