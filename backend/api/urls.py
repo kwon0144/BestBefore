@@ -55,6 +55,7 @@ urlpatterns = [
     path('economic-impact/', get_economic_impact, name='economic_impact'),
     path('household-impact/', get_household_impact, name='household_impact'),
     path('food-emissions/', get_food_emissions, name='food_emissions'),
+    path('food-emissions/<int:id>/', get_food_emissions, name='get_food_emission_by_id'),
     path('country-yearly-waste/', get_country_yearly_waste, name='country_yearly_waste'),
 ]
 

@@ -7,6 +7,7 @@ export interface EmissionData {
   ghg: number;
   percentage?: number;
   color?: string;
+  id?: number;
 }
 
 /**
@@ -21,6 +22,7 @@ export const useEmissionsData = () => {
   useEffect(() => {
     const fetchEmissionsData = async () => {
       try {
+        // Ensure we're using the correct endpoint with trailing slash
         const response = await axios.get<EmissionData[]>(`${config.apiUrl}/api/food-emissions/`);
         
         // Sort data by greenhouse gas emissions (highest first)
