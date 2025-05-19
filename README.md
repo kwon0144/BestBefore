@@ -9,7 +9,7 @@ Visit our live application: [https://tp22-bestbefore.com](https://tp22-bestbefor
 Password: tp22-BestBefore
 
 
-### Key Features
+## 🌟 Key Features
 
 - **Storage Assistant**: Monitor food expiration dates and receive optimal storage recommendations
 - **Smart Detection**: Identify food items using computer vision technology
