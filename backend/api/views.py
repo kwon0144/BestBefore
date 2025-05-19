@@ -412,28 +412,14 @@ def get_foodbanks(request):
       }
     """
     try:
-        # Use raw SQL query to get foodbank data including hours_of_operation
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT 
-                    id, 
-                    name, 
-                    latitude, 
-                    longitude, 
-                    type, 
-                    hours_of_operation,
-                    address
-                FROM 
-                    geospatial
-                """
-            )
-            # Convert to list of dictionaries
-            columns = [col[0] for col in cursor.description]
-            foodbanks_data = [
-                dict(zip(columns, row))
-                for row in cursor.fetchall()
-            ]
+        # Use Django ORM to get foodbank data from the Geospatial model
+        foodbanks = Geospatial.objects.all()
+        
+        # Convert queryset to list of dictionaries with selected fields
+        foodbanks_data = list(foodbanks.values(
+            'id', 'name', 'latitude', 'longitude', 'type', 
+            'hours_of_operation', 'address'
+        ))
         
         # Process operating hours for each foodbank
         for foodbank in foodbanks_data:
