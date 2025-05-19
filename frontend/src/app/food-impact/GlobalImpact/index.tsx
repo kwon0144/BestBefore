@@ -170,8 +170,6 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         // Render the map with the fetched data
         renderMap(worldData, wasteData);
       } catch (error) {
-        console.error("Error fetching world map data:", error);
-        
         // Show error message in the map area
         if (mapRef.current) {
           const svg = d3.select(mapRef.current);
@@ -415,51 +413,51 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     if (!countryName) {
       instructionFrame.innerHTML = `
          <h3 class="text-xl font-semibold text-darkgreen mb-4 flex items-center">
-           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" role="img">
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
            </svg>
            Map Instructions
          </h3>
          
          <div class="space-y-4 mt-6">
-           <div class="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
-             <div class="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
-               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+           <div className="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
+             <div className="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" role="img">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
                </svg>
              </div>
              <div>
-               <h4 class="font-medium text-darkgreen">Hover to Explore</h4>
-               <p class="text-sm text-gray-600 mt-1">
+               <h4 className="font-medium text-darkgreen">Hover to Explore</h4>
+               <p className="text-sm text-gray-600 mt-1">
                  Move your cursor over any country to instantly reveal detailed food waste statistics.
                </p>
              </div>
            </div>
            
-           <div class="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
-             <div class="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
-               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+           <div className="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
+             <div className="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" role="img">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                </svg>
              </div>
              <div>
-               <h4 class="font-medium text-darkgreen">Click to Focus</h4>
-               <p class="text-sm text-gray-600 mt-1">
+               <h4 className="font-medium text-darkgreen">Click to Focus</h4>
+               <p className="text-sm text-gray-600 mt-1">
                  Click on any country to pin its information and keep it in view while you explore the map.
                </p>
              </div>
            </div>
            
-           <div class="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
-             <div class="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
-               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+           <div className="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
+             <div className="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" role="img">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                </svg>
              </div>
              <div>
-               <h4 class="font-medium text-darkgreen">Drag to Rotate</h4>
-               <p class="text-sm text-gray-600 mt-1">
+               <h4 className="font-medium text-darkgreen">Drag to Rotate</h4>
+               <p className="text-sm text-gray-600 mt-1">
                  Click and drag anywhere on the globe to rotate and discover food waste data from every region.
                </p>
              </div>
@@ -484,15 +482,15 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           ${closeButtonHtml}
           <h3 class="text-xl font-semibold text-darkgreen mb-2 flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             ${countryName}
           </h3>
           <div class="p-5 bg-white/80 backdrop-blur-sm rounded-xl text-center animate-fade-in shadow-md">
             <div class="bg-gray-50 rounded-full p-4 w-16 h-16 mx-auto mb-3 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <p class="text-gray-700 font-medium">No data available for ${countryName}</p>
@@ -640,8 +638,6 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
     const globeX = width / 2;
     // Position globe so its top sits at the top edge of the visible area
     const globeY = radius + 30; // Center is radius distance from top + small padding
-    
-    console.log("Globe dimensions:", {width, height, radius, globeX, globeY});
     
     // Create a group for the globe
     const globeGroup = svg.append('g')
@@ -1175,15 +1171,19 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
             </div>
             
             <div className="w-full md:w-1/3">
-              <label className="block text-sm font-medium text-gray-700 mb-1 mt-2">Select Indicator</label>
+              <label htmlFor="indicator-select" className="block text-sm font-medium text-gray-700 mb-1">Select Indicator</label>
               <Select
-                aria-label="Select indicator type"
+                id="indicator-select"
+                aria-labelledby="indicator-select"
                 selectedKeys={[selectedIndicator]}
                 onSelectionChange={(keys) => {
-                  const selectedKey = Array.from(keys)[0] as string;
-                  setSelectedIndicator(selectedKey);
-                  const newName = INDICATORS.find(ind => ind.id === selectedKey)?.name || '';
-                  setIndicatorName(newName);
+                  // Get the selected key as string
+                  const selected = Array.from(keys)[0] as string;
+                  if (selected) {
+                    setSelectedIndicator(selected);
+                    const newName = INDICATORS.find(ind => ind.id === selected)?.name || '';
+                    setIndicatorName(newName);
+                  }
                 }}
                 className="w-full"
                 classNames={{
@@ -1206,21 +1206,34 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
                 <span>2018</span>
                 <span>2024</span>
               </div>
+              <span id="year-slider-label" className="block text-sm font-medium text-gray-700 mb-1">Select Year</span>
               <Slider
+                aria-labelledby="year-slider-label"
                 className="w-full cursor-pointer"
                 color="primary"
                 defaultValue={availableYears.length - 1}
                 minValue={0}
                 maxValue={availableYears.length - 1}
                 step={1}
-                aria-label="Select year"
                 aria-valuemin={2018}
                 aria-valuemax={2024}
                 aria-valuenow={selectedYear}
-                onChange={(value: number | number[]) => {
-                  const numericValue = Array.isArray(value) ? value[0] : value;
-                  const year = availableYears[numericValue];
-                  setSelectedYear(year);
+                onChange={(value) => {
+                  // Cast to any to avoid TypeScript errors
+                  const valueHandler = value as any;
+                  // Use the recommended on("change") method if available
+                  if (valueHandler && typeof valueHandler.on === 'function') {
+                    valueHandler.on("change", (val: number | number[]) => {
+                      const numericValue = Array.isArray(val) ? val[0] : val;
+                      const year = availableYears[numericValue];
+                      setSelectedYear(year);
+                    });
+                  } else {
+                    // Fallback to direct handling
+                    const numericValue = Array.isArray(value) ? value[0] : value;
+                    const year = availableYears[numericValue];
+                    setSelectedYear(year);
+                  }
                 }}
               />
             </div>
@@ -1228,7 +1241,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
           
           <div className="flex flex-col md:flex-row gap-4">
             <div className="w-full md:w-2/3 relative">
-              <svg ref={mapRef} className="w-full h-[400px] md:h-[600px]" />
+              <svg ref={mapRef} className="w-full h-[600px] md:h-[750px]" />
               <div 
                 ref={tooltipRef} 
                 className="absolute hidden bg-white p-2 rounded shadow-lg border border-gray-200 text-sm z-10 pointer-events-none"
@@ -1239,7 +1252,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
               <div className="border-0 rounded-xl p-5 bg-gray-100 shadow-md h-full relative overflow-y-auto md:max-h-[610px] mt-4">
                 <div id="map-instruction-frame">
                   <h3 className="text-xl font-semibold text-darkgreen mb-4 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" role="img">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                     </svg>
                     Map Instructions
@@ -1248,7 +1261,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
                   <div className="space-y-4 mt-6">
                     <div className="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
                       <div className="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" role="img">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
                         </svg>
                       </div>
@@ -1262,7 +1275,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
                     
                     <div className="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
                       <div className="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" role="img">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
@@ -1277,7 +1290,7 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
                     
                     <div className="flex items-start p-3 rounded-lg bg-gray-50 backdrop-blur-sm shadow-sm transition-all duration-200 hover:shadow-md">
                       <div className="flex-shrink-0 bg-green/10 p-2 rounded-full mr-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" role="img">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
                       </div>
