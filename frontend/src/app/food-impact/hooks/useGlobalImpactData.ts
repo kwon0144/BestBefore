@@ -20,7 +20,6 @@ export const useGlobalImpactData = (year: number = 2024) => {
       setLoading(true);
       
       try {
-        console.log(`Fetching economic impact data for ${year}...`);
         const startTime = performance.now();
         
         const response = await axios.get<GlobalWasteData>(`${config.apiUrl}/api/economic-impact/`, {
@@ -29,13 +28,11 @@ export const useGlobalImpactData = (year: number = 2024) => {
         });
         
         const endTime = performance.now();
-        console.log(`Economic impact data loaded in ${(endTime - startTime).toFixed(2)}ms`);
         
         // Check if data came from cache
         if (response.data && response.data.cache !== undefined) {
           setUsingCache(response.data.cache);
           setCacheTimestamp(response.data.updated_at);
-          console.log(`Data ${response.data.cache ? 'retrieved from cache' : 'fetched from database'}`);
         }
         
         // Process data to include Taiwan as part of China
@@ -66,8 +63,6 @@ export const useGlobalImpactData = (year: number = 2024) => {
         
         setError(null);
       } catch (err: any) {
-        console.error("Error fetching economic impact data:", err);
-        
         // Set appropriate error message
         let errorMessage = 'Error loading data. Please check the API connection.';
         if (err.code === 'ECONNABORTED' || (err.message && err.message.includes('timeout'))) {
@@ -120,12 +115,10 @@ export const useCountryYearlyData = () => {
             };
           });
           
-          console.log("Yearly data loaded from API:", response.data.data.length, "records");
           setTrendData(apiData);
           setError(null);
         }
       } catch (err) {
-        console.error("Error fetching yearly data:", err);
         setError("Failed to load yearly trend data");
       } finally {
         setLoading(false);
@@ -146,7 +139,6 @@ export const useCountryYearlyData = () => {
     }
     
     try {
-      console.log(`Fetching yearly trend data for ${countryName}...`);
       const startTime = performance.now();
       
       // Filter API call to only get the selected country data
@@ -159,11 +151,8 @@ export const useCountryYearlyData = () => {
       );
       
       const endTime = performance.now();
-      console.log(`Yearly data for ${countryName} loaded in ${(endTime - startTime).toFixed(2)}ms`);
       
       if (response.data && response.data.data && response.data.data.length > 0) {
-        console.log(`Received ${response.data.data.length} records for ${countryName}`);
-        
         // Format the data for this country
         const newTrendData = {...trendData};
         
@@ -185,7 +174,6 @@ export const useCountryYearlyData = () => {
         setError(null);
       }
     } catch (err) {
-      console.error(`Error fetching yearly data for ${countryName}:`, err);
       setError(`Failed to load yearly data for ${countryName}`);
     }
   };

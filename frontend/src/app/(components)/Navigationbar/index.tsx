@@ -113,6 +113,7 @@ const Navigationbar = () => {
                   src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo.png" 
                   alt="Best Before Logo"
                   fill
+                  priority
                   style={{ objectFit: 'contain' }}
                 />
               </div>
@@ -180,6 +181,7 @@ const Navigationbar = () => {
                   src="https://s3-tp22.s3.ap-southeast-2.amazonaws.com/BestBefore/logo.png" 
                   alt="Best Before Logo"
                   fill
+                  priority
                   style={{ objectFit: 'contain' }}
                   sizes="(max-width: 768px) 100vw, 128px"
                 />
