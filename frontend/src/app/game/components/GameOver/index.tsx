@@ -117,10 +117,10 @@ export default function GameOver({ score, wasteStats, handleStartGame, gameResou
 
   const scrollToStats = () => {
     if (statsRef.current) {
-      const startPosition = window.pageYOffset - 150;
-      const targetPosition = statsRef.current.getBoundingClientRect().top + startPosition;
+      const startPosition = window.pageYOffset;
+      const targetPosition = statsRef.current.getBoundingClientRect().top + startPosition - 150;
       const distance = targetPosition - startPosition;
-      const duration = 2000;
+      const duration = 4000;
       let start: number | null = null;
 
       const animation = (currentTime: number) => {
