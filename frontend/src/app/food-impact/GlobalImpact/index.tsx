@@ -451,63 +451,86 @@ const GlobalImpact: React.FC<GlobalImpactProps> = ({ setRef }) => {
         </div>
       `;
     } else {
-      // Generate trend chart for country data
-      const trendChartHtml = createTrendChart(countryName);
-      
       // Get colors and highlighting classes for indicators
-      const wasteColor = '#22c55e'; // Green
-      const economicColor = '#f59e0b'; // Amber
-      const householdColor = '#8b5cf6'; // Purple
-      
-      // Create styled indicator data that highlights the selected indicator
-      const wasteHighlight = selectedIndicator === 'total_waste';
-      const economicHighlight = selectedIndicator === 'total_economic_loss';
-      const householdHighlight = selectedIndicator === 'household_waste_percentage';
-      
+      const wasteHighlight = selectedCountry === countryName && selectedIndicator === 'total_waste';
+      const economicHighlight = selectedCountry === countryName && selectedIndicator === 'total_economic_loss';
+      const householdHighlight = selectedCountry === countryName && selectedIndicator === 'household_waste_percentage';
       const wasteData = countryData.total_waste ? countryData.total_waste.toLocaleString() : 'N/A';
       const economicData = `$${(countryData.total_economic_loss/1000).toFixed(2)}B`;
       const householdData = `${countryData.household_waste_percentage}%`;
       const costData = `$${countryData.annual_cost_per_household.toFixed(2)}`;
       
-      // Show country data with close button if clicked - improved UIUX layout
-      instructionFrame.innerHTML = `
-        <div class="relative animate-fade-in">
-          ${closeButtonHtml}
-          <div class="flex items-center mb-4 pr-7"> <!-- Added right padding to prevent overlap with close button -->
-            <h3 class="text-xl font-semibold text-darkgreen">${countryName}</h3>
-            <div class="text-xs text-gray-500 ml-auto">Data for ${selectedYear}</div>
-          </div>
-          
-          <div class="bg-gray-50 rounded-lg p-4 mb-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="col-span-2 ${wasteHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                <span class="text-xs uppercase tracking-wide ${wasteHighlight ? 'text-green-800 font-medium' : 'text-gray-500'}">Total Waste</span>
-                <div class="text-lg ${wasteHighlight ? 'font-bold text-green-600' : 'text-gray-700'}">${wasteData} tonnes</div>
-              </div>
-              
-              <div class="${economicHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                <span class="text-xs uppercase tracking-wide ${economicHighlight ? 'text-amber-800 font-medium' : 'text-gray-500'}">Economic Loss</span>
-                <div class="text-lg ${economicHighlight ? 'font-bold text-amber-600' : 'text-gray-700'}">${economicData}</div>
-              </div>
-              
-              <div class="${householdHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
-                <span class="text-xs uppercase tracking-wide ${householdHighlight ? 'text-purple-800 font-medium' : 'text-gray-500'}">Household Waste</span>
-                <div class="text-lg ${householdHighlight ? 'font-bold text-purple-600' : 'text-gray-700'}">${householdData}</div>
-              </div>
-              
-              <div class="col-span-2 mt-2">
-                <span class="text-xs uppercase tracking-wide text-gray-500">Annual Cost per Household</span>
-                <div class="text-lg text-gray-700 font-medium">${costData}</div>
+      // If this is a hover (not selected), show only the prompt for trend data
+      if (selectedCountry !== countryName) {
+        instructionFrame.innerHTML = `
+          <div class="relative animate-fade-in">
+            <div class="flex items-center mb-4 pr-7">
+              <h3 class="text-xl font-semibold text-darkgreen">${countryName}</h3>
+              <div class="text-xs text-gray-500 ml-auto">Data for ${selectedYear}</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2 ${wasteHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
+                  <span class="text-xs uppercase tracking-wide ${wasteHighlight ? 'text-green-800 font-medium' : 'text-gray-500'}">Total Waste</span>
+                  <div class="text-lg ${wasteHighlight ? 'font-bold text-green-600' : 'text-gray-700'}">${wasteData} tonnes</div>
+                </div>
+                <div class="${economicHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
+                  <span class="text-xs uppercase tracking-wide ${economicHighlight ? 'text-amber-800 font-medium' : 'text-gray-500'}">Economic Loss</span>
+                  <div class="text-lg ${economicHighlight ? 'font-bold text-amber-600' : 'text-gray-700'}">${economicData}</div>
+                </div>
+                <div class="${householdHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
+                  <span class="text-xs uppercase tracking-wide ${householdHighlight ? 'text-purple-800 font-medium' : 'text-gray-500'}">Household Waste</span>
+                  <div class="text-lg ${householdHighlight ? 'font-bold text-purple-600' : 'text-gray-700'}">${householdData}</div>
+                </div>
+                <div class="col-span-2 mt-2">
+                  <span class="text-xs uppercase tracking-wide text-gray-500">Annual Cost per Household</span>
+                  <div class="text-lg text-gray-700 font-medium">${costData}</div>
+                </div>
               </div>
             </div>
+            <div class="bg-white border border-gray-100 rounded-lg p-4">
+              <div class="text-sm font-medium text-gray-700 mb-2">Historical Trend</div>
+              <div class="text-gray-500 italic">Click to show the trend data</div>
+            </div>
           </div>
-          
-          <div class="bg-white border border-gray-100 rounded-lg p-4">
-            <div class="text-sm font-medium text-gray-700 mb-2">Historical Trend</div>
-            ${trendChartHtml}
+        `;
+      } else {
+        // Show country data with trend chart if selected
+        const trendChartHtml = createTrendChart(countryName);
+        instructionFrame.innerHTML = `
+          <div class="relative animate-fade-in">
+            ${closeButtonHtml}
+            <div class="flex items-center mb-4 pr-7">
+              <h3 class="text-xl font-semibold text-darkgreen">${countryName}</h3>
+              <div class="text-xs text-gray-500 ml-auto">Data for ${selectedYear}</div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2 ${wasteHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
+                  <span class="text-xs uppercase tracking-wide ${wasteHighlight ? 'text-green-800 font-medium' : 'text-gray-500'}">Total Waste</span>
+                  <div class="text-lg ${wasteHighlight ? 'font-bold text-green-600' : 'text-gray-700'}">${wasteData} tonnes</div>
+                </div>
+                <div class="${economicHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
+                  <span class="text-xs uppercase tracking-wide ${economicHighlight ? 'text-amber-800 font-medium' : 'text-gray-500'}">Economic Loss</span>
+                  <div class="text-lg ${economicHighlight ? 'font-bold text-amber-600' : 'text-gray-700'}">${economicData}</div>
+                </div>
+                <div class="${householdHighlight ? 'bg-white rounded-md p-3 shadow-sm' : ''}">
+                  <span class="text-xs uppercase tracking-wide ${householdHighlight ? 'text-purple-800 font-medium' : 'text-gray-500'}">Household Waste</span>
+                  <div class="text-lg ${householdHighlight ? 'font-bold text-purple-600' : 'text-gray-700'}">${householdData}</div>
+                </div>
+                <div class="col-span-2 mt-2">
+                  <span class="text-xs uppercase tracking-wide text-gray-500">Annual Cost per Household</span>
+                  <div class="text-lg text-gray-700 font-medium">${costData}</div>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-lg p-4">
+              <div class="text-sm font-medium text-gray-700 mb-2">Historical Trend</div>
+              ${trendChartHtml}
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      }
     }
     
     // Add event listener to close button
