@@ -6,6 +6,7 @@
 import { Input, Button } from "@heroui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { useRef } from "react";
 
 /**
  * Props for the Search component
@@ -34,6 +35,12 @@ export default function Search({
   inputValue,
   setInputValue
 }: SearchProps) {
+  const searchDivRef = useRef<HTMLDivElement>(null);
+
+  const scrollToSearch = () => {
+    searchDivRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
   };
@@ -42,6 +49,7 @@ export default function Search({
     if (e.key === 'Enter') {
       setSelectedIngredient(null);
       setSearchQuery(inputValue);
+      scrollToSearch();
     }
   };
 
@@ -53,10 +61,11 @@ export default function Search({
   const handleSearchClick = () => {
     setSelectedIngredient(null);
     setSearchQuery(inputValue);
+    scrollToSearch();
   };
 
   return (
-    <div className="mb-8 max-w-xl mx-auto">
+    <div ref={searchDivRef} className="mb-8 max-w-xl mx-auto">
       <div className="relative flex gap-2">
         <Input
           type="text"

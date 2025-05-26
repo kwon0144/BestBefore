@@ -38,6 +38,7 @@ export default function FoodImpact() {
     const costOfFoodWasteRef = useRef<HTMLDivElement>(null);
     const metricCardsRef = useRef<HTMLDivElement>(null);
     const sloganRef = useRef<HTMLDivElement>(null);
+    const emissionsChartRef = useRef<HTMLDivElement>(null);
     
     
     // Track current active section for the navigation highlighting
@@ -160,7 +161,7 @@ export default function FoodImpact() {
 
             {/* Section 3.1: Carbon Emissions Data Visualization */}
             <EmissionsChart setRef={(node) => {
-                environmentalImpactRef.current = node;
+                emissionsChartRef.current = node;
             }} />
 
             {/* Section 4: Global Impact Comparison */}
