@@ -138,7 +138,7 @@ const EnvironmentalImpact: React.FC<EnvironmentalImpactProps> = ({ setRef }) => 
                 ></motion.div>
                 {/* Main title with slide-in animation */}
                 <motion.h2 
-                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-darkgreen tracking-tight"
+                  className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-darkgreen tracking-tight"
                   initial={{ opacity: 0, x: 50 }}
                   whileInView={{ 
                     opacity: 1, 
