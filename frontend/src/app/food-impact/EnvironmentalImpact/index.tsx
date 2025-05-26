@@ -100,71 +100,72 @@ const EnvironmentalImpact: React.FC<EnvironmentalImpactProps> = ({ setRef }) => 
 
   return (
     <>
-      {/* Title section with animated bars */}
-      <motion.div 
-        ref={setRef}
-        id="environmental-impact"
-        className="py-4 md:py-8 px-0"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: false, amount: 0.3 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="w-full space-y-2">
-          {/* Top horizontal bar */}
-          <motion.div 
-            className="w-3/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
-            initial={{ width: 0 }}
-            whileInView={{ 
-              width: "60%",
-              transition: { duration: 0.8 }
-            }}
-            viewport={{ once: false, amount: 0.3 }}
-          ></motion.div>
-          <div className="w-full flex flex-row items-center gap-4 md:gap-12">
-            {/* Left horizontal bar */}
-            <motion.div 
-              className="w-1/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
-              initial={{ width: 0 }}
-              whileInView={{ 
-                width: "10%",
-                transition: { duration: 0.8, delay: 0.2 }
-              }}
-              viewport={{ once: false, amount: 0.3 }}
-            ></motion.div>
-            {/* Main title with slide-in animation */}
-            <motion.h2 
-              className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-darkgreen tracking-tight"
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ 
-                opacity: 1, 
-                x: 0,
-                transition: {
-                  duration: 0.8,
-                  delay: 0.4
-                }
-              }}
-              viewport={{ once: false, amount: 0.3 }}
-            >
-              Environmental Impact
-            </motion.h2> 
-          </div>
-          {/* Bottom horizontal bar */}
-          <motion.div 
-            className="w-3/5 h-12 md:h-24 bg-darkgreen overflow-hidden"
-            initial={{ width: 0 }}
-            whileInView={{ 
-              width: "60%",
-              transition: { duration: 0.8, delay: 0.6 }
-            }}
-            viewport={{ once: false, amount: 0.3 }}
-          ></motion.div>  
-        </div>
-      </motion.div>
-    
       {/* Scrollable content container */}
       <div className="h-auto lg:h-[250vh]" ref={scrollContainerRef}>
+        {/* Sticky container for viewport content */}
         <div className="w-full lg:sticky lg:top-0 lg:left-0 lg:h-screen flex flex-col">
+          {/* Title section with animated bars */}
+          <motion.div 
+            ref={setRef}
+            id="environmental-impact"
+            className="py-4 md:py-8 px-0"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: false, amount: 0.3 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="w-full space-y-2">
+              {/* Top horizontal bar */}
+              <motion.div 
+                className="w-3/5 h-12 md:h-16 bg-darkgreen overflow-hidden"
+                initial={{ width: 0 }}
+                whileInView={{ 
+                  width: "60%",
+                  transition: { duration: 0.8 }
+                }}
+                viewport={{ once: false, amount: 0.3 }}
+              ></motion.div>
+              <div className="w-full flex flex-row items-center gap-4 md:gap-12">
+                {/* Left horizontal bar */}
+                <motion.div 
+                  className="w-1/5 h-12 md:h-16 bg-darkgreen overflow-hidden"
+                  initial={{ width: 0 }}
+                  whileInView={{ 
+                    width: "10%",
+                    transition: { duration: 0.8, delay: 0.2 }
+                  }}
+                  viewport={{ once: false, amount: 0.3 }}
+                ></motion.div>
+                {/* Main title with slide-in animation */}
+                <motion.h2 
+                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-darkgreen tracking-tight"
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ 
+                    opacity: 1, 
+                    x: 0,
+                    transition: {
+                      duration: 0.8,
+                      delay: 0.4
+                    }
+                  }}
+                  viewport={{ once: false, amount: 0.3 }}
+                >
+                  Environmental Impact
+                </motion.h2> 
+              </div>
+              {/* Bottom horizontal bar */}
+              <motion.div 
+                className="w-3/5 h-12 md:h-16 bg-darkgreen overflow-hidden"
+                initial={{ width: 0 }}
+                whileInView={{ 
+                  width: "60%",
+                  transition: { duration: 0.8, delay: 0.6 }
+                }}
+                viewport={{ once: false, amount: 0.3 }}
+              ></motion.div>  
+            </div>
+          </motion.div>
+
           <div className="flex-grow flex items-center justify-center py-4">
             <div className="container mx-auto px-4 md:px-8 max-w-6xl">
               <div className="flex flex-col lg:flex-row gap-6 md:gap-10 h-full">
