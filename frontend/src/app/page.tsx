@@ -6,11 +6,13 @@ import Articles from './(components)/home/Articles';
 
 export default function Home() {
   return (
-    <div>
-      <Hero />
-      <ProblemStatement />
-      <Solution />
-      <Articles />
-    </div>
+    <>
+      <div>
+        <Hero />
+        <ProblemStatement />
+        <Solution />
+        <Articles />
+      </div>
+    </>
   );
 }

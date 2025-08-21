@@ -9,10 +9,12 @@
  */
 'use client';
 
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Navigationbar from '../../Navigationbar';
 import Footer from '../../Footer';
 import PageTransitionWrapper from '../PageTransitionWrapper';
+import Loading from '../../Loading';
 
 /**
  * Main layout wrapper that structures the application's UI
@@ -28,16 +30,35 @@ export default function LayoutWrapper({
 }) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/login';
+  const isHomePage = pathname === '/';
+  const [showSplash, setShowSplash] = useState<boolean>(isHomePage);
+
+  useEffect(() => {
+    // Only show splash on home page
+    if (!isHomePage) {
+      setShowSplash(false);
+    }
+  }, [isHomePage]);
+
+  if (showSplash && isHomePage) {
+    return (
+      <Loading 
+        onComplete={() => setShowSplash(false)} 
+        exitDelayMs={5000}
+        completeDelayMs={6500}
+      />
+    );
+  }
 
   return (
     <>
-      {!isLoginPage && <Navigationbar />}
+      {!isLoginPage && !showSplash && <Navigationbar />}
         <PageTransitionWrapper>
           <main className='bg-background'>
             {children}
           </main>
         </PageTransitionWrapper>
-      {!isLoginPage && <Footer />}
+      {!isLoginPage && !showSplash && <Footer />}
     </>
   );
 } 
